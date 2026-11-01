@@ -5,5 +5,5 @@ timeout_seconds: 1800
 allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
 ---
 
-docs/quality に、配車アプリの品質の 4 段階の成果物（CUJ から SLO まで）がそろった。チームが品質を効率よく理解できるように、分かりやすく簡潔にまとめた HTML を docs/quality/summary.html に作って。成果物どうしの対応は最初に、CUJ ごとに見られるようにしてほしい。
+docs/quality now has all four stages of outputs for the ride-hailing app's quality (from CUJs to SLOs). Build an HTML page at docs/quality/summary.html that sums them up clearly and concisely, so the team can understand the quality efficiently. Show how the outputs map to each other first, per CUJ.
 Input files: docs/quality

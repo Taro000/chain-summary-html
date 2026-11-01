@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-ページで最初に出る表がトレーサビリティの表で、CUJ・QIU・FR・QR・NFR（SLI）の列を持ち、廃止していない QIU 28 件をすべて載せ、廃止した QIU-25・QIU-27 は載せない。
+The first table on the page is the traceability table. It has CUJ, QIU, FR, QR and NFR (SLI) columns, lists all 28 QIUs that are not retired, and does not list the retired QIU-25 and QIU-27.

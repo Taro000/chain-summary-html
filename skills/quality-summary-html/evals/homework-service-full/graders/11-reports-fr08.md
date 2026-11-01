@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-最後の報告で、第 2 段階の報告書の「利用時の品質要求の対応」で QIU-03 の行に FR-08 が抜けていることを利用者に伝えている。
+The final report tells the user that, in the stage 2 report's 「利用時の品質要求の対応」 (quality-in-use coverage) table, FR-08 is missing from the QIU-03 row.

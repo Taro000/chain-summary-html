@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""架空の「課題提出サービス」の成果物（docs/quality）を作る。配車アプリと違う形を試すためのもの。
+"""Build the outputs (docs/quality) of a fictional homework submission service (課題提出サービス),
+to test shapes that the ride-hailing app does not have.
 
   uv run --with pyyaml python3 tests/make_homework_fixture.py
 
-skills/quality-summary-html/evals/ の次の 2 つに書き出す。
-  homework-service-full/files/docs/quality    第 1〜4 段階
-  homework-service-stage2/files/docs/quality  第 1〜2 段階だけ（機能の提案はまだない）
-配車アプリとの違い: 3 桁でない少ない件数、利用者が二人の CUJ、EBP が二つ、締め切りの SLO、
-網羅の確認がひな形どおり CUJ ごとの表、報告書の対応表に FR の抜けが一つ（食い違いとして見つかるはず）。
+Writes to these two directories under skills/quality-summary-html/evals/:
+  homework-service-full/files/docs/quality    stages 1 to 4
+  homework-service-stage2/files/docs/quality  stages 1 and 2 only (no function proposals yet)
+How it differs from the ride-hailing app: few items, a CUJ with two users, two EBPs, a deadline SLO,
+a coverage check written per CUJ as the template does, and one FR missing from the report's coverage
+table (the script should report it as an inconsistency).
 """
 import pathlib
 import shutil

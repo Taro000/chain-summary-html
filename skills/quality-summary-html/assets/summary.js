@@ -49,7 +49,7 @@
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hide(); });
   window.addEventListener('scroll', hide, true);
 
-  // 並べ替え: 1 回目は昇順（点は降順）、2 回目は逆、3 回目で元の順に戻す
+  // Sorting: the first click sorts ascending (score descending), the second reverses, the third restores the original order
   document.querySelectorAll('table[data-sortable]').forEach(function(t){
     var body = t.tBodies[0];
     var rows = Array.prototype.slice.call(body.rows);

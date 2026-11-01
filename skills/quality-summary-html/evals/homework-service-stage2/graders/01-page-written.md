@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-docs/quality/summary.html が HTML のファイルとして書かれている。
+docs/quality/summary.html is written as an HTML file.

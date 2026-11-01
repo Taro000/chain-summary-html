@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-ページはライトモードだけで作られている（ダークモード用のスタイルがない）。
+The page is built for light mode only (it has no dark mode styles).

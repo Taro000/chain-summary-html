@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-第 3・4 段階の成果物がまだないことを、ページか最後の報告ではっきり伝え、失敗せずにページを作っている。
+The page or the final report clearly says that the stage 3 and 4 outputs do not exist yet, and the page is built without failing.

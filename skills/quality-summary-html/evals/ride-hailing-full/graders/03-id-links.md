@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-表に出てくる QR と QIU の ID は、ページ内のその行へのリンクになっていて、ページ内のリンクはすべて行き先がある。
+Every QR and QIU ID in the tables links to that item's row on the page, and every in-page link has a target.

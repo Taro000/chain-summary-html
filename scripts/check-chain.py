@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""cuj-to-slo の用語集と artifacts.md に、この skill が頼っているものがまだあるかを確かめる。
+"""Check that the cuj-to-slo glossary and artifacts.md still contain what this skill relies on.
 
   python3 scripts/check-chain.py [CUJ_TO_SLO]
 
-CUJ_TO_SLO は cuj-to-slo のリポジトリか、入れた skill のディレクトリ（references/ に用語集がある）。
-既定は環境変数 CUJ_TO_SLO、なければこのリポジトリの隣の quality-kpi-skills。
-確かめること:
-  - assets/terms.ja.json の日本語の用語と、特性の英語の名前が、用語集（glossary.md）にある
-  - build_summary.py が読む YAML のキーと、日本語にする英語の値が、artifacts.md にある
-食い違いがあれば一覧を出して 1 で終わる。cuj-to-slo を直したら、ここで確かめてから terms.ja.json や生成スクリプトを合わせる。
+CUJ_TO_SLO is the cuj-to-slo repository or an installed skill directory (with the glossary under references/).
+It defaults to the CUJ_TO_SLO environment variable, or else quality-kpi-skills next to this repository.
+What it checks:
+  - the Japanese terms in assets/terms.ja.json and the English characteristic names are in the glossary (glossary.md)
+  - the YAML keys build_summary.py reads and the English values it translates are in artifacts.md
+If anything disagrees, it lists the problems and exits with 1. After cuj-to-slo changes, run this first,
+then update terms.ja.json and the build script to match.
 """
 import json
 import os
@@ -18,7 +19,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TERMS = ROOT / 'skills' / 'quality-summary-html' / 'assets' / 'terms.ja.json'
-# build_summary.py が読むキー。足したら、ここにも足す
+# Keys build_summary.py reads. When the script reads a new key, add it here too
 KEYS = '''system name data_producers kgis measure target outcomes statement verb users category data_role considered
 exclusion_reason basis basis_note cujs user_goal steps id title status changelog date user cuj context_of_use characteristic
 failure_scenario numerator denominator narrowed_to observable kpi outcome overlaps_with origin cuj_step traces_to proposal
@@ -26,7 +27,7 @@ extends acceptance_criteria model layer applies_to entry_point type source score
 implies_internal conflicts with from kind slo sli target_status window error_budget error_budget_volume policy alerts notify
 long_window short_window burn_rate budget_spent_at_alert bad_run_budget_share progress_alert after_miss gate where check audit
 mechanism cadence_or_deadline monitor signal notifies function refs method elements definition applies_to rules when action'''.split()
-# 英語の値を見ない対応表（中身が YAML の値でないもの）
+# Term tables whose English keys are not checked (their keys are not YAML values)
 NOT_ENUM = {'_about', 'characteristic', 'product_model', 'data_model'}
 
 

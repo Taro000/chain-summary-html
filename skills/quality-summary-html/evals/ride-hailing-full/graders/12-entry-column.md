@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-製品の品質のマトリクスに、入口（法令、開発方針など）から来た QR の列があり、入口の QR（QR-36・38・41・42・47・48）がそれぞれの副特性の行に載っている。
+The product quality matrix has a column for QRs that come from an entry point (laws, development policies and so on), and each entry-point QR (QR-36, 38, 41, 42, 47 and 48) is on the row of its sub-characteristic.

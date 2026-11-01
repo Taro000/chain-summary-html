@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""試走の結果を、テストケースの採点の文に照らして採点し、各試走の grading.json を書く。
+"""Grade eval runs against each test case's grader statements and write grading.json for every run.
 
   uv run --with pyyaml python3 tests/grade_eval.py <workspace>/iteration-N
 
-skill-creator の手順の「Grade each run」に当たる。試走は <テストケース>/<構成>/outputs/ に
-summary.html（作ったページ）と report.md（利用者への最後の報告）を置いたもの。採点の文は
-skills/quality-summary-html/evals/<テストケース>/graders/ にあり、ファイル名の後半（page-written など）で調べ方を選ぶ。
-skill なしの試走は別の作り方をするので、マークアップの細部ではなく、文が言う性質を見る。
+This is the "Grade each run" step of the skill-creator workflow. A run is <case>/<config>/outputs/
+holding summary.html (the page it built) and report.md (its final report to the user). The grader
+statements live in skills/quality-summary-html/evals/<case>/graders/, and the second half of each file
+name (page-written and so on) selects the check. Runs without the skill build the page differently,
+so the checks look at the property a statement describes, not at markup details.
 """
 import html.parser
 import importlib.util
@@ -105,11 +106,11 @@ class Run:
         self.ids = {n.attrs.get('id') for n in self.tree.walk() if n.attrs.get('id')}
         self.full = (self.docs / 'nfr').is_dir()
 
-    # 採点の文ごとの調べ方。返すのは (通ったか, 根拠)
+    # One check per grader statement. Each returns (passed, evidence)
     def page_written(self):
         return bool(self.src and self.tables), 'summary.html %d 字、表 %d 個' % (len(self.src), len(self.tables))
 
-    # 列の見出しは略語でも日本語でもよい（「機能要件」は FR、「利用時の品質要求」は QIU）
+    # Column heads may be abbreviations or Japanese (「機能要件」 is FR, 「利用時の品質要求」 is QIU)
     COLS = {
         'CUJ': lambda h: 'CUJ' in h,
         'QIU': lambda h: 'QIU' in h or '利用時の品質' in h,
@@ -227,14 +228,19 @@ class Run:
         return ok, '報告に FR-52: %s、挙げた QIU: %s' % ('FR-52' in self.report, sorted(qs) or 'なし')
 
     def reports_fr52_step(self):
-        # FR-52 と手順の表、CUJ-06 か「配車依頼を選ぶ」が、近い行（その行と次の 2 行）に出てくる
+        # FR-52, the step table (手順 or "step", since the report may be in English), and CUJ-06 or 「配車依頼を選ぶ」
+        # appear close together (that line and the next two)
         lines = self.report.splitlines()
-        hit = next((ln for i, ln in enumerate(lines) if 'FR-52' in ln and '手順' in ' '.join(lines[i:i + 3])
-                    and ('CUJ-06' in ' '.join(lines[i:i + 3]) or '配車依頼を選ぶ' in ' '.join(lines[i:i + 3]))), None)
+
+        def near(i):
+            w = ' '.join(lines[i:i + 3])
+            return ('手順' in w or re.search(r'\bsteps?\b', w, re.I)) and ('CUJ-06' in w or '配車依頼を選ぶ' in w)
+        hit = next((ln for i, ln in enumerate(lines) if 'FR-52' in ln and near(i)), None)
         return hit is not None, '手順の表の FR-52 に触れた行: %s' % (hit.strip()[:120] if hit else 'なし')
 
     def entry_column(self):
-        # 製品の品質のマトリクス（副特性の列を持つ表）の入口の列の、各 QR の副特性の行に、その QR がある
+        # In the product quality matrix (the table with a 副特性 / sub-characteristic column), each entry-point QR
+        # appears in the entry column (入口) on the row of its sub-characteristic
         want = []
         for p in sorted((self.docs / 'qr').glob('*.yaml')):
             d = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
@@ -248,7 +254,7 @@ class Run:
             ent = [j for j, n in enumerate(names) if '入口' in n or '経由しない' in n]
             if not ent:
                 return False, '製品の品質のマトリクスに入口の列がない（見出し: %s）' % names[:5]
-            k, miss = len(names) - ent[0], []  # 特性の列は rowspan なので、列の位置は右から数える
+            k, miss = len(names) - ent[0], []  # the characteristic column uses rowspan, so count column positions from the right
             for q, sub in want:
                 row = next((r for r in body_rows(t) if any(isinstance(c, Node) and c.tag == 'th' and c.text().strip() == sub for c in r.kids)), None)
                 cells = [c for c in row.kids if isinstance(c, Node) and c.tag in ('td', 'th')] if row else []
@@ -263,8 +269,9 @@ class Run:
 
     def missing_stages(self):
         txt = self.report + '\n' + self.tree.text()
-        says3 = re.search(r'(第\s*3|3\s*[・、〜~と]\s*(第\s*)?4|stage\s*3)', txt, re.I)
-        says_missing = re.search(r'(まだ|ない|未|ありません|含まれていません|省)', txt)
+        # Japanese or English, since the page is Japanese and the report may be in either
+        says3 = re.search(r'(第\s*3|3\s*[・、〜~と]\s*(第\s*)?4|stages?\s*3)', txt, re.I)
+        says_missing = re.search(r'(まだ|ない|未|ありません|含まれていません|省|missing|not yet|absent|left out|not (?:been )?run)', txt, re.I)
         ok = bool(self.src and self.tables and says3 and says_missing)
         return ok, '第 3・4 段階に触れている: %s、ないことを言う語: %s' % (bool(says3), bool(says_missing))
 
@@ -277,7 +284,7 @@ def grade(run_dir, case):
         slug = g.stem.split('-', 1)[1].replace('-', '_')
         try:
             ok, ev = getattr(r, slug)()
-        except Exception as e:  # 採点の失敗は、その文の不合格として記録する
+        except Exception as e:  # a check that crashes counts as a failed statement
             ok, ev = False, '採点できなかった: %r' % e
         exps.append({'text': text, 'passed': bool(ok), 'evidence': ev})
     passed = sum(e['passed'] for e in exps)

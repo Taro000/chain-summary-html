@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-製品の品質のマトリクスに、入口（法令、開発方針など）から来た QR の列があり、法令から来た QR-09 が機密性の行に載っている。
+The product quality matrix has a column for QRs that come from an entry point (laws, development policies and so on), and QR-09, which comes from a law, is on the 機密性 (confidentiality) row.

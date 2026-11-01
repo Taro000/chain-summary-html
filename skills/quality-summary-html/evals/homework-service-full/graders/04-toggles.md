@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-トレーサビリティの表のほかの表は、それぞれ開閉できるトグル（details など）に入っていて、最初は閉じている。
+Every table other than the traceability table is in its own collapsible toggle (such as details), closed at first.

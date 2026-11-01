@@ -1,4 +1,4 @@
-"""生成スクリプトのテスト。PyYAML が要るので、リポジトリの直下で次のように実行する。
+"""Tests for the build script. They need PyYAML; run them from the repository root like this:
 
   uv run --with pyyaml python3 -m unittest discover -s tests -v
 """
@@ -41,7 +41,8 @@ def heads(block):
 
 
 def entry_cell(page, tid, sub):
-    """マトリクスの「入口」の列の、副特性（データの品質では特性）が sub の行にある QR"""
+    """QRs in the matrix's 「入口」 (entry) column, on the row whose sub-characteristic
+    (characteristic, for data quality) is sub"""
     for row in re.findall(r'<tr>(.*?)</tr>', toggle(page, tid), re.S):
         if 'class="mx-sub">%s<' % sub in row:
             m = re.search(r'<td class="mx-c mx-ent">(.*?)</td>', row, re.S)
@@ -98,7 +99,7 @@ class Markdown(unittest.TestCase):
 
 
 class Page(unittest.TestCase):
-    """架空の PJ（第 1〜4 段階）"""
+    """The fictional project (stages 1 to 4)"""
     case = 'homework-service-full'
 
     @classmethod
@@ -127,7 +128,7 @@ class Page(unittest.TestCase):
         self.assertEqual(heads(trace), ['CUJ', 'QIU', 'FR', 'QR', 'NFR / SLI'])
         for q in ('QIU-01', 'QIU-02', 'QIU-03', 'QIU-04', 'QIU-05'):
             self.assertIn('href="#%s"' % q, trace)
-        self.assertNotIn('QIU-06', trace)  # 廃止
+        self.assertNotIn('QIU-06', trace)  # retired
 
     def test_every_other_table_is_closed(self):
         tids = re.findall(r'<details class="tbl" id="([^"]+)"([^>]*)>', self.page)
@@ -214,7 +215,7 @@ class MissingInputs(unittest.TestCase):
 
 
 class StepTable(unittest.TestCase):
-    """第 2 段階の「CUJ の手順ごとの機能」と、FR の cuj・cuj_step の突き合わせ"""
+    """Compares stage 2's 「CUJ の手順ごとの機能」 (functions by CUJ step) with each FR's cuj and cuj_step"""
     TABLE = '''
 ## CUJ の手順ごとの機能
 
@@ -261,7 +262,7 @@ class RideHailing(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn('トレーサビリティ: QIU の行 28、入口 9', r.stdout)
         self.assertEqual(len(re.findall(r'YAML だけ: FR-52', r.stdout)), 4)
-        # 手順ごとの表で食い違うのは FR-52 だけ。迎車の行、CUJ-11〜13 の行、CUJ のない FR は食い違いにしない
+        # In the step table only FR-52 disagrees. The pickup row, the CUJ-11 to 13 rows and FRs without a CUJ are not reported
         steps = [ln for ln in r.stdout.splitlines() if '「CUJ の手順ごとの機能」' in ln]
         self.assertEqual(len(steps), 1, '\n'.join(steps))
         self.assertIn('FR-52: ', steps[0])

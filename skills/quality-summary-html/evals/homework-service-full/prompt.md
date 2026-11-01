@@ -5,5 +5,5 @@ timeout_seconds: 1800
 allowed_tools: [Read, Glob, Grep, Skill, Write, Edit, Bash]
 ---
 
-課題提出サービスの品質のチェーンを第 4 段階まで回した。docs/quality の中身を 1 枚の HTML にまとめて、チームに見せたい。CUJ から SLO までの対応が最初に分かるようにして。
+I ran the quality chain for the homework submission service through stage 4. Put what is in docs/quality together into one HTML page that I can show the team. Make the mapping from CUJs to SLOs clear first.
 Input files: docs/quality

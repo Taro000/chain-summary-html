@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""cuj-to-slo の 4 段階の成果物（docs/quality）から、品質の要約の HTML を 1 枚作る。
+"""Builds one quality summary HTML page from the outputs of the four cuj-to-slo stages (docs/quality).
 
   uv run --with pyyaml python3 build_summary.py [DOCS] [--out PATH] [--title TITLE]
 
-DOCS は成果物のディレクトリ（既定は ./docs/quality）。--out の既定は DOCS/summary.html。
---title の既定は、context.yaml の system.name から作る「<名前>の品質」。
+DOCS is the outputs directory (default ./docs/quality). --out defaults to DOCS/summary.html.
+--title defaults to 「<name>の品質」 ("quality of <name>"), built from system.name in context.yaml.
 
-表は YAML の項目（artifacts.md）から作る。報告書（Markdown）は、段階の表題と、報告書にしかない表
-（対象にしない、検討して加えなかった機能、外部品質から導いた内部品質の説明、データの種類、範囲外）にだけ使い、
-見つからなければその表を省いて報告する。YAML と突き合わせる報告書の表（利用時の品質要求の対応、CUJ の手順ごとの機能、
-外部品質から導いた内部品質、割り当て）は、見つからなければ突き合わせなかったと報告する。同じ入力からは同じ HTML ができる。
-終了コード: 0 は書き出した（食い違いがあっても 0）、2 は入力の誤り、1 はできた HTML の自己点検の失敗。
+Tables are built from the YAML items (artifacts.md). The Markdown reports are used only for each stage's title
+and for the tables that exist only in the reports (not targeted, functions considered and not added, the explanation
+of internal quality derived from external quality, kinds of data, out of scope); a table that is not found is left
+out and reported. The report tables compared with the YAML (quality-in-use coverage, functions by CUJ step,
+internal quality derived from external quality, allocation) are reported as not compared when they are not found.
+The same input always produces the same HTML.
+Exit codes: 0 means the page was written (0 even when there are inconsistencies), 2 means an input error,
+1 means the written HTML failed its own check.
 """
 import argparse
 import html
@@ -33,7 +36,7 @@ HANDLINGS = ('emphasized', 'minimum-line', 'excluded')
 HCLS = {'emphasized': 'qr-emph', 'minimum-line': 'qr-base', 'excluded': 'qr-out'}
 NFR_KINDS = ('slo', 'gate', 'audit', 'monitor')
 CONTEXT_KEYS = ('device', 'network', 'user_type', 'task', 'environment', 'other')
-# 報告書にしかない表: (段階, 見出しの候補, 最低限の列の数)。見出しは用語集の日本語と、ひな形の英語
+# Report-only tables: (stage, candidate headings, minimum number of columns). Headings are the glossary's Japanese and the template's English
 EXTRA = {
     'excl': (1, ('対象にしない', 'Not targeted'), 3),
     'coverage': (2, ('利用時の品質要求の対応', 'Quality-in-use coverage'), 3),
@@ -54,7 +57,7 @@ def die(msg, code=2):
     sys.exit(code)
 
 
-# ---------- 値と用語 ----------
+# ---------- Values and terms ----------
 def s(v):
     if v is None:
         return ''
@@ -72,7 +75,7 @@ def L(v):
 
 
 def term(group, v, strict=True):
-    """YAML の英語の値を用語集の日本語にする。表にない値はそのまま返し、strict なら報告に出す"""
+    """Turns an English YAML value into the glossary's Japanese. A value not in the table is returned as is, and reported when strict"""
     if v is None or v == '':
         return ''
     got = TERMS[group].get(s(v))
@@ -130,7 +133,7 @@ def context_text(cu):
 
 
 def sli_parts(x):
-    """SLI の良いイベントと有効なイベントの定義。function（OK ÷ VALID など）で要素を選ぶ"""
+    """Definitions of an SLI's good events and valid events. The elements are chosen by function (such as OK ÷ VALID)"""
     el = x.get('elements') if isinstance(x.get('elements'), dict) else {}
     m = re.match(r'^\s*([A-Za-z_][\w-]*)\s*(?:÷|/)\s*([A-Za-z_][\w-]*)\s*$', s(x.get('function')))
     num, den = (m.group(1), m.group(2)) if m else (next((k for k in el if k.upper() != 'VALID'), 'GOOD'), 'VALID')
@@ -176,7 +179,7 @@ RANGE_SEP = ('〜', '～')
 
 
 def id_runs(text):
-    """ID の並びを (開始, 終了, 接頭辞, [(区切り, 番号, 表示)]) で返す。「QR-36〜42・47」の省いた接頭辞も読む"""
+    """Yields runs of IDs as (start, end, prefix, [(separator, number, display)]). Also reads omitted prefixes, as in 「QR-36〜42・47」"""
     pos = 0
     while True:
         m = ID_HEAD.search(text, pos)
@@ -201,7 +204,7 @@ def id_runs(text):
 
 
 def ids_in(text, prefix=None):
-    """文の中の ID を、範囲（〜）を広げて出てきた順に返す"""
+    """Returns the IDs in a text in order of appearance, expanding ranges (〜)"""
     out = []
     for _, _, p, parts in id_runs(s(text)):
         if prefix and p != prefix:
@@ -223,18 +226,18 @@ def id_key(i):
     return (m.group(1), int(m.group(2))) if m else (s(i), 0)
 
 
-# ---------- 報告書 ----------
+# ---------- Reports ----------
 def norm(t):
     return re.sub(r'[\s　]+', ' ', s(t)).lower()
 
 
 def step_key(t):
-    """CUJ の手順の比べ方。全角と半角、空白の違いは見ない"""
+    """Key for comparing CUJ steps. Ignores full-width vs half-width forms and whitespace"""
     return re.sub(r'\s+', '', unicodedata.normalize('NFKC', s(t)))
 
 
 def section(text, aliases):
-    """見出しが aliases のどれかに当たる節の本文（同じか上の階層の次の見出しまで）。なければ None"""
+    """Body of the section whose heading matches one of aliases (up to the next heading at the same or a higher level). None if there is none"""
     al = {norm(x) for x in aliases}
     lines = (text or '').splitlines()
     for k, ln in enumerate(lines):
@@ -259,7 +262,7 @@ def split_row(ln):
 
 
 def md_tables(text):
-    """本文の中の表を (見出しの行, 本体の行) で返す。行はセルのリスト"""
+    """Returns the tables in a text as (header row, body rows). A row is a list of cells"""
     res, cur = [], []
     for ln in (text or '').splitlines() + ['']:
         if ln.lstrip().startswith('|'):
@@ -272,12 +275,12 @@ def md_tables(text):
 
 
 def col(head, names, default):
-    """見出しが names のどれかに当たる列の位置。なければ default"""
+    """Index of the column whose heading matches one of names. default if there is none"""
     return next((j for j, h in enumerate(head) if norm(h) in names), default)
 
 
 def line_value(text, labels):
-    """「ラベル: 値」の行の値。なければ None"""
+    """Value of a 「label: value」 line. None if there is none"""
     al = {norm(x) for x in labels}
     for ln in (text or '').splitlines():
         m = re.match(r'^\s*(?:[-*]\s+)?(?:\*\*)?([^:：*|#]+?)(?:\*\*)?\s*[:：]\s*(.+)$', ln)
@@ -286,7 +289,7 @@ def line_value(text, labels):
     return None
 
 
-# ---------- HTML の部品 ----------
+# ---------- HTML parts ----------
 def esc(v):
     return html.escape(s(v), quote=False)
 
@@ -304,7 +307,7 @@ def wrap(t):
 
 
 def tbl(cols, rows, cls=''):
-    """cols は [(見出し, 幅の class)]、rows は [(行の id, [セルの HTML])]。空のセルは「—」"""
+    """cols is [(heading, width class)], rows is [(row id, [cell HTML])]. An empty cell shows 「—」"""
     th = ''.join('<th scope="col" class="%s">%s</th>' % (w, esc(c)) for c, w in cols)
     body = []
     for rid, cells in rows:
@@ -348,7 +351,7 @@ def ul(items):
     return '<ul>' + ''.join('<li>%s</li>' % esc(x) for x in items) + '</ul>'
 
 
-# ---------- HTML作成時の要件 ----------
+# ---------- 「HTML作成時の要件」 (requirements for building the HTML) ----------
 PURPOSE = ['人がこのシステムの品質について効率的に理解する。']
 REQS = [
     '第 1 段階: 事業の要求（KGI と中間成果）、利用者、CUJ、利用時の品質要求、失敗のシナリオと測定量、対象にしない、'
@@ -392,7 +395,7 @@ class Build:
         self.check()
         self.title = title or self.default_title()
 
-    # ---------- 読み込み ----------
+    # ---------- Loading ----------
     def read_yaml(self, p):
         try:
             return self.yaml.safe_load(p.read_text(encoding='utf-8'))
@@ -454,7 +457,7 @@ class Build:
         self.used.append(label)
         return got[1]
 
-    # ---------- 関係 ----------
+    # ---------- Relations ----------
     def relate(self):
         self.qius, self.kpis, self.frs = self.live('qiu'), self.live('kpi'), self.live('fr')
         self.qrs, self.nfrs, self.slis, self.ebps = self.live('qr'), self.live('nfr'), self.live('sli'), self.live('ebp')
@@ -527,7 +530,7 @@ class Build:
         h = self.handling.get(q, '')
         return (HANDLINGS.index(h) if h in HANDLINGS else 3, q in self.internal, id_key(q))
 
-    # ---------- 成果物どうしの突き合わせ ----------
+    # ---------- Cross-checking the outputs ----------
     def check(self):
         known = {x['id']: 'live' for x in self.kgis + self.outs + self.users + self.cujs}
         for kind in KINDS:
@@ -592,7 +595,7 @@ class Build:
             if k in self.kpi_ids and q['id'] not in L(self.items['kpi'][k].get('overlaps_with')):
                 self.issues.append('%s の kpi は %s だが、%s の overlaps_with に %s がない' % (q['id'], k, k, q['id']))
 
-        # 報告書の表と YAML。突き合わせる段階があるのに表が見つからなければ、突き合わせなかったと報告する
+        # Report tables against the YAML. If the stage to compare exists but its table is not found, report that it was not compared
         def compared(key, label, needed):
             got = self.extra(key)
             if got:
@@ -634,8 +637,9 @@ class Build:
             self.notes.append('報告書にあって YAML にない ID: ' + '、'.join(only))
 
     def check_steps(self, head, rows):
-        """第 2 段階の「CUJ の手順ごとの機能」の位置と、FR の cuj・cuj_step。
-        CUJ のない行（「どの CUJ にもない」など）と、YAML に cuj のない FR は比べない。CUJ の欄が空の行は上の行の CUJ"""
+        """Compares where stage 2's 「CUJ の手順ごとの機能」 (functions by CUJ step) lists each FR with the FR's cuj and cuj_step.
+        Rows without a CUJ (such as 「どの CUJ にもない」, in no CUJ) and FRs without cuj in the YAML are not compared.
+        A row with an empty CUJ cell takes the CUJ of the row above"""
         fc, sc = col(head, ('fr', 'frs', '機能要件'), 2), col(head, ('手順', 'step', 'steps'), 1)
         steps = {c['id']: {step_key(x): x for x in L(c.get('steps'))} for c in self.cujs}
         pos, cur = defaultdict(set), []
@@ -648,7 +652,7 @@ class Build:
             if t and not t.startswith(('（', '(')) and t.lower() not in ('—', '–', '-', 'なし', 'none', 'n/a'):
                 k = step_key(t)
                 if not any(k in steps[c] for c in cur):
-                    # 位置が分からないので、この行の FR はこの 1 件にまとめて報告する
+                    # The position is unknown, so the FRs in this row are covered by this single report
                     self.issues.append('%s の「CUJ の手順ごとの機能」の手順「%s」が、%s の手順（context.yaml）にない'
                                        % (REPORTS[2], t, '、'.join(cur)))
                     k = None
@@ -666,7 +670,7 @@ class Build:
             c, k = s(f.get('cuj')), step_key(f.get('cuj_step'))
             if c not in steps:
                 continue
-            k = k if k in steps[c] else ''  # 手順にない cuj_step は、上の参照の確かめで報告している
+            k = k if k in steps[c] else ''  # a cuj_step that is not one of the steps is already reported by the reference check above
             mine = {p for p in pos[f['id']] if p[0] == c}
             if (c, None) in mine or ((c, k) in mine if k else mine):
                 continue
@@ -674,7 +678,7 @@ class Build:
             self.issues.append('%s: %s の「CUJ の手順ごとの機能」の位置と、FR の YAML の cuj と cuj_step が違う（報告書: %s、YAML: %s）'
                                % (f['id'], REPORTS[2], '、'.join(where(*p) for p in rep) or '載っていない', where(c, k)))
 
-    # ---------- 見出しと日付 ----------
+    # ---------- Title and date ----------
     def default_title(self):
         name = re.sub(r'\s*[（(][^（）()]*[）)]\s*$', '', s(self.system.get('name')))
         return (name or self.docs.parent.parent.name) + 'の品質'
@@ -695,7 +699,7 @@ class Build:
                         ds.append(s(c.get('date'))[:10])
         return max(ds) if ds else ''
 
-    # ---------- リンクとツールチップ ----------
+    # ---------- Links and tooltips ----------
     def prepare_links(self):
         A = {x['id'] for x in self.kgis + self.outs + self.users + self.cujs} | set(self.qiu_by) | self.kpi_ids
         if self.has[2]:
@@ -808,7 +812,7 @@ class Build:
             self.toc[n].append((tid, title))
         return toggle(tid, title, count, body, open_)
 
-    # ---------- トレーサビリティ ----------
+    # ---------- Traceability ----------
     def qr_line(self, q):
         tag = '<span class="tag">内部</span>' if q in self.internal else ''
         return '<div class="qr-line">%s<span class="qr-name">%s%s</span></div>' % (self.a(q, chip=True), esc(self.TITLE.get(q)), tag)
@@ -892,7 +896,7 @@ class Build:
         self.n_trace = n_rows
         return ''.join(out)
 
-    # ---------- 図 ----------
+    # ---------- Figures ----------
     def route(self):
         stops = [
             ('t-business', 1, '事業の要求', len(self.kgis), 'KGI', dots(['中間成果 %d' % len(self.outs), 'KPI %d' % len(self.kpis)])),
@@ -964,15 +968,17 @@ class Build:
                             esc(self.TITLE.get(sli) or self.TITLE.get(n['id'])), esc(meta)))
         return '<div class="slo-cards">%s</div>' % ''.join(items)
 
-    # ---------- マトリクス ----------
+    # ---------- Matrices ----------
     def matrix(self, model):
         if model == 'product':
             rows_def = [(t, sub) for t, subs in TERMS['product_model'] for sub in subs]
         else:
             rows_def = [(t, None) for t in TERMS['data_model']]
-        # 網羅の確認と同じく外部品質だけを置く。内部品質は「外部品質から導いた内部品質」に載せる。
-        # 入口から来た QR は CUJ を持たないので、CUJ の列の前の「入口」の列（列の鍵は None）に置く。
-        # マトリクスは画面より広くなりやすく、最後の列だと横に送るまで見えない
+        # As in the coverage checklist, only external quality is placed. Internal quality goes in
+        # 「外部品質から導いた内部品質」 (internal quality derived from external quality).
+        # QRs from an entry point have no CUJ, so they go in the 「入口」 (entry point) column before the CUJ
+        # columns (its column key is None). The matrix is often wider than the screen, and a last column
+        # stays hidden until the reader scrolls sideways
         valid, cells, unplaced, ents = set(rows_def), defaultdict(list), [], []
         for q in self.qrs:
             if s(q.get('model')) != model or q['id'] in self.internal:
@@ -1042,7 +1048,7 @@ class Build:
                 '<li><span class="who">%s</span>%s</li>' % (esc(w), self.cell(d)) if d else '<li>%s</li>' % self.cell(w) for w, d in who)
         return top, bottom
 
-    # ---------- 段階ごとの表 ----------
+    # ---------- Tables by stage ----------
     def stage1(self):
         P = []
         kg = tbl([('ID', 'w-id'), ('KGI', 'w-s'), ('測定量', 'w-m'), ('目標値', 'w-l')],
@@ -1082,7 +1088,7 @@ class Build:
         return P
 
     def formula_rows(self):
-        """KPI の式、中間成果はあるが KPI のない QIU の式、どちらもない QIU（1 行にまとめる）の順"""
+        """In this order: KPI formulas, formulas of QIUs with an intermediate outcome but no KPI, and QIUs with neither (combined into one row)"""
         rows, rest = [], []
         for k in self.kpis:
             nar = ''.join('<div class="nr">%s %s</div>' % (self.a(x), self.cell(self.measure(x).get('narrowed_to')))
@@ -1291,7 +1297,7 @@ class Build:
             return self.cell(g.get('signal')) + sub(g.get('notifies'))
         return ''
 
-    # ---------- ページ ----------
+    # ---------- Page ----------
     def git(self, *args):
         try:
             r = subprocess.run(['git', '-C', str(self.docs)] + list(args), capture_output=True, text=True, timeout=10)
@@ -1366,7 +1372,7 @@ class Build:
             toggle('t-req', 'HTML作成時の要件', 'quality-summary-html', req), '</section>\n</main>\n</div>\n',
             '<script>\n', js, '</script>\n</body>\n</html>\n'])
 
-    # ---------- 報告 ----------
+    # ---------- Report ----------
     def report(self, out, page, problems):
         print('書き出し: %s（%d KB）' % (out, len(page.encode('utf-8')) // 1024))
         print('段階: %s（ない段階: %s）' % ('、'.join(str(n) for n in (1, 2, 3, 4) if self.has[n]),

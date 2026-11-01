@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-最後の報告で、第 2 段階の報告書の「利用時の品質要求の対応」の表に FR-52 が抜けていること（QIU-04・11・15・17）を利用者に伝えている。
+The final report tells the user that FR-52 is missing from the stage 2 report's 「利用時の品質要求の対応」 (quality-in-use coverage) table (QIU-04, 11, 15 and 17).
