@@ -1,0 +1,26 @@
+id: QR-13
+title: Restoring submissions
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+model: data
+layer: data-system-dependent
+characteristic: recoverability
+statement: A lost submission can be restored for a year after it was made.
+applies_to: [FR-01]
+traces_to: []
+entry_point: {type: policy, source: 'Development policy: keep submissions for a year', brought_by: Product owner}
+stakeholders: [USR-01]
+failure_scenario: A storage failure loses submissions, and with them the evidence for grades.
+score: {impact: 3, likelihood: 1}
+handling: minimum-line
+handling_reason: It comes from a development policy, so it stays whatever its score.
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}

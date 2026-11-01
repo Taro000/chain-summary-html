@@ -6,7 +6,7 @@ A Claude skill that builds one quality summary page in HTML (`docs/quality/summa
 
 The page exists so that people can understand a system's quality efficiently. It opens with a CUJ-by-CUJ traceability table (CUJ → QIU → FR → QR → NFR / SLI), followed by the tables of stages 1 to 4 in toggles. IDs in the tables link to their rows, and the page adds an impact × likelihood chart, product quality and data quality matrices, and SLO cards.
 
-A bundled script renders the page from the YAML items, so every project, and every re-run of a stage, gets a page with the same layout. The page itself is in Japanese.
+A bundled script renders the page from the YAML items, so every project, and every re-run of a stage, gets a page with the same layout. The page is written in the language of the outputs: Japanese for outputs written in Japanese, English for any other language.
 
 ## Requirements
 
@@ -33,7 +33,7 @@ cp -R skills/quality-summary-html ~/.claude/skills/
 ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
 ```
 
-Either way, `evals/` comes along. It holds test outputs (about 1.4 MB) and can be deleted if you only use the skill.
+Either way, `evals/` comes along. It holds test outputs (about 1.7 MB) and can be deleted if you only use the skill.
 
 ## Usage
 
@@ -42,10 +42,12 @@ Ask Claude something like "summarize the outputs in docs/quality as HTML", and i
 ```bash
 uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
 # Change the output path and the title
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title 配車アプリの品質
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title "Ride-hailing app quality"
+# Build the page in English even though the outputs are in Japanese (labels only; the content stays as written)
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --lang en
 ```
 
-Besides writing the page, the script prints to standard output the inconsistencies between the outputs (report tables that differ from the YAML, references to retired items, and so on), the report-only tables it could not find and left out, and the report tables it could not find and so did not compare with the YAML.
+Besides writing the page, the script prints to standard output, in the page's language, the inconsistencies between the outputs (report tables that differ from the YAML, references to retired items, and so on), the report-only tables it could not find and left out, and the report tables it could not find and so did not compare with the YAML.
 
 ## Layout
 
@@ -53,9 +55,9 @@ Besides writing the page, the script prints to standard output the inconsistenci
 skills/quality-summary-html/
 ├── SKILL.md                    instructions for Claude
 ├── scripts/build_summary.py    the generator (builds the tables with the YAML as the source of truth)
-├── assets/                     look (summary.css, summary.js) and the term table (terms.ja.json)
-├── references/page-spec.md     page specification: tables and columns, sources, what is left out, how to change it
-└── evals/                      three test cases (ride-hailing app; a fictional homework submission service, all stages and up to stage 2)
+├── assets/                     look (summary.css, summary.js) and wording per language (lang/ja.json, lang/en.json: terms, labels, report messages)
+├── references/page-spec.md     page specification: language, tables and columns, sources, what is left out, how to change it
+└── evals/                      four test cases (ride-hailing app; a fictional homework submission service: all stages, up to stage 2, and all stages in English)
 scripts/check-chain.py          checks for drift from the cuj-to-slo glossary and artifacts.md
 tests/                          automated tests, and a script that builds the fictional project's outputs
 ```
@@ -72,12 +74,13 @@ python3 scripts/check-chain.py [the cuj-to-slo repository, or an installed skill
 uv run --with pyyaml python3 tests/make_homework_fixture.py
 ```
 
-If the cuj-to-slo terms or YAML shapes change, `check-chain.py` reports the drift. Then update `assets/terms.ja.json` and the generator to match.
+If the cuj-to-slo terms or YAML shapes change, `check-chain.py` reports the drift. Then update `assets/lang/ja.json`, `assets/lang/en.json` and the generator to match.
 
 ## Decisions
 
 - Tables are built from the YAML (cuj-to-slo's artifacts.md). Report headings and column names are written by the model on every run, so only the tables that exist only in the reports (not targeted, functions considered and not added, and so on) are looked up in the reports, and they are left out when not found.
-- The page is in Japanese and light mode only.
+- The page and the script's report follow the language of the outputs: Japanese for Japanese outputs, English for any other language (only these two are bundled). `--lang` overrides it.
+- Light mode only.
 - Do not edit the generated page by hand. To change it, edit the script and `assets/`, then rebuild.
 - `evals/ride-hailing-full` is a copy of `docs/quality` in ride-hailing-app-demo (commit ba28153).
 

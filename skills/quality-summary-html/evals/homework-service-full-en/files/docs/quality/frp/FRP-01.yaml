@@ -1,0 +1,18 @@
+id: FRP-01
+title: Draft autosave
+status: accepted
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-06]
+changes: null
+reason: Save attached files as a draft
+suggested_statement: Save attached files as a draft
+affects: []
+placeholders: []
+resolution: Accepted as FR-06
+changelog:
+- {version: 1, date: '2026-09-08', change: Proposed, reason: Stage 3}

@@ -50,6 +50,23 @@ def entry_cell(page, tid, sub):
     return None
 
 
+def toggle_ids(page):
+    return re.findall(r'<details class="tbl" id="([^"]+)"', page)
+
+
+# Japanese script: kana, kanji, and full-width punctuation and forms
+JAPANESE = re.compile(r'[　-ヿ㐀-鿿＀-￯]')
+
+
+class EnglishTerms:
+    """Switches the imported script to English for a block, and back to Japanese after it"""
+    def __enter__(self):
+        bs.set_lang('en')
+
+    def __exit__(self, *exc):
+        bs.set_lang('ja')
+
+
 class Ids(unittest.TestCase):
     def test_range_and_list(self):
         self.assertEqual(bs.ids_in('QR-36〜42・47・48'), ['QR-%02d' % i for i in (36, 37, 38, 39, 40, 41, 42, 47, 48)])
@@ -92,10 +109,22 @@ class Markdown(unittest.TestCase):
         line = bs.line_value(self.TEXT, ('主なデータ',))
         self.assertEqual(bs.split_top(bs.first_sentence(line)), ['記録', 'ファイル（添付）', 'レポート'])
 
+    def test_english_lists_and_sentences(self):
+        self.assertEqual(bs.split_top('records, files (PDF, images), 1,000 reports, and logs'),
+                         ['records', 'files (PDF, images)', '1,000 reports', 'logs'])
+        self.assertEqual(bs.first_sentence('Comes from a law, e.g. the APPI. So it stays.'), 'Comes from a law, e.g. the APPI')
+        self.assertEqual(bs.first_sentence('Keeps 99.5% (see v1.2). Next.'), 'Keeps 99.5% (see v1.2)')
+        self.assertEqual(bs.split_who('the external storage (stored files)'), ('the external storage', 'stored files'))
+        self.assertEqual(bs.ids_in('CUJ-01–03 and QR-07–QR-09'), ['CUJ-01', 'CUJ-02', 'CUJ-03', 'QR-07', 'QR-08', 'QR-09'])
+
     def test_window(self):
-        self.assertEqual(bs.window_ja('28-day rolling'), '直近 28 日')
+        self.assertEqual(bs.window_text('28-day rolling'), '直近 28 日')
         self.assertEqual(bs.exhaust(bs.window_days('28-day rolling'), 14.4), '1.9 日')
         self.assertEqual(bs.exhaust(28, 1), '28 日')
+        with EnglishTerms():
+            self.assertEqual(bs.window_text('rolling 30 days'), '30-day rolling')
+            self.assertEqual(bs.exhaust(28, 14.4), '1.9 days')
+            self.assertEqual(bs.exhaust(28, 28), '1 day')
 
 
 class Page(unittest.TestCase):
@@ -134,7 +163,17 @@ class Page(unittest.TestCase):
         tids = re.findall(r'<details class="tbl" id="([^"]+)"([^>]*)>', self.page)
         self.assertGreater(len(tids), 15)
         self.assertEqual([t for t, a in tids if 'open' in a], ['t-trace'])
-        self.assertEqual(tids[-1][0], 't-req')
+
+    def test_no_build_requirements_and_no_notes(self):
+        # The requirements for building the HTML are not on the page. Nothing is missing, so there are no notes either
+        self.assertNotIn('HTML作成時の要件', self.page)
+        self.assertNotIn('t-req', self.page)
+        self.assertNotIn('t-notes', self.page)
+
+    def test_japanese_page(self):
+        self.assertIn('<html lang="ja">', self.page)
+        self.assertIn('BIZ+UDPGothic', self.page)
+        self.assertIn('言語: ja（資料から判定）', self.run1.stdout)
 
     def test_basis_only_for_users_and_cujs(self):
         with_basis = [t for t in re.findall(r'<details class="tbl" id="([^"]+)"', self.page) if '根拠' in heads(toggle(self.page, t))]
@@ -189,8 +228,13 @@ class PartialChain(unittest.TestCase):
         self.assertNotIn('id="sec-3"', page)
         self.assertNotIn('id="sec-4"', page)
         self.assertEqual(heads(toggle(page, 't-trace')), ['CUJ', 'QIU', 'FR'])
-        self.assertIn('この版にない段階', page)
         self.assertEqual(bs.self_check(page), [])
+        # The notes are the last toggle, closed, and say which stages are missing
+        tids = re.findall(r'<details class="tbl" id="([^"]+)"([^>]*)>', page)
+        self.assertEqual(tids[-1], ('t-notes', ''))
+        self.assertIn('この版の注記', toggle(page, 't-notes'))
+        self.assertIn('この版にない段階: 第 3 段階、第 4 段階', toggle(page, 't-notes'))
+        self.assertIn('href="#t-notes"', page.split('</nav>')[0])
 
 
 class MissingInputs(unittest.TestCase):
@@ -253,6 +297,128 @@ class StepTable(unittest.TestCase):
         self.assertIn('YAML と突き合わせた報告書の表: 利用時の品質要求の対応、CUJ の手順ごとの機能', r.stdout)
 
 
+class EnglishPage(unittest.TestCase):
+    """The same fictional project written in English. The page and the report follow the language of the outputs"""
+    case = 'homework-service-full-en'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = pathlib.Path(tempfile.mkdtemp())
+        cls.run1 = build(docs_of(cls.case), cls.tmp / 'a.html')
+        cls.run2 = build(docs_of(cls.case), cls.tmp / 'b.html')
+        cls.page = (cls.tmp / 'a.html').read_text(encoding='utf-8') if cls.run1.returncode == 0 else ''
+        cls.ja = build(docs_of('homework-service-full'), cls.tmp / 'ja.html')
+        cls.ja_page = (cls.tmp / 'ja.html').read_text(encoding='utf-8')
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp)
+
+    def test_builds_and_is_deterministic(self):
+        self.assertEqual(self.run1.returncode, 0, self.run1.stderr + self.run1.stdout)
+        self.assertEqual((self.tmp / 'a.html').read_bytes(), (self.tmp / 'b.html').read_bytes())
+        self.assertEqual(bs.self_check(self.page), [])
+
+    def test_english_throughout(self):
+        self.assertIn('<html lang="en">', self.page)
+        self.assertIn('<title>Homework submission service quality</title>', self.page)
+        self.assertEqual(JAPANESE.findall(self.page), [])
+        self.assertIn('IBM+Plex+Sans', self.page)
+        self.assertNotIn('BIZ+UDPGothic', self.page)
+
+    def test_same_tables_as_the_japanese_page(self):
+        self.assertEqual(toggle_ids(self.page), toggle_ids(self.ja_page))
+        self.assertEqual(self.page.count('<tr'), self.ja_page.count('<tr'))
+        self.assertEqual(sorted(re.findall(r'href="#([^"]+)"', self.page)), sorted(re.findall(r'href="#([^"]+)"', self.ja_page)))
+
+    def test_headings(self):
+        self.assertEqual(heads(toggle(self.page, 't-trace')), ['CUJ', 'QIU', 'FR', 'QR', 'NFR / SLI'])
+        with_basis = [t for t in toggle_ids(self.page) if 'Basis' in heads(toggle(self.page, t))]
+        self.assertEqual(with_basis, ['t-users', 't-cuj'])
+        self.assertIn('Score', heads(toggle(self.page, 't-prio')))
+        self.assertIn('Traceability by CUJ', toggle(self.page, 't-trace'))
+
+    def test_report_in_english(self):
+        out = self.run1.stdout
+        self.assertEqual(JAPANESE.findall(out), [])
+        self.assertIn('Language: en (detected from the outputs)', out)
+        self.assertIn('Inconsistencies: 1', out)
+        self.assertRegex(out, r'QIU-03: .*YAML only: FR-08')
+        self.assertIn('Not found in the reports, not compared: Functions by CUJ step (2-functional-requirements.md)', out)
+
+    def test_reads_the_english_reports(self):
+        # In 「CUJ-01–03」 (an en dash), 03 is read as CUJ-03, as in 「CUJ-01〜03」
+        self.assertEqual(re.findall(r'href="#(CUJ-\d+)"', toggle(self.page, 't-excl')), ['CUJ-01', 'CUJ-03', 'CUJ-04'])
+        dq = toggle(self.page, 't-dq')
+        self.assertIn('<li>scores and comments</li>', dq)
+        self.assertEqual(re.findall(r'<span class="who">([^<]+)</span>', dq), ['students', 'teachers', 'the external storage'])
+        # The first sentence of an entry point's source, and a handling reason without its leading handling name
+        self.assertIn('<span class="ent-src">Act on the Protection of Personal Information</span>', self.page)
+        self.assertIn('<span class="note">teachers write the notification text themselves</span>', toggle(self.page, 't-prio'))
+
+    def test_entry_column(self):
+        self.assertEqual(entry_cell(self.page, 't-pq', 'Confidentiality'), ['QR-09'])
+        self.assertEqual(entry_cell(self.page, 't-dq', 'Recoverability'), ['QR-13'])
+
+    def test_stage4_parts(self):
+        self.assertIn('1.9 days', toggle(self.page, 't-burn'))
+        self.assertIn('99.5% (Provisional)', toggle(self.page, 't-slo'))
+        self.assertIn('28-day rolling', toggle(self.page, 't-slo'))
+
+
+class LanguageChoice(unittest.TestCase):
+    def test_detect(self):
+        self.assertEqual(bs.detect_lang(['生徒は期限までに提出できる', 'QIU-01', 'inferred', 'satisfaction > trust']), 'ja')
+        self.assertEqual(bs.detect_lang(['Students can submit by the deadline', 'QIU-01', '生徒']), 'en')
+        # Outputs in another language get the English page; Chinese has no kana
+        self.assertEqual(bs.detect_lang(['学生可以在截止日期前提交作业']), 'en')
+        self.assertEqual(bs.detect_lang(['Los estudiantes entregan la tarea a tiempo']), 'en')
+
+    def test_lang_option_overrides(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = build(docs_of('homework-service-full'), pathlib.Path(d) / 'p.html', '--lang', 'en')
+            page = (pathlib.Path(d) / 'p.html').read_text(encoding='utf-8')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('<html lang="en">', page)
+        self.assertIn('Language: en (set with --lang)', r.stdout)
+        self.assertIn('Inconsistencies: 1', r.stdout)
+        # Labels are English; the content stays in the language it was written in
+        self.assertIn('Traceability by CUJ', page)
+        self.assertIn('期限までに提出が終わる', page)
+
+    def test_input_error_before_the_language_is_known(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = build(pathlib.Path(d), pathlib.Path(d) / 'p.html')
+        self.assertEqual(r.returncode, 2)
+        self.assertIn('No context.yaml', r.stderr)
+        self.assertIn('context.yaml がない', r.stderr)
+
+
+class LanguageFiles(unittest.TestCase):
+    def test_same_keys_and_placeholders(self):
+        ja, en = bs.LANG_DATA['ja'], bs.LANG_DATA['en']
+        self.assertEqual(set(ja), set(en))
+        self.assertEqual(set(ja['terms']), set(en['terms']))
+        for g in ja['terms']:
+            self.assertEqual(set(ja['terms'][g]), set(en['terms'][g]), g)
+        self.assertEqual(set(ja['text']), set(en['text']))
+
+        def ph(t):
+            return sorted(set(re.findall(r'\{(\w+)\}', t)))
+        for k in ja['text']:
+            self.assertEqual(ph(ja['text'][k]), ph(en['text'][k]), k)
+
+    def test_every_key_is_used_and_exists(self):
+        src = SCRIPT.read_text(encoding='utf-8')
+        used = set(re.findall(r"\b(?:T|die_t)\(\s*'(\w+)'", src)) | set(re.findall(r"pending\.append\(\('(\w+)'", src))
+        # Keys the script builds at run time
+        built = {'stage_title_1', 'stage_title_2', 'stage_title_3', 'stage_title_4', 'note_unplaced_product', 'note_unplaced_data',
+                 'lang_detected', 'lang_given', 'days'}
+        keys = set(bs.LANG_DATA['en']['text'])
+        self.assertEqual((used | built) - keys, set(), 'used but not in the language files')
+        self.assertEqual(keys - used - built, set(), 'in the language files but never used')
+
+
 @unittest.skipUnless(docs_of('ride-hailing-full').is_dir(), '配車アプリの成果物がない')
 class RideHailing(unittest.TestCase):
     def test_full_chain(self):
@@ -292,6 +458,15 @@ class ChainCheck(unittest.TestCase):
             r = self.run_check(d)
         self.assertEqual(r.returncode, 1)
         self.assertIn('最低限守る線', r.stdout)
+
+    def test_detects_a_renamed_english_term(self):
+        with tempfile.TemporaryDirectory() as d:
+            shutil.copytree(CHAIN / 'shared', pathlib.Path(d) / 'shared')
+            g = pathlib.Path(d) / 'shared' / 'glossary.md'
+            g.write_text(g.read_text(encoding='utf-8').replace('minimum line', 'minimum bar'), encoding='utf-8')
+            r = self.run_check(d)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn('Minimum line', r.stdout)
 
 
 if __name__ == '__main__':

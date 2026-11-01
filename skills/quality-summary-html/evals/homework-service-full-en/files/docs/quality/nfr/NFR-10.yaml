@@ -1,0 +1,19 @@
+id: NFR-10
+title: Double-check of grading
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-12]
+kind: gate
+cuj: CUJ-02
+statement: A change to how scores are saved is checked before release for matching scores.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: null
+gate: {where: release-check, check: Saved scores match entered scores, threshold: 0 mismatches}
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

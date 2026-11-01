@@ -105,18 +105,20 @@ class Run:
         self.tables = [n for n in self.tree.walk() if n.tag == 'table']
         self.ids = {n.attrs.get('id') for n in self.tree.walk() if n.attrs.get('id')}
         self.full = (self.docs / 'nfr').is_dir()
+        # The language the case's outputs are written in, which the page should follow
+        self.lang = bs.detect_lang(p.read_text(encoding='utf-8') for p in sorted(self.docs.rglob('*')) if p.suffix in ('.yaml', '.md'))
 
     # One check per grader statement. Each returns (passed, evidence)
     def page_written(self):
         return bool(self.src and self.tables), 'summary.html %d 字、表 %d 個' % (len(self.src), len(self.tables))
 
-    # Column heads may be abbreviations or Japanese (「機能要件」 is FR, 「利用時の品質要求」 is QIU)
+    # Column heads may be abbreviations, Japanese (「機能要件」 is FR, 「利用時の品質要求」 is QIU) or English
     COLS = {
         'CUJ': lambda h: 'CUJ' in h,
-        'QIU': lambda h: 'QIU' in h or '利用時の品質' in h,
-        'FR': lambda h: bool(re.search(r'(?<![A-Z])FR(?![A-Z])', h)) or bool(re.search(r'(?<!非)機能', h)),
-        'QR': lambda h: bool(re.search(r'(?<![A-Z])QR', h)) or ('品質要求' in h and '利用時の品質要求' not in h),
-        'NFR': lambda h: 'NFR' in h or '非機能要件' in h or 'SLO' in h or 'SLI' in h,
+        'QIU': lambda h: 'QIU' in h or '利用時の品質' in h or 'QUALITY IN USE' in h or 'QUALITY-IN-USE' in h,
+        'FR': lambda h: bool(re.search(r'(?<![A-Z])FR(?![A-Z])', h)) or bool(re.search(r'(?<!非)機能', h)) or h.startswith('FUNCTION'),
+        'QR': lambda h: bool(re.search(r'(?<![A-Z])QR', h)) or ('品質要求' in h and '利用時の品質要求' not in h) or h.startswith('QUALITY REQ'),
+        'NFR': lambda h: 'NFR' in h or '非機能要件' in h or 'SLO' in h or 'SLI' in h or 'NON-FUNCTIONAL' in h,
     }
 
     def trace_first(self):
@@ -153,7 +155,7 @@ class Run:
     def basis_columns(self):
         kinds = []
         for t in self.tables:
-            if any(c.text().strip().startswith('根拠') for c in header_cells(t)):
+            if any(c.text().strip().startswith('根拠') or c.text().strip().lower().startswith('basis') for c in header_cells(t)):
                 firsts = set()
                 for r in body_rows(t):
                     cells = [c for c in r.kids if isinstance(c, Node) and c.tag in ('td', 'th')]
@@ -169,32 +171,30 @@ class Run:
                 if p in self.src]
         return not hits, 'ダークモードの記述: %s' % (hits or 'なし')
 
-    def requirements_toggle(self):
-        ds = [d for d in self.tree.walk() if d.tag == 'details']
-        target = [d for d in ds if any(k.tag == 'summary' and 'HTML作成時の要件' in k.text() for k in d.kids if isinstance(k, Node))]
-        if not target:
-            return False, '「HTML作成時の要件」のトグルがない'
-        d = target[-1]
-        inside = set(id(n) for n in d.walk())
-        after = False
-        later_tables = 0
-        for n in self.tree.walk():
-            if n is d:
-                after = True
-            elif after and n.tag == 'table' and id(n) not in inside:
-                later_tables += 1
-        ok = 'open' not in d.attrs and '目的' in d.text() and '要件' in d.text() and later_tables == 0
-        return ok, '閉じている: %s、目的と要件: %s、後ろにある表: %d' % ('open' not in d.attrs, '目的' in d.text(), later_tables)
+    def english_page(self):
+        # Text a reader sees (scripts and styles left out) has no Japanese, and the page says it is English
+        def visible(n):
+            if n.tag in ('script', 'style'):
+                return ''
+            return ''.join(k if isinstance(k, str) else visible(k) for k in n.kids)
+        text = visible(self.tree)
+        ja = re.findall(r'[　-ヿ㐀-鿿＀-￯]', text)
+        html_ = next((n for n in self.tree.walk() if n.tag == 'html'), None)
+        lang = (html_.attrs.get('lang') or '') if html_ else ''
+        ok = bool(self.tables) and not ja and lang.lower().startswith('en')
+        return ok, 'html の lang: %s、日本語の文字: %d 個（%s）' % (lang or 'なし', len(ja), ''.join(ja[:20]))
 
     def priority_sort(self):
+        def is_score(n):
+            return n.startswith('点') or n.lower().startswith('score')
         for t in self.tables:
             cells = header_cells(t)
             names = [c.text().strip() for c in cells]
-            if any(n.startswith('点') for n in names) and any('影響' in n for n in names):
+            if any(is_score(n) for n in names) and any('影響' in n or 'impact' in n.lower() for n in names):
                 def sortable(c):
                     return any(n.tag == 'button' for n in c.walk()) or any(k in c.attrs for k in ('onclick', 'data-sort', 'data-key', 'aria-sort'))
                 qr = [c for c, n in zip(cells, names) if n.upper().startswith('QR')]
-                pt = [c for c, n in zip(cells, names) if n.startswith('点')]
+                pt = [c for c, n in zip(cells, names) if is_score(n)]
                 js = 'sort' in ''.join(n.text() for n in self.tree.walk() if n.tag == 'script')
                 ok = bool(qr and pt and sortable(qr[0]) and sortable(pt[0]) and js)
                 return ok, '優先度の表の見出し: %s。QR と点の見出しが操作できる: %s、並べ替えの処理: %s' % (
@@ -240,23 +240,25 @@ class Run:
 
     def entry_column(self):
         # In the product quality matrix (the table with a 副特性 / sub-characteristic column), each entry-point QR
-        # appears in the entry column (入口) on the row of its sub-characteristic
+        # appears in the entry column (入口 / entry point) on the row of its sub-characteristic, named in the page's language
+        terms = bs.LANG_DATA[self.lang]['terms']['characteristic']
         want = []
         for p in sorted((self.docs / 'qr').glob('*.yaml')):
             d = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
             key = bs.char_key(d.get('characteristic'))
             if d.get('status') != 'retired' and d.get('entry_point') and d.get('model') == 'product' and d.get('layer') != 'internal' and len(key) == 2:
-                want.append((str(d['id']), bs.term('characteristic', key[1], strict=False)))
+                want.append((str(d['id']), terms.get(key[1], key[1])))
         for t in self.tables:
             names = [c.text().strip() for c in header_cells(t)]
-            if not any('副特性' in n for n in names):
+            if not any('副特性' in n or 'sub-characteristic' in n.lower() for n in names):
                 continue
-            ent = [j for j, n in enumerate(names) if '入口' in n or '経由しない' in n]
+            ent = [j for j, n in enumerate(names) if '入口' in n or '経由しない' in n or 'entry' in n.lower() or 'not through users' in n.lower()]
             if not ent:
                 return False, '製品の品質のマトリクスに入口の列がない（見出し: %s）' % names[:5]
             k, miss = len(names) - ent[0], []  # the characteristic column uses rowspan, so count column positions from the right
             for q, sub in want:
-                row = next((r for r in body_rows(t) if any(isinstance(c, Node) and c.tag == 'th' and c.text().strip() == sub for c in r.kids)), None)
+                row = next((r for r in body_rows(t) if any(isinstance(c, Node) and c.tag == 'th' and c.text().strip().lower() == sub.lower()
+                                                           for c in r.kids)), None)
                 cells = [c for c in row.kids if isinstance(c, Node) and c.tag in ('td', 'th')] if row else []
                 if len(cells) < k or q not in cells[-k].text():
                     miss.append('%s（%s）' % (q, sub))

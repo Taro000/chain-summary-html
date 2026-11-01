@@ -24,6 +24,11 @@
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
+/* English pages use Latin faces of the same family as the IDs. The fonts are loaded per language (assets/lang/*.json) */
+:root:lang(en){
+  --f-display:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:16px}
@@ -53,7 +58,7 @@ h1{font-size:2.15rem;line-height:1.2;letter-spacing:.02em}
 .toc .toc-sec{font-weight:700;color:var(--ink)}
 .toc .toc-sec span{font-family:var(--f-mono);font-weight:500;color:var(--route-ink);margin-right:7px}
 .toc .sub{display:flex;flex-direction:column;margin-top:4px;padding-left:12px;border-left:1px solid var(--rule)}
-.toc .toc-req{font-weight:400;color:var(--ink-3)}
+.toc .toc-notes{font-weight:400;color:var(--ink-3)}
 
 main{min-width:0;display:flex;flex-direction:column;gap:64px}
 .stage{display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -184,6 +189,8 @@ a.chip:hover{box-shadow:0 0 0 2px var(--route-line)}
 .mx thead th.mx-k{vertical-align:bottom;width:1%}
 .mx-h a.id{display:block;font-size:11.5px}
 .vname{display:block;margin:7px auto 0;writing-mode:vertical-rl;white-space:nowrap;font-family:var(--f-body);font-size:12px;font-weight:700;letter-spacing:.1em;line-height:1.2;color:var(--ink-2)}
+/* Latin text in vertical-rl is turned 90°; it needs no extra letter spacing */
+:lang(en) .vname,:lang(en) .ax-y,:lang(en) .ax-x{letter-spacing:.02em}
 .mx td.mx-c{text-align:center;padding:6px 2px}
 .mx td.mx-c .chip{margin:1px}
 .mx th.mx-char{font-weight:700;white-space:nowrap;border-right:1px solid var(--rule-soft);background:var(--surface)}
@@ -229,11 +236,10 @@ th .sort:hover{color:var(--route-ink)}
 .who{font-weight:700;margin-right:8px}
 .tbl-body > .tbl-wrap + .list-label{border-top:1px solid var(--rule);padding-top:12px}
 
-/* Requirements for building the page */
-.req{display:flex;flex-direction:column;gap:16px;padding:4px 20px 20px;font-size:13.5px;line-height:1.65}
-.req h3{font-family:var(--f-body);font-size:12.5px;letter-spacing:.06em;color:var(--ink-2)}
-.req ul{margin:6px 0 0;padding-left:1.3em}
-.req li{margin:3px 0}
+/* Notes on this version (missing stages, report tables left out) */
+.notes{padding:4px 20px 16px;font-size:13.5px;line-height:1.65}
+.notes ul{margin:0;padding-left:1.3em}
+.notes li{margin:3px 0}
 
 .tip{position:fixed;z-index:50;max-width:340px;padding:6px 9px;border-radius:6px;background:var(--tip-bg);color:var(--tip-fg);font-size:12.5px;line-height:1.5;white-space:pre-line;pointer-events:none;box-shadow:0 6px 18px rgba(23,32,43,.18)}
 
