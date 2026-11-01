@@ -1,15 +1,26 @@
 ---
 name: quality-summary-html
-description: Builds docs/quality/summary.html, one self-contained light-mode page that summarizes the outputs of the cuj-to-slo quality chain (cuj-to-quality-in-use → quality-in-use-to-functional-requirements → functional-requirements-to-product-quality → product-quality-to-slo) so people can grasp a system's quality quickly. It puts a CUJ-by-CUJ traceability table first (CUJ → QIU → FR → QR → NFR/SLI), then every stage's tables in toggles, with ID links, an impact × likelihood chart, quality matrices and SLO cards. A bundled script renders the page from the YAML items, so every project and every re-run gets the same design. Use it whenever someone wants to summarize, visualize, share, review or present docs/quality, asks for an HTML overview or one-pager of quality requirements, KPIs, NFRs or SLOs, wants to see traceability from CUJs to SLOs, or wants summary.html rebuilt after a stage was re-run, even if they never name this skill, including Japanese requests such as 「品質の成果物を HTML にまとめて」「docs/quality の要約」「トレーサビリティを一覧で見たい」.
+description: Builds docs/quality/summary.html, one self-contained light-mode page that summarizes the outputs of the cuj-to-slo quality chain (cuj-to-quality-in-use → quality-in-use-to-functional-requirements → functional-requirements-to-product-quality → product-quality-to-slo) so people can grasp a system's quality quickly. The page is written in the language of the outputs (Japanese, or English for any other language). It puts a CUJ-by-CUJ traceability table first (CUJ → QIU → FR → QR → NFR/SLI), then every stage's tables in toggles, with ID links, an impact × likelihood chart, quality matrices and SLO cards. A bundled script renders the page from the YAML items, so every project and every re-run gets the same design. Use it whenever someone wants to summarize, visualize, share, review or present docs/quality, asks for an HTML overview or one-pager of quality requirements, KPIs, NFRs or SLOs, wants to see traceability from CUJs to SLOs, or wants summary.html rebuilt after a stage was re-run, even if they never name this skill, including Japanese requests such as 「品質の成果物を HTML にまとめて」「docs/quality の要約」「トレーサビリティを一覧で見たい」.
 ---
 
 # Quality summary HTML
 
 Renders `docs/quality/summary.html` from the outputs of the four-stage quality chain. The page exists so that a person can understand the system's quality efficiently: what users need (CUJs and quality-in-use requirements), which functions serve them, which quality requirements matter most, and how each one is held by an SLO, a gate, an audit or a monitor.
 
-The page is written in Japanese. The script's report and the page use the Japanese labels quoted below, so match on those exact strings; the English glosses are for you.
-
 The page design and the set of tables are fixed, and `scripts/build_summary.py` does all of the rendering. That is the point of this skill: the user approved this exact layout, and every project, and every re-run of a stage, should produce the same page from the same data. Your job is to run the script, read what it reports, check the result, and tell the user plainly what the page shows and what it cannot.
+
+## Language
+
+The page and the script's report are written in the language of the outputs, so that the labels match the content around them:
+
+- Outputs written in Japanese give a Japanese page and a Japanese report.
+- Outputs in any other language give an English page and an English report. Only Japanese and English are bundled (`assets/lang/ja.json`, `assets/lang/en.json`).
+
+The script decides from the YAML free text and the reports (Japanese when kana make up a tenth or more of the letters) and prints its decision on the first lines of the report: `言語: ja（資料から判定）` or `Language: en (detected from the outputs)`. `--lang ja` or `--lang en` overrides it; use that only when the user asks for a page in the other language. The labels then change, but the content stays in the language it was written in.
+
+When the outputs are in a language other than Japanese or English, tell the user before or with the result: the page's labels and terms are English, while the content (names, statements, report tables) stays in the original language. The report-only tables are looked up by their Japanese and English headings, so in other languages they are usually not found; the script lists them as left out or not compared.
+
+The report labels below are given in both languages; match on the exact strings.
 
 ## Inputs
 
@@ -39,18 +50,19 @@ Stages 2 to 4 are optional. If the chain has only reached stage 2, the page cove
    uv run --with pyyaml python3 <this skill's directory>/scripts/build_summary.py docs/quality
    ```
 
-   Without uv, install PyYAML first (`python3 -m pip install --user pyyaml`) and run `python3 <…>/build_summary.py docs/quality`. Options: `--out PATH` to write somewhere other than `docs/quality/summary.html`, and `--title TEXT` to replace the default title, which is the `system.name` from context.yaml (without a trailing parenthetical) followed by 「の品質」 ("quality of"). The script overwrites the output file. If `summary.html` already exists and is not tracked by git, mention that it will be replaced before running.
+   Without uv, install PyYAML first (`python3 -m pip install --user pyyaml`) and run `python3 <…>/build_summary.py docs/quality`. Options: `--out PATH` to write somewhere other than `docs/quality/summary.html`; `--title TEXT` to replace the default title, which is the `system.name` from context.yaml (without a trailing parenthetical) in the language's pattern, 「<name>の品質」 or "<name> quality"; and `--lang ja|en` (see Language). The script overwrites the output file. If `summary.html` already exists and is not tracked by git, mention that it will be replaced before running.
 
 3. **Read the report the script prints.** Exit code 0 means the page was written, even when there are inconsistencies. Exit code 2 means the input could not be read (no context.yaml, no PyYAML). Exit code 1 means the page was written but failed its own check (a duplicate id or a link with no target), which is a bug in the script or data it did not expect; tell the user and do not patch the HTML by hand. The lines to act on:
-   - `食い違い` (inconsistencies): references to items that do not exist or are retired, and places where a report table disagrees with the YAML. The page follows the YAML. Do not edit the YAML or the reports to make these go away; that belongs to the stage that owns the item. Report each one and name the stage whose re-run would fix it. When a report table disagrees with the YAML, the report is usually stale.
-   - `報告書に見つからず省いたもの` (not found in the reports, left out): report-only tables that were not found and so are missing from the page. Tell the user which ones. If the heading exists under a different name, it is fine to suggest renaming it in the report, but do not edit reports without being asked.
-   - `報告書に見つからず突き合わせなかった表` (not found in the reports, not compared): report tables the script compares with the YAML but could not find, so that comparison did not run. Tell the user; otherwise 「食い違い: 0 件」 (0 inconsistencies) reads as if the reports had been checked in full.
-   - `用語集にない値` (values not in the glossary): YAML enum values the term table does not know (for example a new characteristic name). They appear in English on the page. If the chain's glossary changed, `assets/terms.ja.json` needs the new term.
-   - `リンクにしていない ID` (IDs not linked): IDs mentioned on the page that have no row of their own, usually retired items and function proposals (FRP). This is expected and needs no action.
+   - `言語` / `Language`: the language of the page and the report, and how it was chosen. If it does not match the outputs, say so and rerun with `--lang`.
+   - `食い違い` / `Inconsistencies`: references to items that do not exist or are retired, and places where a report table disagrees with the YAML. The page follows the YAML. Do not edit the YAML or the reports to make these go away; that belongs to the stage that owns the item. Report each one and name the stage whose re-run would fix it. When a report table disagrees with the YAML, the report is usually stale.
+   - `報告書に見つからず省いたもの` / `Not found in the reports, left out`: report-only tables that were not found and so are missing from the page. Tell the user which ones. If the heading exists under a different name, it is fine to suggest renaming it in the report, but do not edit reports without being asked.
+   - `報告書に見つからず突き合わせなかった表` / `Not found in the reports, not compared`: report tables the script compares with the YAML but could not find, so that comparison did not run. Tell the user; otherwise 「食い違い: 0 件」 or "Inconsistencies: 0" reads as if the reports had been checked in full.
+   - `用語集にない値` / `Values not in the glossary`: YAML enum values the term table does not know (for example a new characteristic name). They appear as written in the YAML on the page. If the chain's glossary changed, `assets/lang/ja.json` and `assets/lang/en.json` need the new term.
+   - `リンクにしていない ID` / `IDs not linked`: IDs mentioned on the page that have no row of their own, usually retired items and function proposals (FRP). This is expected and needs no action.
 
 4. **Check the page.** If a browser is available, open the file or take a headless screenshot and look at the top (the route diagram and the traceability table) and one opened table. The script checks ids and links itself; the visual check is for layout surprises with unusual data, such as very long titles or many CUJs.
 
-5. **Report to the user.** Give the path, the stages and item counts, every inconsistency, and every table left out. Then say what the page hides, because the page is meant to be quick to read and so drops columns: the basis of most items (most are `inferred`), the overlap column, the rationale for SLO numbers, measurement points and blind spots. If SLO targets are `provisional` or quality requirements are still `draft`, say that the page presents proposals, not agreed commitments, so nobody mistakes the cards for operating targets.
+5. **Report to the user.** Give the path, the language, the stages and item counts, every inconsistency, and every table left out. Then say what the page hides, because the page is meant to be quick to read and so drops columns: the basis of most items (most are `inferred`), the overlap column, the rationale for SLO numbers, measurement points and blind spots. If SLO targets are `provisional` or quality requirements are still `draft`, say that the page presents proposals, not agreed commitments, so nobody mistakes the cards for operating targets.
 
 ## Rules
 
@@ -60,6 +72,6 @@ Stages 2 to 4 are optional. If the chain has only reached stage 2, the page cove
 
 ## What the page contains
 
-The order is fixed: a header with the commit and the latest update date; the traceability section (a route diagram of item counts per stage, then the CUJ-by-CUJ table, open by default); one section per stage with its tables in closed toggles; and a closed toggle at the bottom, 「HTML作成時の要件」 (requirements for building the HTML), that records the purpose, the requirements and the rules the page was built by. IDs link to their rows, opening the toggle they are in; hovering shows the item's title. The priority table sorts by QR and by score.
+The order is fixed: a header with the commit and the latest update date; the traceability section (a route diagram of item counts per stage, then the CUJ-by-CUJ table, open by default); and one section per stage with its tables in closed toggles. When stages or report-only tables are missing, a closed toggle at the bottom, 「この版の注記」 / "Notes on this version", says which. IDs link to their rows, opening the toggle they are in; hovering shows the item's title. The priority table sorts by QR and by score.
 
-Read `references/page-spec.md` when you need the details: every table with its columns and YAML sources, the figures, what is deliberately left out and why, and how to change the design.
+Read `references/page-spec.md` when you need the details: every table with its columns and YAML sources, the figures, what is deliberately left out and why, and how to change the design or the wording.

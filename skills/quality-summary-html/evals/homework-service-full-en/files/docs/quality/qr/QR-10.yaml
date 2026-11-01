@@ -1,0 +1,26 @@
+id: QR-10
+title: Traceable failures
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+model: product
+layer: external
+characteristic: maintainability > analysability
+statement: Developers can trace each failed submission across components.
+applies_to: [FR-04]
+traces_to: [QIU-04]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: The logs do not connect, and the cause cannot be found.
+score: {impact: 3, likelihood: 3}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}

@@ -1,0 +1,19 @@
+id: NFR-09
+title: Trace ID in the Definition of Done
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-10]
+kind: gate
+cuj: CUJ-03
+statement: A component on the submission path is not done until it writes the trace ID to its logs.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: null
+gate: {where: definition-of-done, check: The trace ID appears in the logs, threshold: All components}
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

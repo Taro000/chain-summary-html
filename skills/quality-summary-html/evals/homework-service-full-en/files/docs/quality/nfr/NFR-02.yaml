@@ -1,0 +1,19 @@
+id: NFR-02
+title: Nightly report deadline SLO
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-08]
+kind: slo
+cuj: CUJ-04
+statement: Over a rolling 28 days, 99% of nightly reports finish by 6:00 in the morning.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: {sli: SLI-02, target: 99%, target_status: provisional, target_rationale: Proposed, window: 28-day rolling, error_budget: 'Up to 1% of the nights in 28 days may finish after 6:00', error_budget_volume: 0.28 runs in 28 days (one late run uses it all), policy: EBP-02, bad_run_budget_share: One late run uses 357% of the budget, progress_alert: 'NFR-05 (notifies if the report has not finished at 5:30)', after_miss: ticket}
+gate: null
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

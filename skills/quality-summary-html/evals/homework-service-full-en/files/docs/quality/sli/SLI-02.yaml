@@ -1,0 +1,24 @@
+id: SLI-02
+title: Nightly report deadline
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Head of development]
+function: ON_TIME ÷ RUNS
+refs: [QR-08, NFR-02]
+reshaped: null
+target_entity: Production servers
+purpose: Nightly report deadline
+unit_event: Request
+method: Job record method
+elements:
+  RUNS: {definition: Scheduled runs of the nightly report, inputs: Job records, unit: runs, counting_rule: One per night}
+  ON_TIME: {definition: 'Runs in RUNS that finished by 6:00', inputs: Same as RUNS, unit: runs, counting_rule: Same as RUNS}
+scale: ratio
+applicability: Production
+lifecycle: Measured in production
+blind_spots: Failures inside the browser are not visible
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

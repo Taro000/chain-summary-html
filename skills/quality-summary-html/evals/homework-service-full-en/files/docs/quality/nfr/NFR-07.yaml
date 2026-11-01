@@ -1,0 +1,19 @@
+id: NFR-07
+title: Missing-record monitor
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-07]
+kind: monitor
+cuj: CUJ-04
+statement: Notify on the same day when a submission record missing a time or a student is found.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: null
+gate: null
+audit: null
+monitor: {signal: The nightly record check, threshold: 1 missing value, notifies: Developers and the cram school office}
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

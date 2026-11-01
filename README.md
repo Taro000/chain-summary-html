@@ -1,86 +1,111 @@
 # quality-summary-html
 
-[日本語](README.ja.md)
+English | [日本語](README.ja.md)
 
-A Claude skill that builds one quality summary page in HTML (`docs/quality/summary.html`) from the outputs that the four [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) skills write to `docs/quality/`.
+An agent skill that turns the outputs the four [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) skills write to `docs/quality/` into one HTML page, `docs/quality/summary.html`. Instead of reading four reports and one YAML file per item, you can follow each CUJ to the requirements and SLOs that serve it (CUJ → QIU → FR → QR → NFR / SLI) on a single page.
 
-The page exists so that people can understand a system's quality efficiently. It opens with a CUJ-by-CUJ traceability table (CUJ → QIU → FR → QR → NFR / SLI), followed by the tables of stages 1 to 4 in toggles. IDs in the tables link to their rows, and the page adds an impact × likelihood chart, product quality and data quality matrices, and SLO cards.
+## What the page shows
 
-A bundled script renders the page from the YAML items, so every project, and every re-run of a stage, gets a page with the same layout. The page itself is in Japanese.
+| Section | Contents |
+|---|---|
+| Traceability | A diagram of item counts per stage, then one table that follows each CUJ through its QIUs, FRs and QRs to NFRs and SLIs, grouped by user. Requirements that do not come from users (laws, standards, security risk analysis, development policies) form the last group. |
+| Stage 1 | Business requirements, users, CUJs, quality-in-use requirements, failure scenarios and measures, what is not targeted, and each formula counted two ways (quality-in-use measure and KPI) |
+| Stage 2 | Functional requirements, functions considered and not added |
+| Stage 3 | An impact × likelihood chart, product quality and data quality matrices (characteristic × CUJ), the priority table, handling by CUJ, internal quality derived from external quality, quality requirements, requirements that do not come from users |
+| Stage 4 | SLO cards, SLOs, SLIs, error budget policies, burn-rate alerts, deadline SLOs, other non-functional requirements |
 
-## Requirements
+Only the traceability table is open; every other table sits in a closed toggle. Each ID links to its row and shows the item's title on hover. Stages not run yet are left out, and a note at the bottom of the page says which.
 
-- `docs/quality/` written by the cuj-to-slo skills (at least stage 1). If stages 2 to 4 are missing, the page leaves them out.
-- Python 3.9 or later and PyYAML. With uv, `uv run --with pyyaml` brings PyYAML along.
+To stay quick to read, the page leaves out, among other things, the basis of most items, the rationale for SLO numbers, measurement points and blind spots. Read those in the YAML and the reports. Light mode only.
 
-## Installation
+## Install
 
-Install with the [skills CLI](https://github.com/vercel-labs/skills):
-
-```bash
-# Into the current project (asks which agents to install for)
+```sh
+# into the current project (asks which agents to install for)
 npx skills add Taro000/quality-summary-html
-# For all your projects, Claude Code only, without prompts
-npx skills add Taro000/quality-summary-html -g -a claude-code -y
+
+# for Claude Code only, available in every project, without prompts
+npx skills add Taro000/quality-summary-html -a claude-code -g -y
 ```
 
-Or place `skills/quality-summary-html/` in Claude Code's skills directory yourself:
+The skill runs a Python script, so it needs Python 3.9 or later and PyYAML. With [uv](https://docs.astral.sh/uv/), `uv run --with pyyaml` brings PyYAML along.
 
-```bash
-# For all your projects
-cp -R skills/quality-summary-html ~/.claude/skills/
-# To use it while editing this repository, link instead of copying
-ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
+`evals/` (test outputs, about 1.7 MB) is installed with the skill. Delete it if you only use the skill.
+
+## Use
+
+1. Run the cuj-to-slo skills, at least stage 1, so that `docs/quality/context.yaml` exists.
+2. "Summarize docs/quality as an HTML page."
+3. After re-running a stage: "Rebuild summary.html."
+
+The skill runs the bundled script, which builds every table from the YAML items, so every project and every re-run gets the same layout. It then tells you what the page could not show: inconsistencies between the outputs (a report table that disagrees with the YAML, a reference to a retired item), each with the stage whose re-run fixes it, and the report-only tables it could not find. When SLO targets are provisional or quality requirements are still drafts, it says that the page shows proposals, not agreed targets.
+
+The page follows the language of the outputs: Japanese for Japanese outputs, English for any other language. Only the labels change; the content stays as written. You can also ask for the labels in the other language, another title or another output path.
+
+## Output
+
+```
+docs/quality/
+├── context.yaml  qiu/ … ebp/              YAML items: the source of every table
+├── 1-quality-in-use.md … 4-nfr-slo.md     reports: stage titles and the few tables only they have
+└── summary.html                           the page this skill writes
 ```
 
-Either way, `evals/` comes along. It holds test outputs (about 1.4 MB) and can be deleted if you only use the skill.
+The page's header shows the git commit of the docs it was built from, and marks uncommitted changes. Every run overwrites `summary.html`; commit it together with the docs it was built from.
 
-## Usage
+## What the skill will not do
 
-Ask Claude something like "summarize the outputs in docs/quality as HTML", and it uses this skill. You can also run the script directly:
+- Write or patch the page by hand. A hand edit drifts from the YAML and is lost on the next run. To change the page, change the script and `assets/`; the change applies to every project that uses the skill.
+- Edit the YAML or the reports to clear an inconsistency. The page reports the chain's state; fixing it belongs to the stage that owns the item.
+- Prefer a report over the YAML. The YAML items are the source of truth, as cuj-to-slo's artifacts.md says. A report-only table whose heading is not found is left out, and the skill says so.
+- Build a page from other documents when the chain has not been run. Without `context.yaml`, it points you to `cuj-to-quality-in-use` instead.
+- Commit, unless you ask.
 
-```bash
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
-# Change the output path and the title
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title 配車アプリの品質
-```
-
-Besides writing the page, the script prints to standard output the inconsistencies between the outputs (report tables that differ from the YAML, references to retired items, and so on), the report-only tables it could not find and left out, and the report tables it could not find and so did not compare with the YAML.
-
-## Layout
+## Maintaining
 
 ```
 skills/quality-summary-html/
-├── SKILL.md                    instructions for Claude
-├── scripts/build_summary.py    the generator (builds the tables with the YAML as the source of truth)
-├── assets/                     look (summary.css, summary.js) and the term table (terms.ja.json)
-├── references/page-spec.md     page specification: tables and columns, sources, what is left out, how to change it
-└── evals/                      three test cases (ride-hailing app; a fictional homework submission service, all stages and up to stage 2)
-scripts/check-chain.py          checks for drift from the cuj-to-slo glossary and artifacts.md
-tests/                          automated tests, and a script that builds the fictional project's outputs
+├── SKILL.md                   instructions for the agent
+├── scripts/build_summary.py   the generator
+├── assets/                    summary.css, summary.js, and the wording per language (lang/ja.json, lang/en.json)
+├── references/page-spec.md    every table with its columns and sources, what is left out and why, how to change the page
+└── evals/                     four test cases
+scripts/check-chain.py         checks for drift from the cuj-to-slo glossary and artifacts.md
+tests/                         automated tests, and the script that builds the fictional service's outputs
 ```
 
-## Checking
+To run the generator without an agent, use a clone of this repository:
 
-```bash
-# Automated tests
+```sh
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
+
+# another output path and title
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title "Ride-hailing app quality"
+
+# English labels for Japanese outputs
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --lang en
+```
+
+It prints its report to standard output, in the page's language. Exit code 0 means the page was written, even with inconsistencies; 1 means it was written but failed its own check (duplicate ids or links without a target); 2 means the outputs could not be read.
+
+```sh
+# use your working copy as Claude Code's installed skill
+ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
+
+# automated tests (they also check that the same inputs give the same bytes)
 uv run --with pyyaml python3 -m unittest discover -s tests -v
-# Whether the cuj-to-slo glossary and artifacts.md still have what this skill relies on
-# (defaults to quality-kpi-skills next to this repository)
-python3 scripts/check-chain.py [the cuj-to-slo repository, or an installed skill's directory]
-# Rebuild the fictional project's outputs
+
+# rebuild the fictional homework submission service's outputs in evals/
 uv run --with pyyaml python3 tests/make_homework_fixture.py
+
+# after cuj-to-slo changes: check that its glossary and artifacts.md still have what this skill relies on
+python3 scripts/check-chain.py [path/to/cuj-to-slo]
 ```
 
-If the cuj-to-slo terms or YAML shapes change, `check-chain.py` reports the drift. Then update `assets/terms.ja.json` and the generator to match.
+When `check-chain.py` reports drift, update `assets/lang/ja.json`, `assets/lang/en.json` and the generator to match. Without an argument, it reads the path from the `CUJ_TO_SLO` environment variable, or else uses `../cuj-to-slo`, where `git clone` puts cuj-to-slo next to this repository. It also accepts an installed skill's directory. The automated tests run the same check against the same place, and skip it when the cuj-to-slo repository is not there.
 
-## Decisions
-
-- Tables are built from the YAML (cuj-to-slo's artifacts.md). Report headings and column names are written by the model on every run, so only the tables that exist only in the reports (not targeted, functions considered and not added, and so on) are looked up in the reports, and they are left out when not found.
-- The page is in Japanese and light mode only.
-- Do not edit the generated page by hand. To change it, edit the script and `assets/`, then rebuild.
-- `evals/ride-hailing-full` is a copy of `docs/quality` in ride-hailing-app-demo (commit ba28153).
+`evals/ride-hailing-full` is a copy of `docs/quality` in ride-hailing-app-demo (commit ba28153).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT

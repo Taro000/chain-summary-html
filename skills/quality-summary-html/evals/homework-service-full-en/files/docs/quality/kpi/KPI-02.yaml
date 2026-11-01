@@ -1,0 +1,18 @@
+id: KPI-02
+title: Return-within-3-days rate
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+outcome: OUT-02
+numerator: Submissions returned within 3 days
+denominator: Returned submissions
+counted_over: All students and devices
+overlaps_with: [QIU-03]
+overlap_note: null
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

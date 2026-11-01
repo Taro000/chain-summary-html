@@ -1,0 +1,26 @@
+id: QR-03
+title: Correct receipts
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: A receipt is shown only for a submission that was actually saved.
+applies_to: [FR-02]
+traces_to: [QIU-02]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: A receipt is shown although saving failed.
+score: {impact: 4, likelihood: 2}
+handling: emphasized
+handling_reason: null
+implies_internal: [QR-05]
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}
