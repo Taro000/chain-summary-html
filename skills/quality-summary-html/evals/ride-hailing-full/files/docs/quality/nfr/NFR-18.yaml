@@ -1,0 +1,31 @@
+id: NFR-18
+title: 管理の画面の操作の記録
+status: draft
+version: 1
+basis: inferred
+basis_note: 推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-22
+kind: gate
+cuj: CUJ-14
+statement: 管理の画面の操作（登録、停止と再開、対処の記録、返金）ごとに、操作した担当のアカウントを含む記録が残ることを自動テストで確かめ、新しい管理の操作の完成の定義に入れる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: FR-46、FR-47、FR-48、FR-50 の操作ごとに、操作した担当、時刻、対象が記録されること
+  threshold: すべての管理の操作で記録が残る
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,39 @@
+id: QIU-25
+title: 忘れ物を持ち主に返す
+status: retired
+version: 1
+basis: confirmed
+basis_note: 質問 10 で CUJ-15 を外したため廃止
+needs_agreement: false
+approver_candidates: []
+user: USR-04
+cuj: CUJ-15
+outcomes: []
+need: 忘れ物を持ち主に返したい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: 運営・サポート担当
+  task: 忘れ物への対応
+  environment: null
+  other: null
+characteristic: effectiveness
+statement: 運営・サポート担当は、忘れ物のある乗車とドライバーを特定し、持ち主に返せる。
+failure_scenario: 忘れ物のあった乗車やドライバーが分からず、持ち主に返せない。
+measure:
+  numerator: 持ち主に返した忘れ物
+  denominator: 問い合わせを受け、車内で見つかった忘れ物
+  narrowed_to: 忘れ物の問い合わせ
+  denominator_needed_only: 車内で見つかった忘れ物だけ
+  contribution: 乗車とドライバーの記録を引ける機能につながる
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成し、同日に廃止
+    reason: 質問 4 の回答から下書きしたが、質問 10 で CUJ-15 を外したため。番号は再利用しない

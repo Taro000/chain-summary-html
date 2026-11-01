@@ -1,0 +1,31 @@
+id: FR-17
+title: 受付の開始と停止
+status: draft
+version: 1
+basis: inferred
+basis_note: 受付の開始と停止は CUJ-06 から推定。前面にあった時間の記録は QIU-12・17 の測定量の分母から（第 1 段階の質問 15）。位置情報がないと開始できないことは推定
+needs_agreement: false
+approver_candidates: []
+statement: システムは、ドライバーが受付を開始・停止できるようにし、受付中の時間と、そのうちブラウザが前面にあった時間を記録する。
+origin: cuj-step
+cuj: CUJ-06
+cuj_step: 配車依頼を選ぶ
+traces_to: [QIU-01, QIU-12, QIU-17]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: ドライバーの Web アプリ（受付）"
+acceptance_criteria:
+  - ドライバーが受付を開始すると、依頼の一覧（FR-18）を示し、現在地をサーバーに送り始める。
+  - 位置情報の利用が許可されていないとき、受付を開始させず、許可を求める。
+  - 配車を停止されたドライバー（FR-47）が受付を開始しようとしたとき、開始させずその旨を示す。
+  - 受付中にブラウザが裏に回った時刻と前面に戻った時刻を記録し（QIU-12 と QIU-17 の分母に使う）、前面に戻ったら一覧を最新にする。
+  - ドライバーが受付を停止すると、一覧の更新と現在地の送信をやめ、停止した時刻を記録する。
+quality_hints:
+  - 効率性 (QIU-12) - 受付中で前面にある間、依頼の一覧と現在地の送信が途切れない
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

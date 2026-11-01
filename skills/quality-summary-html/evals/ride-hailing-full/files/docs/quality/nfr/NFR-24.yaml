@@ -1,0 +1,31 @@
+id: NFR-24
+title: 手配の画面の応答
+status: draft
+version: 1
+basis: inferred
+basis_note: 3 秒と 5% は提案。T_book は利用時の品質のしきい値なので値を付けない
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-03
+kind: monitor
+cuj: CUJ-01
+statement: 手配の画面の要求（場所の検索、到着予定時刻と料金の計算、手配の確定）のうち 3 秒を超えたものが、1 時間に 5% を超えると、エンジニアに知らせる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 入口のアクセスログの、FR-02・03・05 の要求の時間
+  threshold: 1 時間に 10 件以上の要求があり、3 秒を超えたものが 5% を超える
+  notifies: エンジニア（チケット）
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

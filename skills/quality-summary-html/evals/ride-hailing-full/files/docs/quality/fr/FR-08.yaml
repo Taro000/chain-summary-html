@@ -1,0 +1,30 @@
+id: FR-08
+title: 許諾されないときの案内
+status: draft
+version: 1
+basis: inferred
+basis_note: QIU-01・QIU-11 から導いた。しきい値を下げて探し続けられることは推定。T_match_wait は要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+statement: システムは、手配から T_match_wait が過ぎても許諾されないとき、乗客に知らせて待ち続けるか取り消すかを選べるようにし、しきい値を設定している乗客には、しきい値で相手が絞られていることを示して、しきい値を下げて探し続けられるようにする。
+origin: quality-in-use
+cuj: CUJ-01
+cuj_step: 配車を手配する
+traces_to: [QIU-01, QIU-11]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 乗客の Web アプリ（手配の状況）"
+acceptance_criteria:
+  - 手配から T_match_wait が過ぎても許諾がないとき、その旨を示し、「待ち続ける」と「取り消す」を選べるようにする。
+  - しきい値を設定している乗客には、しきい値でドライバーが絞られていることを示し、しきい値を下げて同じ依頼のまま探し続けられるようにする。
+  - しきい値を下げたとき、変更後のしきい値と変えた時刻を依頼に記録する（QIU-01 と QIU-11 の数え分けに使う）。
+  - 「取り消す」を選ぶと、FR-07 と同じく依頼を取り消す。
+quality_hints:
+  - 利用状況完全性 (QIU-11) - しきい値を設定した乗客の配車の成立率が、設定していない乗客より G_threshold_gap を超えて下がらない
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

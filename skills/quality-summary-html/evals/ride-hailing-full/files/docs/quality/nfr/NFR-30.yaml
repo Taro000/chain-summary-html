@@ -1,0 +1,33 @@
+id: NFR-30
+title: 確認コード、受取額、受付の資格のテスト
+status: draft
+version: 1
+basis: inferred
+basis_note: 推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-14
+- QR-15
+- QR-37
+kind: gate
+cuj: CUJ-07
+statement: 確認コード、ドライバーの受取額、受付できるドライバーの規則を自動テストで確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: コードが依頼ごとに作られドライバーが替われば変わること、違うコードで運転が始まらないこと。受取額が運賃から手数料を引いた額で、一覧と受取額の画面で同じこと。FR-48 で登録されていないドライバーが受付を始められないこと
+  threshold: すべて通る
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,31 @@
+id: QR-32
+title: 請求と返金の記録が決済のサービスと一致する
+status: draft
+version: 1
+basis: inferred
+basis_note: 決済はテスト環境（質問 1）なので影響を 4 から 3 に下げた。点と扱いは推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 運営の責任者]
+model: data
+layer: data-inherent
+characteristic: consistency
+statement: 乗車ごとの押さえ、請求、返金の記録は決済のサービスの記録と一致し、示した料金・請求額・返金額が互いに矛盾しない。
+applies_to: [FR-29, FR-30, FR-31, FR-44, FR-49, FR-50]
+traces_to: [QIU-08, QIU-16, QIU-26]
+entry_point: null
+stakeholders: [USR-01, USR-02, USR-04, 決済の外部サービス]
+failure_scenario: 応答のなかった請求が実は成功していたのに未払いと記録され、乗客は二重に払い、担当はその記録を見て誤った額を返金する。
+score: {impact: 3, likelihood: 3}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts:
+  - with: QR-04
+    note: 結果の分からない請求を確かめ終えるまで降車時の結果が出ない。乗客は待たずに降りられる（質問 9）
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

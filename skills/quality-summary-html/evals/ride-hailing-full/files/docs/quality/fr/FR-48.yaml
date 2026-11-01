@@ -1,0 +1,30 @@
+id: FR-48
+title: ドライバーと車両の登録
+status: draft
+version: 1
+basis: inferred
+basis_note: 乗客に示す車の情報（QIU-04・05）を作る機能として導いた。運営・サポート担当が登録することは質問 9 で確認済み。審査は境界の外（第 1 段階の質問 12）。当てはまる CUJ はない
+needs_agreement: false
+approver_candidates: []
+statement: システムは、運営・サポート担当が、審査を通ったドライバーとその車両（名前、顔写真、車種、色、ナンバー）を登録・変更し、ドライバーのアカウントを作れるようにする。
+origin: quality-in-use
+cuj: null
+cuj_step: null
+traces_to: [QIU-04, QIU-05]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 管理の画面（ドライバーと車両）"
+acceptance_criteria:
+  - 運営・サポート担当が、審査を通ったドライバーの名前、顔写真、連絡先と、車両の車種、色、ナンバーをすべて入れて登録すると、ドライバーのアカウントを作り、ドライバーはログインできる（FR-01）。
+  - 必要な項目が欠けているとき、登録せず、欠けている項目を示す。
+  - すでに登録されたナンバーを登録しようとしたとき、登録せずその旨を示す。
+  - 車両の情報を変えると、次の依頼から新しい情報を乗客に示す（FR-09）。
+quality_hints:
+  - 効率性 (QIU-04) - 乗客に示す車の情報が、実際の車と一致する
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

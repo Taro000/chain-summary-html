@@ -1,0 +1,31 @@
+id: NFR-16
+title: ログインと役割の画面のテスト
+status: draft
+version: 1
+basis: inferred
+basis_note: 推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-20
+kind: gate
+cuj: CUJ-01
+statement: ログインしていない要求と、ほかの役割の画面への要求が受け付けられないことを、自動テストで確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: ログインしていない要求、ログアウト後の要求、乗客・ドライバー・運営・サポート担当がほかの役割の画面を使う要求
+  threshold: すべて拒まれる
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

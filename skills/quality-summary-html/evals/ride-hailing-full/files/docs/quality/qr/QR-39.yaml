@@ -1,0 +1,38 @@
+id: QR-39
+title: ログの個人情報を伏せる
+status: draft
+version: 2
+basis: inferred
+basis_note: 分類は質問 4 で確認済み。法令の中身と点は推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者, 法令を確かめる担当（推定）]
+model: data
+layer: data-system-dependent
+characteristic: confidentiality
+statement: ログ、ブラウザのエラーの記録、状態の履歴に残す個人情報（位置、連絡先、名前）は、伏せるか、権限のある人だけが読める形で保たれる。
+applies_to: [FR-37, FR-38, FR-39, FR-40]
+traces_to: []
+entry_point:
+  type: law
+  source: 個人情報保護法（ログとデータの個人情報）。context.yaml のヒント。参加者は実在の人で位置情報も本物なので法令として扱う（第 1 段階の質問 20・22）
+  brought_by: 利用者（第 1 段階の質問 7 の回答）
+stakeholders: [USR-01, USR-02, USR-03]
+failure_scenario: ログに乗客の位置や連絡先がそのまま残り、ログを見られる人に知られる。
+score: {impact: 3, likelihood: 3}
+handling: minimum-line
+handling_reason: 法令から来る要求なので点に関わらず残す。事業化しないデモなので最低限守る線
+implies_internal: []
+conflicts:
+  - with: QR-23
+    note: 伏せるほど調査の手がかりが減る。利用者 ID と依頼 ID を残し、位置と連絡先は伏せる
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 法令として扱う根拠を記録した
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

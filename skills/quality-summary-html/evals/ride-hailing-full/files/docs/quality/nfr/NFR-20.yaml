@@ -1,0 +1,31 @@
+id: NFR-20
+title: 対象のブラウザでのリリース前の確認
+status: draft
+version: 1
+basis: inferred
+basis_note: 対象の版を「最新と一つ前の主要な版」とすることは提案
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-42
+kind: gate
+cuj: CUJ-06
+statement: リリースの前に、iOS の Safari と Android の Chrome の実機で、乗客とドライバーの主要な流れを確かめる。位置情報の取得、音での知らせ、前面と裏の切り替え、画面の点灯（FR-52）を含める。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: release-check
+  check: 両方のブラウザの、最新と一つ前の主要な版で、CUJ-01〜09 の主要な流れ
+  threshold: すべての流れがどちらのブラウザでも通る
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

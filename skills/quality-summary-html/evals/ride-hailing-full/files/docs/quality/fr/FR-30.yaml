@@ -1,0 +1,33 @@
+id: FR-30
+title: 同じ乗車への二重の請求の防止
+status: draft
+version: 2
+basis: inferred
+basis_note: QIU-08 から導いた。受け入れ基準は推定
+needs_agreement: false
+approver_candidates: []
+statement: システムは、請求の要求に乗車ごとに一意のキーを付け、同じ乗車への二度目の請求を受け付けない。
+origin: quality-in-use
+cuj: CUJ-08
+cuj_step: 決済を行う
+traces_to: [QIU-08]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "外部: 決済のサービス"
+acceptance_criteria:
+  - 請求済みの乗車について同じキーの請求が届くと、最初の結果を返し、二度目の請求はしない。
+  - 決済のサービスから応答がなく請求をやり直すとき、同じキーを使う。
+  - 異なる乗車は、それぞれのキーで請求する。
+quality_hints:
+  - 有効性 (QIU-08) - 決済のサービスが応答しないときも二重に請求しない
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 品質のヒントの特性を経済リスク緩和性から有効性に直した
+    reason: 第 1 段階の再実行で、たどる QIU が版 2（有効性）になった

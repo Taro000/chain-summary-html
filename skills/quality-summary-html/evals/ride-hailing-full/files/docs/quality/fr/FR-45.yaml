@@ -1,0 +1,28 @@
+id: FR-45
+title: 苦情の一覧と詳細
+status: draft
+version: 1
+basis: inferred
+basis_note: QIU-23・24 から導いた。CUJ-14 の手順は入力にない。示す項目は推定
+needs_agreement: false
+approver_candidates: []
+statement: システムは、運営・サポート担当に、受け付けた苦情の一覧を状態と受付の時刻とともに示し、苦情を開くと、報告の内容、その乗車の記録（状態の履歴、経路、料金と請求）、ドライバーと車の情報、そのドライバーの評価値と過去の苦情を示す。
+origin: quality-in-use
+cuj: CUJ-14
+cuj_step: null
+traces_to: [QIU-23, QIU-24]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 管理の画面（苦情）"
+acceptance_criteria:
+  - 受け付けた苦情を、状態（未対応・対処済み）、種類、受付の時刻とともに一覧で示し、状態と種類で絞り込める。
+  - 苦情を開くと、報告の内容、その乗車の記録（状態の履歴、経路、料金と請求）、ドライバーと車の情報、そのドライバーの評価値と過去の苦情を一つの画面に示す。
+quality_hints:
+  - 効率性 (QIU-24) - 受け付けてから T_complaint 時間以内に対処を決められる
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

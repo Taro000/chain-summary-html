@@ -1,0 +1,32 @@
+id: QR-48
+title: アクセシビリティの指針を満たす
+status: draft
+version: 1
+basis: inferred
+basis_note: 指針があることは質問 3、名前と水準を未定のままにすることは質問 12 で確認済み。点は推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: usability > accessibility
+statement: 乗客とドライバーの Web アプリの画面は、従うアクセシビリティの指針（名前と水準は未定）を満たす。
+applies_to: [FR-02, FR-03, FR-05, FR-06, FR-09, FR-13, FR-14, FR-17, FR-18, FR-19, FR-33]
+traces_to: []
+entry_point:
+  type: standard
+  source: アクセシビリティの指針（名前と水準は未定）
+  brought_by: 利用者（質問 3 の回答）
+stakeholders: [USR-01, USR-02]
+failure_scenario: 画面読み上げや文字の拡大で手配や受付の操作ができず、その利用者が CUJ を終えられない。
+score: {impact: 3, likelihood: 4}
+handling: emphasized
+handling_reason: 標準から来る要求なので CUJ の件数に数えずに残す。指針を決めずに作ると満たさない箇所がほぼ必ず残る
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

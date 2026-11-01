@@ -1,0 +1,30 @@
+id: FRP-08
+title: 決済のサービスの記録と毎日突き合わせる
+status: proposed
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+proposed_by: product-quality-to-slo
+origin:
+- QR-32
+- QR-09
+- QR-17
+- QR-35
+changes: null
+reason: QR-32 は請求と返金の記録が決済のサービスの記録と一致することを求めるが、突き合わせる FR がない。FR-44 と FR-49 は自分の記録を示すだけ。
+suggested_statement: システムは、毎日、前日の乗車の押さえ・請求・返金の記録を決済のサービスの記録と突き合わせ、一致しない乗車の一覧を記録して、エンジニアと運営・サポート担当に知らせる。
+affects:
+- NFR-04
+- NFR-06
+- NFR-07
+- NFR-38
+- SLI-04
+placeholders: []
+resolution: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 提案
+  reason: 第 4 段階の下書き

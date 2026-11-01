@@ -1,0 +1,39 @@
+id: QIU-01
+title: しきい値なしの乗客の配車が成立する
+status: draft
+version: 1
+basis: inferred
+basis_note: ニーズ（手軽に・早く）は入力。KPI との重なりは質問 2 で確認済み。利用状況と測定量は推定
+needs_agreement: false
+approver_candidates: []
+user: USR-01
+cuj: CUJ-01
+outcomes: [OUT-01]
+need: 手軽に配車し、できるだけ早く目的地へ移動したい
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: しきい値を設定していない乗客
+  task: 配車の手配
+  environment: null
+  other: null
+characteristic: effectiveness
+statement: しきい値を設定していない乗客は、配車を手配して、迎車を乗車場所で迎えられる。
+failure_scenario: 手配してもドライバーが見つからない、または許諾したドライバーが途中で取り消し、乗客は移動を始められない。
+measure:
+  numerator: 迎車が乗車場所に到着した配車依頼
+  denominator: 乗客が手配した配車依頼
+  narrowed_to: しきい値を設定していない乗客、スマートフォンのブラウザ。テスト用アカウントを除く
+  denominator_needed_only: 手配を確定した依頼だけを数える。移動時間と料金を見ただけで手配しなかった人は含めない。乗客が自分で取り消した依頼は含める（待ちきれずに取り消すことが主な失敗の形のため）
+  contribution: 手配から迎車到着までの出来事で、マッチングの仕組みの違いは A/B で比べられる。近くのドライバーの数（供給）に左右されるので、地域と時間帯ごとに比べる
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: KPI-01
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

@@ -1,0 +1,37 @@
+id: NFR-17
+title: 脆弱性の修正の期限と、デモの前のセキュリティの確認
+status: draft
+version: 1
+basis: inferred
+basis_note: 7 日・30 日と確認の時期は提案。入力にない。法令、開発方針、リスク分析の中身はまだ誰も確かめていない（第 3 段階の未解決の点）
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+- 個人情報の扱いを確かめる担当（推定）
+from:
+- QR-20
+- QR-21
+- QR-38
+- QR-39
+- QR-41
+- QR-47
+kind: audit
+cuj: null
+statement: 依存するライブラリの脆弱性を毎回の CI で調べ、深刻なものは 7 日以内、高いものは 30 日以内に直す。最初のデモの前に、認証、権限、位置情報、ログ、カード情報の扱いを確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit:
+  mechanism: 依存の脆弱性の調べ（CI）と、デモの前のセキュリティの確認
+  criterion: 深刻な脆弱性を 7 日、高い脆弱性を 30 日を超えて残さない。確認の指摘には、すべて担当者を付ける
+  cadence_or_deadline: 脆弱性は毎回の CI。確認は最初のデモの前と、認証や権限を変えたとき
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,39 @@
+id: NFR-04
+title: 請求と返金の記録の一致の SLO
+status: draft
+version: 1
+basis: inferred
+basis_note: 目標値 99% は提案。突き合わせには FRP-08 が要る。受け入れられるまでは、自分の記録どうし（示した料金、請求額、返金額）の矛盾だけを数える。毎日の突き合わせで判定するので、締め切りの型にする
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-32
+kind: slo
+cuj: CUJ-08
+statement: 直近 28 日で、突き合わせた乗車の 99% で、押さえ・請求・返金の記録が決済のサービスの記録と一致する。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: 押さえ（FR-05）、請求（FR-29、FR-30、FR-31）、返金（FR-50）
+slo:
+  sli: SLI-04
+  target: 99%
+  target_status: provisional
+  target_rationale: 提案。運用実績がないので保守的にした。お金の誤りは 1 件ごとに NFR-07 で知らせるので、この SLO は傾向を見るためのもの。KPI から導いていない
+  window: 28-day rolling
+  error_budget: 突き合わせた乗車の 1% まで、記録が一致しなくてよい
+  error_budget_volume: 28 日の突き合わせた乗車の件数 × 0.01（件数は未定）
+  policy: EBP-01
+  bad_run_budget_share: 1 ÷（28 日の突き合わせた乗車の件数 × 0.01）。28 日の乗車が 100 件に満たないと、1 件の不一致でバジェットを使い切る
+  progress_alert: NFR-06（毎朝 8:30 に突き合わせが終わっていなければ知らせる）
+  after_miss: ticket
+gate: null
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,276 @@
+# 第 1 段階（cuj-to-quality-in-use）が書く。更新: 2026-10-31
+system:
+  name: 配車アプリ（ride-hailing-app-demo）
+  boundary: 乗客とドライバーがスマートフォンのブラウザで使う Web アプリ（配車の手配、乗車と降車の確認、ドライバーの評価としきい値、依頼の受付、決済、受ける条件の設定）、運営・サポート担当が使う管理の画面（苦情と返金への対応）、それらを動かすサーバー、ログとデータ。外部の地図・経路・渋滞の情報と決済のサービス、ドライバーと車両の審査の業務は除く。
+  purpose: 乗客とドライバーを結び付け、乗客を目的地まで運ぶ流れを、運送と決済を模擬にしたデモで示す。あわせて、本物らしい製品として一通りの開発を通す実験とする（質問 22）
+  constraints:
+    - 事業化しないデモとして作る（質問 15）
+    - ネイティブアプリは使わず、スマートフォンのブラウザで使う Web アプリとする（質問 13）
+    - ブラウザが裏に回ったり画面が消えたりすると通知と現在地の更新が止まる制約を受け入れ、ドライバーは受付中にブラウザを前面に開いたままにする（質問 15）
+    - 料金は手配時に確定し、Web アプリ内で決済する（質問 5）
+    - 運送も決済も模擬とする。実際に人を運んで運賃を受け取ることはせず、決済は決済の外部サービスのテスト環境で行う。誰も実際のお金を失わない（第 3 段階の質問 1、質問 18）
+    - 参加者は端末を持って実際に動き、位置情報は本物を使う（第 3 段階の質問 10）
+  data_producers:
+    - 地図・経路・渋滞の情報の外部サービス（到着予定時刻と料金の計算に使う）
+    - 決済の外部サービスのテスト環境（決済と返金の記録）
+  basis: inferred
+  basis_note: 境界の中身は CUJ から推定。端末、料金と決済、外部サービス、審査を除くことは質問 5・9・12・13 で、デモであることと Web の制約を受け入れることは質問 15 で確認済み。受付中にブラウザを前面に開いたままにする前提は質問 15 の回答から推定。運送と決済が模擬であることは第 3 段階の質問 1 と質問 18、位置情報が本物であることは第 3 段階の質問 10 で確認済み。目的の言い換え（デモで示す）は推定、一通りの開発を通す実験であることは質問 22 で確認済み。参加者がどう動くか（車か徒歩か）は未確認（質問 19）
+kgis:
+  - id: KGI-01
+    name: 流通総額
+    measure: 完了した乗車の運賃の総額
+    target: null
+    basis: confirmed
+    basis_note: 測定量は質問 1 で確認済み。目標値はデモで事業化しないため設定しない（質問 16）。運賃はテスト環境で決済した額で数える（質問 21）
+outcomes:
+  - id: OUT-01
+    statement: 配車が成立する依頼を増やす
+    verb: increase
+    kgis: [KGI-01]
+    basis: confirmed
+  - id: OUT-02
+    statement: 許諾後の取り消しと、乗車場所での乗客の不在を減らす
+    verb: decrease
+    kgis: [KGI-01]
+    basis: confirmed
+users:
+  - id: USR-01
+    name: 乗客
+    category: primary
+    data_role: both
+    considered: true
+    exclusion_reason: null
+    basis: inferred
+    basis_note: "利用者と区分は入力。データの役割（作る: 乗る場所・降りる場所、ドライバーの評価。使う: 移動時間と料金、迎車の情報）は推定"
+  - id: USR-02
+    name: ドライバー
+    category: primary
+    data_role: both
+    considered: true
+    exclusion_reason: null
+    basis: inferred
+    basis_note: "利用者と区分は入力。データの役割（作る: 現在地、到着と決済の記録。使う: 依頼の内容）は推定"
+  - id: USR-03
+    name: エンジニア
+    category: secondary-maintenance
+    data_role: consumer
+    considered: true
+    exclusion_reason: null
+    basis: inferred
+    basis_note: 「二次利用者」は入力。CUJ が障害の解析と改修なので保守に分けた。ログとデータを使う
+  - id: USR-04
+    name: 運営・サポート担当
+    category: secondary-operation
+    data_role: both
+    considered: true
+    exclusion_reason: null
+    basis: inferred
+    basis_note: "考慮することは質問 4 で、ドライバーと車両の登録とドライバーの停止の記録を作ることは質問 21 で確認済み。区分とデータの役割（作る: ドライバーと車両の登録（審査の結果を含む）、ドライバーの停止、苦情への対処と返金の記録。使う: 乗車と決済の記録）は推定"
+  - id: USR-05
+    name: 経理
+    category: indirect
+    data_role: consumer
+    considered: false
+    exclusion_reason: 質問 4 で考慮すると答えたが、質問 10 で唯一の CUJ（支払いと売上の締め）を外し、質問 11 で今回は考慮しないと確認した
+    basis: confirmed
+  - id: USR-06
+    name: ドライバー・車両の審査担当
+    category: secondary-operation
+    data_role: producer
+    considered: false
+    exclusion_reason: 質問 4 で考慮しないと回答。審査はソフトウェアの外の業務で行う（質問 12）。審査の結果はシステムの外で運営・サポート担当（USR-04）に渡し、USR-04 がシステムに入れる（質問 21）
+    basis: confirmed
+  - id: USR-07
+    name: ドライバーを抱える事業者（タクシー会社など）
+    category: indirect
+    data_role: none
+    considered: false
+    exclusion_reason: 質問 4 で考慮しないと回答
+    basis: confirmed
+# CUJ-15（忘れ物への対応）と CUJ-17（支払いと売上の締め）は質問 10 で外した。番号は再利用しない
+cujs:
+  - id: CUJ-01
+    name: 配車手配
+    users: [USR-01]
+    user_goal: 移動時間と料金を確かめたうえで、手軽に、安く早く目的地へ行ける車を手配する
+    steps:
+      - 乗る場所・降りる場所を決める
+      - 移動時間と料金を確認する
+      - 配車を手配する
+    outcomes: [OUT-01]
+    basis: inferred
+    basis_note: 目的と手順は入力。OUT-01 への結び付きは推定
+  - id: CUJ-02
+    name: 乗車（乗客）
+    users: [USR-01]
+    user_goal: 手配した車に、確認の手間をかけずに乗る
+    steps:
+      - 手配した車かどうかを確認する
+    outcomes: [OUT-02]
+    basis: inferred
+    basis_note: 目的と手順は入力。OUT-02 への結び付きは推定
+  - id: CUJ-03
+    name: 降車（乗客）
+    users: [USR-01]
+    user_goal: 指定した場所で、確認の手間をかけずに降りる
+    steps:
+      - 正しい場所に到着したかを確認する
+    outcomes: []
+    basis: stated
+    basis_note: null
+  - id: CUJ-04
+    name: ドライバーの評価
+    users: [USR-01]
+    user_goal: 乗車の体験を評価として残し、変なドライバーや汚い車に当たらないようにする
+    steps:
+      - ドライバーを評価する
+    outcomes: []
+    basis: inferred
+    basis_note: 手順は入力。目的は「変なドライバーや汚い車に当たりたくない」としきい値の CUJ から推定
+  - id: CUJ-05
+    name: 評価のしきい値の設定
+    users: [USR-01]
+    user_goal: 評価が一定以上のドライバーとだけマッチし、変なドライバーや汚い車に当たらない
+    steps:
+      - 評価が一定以上のドライバーのみマッチするように閾値を設定する
+    outcomes: [OUT-01]
+    basis: inferred
+    basis_note: 目的と手順は入力。しきい値が高いほど配車が成立しにくくなるという OUT-01 への結び付きは推定
+  - id: CUJ-06
+    name: 配車受付
+    users: [USR-02]
+    user_goal: 乗客を探したり交渉したりせずに、できるだけ多く、高い依頼を受ける
+    steps:
+      - 配車依頼を選ぶ
+      - 依頼内容を確認する
+      - 依頼を許諾する
+    outcomes: [OUT-01, OUT-02]
+    basis: inferred
+    basis_note: 目的と手順は入力。OUT-01・OUT-02 への結び付きは推定
+  - id: CUJ-07
+    name: 乗車（ドライバー）
+    users: [USR-02]
+    user_goal: 依頼主を確かめて乗せ、運転を始める
+    steps:
+      - 依頼主かどうかを確認する
+      - 運転を始める
+    outcomes: [OUT-02]
+    basis: inferred
+    basis_note: 目的と手順は入力。OUT-02 への結び付きは推定
+  - id: CUJ-08
+    name: 降車（ドライバー）
+    users: [USR-02]
+    user_goal: 目的地に着いたことを確かめ、運賃を受け取る
+    steps:
+      - 到着を確認する
+      - 決済を行う
+    outcomes: []
+    basis: stated
+    basis_note: null
+  - id: CUJ-09
+    name: 受ける条件の設定
+    users: [USR-02]
+    user_goal: 金額と、現在地から乗車場所までの距離の条件に合う依頼だけを受ける
+    steps:
+      - 配車依頼を受ける条件を設定する（金額・現在地から乗車場所までの距離）
+    outcomes: [OUT-01]
+    basis: inferred
+    basis_note: 目的と手順は入力。条件が厳しいほど配車が成立しにくくなるという OUT-01 への結び付きは推定。これを数える QIU はない（質問 6 で利用状況が選ばれなかった）
+  - id: CUJ-10
+    name: 障害の原因の特定
+    users: [USR-03]
+    user_goal: 異常・エラーの原因を、ログとデータから特定する
+    steps:
+      - 異常・エラーの通知を受け取る
+      - ログやデータを調査する
+      - 障害の原因を特定する
+    outcomes: []
+    basis: stated
+    basis_note: null
+  - id: CUJ-11
+    name: 新しい機能の追加
+    users: [USR-03]
+    user_goal: 既存のシステムを壊さずに、早く新しい機能を加える
+    steps: []
+    outcomes: []
+    basis: confirmed
+    basis_note: 目的は入力。速さを含めることは質問 14 で確認済み。手順は入力になく空欄
+  - id: CUJ-12
+    name: 既存の機能の修正
+    users: [USR-03]
+    user_goal: 既存のシステムを壊さずに、早く機能を直す
+    steps: []
+    outcomes: []
+    basis: confirmed
+    basis_note: 目的は入力。速さを含めることは質問 14 で確認済み。手順は入力になく空欄
+  - id: CUJ-13
+    name: 利用技術のバージョンアップへの対応
+    users: [USR-03]
+    user_goal: 既存のシステムを壊さずに、早く利用技術を新しい版に上げる
+    steps: []
+    outcomes: []
+    basis: confirmed
+    basis_note: 目的は入力。速さを含めることは質問 14 で確認済み。手順は入力になく空欄
+  - id: CUJ-14
+    name: 苦情への対応
+    users: [USR-04]
+    user_goal: 乗客の苦情を受け、その乗車とドライバーを特定して、ドライバーへの対処を決める
+    steps: []
+    outcomes: []
+    basis: inferred
+    basis_note: 質問 4 の選択肢の説明から下書きし、質問 10 で残すと確認。手順は入力になく空欄。中間成果に結び付けないのは推定
+  - id: CUJ-16
+    name: 返金への対応
+    users: [USR-04]
+    user_goal: 誤った請求を確かめ、正しい額を返金する
+    steps: []
+    outcomes: []
+    basis: inferred
+    basis_note: 質問 4 の選択肢の説明から下書きし、質問 10 で残すと確認。手順は入力になく空欄。中間成果に結び付けないのは推定
+hints:
+  - statement: 評価が一定以上のドライバーのみマッチする（しきい値どおりに相手を絞る）
+    kind: product
+    source: 入力（乗客の CUJ「評価が一定以上のドライバーのみマッチするように閾値を設定する」）
+  - statement: 金額と、現在地から乗車場所までの距離の条件に合う依頼だけをドライバーに示す
+    kind: product
+    source: 入力（ドライバーの CUJ「配車依頼を受ける条件を設定する」）
+  - statement: エンジニアがシステムのログとデータを確認できる
+    kind: product
+    source: 入力（エンジニアの要求）
+  - statement: 機能の追加・修正や技術のバージョンアップで既存のシステムを壊さない
+    kind: product
+    source: 入力（エンジニアの要求）
+  - statement: ドライバーの評価が実態を表す。甘い評価ばかりにならず、評価の数が少ないドライバーでも当てにできる
+    kind: data
+    source: 第 1 段階の分析（推定）。QIU-09・QIU-10 の前提
+  - statement: 評価がまだないドライバー（新しく登録したドライバー）を、しきい値の判定でどう扱うかを決める
+    kind: product
+    source: 第 1 段階の分析（推定）。QIU-11 の失敗のシナリオに関わる
+  - statement: 手配時に示す到着予定時刻と料金が正しい
+    kind: data
+    source: 第 1 段階の分析（推定）。QIU-02・QIU-08 の前提
+  - statement: 迎車中にドライバーが別のナビアプリへ切り替えると、ブラウザが裏に回って現在地が更新されず、乗客は迎車の位置を見られない。Web アプリの中で経路を示すか、更新が止まることを受け入れるかを決める
+    kind: product
+    source: 第 1 段階の分析（推定）。Web アプリの制約を受け入れたこと（質問 15）から。QIU-02・QIU-04・QIU-13 に関わる
+  - statement: ネイティブアプリを使わず、スマートフォンのブラウザで使う Web アプリとする。ブラウザが裏に回ると通知と現在地の更新が止まる制約は受け入れ、ドライバーは受付中にブラウザを前面に開いたままにする
+    kind: policy
+    source: 質問 13 と質問 15 の回答
+  - statement: サービスに登録されるのは、審査（免許・車両・身元）を通ったドライバーだけとする。審査そのものはソフトウェアの外の業務で行う
+    kind: data
+    source: 質問 12 の回答
+  - statement: 運送は模擬だが、本物らしく作るため、道路運送法（運賃、ドライバーの要件）に従うものとして設計する
+    kind: policy
+    source: 質問 7・20 の回答。法令上の義務ではなく、本物らしく作る開発方針であることは質問 22 で確認済み
+  - statement: 個人情報保護法に従って、乗客とドライバーの位置情報や、ログとデータに含まれる個人情報を扱う
+    kind: law
+    source: 質問 7 の回答。参加者は実在の人で位置情報も本物なので、法令として扱う（質問 20・22）
+  - statement: 決済はテスト環境だが、本物らしく作るため、カード情報の扱いの基準（PCI DSS）に従うものとして設計する
+    kind: policy
+    source: 質問 7・20 の回答。基準への準拠を求められているのではなく、本物らしく作る開発方針であることは質問 22 で確認済み
+operational_facts:
+  - fact: 新規に立ち上げる、事業化しないデモである。本番の運用実績（件数、ピーク、ログ、既存の SLO・SLA）はない
+    source: 利用者の回答（質問 17）
+  - fact: 一系統で動く、少人数の参加者のデモ
+    source: 利用者の回答（第 3 段階の質問 2）
+  - fact: ドライバーの時間あたりの受取額（QIU-12・17）は、テスト環境で決済した額で数える
+    source: 利用者の回答（質問 21）

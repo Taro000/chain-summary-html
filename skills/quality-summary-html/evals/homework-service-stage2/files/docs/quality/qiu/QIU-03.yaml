@@ -1,0 +1,22 @@
+id: QIU-03
+title: 3 日以内に返る
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+user: USR-02
+cuj: CUJ-02
+outcomes: [OUT-02]
+need: 講師は、提出から 3 日以内に採点して返却できる。
+context_of_use: {device: スマートフォンのブラウザ, network: null, user_type: null, task: 3 日以内に返る, environment: null, other: null}
+characteristic: efficiency
+statement: 講師は、提出から 3 日以内に採点して返却できる。
+failure_scenario: 採点の画面が重く、返却が週をまたぐ。
+measure: {numerator: 3 日以内に返却した提出, denominator: 返却した提出, narrowed_to: 講師が担当する通常の課題, denominator_needed_only: null, contribution: null, observable: true, compared_with: null, scale: ratio}
+kpi: KPI-02
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

@@ -1,0 +1,39 @@
+id: QIU-27
+title: 決済の記録と合う額で締める
+status: retired
+version: 1
+basis: confirmed
+basis_note: 質問 10 で CUJ-17 を外し、質問 11 で経理を考慮しないことにしたため廃止
+needs_agreement: false
+approver_candidates: []
+user: USR-05
+cuj: CUJ-17
+outcomes: []
+need: ドライバーへの支払額と売上を、決済の記録と合わせて締めたい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: 経理
+  task: 月の締め
+  environment: null
+  other: null
+characteristic: freedom from risk > economic risk mitigation
+statement: 経理は、決済の記録と合うドライバーへの支払額と売上で、月の締めを終えられる。
+failure_scenario: 支払額や売上が決済の記録と合わず、経理が一件ずつ照らし合わせ直す。
+measure:
+  numerator: 決済の記録と食い違いのあったドライバーへの支払い
+  denominator: ドライバーへの支払い
+  narrowed_to: 月の締め
+  denominator_needed_only: その月に行ったドライバーへの支払いだけ
+  contribution: 支払額と売上を出す処理につながる
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成し、同日に廃止
+    reason: 質問 4 の回答から下書きしたが、質問 10 で CUJ-17 を外し、質問 11 で経理を考慮しないことにしたため。番号は再利用しない

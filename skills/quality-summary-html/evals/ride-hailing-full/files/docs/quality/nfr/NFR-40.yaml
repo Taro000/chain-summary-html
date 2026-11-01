@@ -1,0 +1,33 @@
+id: NFR-40
+title: ログに個人情報とカード情報を残さない
+status: draft
+version: 1
+basis: inferred
+basis_note: 推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+- 個人情報の扱いを確かめる担当（推定）
+from:
+- QR-39
+- QR-41
+kind: gate
+cuj: null
+statement: 自動テストの実行で出たログ、ブラウザのエラーの記録、状態の履歴を調べ、伏せていない位置・連絡先・名前と、カード番号の形の文字列がないことを確かめる。カード情報の入力欄が決済のサービスの入力部品の中にあり、システムのサーバーに送られないことも確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: NFR-08・27 の実行のログと記録の調べ。テスト用のカード番号で決済する要求の中身
+  threshold: 0 件
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

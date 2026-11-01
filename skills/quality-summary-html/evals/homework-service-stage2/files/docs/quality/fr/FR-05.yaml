@@ -1,0 +1,21 @@
+id: FR-05
+title: 夜間の提出状況レポート
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+statement: システムは、毎晩、前日までの提出状況をまとめたレポートを作る。
+origin: cuj-step
+cuj: CUJ-04
+cuj_step: レポートを開く
+traces_to: [QIU-05]
+proposal: null
+existing: false
+extends: null
+interface: ['画面: 生徒の Web アプリ']
+acceptance_criteria: ['毎朝 6:00 までに、生徒ごとの提出と未提出の件数をレポートに示す。']
+quality_hints: []
+changelog:
+- {version: 1, date: '2026-09-03', change: 作成, reason: 第 2 段階の下書き}

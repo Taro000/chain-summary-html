@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: homework-service-stage2
+expected_outcome: |
+  docs/quality/summary.html ができる。第 1・2 段階の表だけを載せ、先頭は CUJ ごとのトレーサビリティの表（CUJ、QIU、FR）。第 3・4 段階がまだないことをページか報告で伝え、失敗しない。最後の報告で、QIU-03 の行に FR-08 が抜けていることを伝える。
+context:
+  scaffold_script: place-files.sh

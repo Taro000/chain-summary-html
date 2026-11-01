@@ -1,0 +1,32 @@
+id: QR-19
+title: 評価の画面の操作の少なさ
+status: draft
+version: 1
+basis: inferred
+basis_note: 失敗のシナリオと点は推定。重視にすることは質問 7 で確認済み
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+model: product
+layer: external
+characteristic: usability > operability
+statement: 評価の画面は、降車後に少ない操作で評価を送れる。
+applies_to: [FR-13]
+traces_to: [QIU-09]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: 評価の画面の操作が多く、乗客が評価をやめる。
+score: {impact: 2, likelihood: 2}
+handling: emphasized
+handling_reason: 点は低いが、CUJ-04 に重視の QR を置くと事業が決めた（質問 7）
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders:
+  - name: T_rate
+    meaning: 評価の画面を開いてから評価を送るまでの秒数（第 4 段階で使う）
+    from: QIU-09
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

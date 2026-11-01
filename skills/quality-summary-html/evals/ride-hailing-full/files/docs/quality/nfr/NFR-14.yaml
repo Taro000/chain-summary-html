@@ -1,0 +1,31 @@
+id: NFR-14
+title: 迎車の到着の位置と乗る場所のずれ
+status: draft
+version: 1
+basis: inferred
+basis_note: 50 m（D_pickup_match）は提案。悪いイベントに、乗客が指定した場所の誤りが入り、チームが減らせない分を含むので、SLO ではなく監視にした（推定。質問 5 は未回答）
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-28
+kind: monitor
+cuj: CUJ-07
+statement: ドライバーが乗車場所への到着を知らせた位置（FR-25）が、依頼の乗る場所から 50 m を超えて離れていた依頼を毎日数え、プロダクトオーナーに知らせる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 到着を知らせた位置と、依頼の乗る場所の距離
+  threshold: 50 m を超えた依頼が 1 件でもあれば、翌日にまとめて知らせる
+  notifies: プロダクトオーナー
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,40 @@
+id: QIU-06
+title: 指定した場所で降りる
+status: draft
+version: 1
+basis: inferred
+basis_note: ニーズ（正しい場所かの確認の手間を省く）は入力。D_dropoff と測定量は推定
+needs_agreement: true
+approver_candidates:
+  - プロダクトオーナー
+user: USR-01
+cuj: CUJ-03
+outcomes: []
+need: 降車の手間を省きたい（正しい場所かの確認）
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 乗客
+  task: 降車
+  environment: null
+  other: null
+characteristic: effectiveness
+statement: 乗客は、最後に指定した降車場所から D_dropoff メートル以内で降りられる。
+failure_scenario: ドライバーが同じ名前の別の施設や入口の反対側で乗車を終え、乗客が歩くか乗り直す。
+measure:
+  numerator: 乗車を終えた位置が、最後に指定した降車場所から D_dropoff メートル以内だった乗車
+  denominator: 完了した乗車
+  narrowed_to: スマートフォンのブラウザ。乗客が手前で降りることを選んだ乗車は、分かる範囲で除く
+  denominator_needed_only: 完了した乗車だけ
+  contribution: 降車場所の指定（地図のピン）とドライバーへの案内に直接つながる
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

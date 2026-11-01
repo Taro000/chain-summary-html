@@ -1,0 +1,29 @@
+id: QR-22
+title: 管理の画面の操作を担当ごとにたどれる
+status: draft
+version: 1
+basis: inferred
+basis_note: 担当が一人ずつ別のアカウントを使うことは質問 8 で確認済み。セキュリティのリスク分析の分類（管理の操作の記録、質問 3・11）にも当たる。点と扱いは推定
+needs_agreement: true
+approver_candidates: [運営の責任者, プロダクトオーナー]
+model: product
+layer: external
+characteristic: security > accountability
+statement: システムは、管理の画面の操作（ドライバーと車両の登録、配車の停止と再開、対処の記録、返金）を、操作した担当一人ひとりにたどれるように記録する。
+applies_to: [FR-01, FR-46, FR-47, FR-48, FR-50]
+traces_to: [QIU-23, QIU-26]
+entry_point: null
+stakeholders: [USR-04]
+failure_scenario: 管理の画面の操作の記録から担当を特定できず、誤った返金や停止を誰がしたか分からない。
+score: {impact: 3, likelihood: 2}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

@@ -1,0 +1,40 @@
+id: SLI-03
+title: 現在地の最新性
+status: draft
+version: 1
+basis: inferred
+basis_note: 受信の時刻で測ることと、裏の時間を除くことは推定（質問 5 は未回答）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+- プロダクトオーナー
+function: FRESH ÷ CHECKS
+refs:
+- QR-27
+- NFR-03
+reshaped: 規則 2（データが新しかった時間の割合ではなく、毎分の確かめの回数で数える）
+target_entity: 画面に示すドライバーの現在地と迎車中の乗客の現在地、受付中として数えるドライバー
+purpose: 相手の画面に古い現在地が示される頻度
+unit_event: 使用中の参加者 1 人を、サーバーが 1 分ごとに確かめる 1 回
+method: 受信の時刻法（サーバーが現在地を受けた時刻と、確かめた時刻の差）
+elements:
+  CHECKS:
+    definition: 確かめた時刻に、受付中・迎車中・乗車中のドライバーと、迎車中で位置情報の利用を許可した乗客
+    exclusions: ドライバーのブラウザが裏にあった時間（FR-17 の記録）。受付を始めてから最初の 30 秒。エンジニアのテスト用アカウント
+    inputs: '現在地の受信の記録: アカウント、受けた時刻。受付と状態の記録（FR-17、FR-39）'
+    unit: checks
+    counting_rule: 毎分 0 秒にサーバーが一度確かめ、参加者ごとに 1 件と数える
+  FRESH:
+    definition: VALID のうち、最後に受けた現在地の時刻が、確かめた時刻から 30 秒（T_loc_fresh）以内のもの
+    inputs: VALID と同じ
+    unit: checks
+    counting_rule: VALID と同じ
+scale: ratio
+applicability: 本番
+lifecycle: 本番で測る
+blind_spots: 端末が位置を測ってから送るまでの遅れは見えない。乗客のブラウザが裏にあるかは記録がないので、乗客の分は実際より悪く見えうる
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

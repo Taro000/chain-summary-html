@@ -1,0 +1,21 @@
+id: FR-02
+title: 受領の表示
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+statement: システムは、提出を受け付けると、受領の番号と時刻を生徒に示す。
+origin: quality-in-use
+cuj: CUJ-01
+cuj_step: 提出する
+traces_to: [QIU-02]
+proposal: null
+existing: false
+extends: null
+interface: ['画面: 生徒の Web アプリ']
+acceptance_criteria: [提出の直後に受領の番号と時刻を示す。, 提出の履歴から、過去の受領を開ける。]
+quality_hints: []
+changelog:
+- {version: 1, date: '2026-09-03', change: 作成, reason: 第 2 段階の下書き}

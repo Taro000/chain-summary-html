@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: homework-service-full
+expected_outcome: |
+  docs/quality/summary.html ができる。ページの先頭は CUJ ごとのトレーサビリティの表で、廃止していない QIU 5 件が並び、廃止した QIU-06 は載らない。EBP が 2 つ、締め切りの SLO が 1 つある形でも表が欠けない。最後の報告で、第 2 段階の報告書の「利用時の品質要求の対応」で QIU-03 の行に FR-08 が抜けていることを伝える。
+context:
+  scaffold_script: place-files.sh

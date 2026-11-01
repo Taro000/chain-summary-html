@@ -1,0 +1,41 @@
+id: QIU-28
+title: 新しい機能を早く本番に出す
+status: draft
+version: 1
+basis: inferred
+basis_note: 変更の速さを扱うことと式は質問 14 で確認済み。T_lead と変更の種類ごとの絞り込みは推定。記録が今はないことは質問 9 で確認済み
+needs_agreement: true
+approver_candidates:
+  - 開発の責任者
+  - プロダクトオーナー
+user: USR-03
+cuj: CUJ-11
+outcomes: []
+need: 既存のシステムを壊さずに、早く変更を本番に出したい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: エンジニア
+  task: 新しい機能を加える変更
+  environment: 本番環境
+  other: null
+characteristic: efficiency
+statement: エンジニアは、新しい機能の変更を、最初のコミットから T_lead 以内に本番に出せる。
+failure_scenario: テストや確認に手間がかかって新しい機能がなかなか本番に出ず、乗客やドライバーの困りごとが長く残る。
+measure:
+  numerator: 最初のコミットから T_lead 以内に本番に出した変更
+  denominator: 本番に出した変更
+  narrowed_to: 新しい機能を加える変更
+  denominator_needed_only: 本番に出した変更だけ（途中でやめた変更は含めない）
+  contribution: テストと本番に出す仕組みに直接つながる。変更の大きさにも左右される
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 質問 9 の回答（変更の速さは扱わないという前提が誤り）と質問 14 の回答から追加

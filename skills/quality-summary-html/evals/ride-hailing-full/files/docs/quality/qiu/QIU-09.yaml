@@ -1,0 +1,40 @@
+id: QIU-09
+title: 手間をかけずにドライバーを評価する
+status: draft
+version: 1
+basis: inferred
+basis_note: 評価の目的は「変なドライバーや汚い車に当たりたくない」から推定。T_rate と測定量は推定
+needs_agreement: true
+approver_candidates:
+  - プロダクトオーナー
+user: USR-01
+cuj: CUJ-04
+outcomes: []
+need: 変なドライバーや汚い車に当たりたくない（評価がしきい値を支える）
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 乗客
+  task: 降車後の評価
+  environment: null
+  other: null
+characteristic: efficiency
+statement: 乗客は、降車後、T_rate 秒以内にドライバーを評価し終えられる。
+failure_scenario: 評価に手間がかかって乗客が評価をやめ、評価が集まらず、しきい値が当てにならなくなる。
+measure:
+  numerator: 評価の画面を開いてから T_rate 秒以内に評価を送った件数
+  denominator: 評価を送った件数
+  narrowed_to: スマートフォンのブラウザ
+  denominator_needed_only: 評価を送った件数だけ。評価は任意なので、評価しなかった乗客は含めない
+  contribution: 評価の画面の操作に直接つながる
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

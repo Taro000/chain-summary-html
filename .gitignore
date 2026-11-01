@@ -1,0 +1,4 @@
+.DS_Store
+__pycache__/
+*-workspace/
+skills/quality-summary-html/evals/results/

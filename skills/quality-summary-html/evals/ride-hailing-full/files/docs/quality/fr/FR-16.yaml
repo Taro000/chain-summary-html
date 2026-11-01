@@ -1,0 +1,31 @@
+id: FR-16
+title: しきい値による依頼の絞り込み
+status: draft
+version: 1
+basis: inferred
+basis_note: 第 1 段階のヒント（しきい値どおりに相手を絞る、評価のないドライバーの扱い）から。評価の少ないドライバーに示さないことは質問 5 で確認済み。N_min_ratings は要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+statement: システムは、しきい値を設定した乗客の依頼を、評価値がしきい値以上で評価の件数が N_min_ratings 以上のドライバーにだけ示す。
+origin: cuj-step
+cuj: CUJ-05
+cuj_step: 評価が一定以上のドライバーのみマッチするように閾値を設定する
+traces_to: [QIU-10, QIU-11, KPI-01]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: ドライバーの Web アプリ（依頼の一覧）"
+acceptance_criteria:
+  - しきい値を設定した乗客の依頼は、評価値がしきい値以上で、評価の件数が N_min_ratings 以上のドライバーの一覧（FR-18）にだけ示す。
+  - 条件を満たさないドライバーがその依頼を許諾しようとしたとき（一覧を見た後に評価値が下がったときなど）、割り当てずその旨を示す。
+  - しきい値を設定していない乗客の依頼は、評価に関わらず示す。
+  - 依頼の途中で乗客がしきい値を下げたとき（FR-08）、下げた値で示す相手を選び直す。
+quality_hints:
+  - 実用性 (QIU-10) - しきい値に満たないドライバーとマッチしない
+  - 利用状況完全性 (QIU-11) - しきい値を設定した乗客の配車の成立率が、設定していない乗客より G_threshold_gap を超えて下がらない
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

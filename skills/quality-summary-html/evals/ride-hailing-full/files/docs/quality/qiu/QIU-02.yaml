@@ -1,0 +1,40 @@
+id: QIU-02
+title: 到着予定どおりに目的地に着く
+status: draft
+version: 1
+basis: inferred
+basis_note: ニーズ（早く）は入力。到着予定との比較、T_late、測定量は推定
+needs_agreement: true
+approver_candidates:
+  - プロダクトオーナー
+user: USR-01
+cuj: CUJ-01
+outcomes: []
+need: できるだけ早く目的地へ移動したい
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 乗客
+  task: 配車の手配から降車まで
+  environment: null
+  other: null
+characteristic: efficiency
+statement: 乗客は、手配時に示された到着予定時刻から T_late 分を超えて遅れずに目的地に着ける。
+failure_scenario: 示された到着予定より大幅に遅れ、乗客が電車や約束に間に合わない。
+measure:
+  numerator: 降車した時刻が、手配時に示された到着予定時刻から T_late 分以内だった乗車
+  denominator: 完了した乗車
+  narrowed_to: スマートフォンのブラウザ。乗車中に乗客が降車場所を変えた乗車を除く。テスト用アカウントを除く
+  denominator_needed_only: 降車まで終えた乗車だけ（成立しなかった依頼は QIU-01 で数える）
+  contribution: 遅れは迎車の遅れ（マッチング）と走行（経路・渋滞）の両方から来る。到着予定の計算の改善は A/B で比べられるが、渋滞の影響は切り分けにくい
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

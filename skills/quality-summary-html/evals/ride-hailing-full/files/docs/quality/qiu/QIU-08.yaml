@@ -1,0 +1,43 @@
+id: QIU-08
+title: 示された料金どおりに決済を終える
+status: draft
+version: 2
+basis: inferred
+basis_note: ニーズ（安く）は入力。料金が手配時に確定することは質問 5 で、有効性として扱うことは質問 18 で確認済み。測定量は推定
+needs_agreement: false
+approver_candidates: []
+user: USR-01
+cuj: CUJ-03
+outcomes: []
+need: できるだけ安く移動したい（示された料金より多く払いたくない）。デモでは、示された額どおりに決済が終わること
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 乗客
+  task: 支払い
+  environment: null
+  other: Web アプリ内の決済（料金は手配時に確定。決済のサービスのテスト環境）
+characteristic: effectiveness
+statement: 乗客は、手配時に示された料金と同じ額で、一度だけ決済を終えられる。
+failure_scenario: 示された料金と違う額の決済や、同じ乗車への二度の決済が記録され、参加者は示された料金を当てにできなくなる。
+measure:
+  numerator: 手配時に示された料金と同じ額で、一度だけ決済された乗車
+  denominator: 決済した乗車
+  narrowed_to: Web アプリ内の決済（テスト環境）。乗車中に降車場所を変えた乗車は、変えたときに示された料金と比べる
+  denominator_needed_only: 決済した乗車だけ
+  contribution: 料金の計算と決済の処理に直接つながる
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 経済リスク緩和性から有効性に変えた。測定量を、正しく決済できた乗車を数える比にした
+    reason: 第 1 段階の再実行。運送も決済も模擬で、誰も実際のお金を失わない（質問 18）

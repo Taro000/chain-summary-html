@@ -1,0 +1,33 @@
+id: FR-49
+title: 請求の記録の表示
+status: draft
+version: 2
+basis: inferred
+basis_note: QIU-26 から導いた。CUJ-16 の手順は入力にない。示す項目は推定
+needs_agreement: false
+approver_candidates: []
+statement: システムは、運営・サポート担当に、乗車ごとの手配時に示した料金、降車場所の変更による料金の変化、請求額、決済の状態、行った返金、返金できる残りの額を示す。
+origin: quality-in-use
+cuj: CUJ-16
+cuj_step: null
+traces_to: [QIU-26]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 管理の画面（請求と返金）"
+acceptance_criteria:
+  - 乗車を開くと、手配時に示した料金、降車場所の変更による料金の変化、請求額、決済の状態、行った返金、返金できる残りの額を示す。
+  - 請求額と確定した料金が違うとき、その差を示す。
+  - 苦情（FR-45）から、その乗車の請求の記録を開ける。
+quality_hints:
+  - 有効性 (QIU-26) - 誤った請求かどうかを、記録から確かめられる
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 品質のヒントの特性を経済リスク緩和性から有効性に直した
+    reason: 第 1 段階の再実行で、たどる QIU が版 2（有効性）になった

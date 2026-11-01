@@ -1,0 +1,39 @@
+id: NFR-05
+title: 状態の履歴の完全性の SLO
+status: draft
+version: 1
+basis: inferred
+basis_note: 目標値 99% は提案。毎日の確かめで判定するので、締め切りの型にする。ブラウザのエラーの記録と乗客の報告の欠けは、この SLI では見えない
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-33
+kind: slo
+cuj: CUJ-14
+statement: 直近 28 日で、終わった依頼の 99% で、状態の履歴に、終わり方に応じた変化がすべて、時刻・操作した人・位置とともに残り、乗車とドライバーに結び付いている。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: 状態の履歴（FR-39）
+slo:
+  sli: SLI-05
+  target: 99%
+  target_status: provisional
+  target_rationale: 提案。運用実績がないので保守的にした。KPI から導いていない
+  window: 28-day rolling
+  error_budget: 終わった依頼の 1% まで、履歴が欠けてよい
+  error_budget_volume: 28 日の終わった依頼の件数 × 0.01（件数は未定）
+  policy: EBP-01
+  bad_run_budget_share: 1 ÷（28 日の終わった依頼の件数 × 0.01）。28 日の依頼が 100 件に満たないと、1 件の欠けでバジェットを使い切る
+  progress_alert: NFR-06（毎朝 8:30 に確かめが終わっていなければ知らせる）
+  after_miss: ticket
+gate: null
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

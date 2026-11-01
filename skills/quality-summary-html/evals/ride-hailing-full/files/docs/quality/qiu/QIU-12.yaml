@@ -1,0 +1,43 @@
+id: QIU-12
+title: ドライバーが時間あたりの受取額を高く保つ
+status: draft
+version: 2
+basis: inferred
+basis_note: ニーズ（多く・高い依頼、手間を省く）は入力。測定量は推定。ブラウザが裏に回っていた時間を除くのは質問 15 の回答から推定
+needs_agreement: false
+approver_candidates: []
+user: USR-02
+cuj: CUJ-06
+outcomes: []
+need: できるだけ多く、高い依頼を受けたい。乗客を探したり交渉したりする手間を省きたい
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 条件を設定していないドライバー
+  task: 受付可能にして依頼を受ける
+  environment: null
+  other: 地域と時間帯ごとに数える。受付中はブラウザを前面に開いたままにする（質問 15）
+characteristic: efficiency
+statement: 条件を設定していないドライバーは、乗客を探したり交渉したりせずに、受付可能な時間あたりの受取額を高く保てる。
+failure_scenario: 近くで依頼が成立せず、遠い迎車や空車の時間が長くなり、ドライバーの時間あたりの稼ぎが下がる。
+measure:
+  numerator: 完了した乗車でドライバーが受け取った額の合計（手数料を除く）
+  denominator: ドライバーが受付中で、ブラウザを前面に開いていた時間の合計
+  narrowed_to: 条件を設定していないドライバー、スマートフォンのブラウザ。地域と時間帯ごとに数える（需要の違いを比べないため）
+  denominator_needed_only: 受付中でブラウザを前面に開いていた時間だけ。休憩中、受付を止めていた時間、ブラウザが裏に回っていた時間は含めない（裏に回ると依頼を受け取れない制約を受け入れたため）
+  contribution: 料金の水準と需要の影響が大きい。製品の寄与（迎車の距離が短くなるマッチング）は、マッチングの仕組みを A/B で比べて切り分ける
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-28
+    change: 分母を「受付中で、ブラウザを前面に開いていた時間」に変え、利用状況に前面に開いたままにする前提を加えた
+    reason: 質問 15 でブラウザが裏に回ると通知が止まる制約を受け入れたため。受け入れた制約による取りこぼしを、この QIU の失敗として数えない

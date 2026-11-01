@@ -1,0 +1,31 @@
+id: NFR-22
+title: アクセシビリティの自動の確認
+status: draft
+version: 1
+basis: inferred
+basis_note: 指針の名前と水準は第 3 段階の質問 12 で未定のまま。中身は書かない
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-48
+kind: gate
+cuj: null
+statement: 乗客とドライバーの画面を、従うと決めたアクセシビリティの指針と水準（A11Y_guideline、未定）のうち自動で確かめられる項目で CI で確かめ、違反があれば配備を止める。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: A11Y_guideline のうち自動で確かめられる項目
+  threshold: 違反 0 件
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,26 @@
+id: QR-04
+title: 返却の通知の分かりやすさ
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+model: product
+layer: external
+characteristic: usability > operability
+statement: 生徒は返却の通知から講評にすぐたどり着ける。
+applies_to: [FR-08]
+traces_to: [QIU-03]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: 通知から講評が開けず、生徒が講評を読まない。
+score: {impact: 2, likelihood: 2}
+handling: excluded
+handling_reason: '今期は対象外: 通知の文面は講師が自分で書くため'
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

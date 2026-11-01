@@ -1,0 +1,32 @@
+id: FR-52
+title: ドライバーの画面の点灯の維持
+status: draft
+version: 1
+basis: inferred
+basis_note: 機能は FRP-04 から。受け入れることは第 2 段階の質問 13 で確認済み。受け入れ基準は推定
+needs_agreement: false
+approver_candidates: []
+statement: システムは、受付中・迎車中・乗車中のドライバーの画面が自動で消えないようにし、ブラウザが対応していないときはその旨をドライバーに示す。
+origin: proposal
+cuj: CUJ-06
+cuj_step: 配車依頼を選ぶ
+traces_to: [QIU-04, QIU-11, QIU-15, QIU-17]
+proposal: FRP-04
+existing: false
+extends: null
+interface:
+  - "画面: ドライバーの Web アプリ（受付中・迎車中・乗車中）"
+acceptance_criteria:
+  - ドライバーが受付を始めると、受付・迎車・乗車が続く間、画面が自動で消えないようにする。
+  - 受付を終えて、迎車中でも乗車中でもなくなると、画面を消えないようにすることをやめる。
+  - ブラウザが裏に回ったあと前面に戻ると、もう一度画面が消えないようにする。
+  - ブラウザが画面を消えないようにすることに対応していない、または失敗したとき、画面が消えると依頼の一覧と現在地の更新が止まることをドライバーに示す。
+quality_hints:
+  - QR-27 - 受付中・迎車中・乗車中に、ドライバーの現在地の更新が止まらない
+  - QR-42 - 対象のブラウザ（iOS Safari と Android Chrome）で同じように働く
+  - QR-06 - 画面を点けたままにすることによる電池の消費（競合）
+changelog:
+  - version: 1
+    date: 2026-10-31
+    change: 作成
+    reason: FRP-04 を受け入れた（第 2 段階の質問 13）

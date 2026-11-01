@@ -1,0 +1,36 @@
+id: QR-36
+title: 料金が運賃の定めに従う
+status: draft
+version: 2
+basis: inferred
+basis_note: 方針は入力。法令上の義務ではなく開発方針であることは第 1 段階の質問 22、残すことは質問 15 で確認済み。定めの中身と点は推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 法令を確かめる担当（推定）]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムが計算して示し、請求する料金は、適用する運賃の定めに従う。
+applies_to: [FR-03, FR-12, FR-29]
+traces_to: []
+entry_point:
+  type: policy
+  source: 本物らしく作るため道路運送法（運賃）に従うものとして設計する開発方針（第 1 段階の質問 22）。定めの中身は未確認
+  brought_by: 利用者（第 1 段階の質問 7 の回答）
+stakeholders: [USR-01, USR-02]
+failure_scenario: 運賃の定めに合わない料金を示し、請求する。
+score: {impact: 2, likelihood: 2}
+handling: minimum-line
+handling_reason: 開発方針から来る要求なので点に関わらず残す。運送の業務の手続きは模擬（第 2 段階の質問 11）なので最低限守る線（質問 15）
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 入口の種類を法令から開発方針に変えた
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

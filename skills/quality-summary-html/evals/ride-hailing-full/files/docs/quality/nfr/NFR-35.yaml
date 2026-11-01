@@ -1,0 +1,31 @@
+id: NFR-35
+title: データベースの構造の変更の両立
+status: draft
+version: 1
+basis: inferred
+basis_note: 推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-46
+kind: gate
+cuj: CUJ-12
+statement: データベースの構造を変えるときは、変えた後の構造で一つ前の版の自動テストを実行し、通ることを確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: 新しい構造の上で、一つ前の版の主要な流れのテスト
+  threshold: すべて通る
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

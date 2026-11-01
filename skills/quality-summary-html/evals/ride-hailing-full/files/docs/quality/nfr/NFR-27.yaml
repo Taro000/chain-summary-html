@@ -1,0 +1,33 @@
+id: NFR-27
+title: 主要な流れの自動テストで配備を止める
+status: draft
+version: 1
+basis: inferred
+basis_note: 配備を止めるゲートにすることは質問 2 で確認済み。確かめる場合の一覧は推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-07
+- QR-13
+- QR-43
+kind: gate
+cuj: CUJ-01
+statement: 配備（FR-41）の前に、外部サービス（地図・決済）の代わりと与えた位置の列を使って、手配から降車までの主要な流れと、外部サービスの失敗と無応答の扱いを自動で確かめ、落ちたら配備を止める。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: CUJ-01〜09 の主要な流れ。地図と決済のサービスの失敗、応答なし、戻った後の続き。走行中の位置の列での操作の制限（FR-21）
+  threshold: すべて通る。一つでも落ちたら配備を止める
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

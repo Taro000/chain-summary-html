@@ -1,0 +1,22 @@
+id: QIU-01
+title: 期限までに提出が終わる
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+user: USR-01
+cuj: CUJ-01
+outcomes: [OUT-01]
+need: 生徒はスマートフォンからでも、期限までに課題の提出を終えられる。
+context_of_use: {device: スマートフォンのブラウザ, network: null, user_type: null, task: 期限までに提出が終わる, environment: null, other: null}
+characteristic: effectiveness
+statement: 生徒はスマートフォンからでも、期限までに課題の提出を終えられる。
+failure_scenario: 締め切り直前に提出が失敗し、期限に間に合わない。
+measure: {numerator: 提出が完了した課題, denominator: 提出を始めた課題, narrowed_to: スマートフォンのブラウザ、締め切り前の 24 時間, denominator_needed_only: null, contribution: null, observable: true, compared_with: null, scale: ratio}
+kpi: KPI-01
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

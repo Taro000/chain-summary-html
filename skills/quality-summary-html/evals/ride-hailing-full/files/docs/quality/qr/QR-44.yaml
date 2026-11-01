@@ -1,0 +1,33 @@
+id: QR-44
+title: 外部サービスとブラウザの機能への依存を閉じ込める
+status: draft
+version: 2
+basis: inferred
+basis_note: 内部品質なので点を持たない（前の版で点を付けたのは誤り）。QR-07（最低限守る線）を支え、その扱いを受け継ぐ。QR-42 の支えから外すことは質問 16 で確認済み。CUJ-11〜13 の変更にも役立つ
+needs_agreement: true
+approver_candidates: [開発の責任者]
+model: product
+layer: internal
+characteristic: maintainability > modularity
+statement: 外部サービス（地図・決済）とブラウザの機能（位置情報、画面の点灯）への依存は、それぞれ一つの部品に閉じ込められ、替えたり版を上げたりしても、ほかの部品を変えずに済む。
+applies_to: [FR-41]
+traces_to: [QIU-01, QIU-16]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 地図のサービスの版を上げると、手配、経路、到着予定の計算などあちこちを直す必要があり、どれかを壊す。
+score: null
+handling: minimum-line
+handling_reason: QR-07（最低限守る線）を支える内部品質で、その扱いを受け継ぐ（質問 16）
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 点を外し、最低限守る線にした。たどる先を支える外部品質の QIU に移した
+    reason: 内部品質に点を付けていた誤りを直した。質問 16

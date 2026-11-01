@@ -1,0 +1,19 @@
+id: NFR-07
+title: 提出の記録の欠けの監視
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+from: [QR-07]
+kind: monitor
+cuj: CUJ-04
+statement: 時刻か生徒の欠けた提出の記録が見つかったら、その日のうちに知らせる。
+conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+slo: null
+gate: null
+audit: null
+monitor: {signal: 毎晩の記録の確かめ, threshold: 欠け 1 件, notifies: 開発者と塾の事務}
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

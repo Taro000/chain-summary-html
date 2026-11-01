@@ -1,0 +1,40 @@
+id: SLI-04
+title: 請求と返金の記録の一致
+status: draft
+version: 1
+basis: inferred
+basis_note: 突き合わせの方法は推定。FRP-08 に依存する
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+- プロダクトオーナー
+function: MATCHED ÷ RECONCILED
+refs:
+- QR-32
+- NFR-04
+reshaped: 規則 2（件数で数える）
+target_entity: システムの押さえ・請求・返金の記録と、決済のサービス（テスト環境）の記録
+purpose: 自分の記録と決済のサービスの記録がずれる頻度
+unit_event: 突き合わせた乗車 1 件
+method: 突き合わせ法（FRP-08 の毎日の突き合わせの結果）
+elements:
+  RECONCILED:
+    definition: 前日（日本時間）に乗車が終わったか、押さえた後に取り消された・不在になった依頼と、前日に返金した乗車
+    exclusions: エンジニアのテスト用アカウントの乗車
+    inputs: '突き合わせの結果: 乗車の ID、押さえ・請求・返金の額と件数（自分の側と決済のサービスの側）、一致したかどうか'
+    unit: rides
+    counting_rule: 乗車の ID ごとに 1 日 1 件。結果の分からない請求（FR-29）は次の日に判定し直し、2 日続けて分からなければ不一致とする
+  MATCHED:
+    definition: VALID のうち、押さえ・請求・返金の額と件数がすべて両側で一致し、示した料金・請求額・返金額が互いに矛盾しないもの
+    inputs: VALID と同じ
+    unit: rides
+    counting_rule: VALID と同じ
+scale: ratio
+applicability: 本番と決済のサービスのテスト環境
+lifecycle: 本番で毎日測る。FRP-08 が受け入れられるまでは、自分の記録どうしの矛盾だけを数える
+blind_spots: 決済のサービスの側の記録の誤りは見えない。決済のサービスが請求と返金の一覧を取り出せることを前提にしている（質問 4 で未定）
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

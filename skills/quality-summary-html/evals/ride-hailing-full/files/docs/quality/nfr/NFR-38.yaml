@@ -1,0 +1,32 @@
+id: NFR-38
+title: ログの取り出しとデータの復元の訓練
+status: draft
+version: 1
+basis: inferred
+basis_note: T_log_retention の 28 日は提案（SLO のウィンドウの中の障害を調べられる長さ）。T_pii_retention を超えないこと（推定。質問 6 は未回答）
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-34
+- QR-35
+kind: audit
+cuj: CUJ-10
+statement: デモの期間の前に、T_log_retention（28 日）前のログと状態の履歴を探せることと、データベースを障害の直前まで戻して乗車・請求・返金の記録が失われないことを確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit:
+  mechanism: 取り出しと復元の訓練
+  criterion: 28 日前のログと履歴が探せる。復元した後、障害の直前までに確定した乗車・請求・返金の記録がすべてある（突き合わせで確かめる）
+  cadence_or_deadline: デモの期間の前
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

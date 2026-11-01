@@ -1,0 +1,40 @@
+id: SLI-02
+title: 状態の変化を相手の画面に届ける速さ
+status: draft
+version: 1
+basis: inferred
+basis_note: しきい値と測定の方法は推定。FRP-07 に依存する
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+- プロダクトオーナー
+function: FAST ÷ CHANGES
+refs:
+- QR-02
+- NFR-02
+reshaped: 規則 1（平均ではなく、5 秒以内の割合）、規則 3（サーバーが送った時刻ではなく、相手のブラウザが示した時刻で測る）、規則 4（測る区間を、状態の変化を記録した時刻から相手の画面に示した時刻までと決める）
+target_entity: 本番のシステムが、依頼と状態の変化（新しい依頼、許諾、取り消し、探し直し、迎車の到着）を相手のブラウザの画面に届ける振る舞い
+purpose: 相手が古い状態を見て動いてしまう頻度
+unit_event: 状態の変化 1 件と、それを示すべき相手 1 人の組
+method: ブラウザの表示の記録法（FRP-07 が受け入れられてから使える）
+elements:
+  CHANGES:
+    definition: 状態の履歴（FR-39）の変化のうち上の五つの種類で、相手の画面が前面に開いていたもの
+    exclusions: 相手のブラウザが裏にあった間の変化（FR-17 の記録）。エンジニアのテスト用アカウント。合成の監視
+    inputs: '状態の履歴: 変化の ID、種類、記録した時刻。表示の記録（FRP-07）: 変化の ID、相手のアカウント、ブラウザが示した時刻'
+    unit: events
+    counting_rule: 変化の ID と相手の組ごとに 1 件。新しい依頼は、その時点で示してよいドライバー（FR-16、FR-34）を相手とする。表示の記録が届かなかった組は FAST に数えない
+  FAST:
+    definition: VALID のうち、ブラウザが示した時刻が、記録した時刻から 5 秒（T_deliver）以内のもの
+    inputs: VALID と同じ
+    unit: events
+    counting_rule: VALID と同じ。ブラウザの時計のずれは、サーバーが表示の記録を受けた時刻を上限として補う
+scale: ratio
+applicability: 本番。iOS の Safari と Android の Chrome
+lifecycle: 本番で測る。FRP-07 が受け入れられるまで値はない
+blind_spots: ブラウザの時計のずれ。表示の記録を送る前にブラウザが閉じられた組は FAST に数えないので、実際より悪く見える
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

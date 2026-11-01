@@ -1,0 +1,36 @@
+id: QR-42
+title: 対象のブラウザで同じように動く
+status: draft
+version: 2
+basis: inferred
+basis_note: 対象のブラウザは質問 8 で確認済み。点は推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: portability > adaptability
+statement: 乗客とドライバーの Web アプリは、対象とするスマートフォンのブラウザ（iOS の Safari と Android の Chrome）で、位置情報の取得、音での知らせ、前面と裏の切り替えの扱いを含めて同じように動く。
+applies_to: [FR-02, FR-06, FR-10, FR-17, FR-18, FR-21, FR-24, FR-52]
+traces_to: []
+entry_point:
+  type: policy
+  source: ネイティブアプリを使わず Web アプリだけで作る（第 1 段階の質問 13・15）
+  brought_by: 利用者（第 1 段階の質問 13・15 の回答）
+stakeholders: [USR-01, USR-02]
+failure_scenario: 特定のブラウザで位置情報の取得や音の通知が動かず、そのブラウザのドライバーが受付できない。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
+handling_reason: 開発方針から来る要求なので CUJ の件数に数えずに残す
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: FR-52（画面の点灯の維持）を対象に加えた。QR-44 の支えを外した（質問 16）
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

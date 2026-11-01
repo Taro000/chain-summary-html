@@ -1,0 +1,31 @@
+id: NFR-21
+title: ブラウザごとのエラー
+status: draft
+version: 1
+basis: inferred
+basis_note: 10 件は提案
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-42
+kind: monitor
+cuj: CUJ-06
+statement: ブラウザのエラーの記録（FR-38）をブラウザの種類ごとに数え、一つの種類から 1 時間に 10 件以上届くか、対象外のブラウザから使われると、エンジニアに知らせる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: ブラウザのエラーの記録の、ブラウザの種類と版ごとの件数
+  threshold: 一つの種類で 1 時間に 10 件以上。対象外のブラウザからの利用
+  notifies: エンジニア（チケット）
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,33 @@
+id: QR-07
+title: 外部サービスの失敗と無応答
+status: draft
+version: 1
+basis: inferred
+basis_note: 失敗のシナリオと点は推定。扱いは質問 13 で確認済み
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: reliability > fault tolerance
+statement: システムは、外部サービス（地図・経路・渋滞の情報、決済）が失敗したり応答しなかったりしても、画面を待たせ続けずに決まった扱いへ移り、サービスが戻れば処理を続ける。
+applies_to: [FR-03, FR-05, FR-12, FR-23, FR-29, FR-50]
+traces_to: [QIU-01, QIU-16]
+entry_point: null
+stakeholders: [USR-01, USR-02, 地図・経路・渋滞の情報の外部サービス, 決済の外部サービス]
+failure_scenario: 決済のサービスが応答しないまま請求が宙に浮き、完了とも未払いとも記録されない。地図のサービスの遅れで手配の画面が止まる。
+score: {impact: 4, likelihood: 3}
+handling: minimum-line
+handling_reason: CUJ-01 の重視が上限の 4 件を超えたため、最低限守る線にした（質問 13）。決済はテスト環境で、地図のサービスの失敗は FR-03 が扱いを決めている
+implies_internal: [QR-43, QR-44]
+conflicts:
+  - with: QR-03
+    note: 呼び出しを待つ時間とやり直しが手配の待ち時間に加わる。待つ時間の上限を手配の待ち時間の中に収める
+  - with: QR-04
+    note: 呼び出しを待つ時間とやり直しが降車の待ち時間に加わる。待つ時間の上限を降車の待ち時間の中に収める
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

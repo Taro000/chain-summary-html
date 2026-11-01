@@ -1,0 +1,18 @@
+id: FRP-01
+title: 下書きの自動保存
+status: accepted
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-06]
+changes: null
+reason: 添付したファイルを下書きとして保存する
+suggested_statement: 添付したファイルを下書きとして保存する
+affects: []
+placeholders: []
+resolution: FR-06 として受け入れた
+changelog:
+- {version: 1, date: '2026-09-08', change: 提案, reason: 第 3 段階}

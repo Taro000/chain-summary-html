@@ -1,0 +1,32 @@
+id: QR-29
+title: 場所の座標の精度
+status: draft
+version: 1
+basis: inferred
+basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: data
+layer: data-inherent
+characteristic: precision
+statement: 乗る場所と降りる場所の座標は、建物の入口を区別できる細かさで保たれ、丸められずにドライバーの経路と乗車の終了の確かめ（FR-28）に使われる。
+applies_to: [FR-02, FR-12, FR-23, FR-28]
+traces_to: [QIU-06]
+entry_point: null
+stakeholders: [USR-01, USR-02]
+failure_scenario: 座標を住所に置き換えて渡し、ドライバーが入口の反対側に着く。
+score: {impact: 3, likelihood: 2}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders:
+  - name: D_dropoff
+    meaning: 降車場所から何メートル以内を正しい場所とするか
+    from: QIU-06、FR-28
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

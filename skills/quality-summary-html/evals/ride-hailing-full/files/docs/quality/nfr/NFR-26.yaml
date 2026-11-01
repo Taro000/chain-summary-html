@@ -1,0 +1,31 @@
+id: NFR-26
+title: ドライバーの端末の電池の確認
+status: draft
+version: 1
+basis: inferred
+basis_note: N_session_hours（デモ 1 回の長さ）は未定（推定。質問 6 は未回答）
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-06
+kind: audit
+cuj: CUJ-06
+statement: デモの期間の前に、対象のブラウザと端末で、満充電から N_session_hours の間、受付中で前面に開き画面を点けたまま（FR-52）、電池が切れずに受付を続けられることを確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit:
+  mechanism: 実機での電池の試験
+  criterion: N_session_hours の間、電池が切れない
+  cadence_or_deadline: デモの期間の前と、現在地の送り方を変えたとき
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,19 @@
+id: NFR-08
+title: 個人情報の扱いの監査
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+from: [QR-09]
+kind: audit
+cuj: null
+statement: 半年ごとに、提出物を見られる権限を棚卸しする。
+conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+slo: null
+gate: null
+audit: {mechanism: アクセス権の棚卸し, criterion: 不要な権限 0 件, cadence_or_deadline: 半年ごと}
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}
