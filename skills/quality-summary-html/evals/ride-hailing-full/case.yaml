@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: ride-hailing-full
 expected_outcome: |
-  docs/quality/summary.html ができる。ページの先頭は CUJ ごとのトレーサビリティの表（CUJ、QIU、FR、QR、NFR / SLI）で、利用者ごとの群に分かれ、廃止していない QIU 28 件が 1 行ずつ並ぶ。第 1〜4 段階の表はそれぞれ閉じたトグルに入り、表の中の ID は行へのリンクになる。最後の報告で、第 2 段階の報告書の「利用時の品質要求の対応」に FR-52 が抜けている（QIU-04・11・15・17）ことを伝える。
+  docs/quality/summary.html ができる。ページの先頭は CUJ ごとのトレーサビリティの表（CUJ、QIU、FR、QR、NFR / SLI）で、利用者ごとの群に分かれ、廃止していない QIU 28 件が 1 行ずつ並ぶ。第 1〜4 段階の表はそれぞれ閉じたトグルに入り、表の中の ID は行へのリンクになる。最後の報告で、第 2 段階の報告書の「利用時の品質要求の対応」に FR-52 が抜けている（QIU-04・11・15・17）ことを伝える。「CUJ の手順ごとの機能」で FR-52 が CUJ-06 の「配車依頼を選ぶ」に載っていないことも伝える。製品の品質のマトリクスには、入口から来た QR の列がある。
 context:
   scaffold_script: place-files.sh

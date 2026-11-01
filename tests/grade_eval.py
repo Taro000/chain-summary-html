@@ -226,6 +226,37 @@ class Run:
         ok = 'FR-52' in self.report and len(qs) >= 3
         return ok, '報告に FR-52: %s、挙げた QIU: %s' % ('FR-52' in self.report, sorted(qs) or 'なし')
 
+    def reports_fr52_step(self):
+        # FR-52 と手順の表、CUJ-06 か「配車依頼を選ぶ」が、近い行（その行と次の 2 行）に出てくる
+        lines = self.report.splitlines()
+        hit = next((ln for i, ln in enumerate(lines) if 'FR-52' in ln and '手順' in ' '.join(lines[i:i + 3])
+                    and ('CUJ-06' in ' '.join(lines[i:i + 3]) or '配車依頼を選ぶ' in ' '.join(lines[i:i + 3]))), None)
+        return hit is not None, '手順の表の FR-52 に触れた行: %s' % (hit.strip()[:120] if hit else 'なし')
+
+    def entry_column(self):
+        # 製品の品質のマトリクス（副特性の列を持つ表）の入口の列の、各 QR の副特性の行に、その QR がある
+        want = []
+        for p in sorted((self.docs / 'qr').glob('*.yaml')):
+            d = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            key = bs.char_key(d.get('characteristic'))
+            if d.get('status') != 'retired' and d.get('entry_point') and d.get('model') == 'product' and d.get('layer') != 'internal' and len(key) == 2:
+                want.append((str(d['id']), bs.term('characteristic', key[1], strict=False)))
+        for t in self.tables:
+            names = [c.text().strip() for c in header_cells(t)]
+            if not any('副特性' in n for n in names):
+                continue
+            ent = [j for j, n in enumerate(names) if '入口' in n or '経由しない' in n]
+            if not ent:
+                return False, '製品の品質のマトリクスに入口の列がない（見出し: %s）' % names[:5]
+            k, miss = len(names) - ent[0], []  # 特性の列は rowspan なので、列の位置は右から数える
+            for q, sub in want:
+                row = next((r for r in body_rows(t) if any(isinstance(c, Node) and c.tag == 'th' and c.text().strip() == sub for c in r.kids)), None)
+                cells = [c for c in row.kids if isinstance(c, Node) and c.tag in ('td', 'th')] if row else []
+                if len(cells) < k or q not in cells[-k].text():
+                    miss.append('%s（%s）' % (q, sub))
+            return not miss, '入口の列: %s。入口の列の正しい行にない QR: %s' % (names[ent[0]], miss or 'なし')
+        return False, '製品の品質のマトリクス（副特性の列を持つ表）がない'
+
     def reports_fr08(self):
         ok = 'FR-08' in self.report and 'QIU-03' in bs.ids_in(self.report, 'QIU')
         return ok, '報告に FR-08: %s、QIU-03: %s' % ('FR-08' in self.report, 'QIU-03' in self.report)

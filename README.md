@@ -34,7 +34,7 @@ uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.p
 uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title 配車アプリの品質
 ```
 
-スクリプトは、書き出したページのほかに、成果物どうしの食い違い（報告書の表と YAML の違い、廃止した項目への参照など）と、報告書に見つからず省いた表を標準出力に出します。
+スクリプトは、書き出したページのほかに、成果物どうしの食い違い（報告書の表と YAML の違い、廃止した項目への参照など）、報告書に見つからず省いた表、見つからず YAML と突き合わせなかった表を標準出力に出します。
 
 ## 構成
 

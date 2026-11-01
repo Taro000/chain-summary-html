@@ -72,7 +72,7 @@ Left out on purpose: 既存 (`existing`) and the basis.
 ## Stage 3 tables and figures
 
 - 「QR の影響 × 起こりやすさ」: a 5 × 5 grid of every QR with a `score`, colored by impact × likelihood, chips colored by handling.
-- 製品の品質: a matrix of the 31 product sub-characteristics (glossary order) by CUJ. A cell lists the external QRs with that characteristic that trace to a QIU of that CUJ. Internal QRs are left out, as in the stage 3 coverage checklist; they appear in 「外部品質から導いた内部品質」. CUJ names are written vertically in the column heads.
+- 製品の品質: a matrix of the 31 product sub-characteristics (glossary order) by CUJ. A cell lists the external QRs with that characteristic that trace to a QIU of that CUJ. Internal QRs are left out, as in the stage 3 coverage checklist; they appear in 「外部品質から導いた内部品質」. CUJ names are written vertically in the column heads. Before the CUJ columns, the column 「入口」 lists the external QRs that come from an entry point (laws, standards, security risk analysis, policies). They have no CUJ, so without this column a row such as security can look empty. It comes before the CUJs because the matrix is often wider than the screen, and a last column stays hidden until the reader scrolls sideways. Its head links to 「利用者を経由しない要求」, and each chip's tooltip names the entry type. The column is left out when no such QR has that model.
 - データの品質: the same matrix for the 15 data characteristics, with 「データの種類」 above it (report-only) and 「データを作る人」 below it (from the report line 「データを作る人:」, or else from users whose `data_role` is producer or both and `system.data_producers`).
 - 優先度の表: QR (id and title), 特性, 失敗のシナリオ, 影響, 起こりやすさ, 点 (impact × likelihood), 扱い (handling badge and the first sentence of `handling_reason`), CUJ (derived through `traces_to`). Sortable by QR and by 点.
 - CUJ ごとの扱い: per CUJ, the external QRs tracing to it, split into 重視 / 最低限守る線 / 今期は対象外, and the count of emphasized ones.
@@ -103,11 +103,12 @@ These exist only in the Markdown reports. The script looks for the heading (any 
 | 対象にしない | 1 | 対象にしない, Not targeted | CUJ, characteristic, reason |
 | 検討して加えなかった機能 | 2 | 検討して加えなかった機能, Functions considered and not added | candidate, for, reason |
 | 利用時の品質要求の対応 (checked, not shown) | 2 | 利用時の品質要求の対応, Quality-in-use coverage | QIU, the column named FR |
+| CUJ の手順ごとの機能 (checked, not shown) | 2 | CUJ の手順ごとの機能, 手順ごとの機能, Functions by CUJ step | CUJ, the column named 手順 or Step, the column named FR |
 | 外部品質から導いた内部品質 | 3 | 外部品質から導いた内部品質, Internal quality derived from external quality | external, internal, how |
 | データの種類 / データを作る人 | 3 | lines starting 「主なデータ:」 or 「データの種類:」, and 「データを作る人:」 | split on 「、」 |
 | 割り当て (out-of-scope notes, checked) | 4 | 割り当て, Allocation | QR, the NFR column, the out-of-scope column |
 
-A missing table is left out of the page, listed in 「この版の注記」, and printed in the report.
+A missing table that the page shows is left out of the page, listed in 「この版の注記」, and printed in the report. A missing table that is only compared is printed in the report under 「報告書に見つからず突き合わせなかった表」, so that no inconsistencies is not mistaken for a full check.
 
 ## Interactions
 
@@ -125,7 +126,8 @@ Light mode only, by the user's choice. Colors are tokens on `:root` in `assets/s
 - References between items: every ID a field names must exist and must not be retired (`kgis`, `users`, `outcomes`, `cuj`, `kpi`, `overlaps_with`, `traces_to`, `proposal`, `extends`, `applies_to`, `implies_internal`, `conflicts.with`, `from`, `slo.sli`, `slo.policy`, `refs`, `applies_to` of EBPs), and `cuj_step` must be one of the CUJ's steps.
 - Enum values: `handling` and `kind` must be known values; other unknown values are listed under 用語集にない値.
 - Both sides of the KPI overlap: a QIU's `kpi` must list the QIU in that KPI's `overlaps_with`.
-- Report against YAML: the stage 2 coverage table's FRs per QIU, the stage 3 internal-quality pairs, and the stage 4 allocation's NFRs per QR.
+- Report against YAML: the stage 2 coverage table's FRs per QIU, the stage 3 internal-quality pairs, and the stage 4 allocation's NFRs per QR. The report names the tables it compared and those it could not find.
+- The stage 2 functions-by-CUJ-step table against each FR's `cuj` and `cuj_step`: an FR must be listed at its step (or, without `cuj_step`, somewhere under its CUJ). A blank CUJ cell repeats the CUJ above; steps are compared ignoring spaces and full- or half-width forms. Not compared, because the table may say more than the YAML can: rows without a CUJ id (「どの CUJ にもない」, a stretch between steps), FRs without `cuj` (an FR shared by several CUJs), and extra places an FR is listed besides its own step. A step that is not one of the CUJ's steps is reported once for its row, and a retired FR in the table is reported.
 - IDs that appear in reports but not in the YAML are listed as notes (often removed CUJs that a report still mentions).
 - The page itself: no duplicate ids, and every `href="#…"` has a target.
 

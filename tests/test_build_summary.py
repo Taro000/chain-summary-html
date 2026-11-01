@@ -40,6 +40,15 @@ def heads(block):
     return re.findall(r'<th scope="col"[^>]*>(?:<button[^>]*>)?([^<]+)', block)
 
 
+def entry_cell(page, tid, sub):
+    """マトリクスの「入口」の列の、副特性（データの品質では特性）が sub の行にある QR"""
+    for row in re.findall(r'<tr>(.*?)</tr>', toggle(page, tid), re.S):
+        if 'class="mx-sub">%s<' % sub in row:
+            m = re.search(r'<td class="mx-c mx-ent">(.*?)</td>', row, re.S)
+            return re.findall(r'>(QR-\d+)<', m.group(1)) if m else None
+    return None
+
+
 class Ids(unittest.TestCase):
     def test_range_and_list(self):
         self.assertEqual(bs.ids_in('QR-36〜42・47・48'), ['QR-%02d' % i for i in (36, 37, 38, 39, 40, 41, 42, 47, 48)])
@@ -151,6 +160,17 @@ class Page(unittest.TestCase):
         self.assertIn('QIU-03', self.run1.stdout)
         self.assertRegex(self.run1.stdout, r'YAML だけ: FR-08')
 
+    def test_reports_tables_it_could_not_compare(self):
+        self.assertIn('報告書に見つからず突き合わせなかった表: CUJ の手順ごとの機能（2-functional-requirements.md）', self.run1.stdout)
+
+    def test_entry_column_before_cujs(self):
+        pq = toggle(self.page, 't-pq')
+        self.assertIn('mx-ent', re.findall(r'<th scope="col" class="(mx-h[^"]*)"', pq)[0])
+        self.assertIn('入口 1', pq.split('</summary>')[0])
+        self.assertEqual(entry_cell(self.page, 't-pq', '機密性'), ['QR-09'])
+        self.assertEqual(entry_cell(self.page, 't-pq', '可用性'), [])
+        self.assertEqual(entry_cell(self.page, 't-dq', '回復性'), ['QR-13'])
+
     def test_stage4_parts(self):
         self.assertIn('id="EBP-01"', self.page)
         self.assertIn('id="EBP-02"', self.page)
@@ -193,6 +213,45 @@ class MissingInputs(unittest.TestCase):
         self.assertIn('この版の注記', page)
 
 
+class StepTable(unittest.TestCase):
+    """第 2 段階の「CUJ の手順ごとの機能」と、FR の cuj・cuj_step の突き合わせ"""
+    TABLE = '''
+## CUJ の手順ごとの機能
+
+| CUJ | 手順 | FR | 注記 |
+|---|---|---|---|
+| CUJ-01 課題の提出 | 課題を開く | （なし） | |
+| | ファイルを 添付する | FR-06 | CUJ の欄が空なら上の行の CUJ。空白の違いは見ない |
+| CUJ-01 | 提出する | FR-01 | FR-02 が抜けている |
+| CUJ-02 採点と返却 | 提出を開く | FR-07 | 廃止した FR |
+| CUJ-02 | 返却する | FR-03 | FR-08 が抜けている |
+| CUJ-03 提出の失敗の調査 | ログを調べる | FR-04 | context.yaml にない手順 |
+| CUJ-04 月次の提出状況の確認 | 未提出の生徒を確かめる | FR-05 | YAML では「レポートを開く」 |
+| （どの CUJ にもない） | | FR-01 | CUJ のない行は比べない |
+'''
+
+    def test_positions(self):
+        with tempfile.TemporaryDirectory() as d:
+            docs = pathlib.Path(d) / 'docs' / 'quality'
+            shutil.copytree(docs_of('homework-service-full'), docs)
+            r2 = docs / '2-functional-requirements.md'
+            r2.write_text(r2.read_text(encoding='utf-8') + self.TABLE, encoding='utf-8')
+            r = build(docs, docs / 'summary.html')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        got = [ln for ln in r.stdout.splitlines() if '「CUJ の手順ごとの機能」' in ln]
+        want = [
+            'FR-07: 2-functional-requirements.md の「CUJ の手順ごとの機能」に載っているが、YAML では廃止',
+            '手順「ログを調べる」が、CUJ-03 の手順（context.yaml）にない',
+            'FR-02: 2-functional-requirements.md の「CUJ の手順ごとの機能」の位置と、FR の YAML の cuj と cuj_step が違う（報告書: 載っていない、YAML: CUJ-01「提出する」）',
+            'FR-05: 2-functional-requirements.md の「CUJ の手順ごとの機能」の位置と、FR の YAML の cuj と cuj_step が違う（報告書: CUJ-04「未提出の生徒を確かめる」、YAML: CUJ-04「レポートを開く」）',
+            'FR-08: 2-functional-requirements.md の「CUJ の手順ごとの機能」の位置と、FR の YAML の cuj と cuj_step が違う（報告書: 載っていない、YAML: CUJ-02「返却する」）',
+        ]
+        for w in want:
+            self.assertTrue(any(w in ln for ln in got), '%s がない:\n%s' % (w, '\n'.join(got)))
+        self.assertEqual(len(got), len(want), '\n'.join(got))
+        self.assertIn('YAML と突き合わせた報告書の表: 利用時の品質要求の対応、CUJ の手順ごとの機能', r.stdout)
+
+
 @unittest.skipUnless(docs_of('ride-hailing-full').is_dir(), '配車アプリの成果物がない')
 class RideHailing(unittest.TestCase):
     def test_full_chain(self):
@@ -202,6 +261,15 @@ class RideHailing(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn('トレーサビリティ: QIU の行 28、入口 9', r.stdout)
         self.assertEqual(len(re.findall(r'YAML だけ: FR-52', r.stdout)), 4)
+        # 手順ごとの表で食い違うのは FR-52 だけ。迎車の行、CUJ-11〜13 の行、CUJ のない FR は食い違いにしない
+        steps = [ln for ln in r.stdout.splitlines() if '「CUJ の手順ごとの機能」' in ln]
+        self.assertEqual(len(steps), 1, '\n'.join(steps))
+        self.assertIn('FR-52: ', steps[0])
+        self.assertIn('（報告書: 載っていない、YAML: CUJ-06「配車依頼を選ぶ」）', steps[0])
+        self.assertIn('報告書に見つからず突き合わせなかった表: なし', r.stdout)
+        self.assertEqual(entry_cell(page, 't-pq', '機密性'), ['QR-38', 'QR-41'])
+        self.assertEqual(entry_cell(page, 't-pq', 'インテグリティ'), ['QR-47'])
+        self.assertEqual(entry_cell(page, 't-dq', '機密性'), ['QR-39'])
         self.assertEqual(bs.self_check(page), [])
         self.assertIn('<title>配車アプリの品質</title>', page)
 

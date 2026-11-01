@@ -8,7 +8,8 @@ DOCS は成果物のディレクトリ（既定は ./docs/quality）。--out の
 
 表は YAML の項目（artifacts.md）から作る。報告書（Markdown）は、段階の表題と、報告書にしかない表
 （対象にしない、検討して加えなかった機能、外部品質から導いた内部品質の説明、データの種類、範囲外）にだけ使い、
-見つからなければその表を省いて報告する。同じ入力からは同じ HTML ができる。
+見つからなければその表を省いて報告する。YAML と突き合わせる報告書の表（利用時の品質要求の対応、CUJ の手順ごとの機能、
+外部品質から導いた内部品質、割り当て）は、見つからなければ突き合わせなかったと報告する。同じ入力からは同じ HTML ができる。
 終了コード: 0 は書き出した（食い違いがあっても 0）、2 は入力の誤り、1 はできた HTML の自己点検の失敗。
 """
 import argparse
@@ -18,6 +19,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import unicodedata
 from collections import Counter, defaultdict
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -35,6 +37,7 @@ CONTEXT_KEYS = ('device', 'network', 'user_type', 'task', 'environment', 'other'
 EXTRA = {
     'excl': (1, ('対象にしない', 'Not targeted'), 3),
     'coverage': (2, ('利用時の品質要求の対応', 'Quality-in-use coverage'), 3),
+    'steps': (2, ('CUJ の手順ごとの機能', '手順ごとの機能', 'Functions by CUJ step'), 3),
     'notadd': (2, ('検討して加えなかった機能', 'Functions considered and not added'), 3),
     'derived': (3, ('外部品質から導いた内部品質', 'Internal quality derived from external quality'), 3),
     'alloc': (4, ('割り当て', 'Allocation'), 6),
@@ -225,6 +228,11 @@ def norm(t):
     return re.sub(r'[\s　]+', ' ', s(t)).lower()
 
 
+def step_key(t):
+    """CUJ の手順の比べ方。全角と半角、空白の違いは見ない"""
+    return re.sub(r'\s+', '', unicodedata.normalize('NFKC', s(t)))
+
+
 def section(text, aliases):
     """見出しが aliases のどれかに当たる節の本文（同じか上の階層の次の見出しまで）。なければ None"""
     al = {norm(x) for x in aliases}
@@ -261,6 +269,11 @@ def md_tables(text):
             res.append((cur[0], [r + [''] * (len(cur[0]) - len(r)) for r in cur[2:]]))
         cur = []
     return res
+
+
+def col(head, names, default):
+    """見出しが names のどれかに当たる列の位置。なければ default"""
+    return next((j for j, h in enumerate(head) if norm(h) in names), default)
 
 
 def line_value(text, labels):
@@ -362,6 +375,7 @@ RULES = [
     'QR は QR の traces_to から逆にたどる。CUJ を持たない QR（入口のあるもの）は末尾の「入口」の群に置く。',
     '機能要件、利用時の品質要求、品質要求の表では、YAML の title を短い名前として文の頭に太字で添える。',
     '製品の品質とデータの品質のマトリクス、優先度の表、CUJ ごとの扱いの CUJ は、QR がたどる QIU の CUJ。',
+    'マトリクスでは CUJ の列の前に「入口」の列を置き、入口（法令、標準・指針、セキュリティのリスク分析、開発方針・制約）から来た QR を載せる。',
     'バーンレートのアラートの「使い切るまで」は、ウィンドウの日数 ÷ バーンレート。',
 ]
 
@@ -370,6 +384,7 @@ class Build:
     def __init__(self, docs, yaml_mod, out, title=None):
         self.docs, self.yaml, self.out = docs, yaml_mod, out
         self.issues, self.notes, self.used, self.skipped = [], [], [], []
+        self.checked, self.unchecked = [], []
         self.dead = Counter()
         self.toc = defaultdict(list)
         self.load()
@@ -468,6 +483,8 @@ class Build:
         self.handling = {q['id']: s(q.get('handling')) for q in self.qrs}
         self.internal = {q['id'] for q in self.qrs if s(q.get('layer')) == 'internal'}
         self.entry = [q['id'] for q in self.qrs if q.get('entry_point')]
+        self.entry_type = {q['id']: term('entry_type', q['entry_point'].get('type'))
+                           for q in self.qrs if isinstance(q.get('entry_point'), dict)}
         self.nfr_of_qr = defaultdict(list)
         for n in self.nfrs:
             for x in L(n.get('from')):
@@ -575,26 +592,36 @@ class Build:
             if k in self.kpi_ids and q['id'] not in L(self.items['kpi'][k].get('overlaps_with')):
                 self.issues.append('%s の kpi は %s だが、%s の overlaps_with に %s がない' % (q['id'], k, k, q['id']))
 
-        # 報告書の表と YAML
-        cov = self.extra('coverage')
+        # 報告書の表と YAML。突き合わせる段階があるのに表が見つからなければ、突き合わせなかったと報告する
+        def compared(key, label, needed):
+            got = self.extra(key)
+            if got:
+                self.checked.append(label)
+            elif needed:
+                self.unchecked.append('%s（%s）' % (label, REPORTS[EXTRA[key][0]]))
+            return got
+        cov = compared('coverage', '利用時の品質要求の対応', self.has[2])
         if cov:
             head, rows = cov
-            col = next((j for j, h in enumerate(head) if norm(h) in ('fr', 'frs', '機能要件')), 2)
+            fc = col(head, ('fr', 'frs', '機能要件'), 2)
             for r in rows:
                 for qi in ids_in(r[0], 'QIU'):
                     if qi in self.qiu_by:
-                        listed, derived = set(ids_in(r[col], 'FR')), set(self.fr_of_qiu.get(qi, []))
+                        listed, derived = set(ids_in(r[fc], 'FR')), set(self.fr_of_qiu.get(qi, []))
                         if listed != derived:
                             self.issues.append('%s: %s の「利用時の品質要求の対応」の FR と、FR の YAML の traces_to が違う'
                                                '（報告書だけ: %s、YAML だけ: %s）' % (qi, REPORTS[2], fmt(listed - derived), fmt(derived - listed)))
-        der = self.extra('derived')
+        st = compared('steps', 'CUJ の手順ごとの機能', self.has[2])
+        if st:
+            self.check_steps(*st)
+        der = compared('derived', '外部品質から導いた内部品質', bool(self.internal))
         if der:
             rep = {(e, i) for r in der[1] for i in ids_in(r[1], 'QR') for e in ids_in(r[0], 'QR')}
             yml = {(q['id'], i) for q in self.qrs for i in L(q.get('implies_internal'))}
             if rep != yml:
                 self.issues.append('%s の「外部品質から導いた内部品質」の組と、QR の YAML の implies_internal が違う（報告書だけ: %s、YAML だけ: %s）'
                                    % (REPORTS[3], fmt('%s→%s' % x for x in rep - yml), fmt('%s→%s' % x for x in yml - rep)))
-        alloc = self.extra('alloc')
+        alloc = compared('alloc', '割り当て', self.has[4])
         for r in (alloc[1] if alloc else []):
             qs = ids_in(r[0], 'QR')
             if qs and qs[0] in self.qr_by:
@@ -605,6 +632,47 @@ class Build:
         only = sorted({i for n in REPORTS for i in ids_in(self.md[n]) if i not in known}, key=id_key)
         if only:
             self.notes.append('報告書にあって YAML にない ID: ' + '、'.join(only))
+
+    def check_steps(self, head, rows):
+        """第 2 段階の「CUJ の手順ごとの機能」の位置と、FR の cuj・cuj_step。
+        CUJ のない行（「どの CUJ にもない」など）と、YAML に cuj のない FR は比べない。CUJ の欄が空の行は上の行の CUJ"""
+        fc, sc = col(head, ('fr', 'frs', '機能要件'), 2), col(head, ('手順', 'step', 'steps'), 1)
+        steps = {c['id']: {step_key(x): x for x in L(c.get('steps'))} for c in self.cujs}
+        pos, cur = defaultdict(set), []
+        for r in rows:
+            if r[0].strip():
+                cur = [c for c in ids_in(r[0], 'CUJ') if c in steps]
+            if not cur:
+                continue
+            t, k = r[sc].strip(), ''
+            if t and not t.startswith(('（', '(')) and t.lower() not in ('—', '–', '-', 'なし', 'none', 'n/a'):
+                k = step_key(t)
+                if not any(k in steps[c] for c in cur):
+                    # 位置が分からないので、この行の FR はこの 1 件にまとめて報告する
+                    self.issues.append('%s の「CUJ の手順ごとの機能」の手順「%s」が、%s の手順（context.yaml）にない'
+                                       % (REPORTS[2], t, '、'.join(cur)))
+                    k = None
+            for f in ids_in(r[fc], 'FR'):
+                if self.known.get(f) == 'retired':
+                    self.issues.append('%s: %s の「CUJ の手順ごとの機能」に載っているが、YAML では廃止' % (f, REPORTS[2]))
+                for c in cur:
+                    pos[f].add((c, k))
+
+        def where(c, k):
+            if k is None:
+                return c + '（context.yaml にない手順）'
+            return c + ('「%s」' % steps[c].get(k, k) if k else '')
+        for f in self.frs:
+            c, k = s(f.get('cuj')), step_key(f.get('cuj_step'))
+            if c not in steps:
+                continue
+            k = k if k in steps[c] else ''  # 手順にない cuj_step は、上の参照の確かめで報告している
+            mine = {p for p in pos[f['id']] if p[0] == c}
+            if (c, None) in mine or ((c, k) in mine if k else mine):
+                continue
+            rep = sorted(pos[f['id']], key=lambda p: (id_key(p[0]), p[1] or ''))
+            self.issues.append('%s: %s の「CUJ の手順ごとの機能」の位置と、FR の YAML の cuj と cuj_step が違う（報告書: %s、YAML: %s）'
+                               % (f['id'], REPORTS[2], '、'.join(where(*p) for p in rep) or '載っていない', where(c, k)))
 
     # ---------- 見出しと日付 ----------
     def default_title(self):
@@ -902,8 +970,10 @@ class Build:
             rows_def = [(t, sub) for t, subs in TERMS['product_model'] for sub in subs]
         else:
             rows_def = [(t, None) for t in TERMS['data_model']]
-        # 網羅の確認と同じく外部品質だけを置く。内部品質は「外部品質から導いた内部品質」に載せる
-        valid, cells, unplaced = set(rows_def), defaultdict(list), []
+        # 網羅の確認と同じく外部品質だけを置く。内部品質は「外部品質から導いた内部品質」に載せる。
+        # 入口から来た QR は CUJ を持たないので、CUJ の列の前の「入口」の列（列の鍵は None）に置く。
+        # マトリクスは画面より広くなりやすく、最後の列だと横に送るまで見えない
+        valid, cells, unplaced, ents = set(rows_def), defaultdict(list), [], []
         for q in self.qrs:
             if s(q.get('model')) != model or q['id'] in self.internal:
                 continue
@@ -914,12 +984,27 @@ class Build:
                 continue
             for c in self.qr_cujs.get(q['id'], []):
                 cells[(rk, c)].append(q['id'])
+            if q.get('entry_point'):
+                cells[(rk, None)].append(q['id'])
+                ents.append(q['id'])
         if unplaced:
             self.notes.append('%sの品質のマトリクスに置けない特性の QR: %s' % ('製品' if model == 'product' else 'データ', '、'.join(unplaced)))
-        heads = ''.join('<th scope="col" class="mx-h">%s<span class="vname">%s</span></th>'
-                        % (self.a(c['id'], c['id'].split('-', 1)[1]), esc(c.get('name'))) for c in self.cujs)
+        cols, heads = [c['id'] for c in self.cujs], ''
+        if ents:
+            order = list(TERMS['entry_type'].values())
+            types = '、'.join(sorted({self.entry_type.get(q) or '—' for q in ents}, key=lambda t: (order.index(t) if t in order else len(order), t)))
+            cols = [None] + cols
+            heads = ('<th scope="col" class="mx-h mx-ent"><a class="id" href="#t-ext" data-tip="%s">入口</a>'
+                     '<span class="vname">利用者を経由しない</span></th>' % attr('利用者を経由しない要求（%s）' % types))
+        heads += ''.join('<th scope="col" class="mx-h">%s<span class="vname">%s</span></th>'
+                         % (self.a(c['id'], c['id'].split('-', 1)[1]), esc(c.get('name'))) for c in self.cujs)
         th = ('<th scope="col" class="mx-k">特性</th><th scope="col" class="mx-k">副特性</th>' if model == 'product'
               else '<th scope="col" class="mx-k">特性</th>') + heads
+
+        def chip(q, c):
+            if c:
+                return self.a(q, chip=True)
+            return self.a(q, chip=True, tip='%s\n入口: %s' % (self.TIP.get(q, q), self.entry_type.get(q) or '—'))
         span, body, prev = Counter(t for t, _ in rows_def), [], None
         for t, sub in rows_def:
             if model == 'product':
@@ -930,10 +1015,10 @@ class Build:
                 lead_ += '<th scope="row" class="mx-sub">%s</th>' % esc(term('characteristic', sub))
             else:
                 lead_ = '<th scope="row" class="mx-sub">%s</th>' % esc(term('characteristic', t))
-            tds = ''.join('<td class="mx-c">%s</td>' % (' '.join(self.a(q, chip=True) for q in sorted(cells[((t, sub), c['id'])], key=self.qr_key)) or none())
-                          for c in self.cujs)
+            tds = ''.join('<td class="mx-c%s">%s</td>' % ('' if c else ' mx-ent', ' '.join(chip(q, c) for q in sorted(cells[((t, sub), c)], key=self.qr_key)) or none())
+                          for c in cols)
             body.append('<tr>%s%s</tr>' % (lead_, tds))
-        return '<table class="mx"><thead><tr>%s</tr></thead><tbody>%s</tbody></table>' % (th, ''.join(body)), len(rows_def)
+        return '<table class="mx"><thead><tr>%s</tr></thead><tbody>%s</tbody></table>' % (th, ''.join(body)), len(rows_def), len(ents)
 
     def data_lists(self):
         top = bottom = ''
@@ -1041,11 +1126,13 @@ class Build:
         scored = [q for q in self.qrs if self.score(q)]
         if scored:
             P.append(self.risk_chart(scored))
-        pq, n_pq = self.matrix('product')
-        P.append(self.tog(3, 't-pq', '製品の品質', '副特性 %d × CUJ %d' % (n_pq, len(self.cujs)), legend() + wrap(pq)))
-        dq, n_dq = self.matrix('data')
+        pq, n_pq, e_pq = self.matrix('product')
+        P.append(self.tog(3, 't-pq', '製品の品質', '副特性 %d × CUJ %d' % (n_pq, len(self.cujs)) + (' · 入口 %d' % e_pq if e_pq else ''),
+                          legend() + wrap(pq)))
+        dq, n_dq, e_dq = self.matrix('data')
         top, bottom = self.data_lists()
-        P.append(self.tog(3, 't-dq', 'データの品質', '特性 %d × CUJ %d' % (n_dq, len(self.cujs)), top + legend() + wrap(dq) + bottom))
+        P.append(self.tog(3, 't-dq', 'データの品質', '特性 %d × CUJ %d' % (n_dq, len(self.cujs)) + (' · 入口 %d' % e_dq if e_dq else ''),
+                          top + legend() + wrap(dq) + bottom))
         if scored:
             P.append(self.tog(3, 't-prio', '優先度の表', '%d 件' % len(scored), wrap(self.prio_table(scored))))
         P.append(self.tog(3, 't-cujh', 'CUJ ごとの扱い', '%d 件' % len(self.cujs), wrap(self.cujh_table())))
@@ -1288,6 +1375,8 @@ class Build:
         print('トレーサビリティ: QIU の行 %d、入口 %d' % (self.n_trace, len(self.entry) if self.has[3] else 0))
         print('報告書から読んだもの: ' + ('、'.join(self.used) or 'なし'))
         print('報告書に見つからず省いたもの: ' + ('、'.join(self.skipped) or 'なし'))
+        print('YAML と突き合わせた報告書の表: ' + ('、'.join(self.checked) or 'なし'))
+        print('報告書に見つからず突き合わせなかった表: ' + ('、'.join(self.unchecked) or 'なし'))
         print('リンクにしていない ID: ' + (', '.join('%s×%d' % kv for kv in sorted(self.dead.items(), key=lambda kv: id_key(kv[0]))) or 'なし'))
         if UNKNOWN:
             print('用語集にない値: ' + '、'.join('%s（%d）' % kv for kv in sorted(UNKNOWN.items())))
