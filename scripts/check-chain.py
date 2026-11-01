@@ -4,7 +4,8 @@
   python3 scripts/check-chain.py [CUJ_TO_SLO]
 
 CUJ_TO_SLO is the cuj-to-slo repository or an installed skill directory (with the glossary under references/).
-It defaults to the CUJ_TO_SLO environment variable, or else quality-kpi-skills next to this repository.
+It defaults to the CUJ_TO_SLO environment variable, or else cuj-to-slo next to this repository (where
+`git clone` puts it). tests/test_build_summary.py looks in the same place.
 What it checks:
   - the Japanese terms in assets/lang/ja.json and the English characteristic names are in the glossary (glossary.md)
   - the English terms in assets/lang/en.json are in the glossary (ignoring case and hyphens; the few the glossary has no
@@ -38,7 +39,8 @@ def find(base):
         g, a = base / sub / 'glossary.md', base / sub / 'artifacts.md'
         if g.is_file() and a.is_file():
             return g, a
-    sys.exit('用語集と artifacts.md が見つからない: %s（shared/ か references/ の下を探した）' % base)
+    sys.exit('用語集と artifacts.md が見つからない: %s（shared/ か references/ の下を探した）\n'
+             'cuj-to-slo の場所を、引数か環境変数 CUJ_TO_SLO で渡す' % base)
 
 
 def flat(t):
@@ -46,7 +48,7 @@ def flat(t):
 
 
 def main():
-    base = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else os.environ.get('CUJ_TO_SLO', ROOT.parent / 'quality-kpi-skills')).expanduser()
+    base = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else os.environ.get('CUJ_TO_SLO', ROOT.parent / 'cuj-to-slo')).expanduser()
     gpath, apath = find(base)
     glossary, artifacts = gpath.read_text(encoding='utf-8'), apath.read_text(encoding='utf-8')
     ja = json.loads((LANG / 'ja.json').read_text(encoding='utf-8'))['terms']

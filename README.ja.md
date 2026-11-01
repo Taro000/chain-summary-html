@@ -40,21 +40,7 @@ npx skills add Taro000/quality-summary-html -a claude-code -g -y
 
 スキルは同梱のスクリプトを動かします。スクリプトはどの表も YAML の項目から作るので、どのプロジェクトでも、段階を再実行したあとでも、同じ形のページになります。そのあとスキルは、ページで示せなかったことを伝えます。成果物どうしの食い違い（YAML と違う報告書の表、廃止した項目への参照など）には、どの段階を再実行すれば直るかを添えます。報告書に見つからなかった表も伝えます。SLO の目標値が仮のものや、品質要求が下書きのものがあれば、ページが示すのは合意済みの目標ではなく提案だと伝えます。
 
-ページは成果物の言語で書きます。日本語の成果物なら日本語、それ以外の言語なら英語です。変わるのはラベルだけで、中身は書かれた言語のままです。
-
-スクリプトを直接動かすこともできます。
-
-```sh
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
-
-# 書き出す先と表題を変える
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title 配車アプリの品質
-
-# 日本語の成果物から、英語のラベルのページを作る
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --lang en
-```
-
-スクリプトは、ページと同じ言語で報告を標準出力に出します。終了コードが 0 ならページを書いています（食い違いがあっても 0 です）。1 はページを書いたものの自己点検（id の重なり、リンク先のないリンク）に失敗したこと、2 は成果物を読めなかったことを表します。
+ページは成果物の言語で書きます。日本語の成果物なら日本語、それ以外の言語なら英語です。変わるのはラベルだけで、中身は書かれた言語のままです。ラベルをもう一方の言語にすることや、表題や書き出す先を変えることも頼めます。
 
 ## 出力
 
@@ -88,6 +74,20 @@ scripts/check-chain.py         cuj-to-slo の用語集と artifacts.md との食
 tests/                         自動テストと、架空のサービスの成果物を作るスクリプト
 ```
 
+エージェントを通さずに生成スクリプトを動かすときは、このリポジトリを clone して使います。
+
+```sh
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
+
+# 書き出す先と表題を変える
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title 配車アプリの品質
+
+# 日本語の成果物から、英語のラベルのページを作る
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --lang en
+```
+
+スクリプトは、ページと同じ言語で報告を標準出力に出します。終了コードが 0 ならページを書いています（食い違いがあっても 0 です）。1 はページを書いたものの自己点検（id の重なり、リンク先のないリンク）に失敗したこと、2 は成果物を読めなかったことを表します。
+
 ```sh
 # 手元のコピーを、Claude Code に入れたスキルとして使う
 ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
@@ -99,10 +99,10 @@ uv run --with pyyaml python3 -m unittest discover -s tests -v
 uv run --with pyyaml python3 tests/make_homework_fixture.py
 
 # cuj-to-slo が変わったら: このスキルが頼るものが、用語集と artifacts.md にまだあるかを確かめる
-python3 scripts/check-chain.py path/to/cuj-to-slo
+python3 scripts/check-chain.py [path/to/cuj-to-slo]
 ```
 
-`check-chain.py` が食い違いを出したら、`assets/lang/ja.json`、`assets/lang/en.json` と生成スクリプトを合わせてください。`check-chain.py` には、入れたスキルのディレクトリを渡すこともできます。環境変数 `CUJ_TO_SLO` でパスを渡すこともできます。
+`check-chain.py` が食い違いを出したら、`assets/lang/ja.json`、`assets/lang/en.json` と生成スクリプトを合わせてください。引数を省くと、環境変数 `CUJ_TO_SLO` のパスを読み、それもなければ `../cuj-to-slo`（このリポジトリの隣に `git clone` したときの場所）を見ます。入れたスキルのディレクトリを渡すこともできます。自動テストも同じ場所で同じ確認をし、cuj-to-slo のリポジトリがなければその確認を飛ばします。
 
 `evals/ride-hailing-full` は ride-hailing-app-demo の `docs/quality`（コミット ba28153）の写しです。
 

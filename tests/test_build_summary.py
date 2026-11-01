@@ -3,6 +3,7 @@
   uv run --with pyyaml python3 -m unittest discover -s tests -v
 """
 import importlib.util
+import os
 import pathlib
 import re
 import shutil
@@ -15,7 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILL = ROOT / 'skills' / 'quality-summary-html'
 SCRIPT = SKILL / 'scripts' / 'build_summary.py'
 EVALS = SKILL / 'evals'
-CHAIN = ROOT.parent / 'quality-kpi-skills'
+# The cuj-to-slo repository, found the same way scripts/check-chain.py finds it
+CHAIN = pathlib.Path(os.environ.get('CUJ_TO_SLO', ROOT.parent / 'cuj-to-slo')).expanduser()
 
 spec = importlib.util.spec_from_file_location('build_summary', SCRIPT)
 bs = importlib.util.module_from_spec(spec)
@@ -441,7 +443,7 @@ class RideHailing(unittest.TestCase):
         self.assertIn('<title>配車アプリの品質</title>', page)
 
 
-@unittest.skipUnless((CHAIN / 'shared' / 'glossary.md').is_file(), 'cuj-to-slo がない')
+@unittest.skipUnless((CHAIN / 'shared' / 'glossary.md').is_file(), 'cuj-to-slo がない: %s（環境変数 CUJ_TO_SLO で場所を渡せる）' % CHAIN)
 class ChainCheck(unittest.TestCase):
     def run_check(self, base):
         return subprocess.run([sys.executable, str(ROOT / 'scripts' / 'check-chain.py'), str(base)], capture_output=True, text=True)

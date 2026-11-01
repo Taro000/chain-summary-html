@@ -40,21 +40,7 @@ The skill runs a Python script, so it needs Python 3.9 or later and PyYAML. With
 
 The skill runs the bundled script, which builds every table from the YAML items, so every project and every re-run gets the same layout. It then tells you what the page could not show: inconsistencies between the outputs (a report table that disagrees with the YAML, a reference to a retired item), each with the stage whose re-run fixes it, and the report-only tables it could not find. When SLO targets are provisional or quality requirements are still drafts, it says that the page shows proposals, not agreed targets.
 
-The page follows the language of the outputs: Japanese for Japanese outputs, English for any other language. Only the labels change; the content stays as written.
-
-You can also run the script yourself:
-
-```sh
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
-
-# another output path and title
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title "Ride-hailing app quality"
-
-# English labels for Japanese outputs
-uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --lang en
-```
-
-It prints its report to standard output, in the page's language. Exit code 0 means the page was written, even with inconsistencies; 1 means it was written but failed its own check (duplicate ids or links without a target); 2 means the outputs could not be read.
+The page follows the language of the outputs: Japanese for Japanese outputs, English for any other language. Only the labels change; the content stays as written. You can also ask for the labels in the other language, another title or another output path.
 
 ## Output
 
@@ -88,6 +74,20 @@ scripts/check-chain.py         checks for drift from the cuj-to-slo glossary and
 tests/                         automated tests, and the script that builds the fictional service's outputs
 ```
 
+To run the generator without an agent, use a clone of this repository:
+
+```sh
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py path/to/docs/quality
+
+# another output path and title
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --out /tmp/summary.html --title "Ride-hailing app quality"
+
+# English labels for Japanese outputs
+uv run --with pyyaml python3 skills/quality-summary-html/scripts/build_summary.py docs/quality --lang en
+```
+
+It prints its report to standard output, in the page's language. Exit code 0 means the page was written, even with inconsistencies; 1 means it was written but failed its own check (duplicate ids or links without a target); 2 means the outputs could not be read.
+
 ```sh
 # use your working copy as Claude Code's installed skill
 ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
@@ -99,10 +99,10 @@ uv run --with pyyaml python3 -m unittest discover -s tests -v
 uv run --with pyyaml python3 tests/make_homework_fixture.py
 
 # after cuj-to-slo changes: check that its glossary and artifacts.md still have what this skill relies on
-python3 scripts/check-chain.py path/to/cuj-to-slo
+python3 scripts/check-chain.py [path/to/cuj-to-slo]
 ```
 
-When `check-chain.py` reports drift, update `assets/lang/ja.json`, `assets/lang/en.json` and the generator to match. It also accepts an installed skill's directory, or reads the path from the `CUJ_TO_SLO` environment variable.
+When `check-chain.py` reports drift, update `assets/lang/ja.json`, `assets/lang/en.json` and the generator to match. Without an argument, it reads the path from the `CUJ_TO_SLO` environment variable, or else uses `../cuj-to-slo`, where `git clone` puts cuj-to-slo next to this repository. It also accepts an installed skill's directory. The automated tests run the same check against the same place, and skip it when the cuj-to-slo repository is not there.
 
 `evals/ride-hailing-full` is a copy of `docs/quality` in ride-hailing-app-demo (commit ba28153).
 
