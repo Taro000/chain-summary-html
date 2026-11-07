@@ -1,0 +1,28 @@
+id: DRV-22
+title: カード情報をシステムに通さない
+status: draft
+version: 1
+basis: inferred
+basis_note: 要求は QR-41（入口は PCI DSS を模す開発方針）。Stripe は質問 6、交渉できないことは質問 9 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: constraint
+statement: カード番号などのカード情報は Stripe の入力部品で入れ、システムのサーバー、ログ、データを通さず、保存しない
+sources: [QR-41, NFR-40, FR-04, TC-10]
+concern_of: [USR-01]
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: 交渉できない制約。入口（開発方針）から来た要求
+  difficulty: low
+  difficulty_reason: Stripe の入力部品を使えば満たせる
+  rank: 16
+primary: true
+conflicts:
+  - with: DRV-28
+    note: 品質チェーンで解き済み。ブラウザのエラーの記録に入力欄の値を入れない（DRV-32）
+placeholders: []
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}

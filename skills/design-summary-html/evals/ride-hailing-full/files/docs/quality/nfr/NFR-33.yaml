@@ -1,0 +1,39 @@
+id: NFR-33
+title: 通知の試験
+status: draft
+version: 3
+basis: inferred
+basis_note: 5 分（T_notify）は提案。T_rca は第 1 段階で 30 分に決まった（QIU-19）。通知の 5 分を除いた 25 分を調べる時間に残す
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-24
+kind: gate
+cuj: CUJ-10
+statement: リリースの前に、試験用のエラーを起こして、5 分以内にエンジニアの通知先に届くことを確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: release-check
+  check: 試験用のサーバーのエラーとブラウザのエラーを起こし、通知の記録（FR-36）の時刻を見る
+  threshold: 5 分以内に届く
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-01'
+  change: 根拠に T_rca の値を書いた
+  reason: 第 4 段階の再実行（第 2 段階 7d0cb6d・08c3ee0、第 3 段階 156240c・9c28917）
+- version: 3
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

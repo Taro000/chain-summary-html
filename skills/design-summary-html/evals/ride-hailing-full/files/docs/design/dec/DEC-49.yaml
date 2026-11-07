@@ -1,0 +1,51 @@
+id: DEC-49
+title: 版の扱い
+status: draft
+version: 1
+basis: inferred
+basis_note: DRV-16、DEC-27 は入力。形は推定
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: インタフェースを、使う側を壊さずにどう変えるか
+addresses:
+- IFC-01
+- IFC-08
+- IFC-09
+- DRV-16
+options:
+- name: "経路に v1。足すだけで、知らない欄は両側とも無視する。X-App-Version で古い画面を読み直させる。配信のメッセージと毎日の処理の出力は v か schema_version を持つ。ログは schema_version。画面は応答の X-App-Version と配信の hello の appVersion が自分と違い、操作の途中でないとき（手配の確定や乗車の終了を待っていないとき）に読み直し、GET で今の状態を取り直す"
+  effect: SPA とサーバーは同じイメージで出るが、配備と戻しの前に開いた画面が新しいサーバーと話してもよい（NFR-34）
+  cost: 壊す変更は v2 を並べる
+- name: 見出しで版を選ぶ
+  effect: 経路が変わらない
+  cost: 入口のログで版が見えない
+- name: 版を持たない
+  effect: 作る量が少ない
+  cost: 戻しと開いたままの画面で壊れる
+chosen: 経路に v1。足すだけで、知らない欄は両側とも無視する。X-App-Version で古い画面を読み直させる。配信のメッセージと毎日の処理の出力は v か schema_version を持つ。ログは schema_version。画面は応答の X-App-Version と配信の hello の appVersion が自分と違い、操作の途中でないとき（手配の確定や乗車の終了を待っていないとき）に読み直し、GET で今の状態を取り直す
+rationale: DRV-16（戻しても進行中の依頼が続く）。開いたままの画面が配備をまたぐ
+rejected:
+- option: 見出しで版を選ぶ
+  reason: 入口のログに版が残らない
+- option: 版を持たない
+  reason: 戻しで壊れる
+gains:
+- 戻しても画面が壊れない
+costs:
+- 欄を消すときは二つの版に分ける（構造の変更と同じ。DEC-27）
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-27
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

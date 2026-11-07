@@ -1,0 +1,27 @@
+id: FND-76
+title: 共通の約束事からのずれが仕様書と IFC に残る（時刻の形、IFC-01 の冪等キー、DEC-55 にない回数の上限、仕様書だけの仮の値）
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-01
+- IFC-02
+- IFC-04
+- DEC-40
+- DEC-48
+- DEC-55
+severity: minor
+evidence: '活動 B8、B10。時刻の欄（format: date-time、71 件）のどれにも DEC-40 のミリ秒と Z の縛りがなく、FND-43 の resolution「ID と時刻の pattern を仕様書に入れ」は時刻については成り立たない。IFC-01 の idempotency は「login と passkeys は送り直してよい」とするが、DEC-48 の例外はパスキーの options と authenticate だけで、auth.openapi.yaml の passkeys/register はキーを求める。places/resolve（1 分に 30 回）、nearby-drivers/count（1 分に 20 回）、visibility-events（1 分に 30 回）、staff-bootstrap（IP ごとに 1 時間に 5 回）の上限は仕様書と IFC にだけあり DEC-55 と設計上の値の表にない。GET /api/v1/config は 429 を返すのに上限がない。見積もりの期限 T_estimate_valid（10 分、仮）と降車場所の見積もりの 5 分は passenger.openapi.yaml にだけあり（DAT-05 は「仮」とだけ書く）、設定の符号の pattern に x-provisional がない。rating、billing、setup-code、cancellation-quote、driver-photo、reception の単数形が DEC-47 の単数の例にない'
+suggestion: '時刻の欄に pattern を足すか DEC-40 を「format: date-time、送るときはミリ秒と Z」と書き分ける。IFC-01 の idempotency を DEC-48 とそろえる。回数の上限と見積もりの期限を DEC-55、DAT-05、設計上の値の表に載せる。単数形の資源を DEC-47 の例に足す'
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

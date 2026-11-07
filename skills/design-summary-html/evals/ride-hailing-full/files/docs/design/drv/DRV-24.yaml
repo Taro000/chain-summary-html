@@ -1,0 +1,37 @@
+id: DRV-24
+title: アクセシビリティの指針を満たす
+status: draft
+version: 2
+basis: inferred
+basis_note: 要求は QR-48（入口は標準。WCAG 2.2 レベル AA は 2026-11-01 の利用者の回答）。交渉できないことは質問 9 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: constraint
+statement: 乗客とドライバーの Web アプリの画面は、WCAG 2.2 レベル AA（A11Y_guideline）を満たす
+sources: [QR-48, NFR-22, NFR-23]
+concern_of: [USR-01, USR-02]
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: 交渉できない制約。入口（標準）から来た要求
+  difficulty: medium
+  difficulty_reason: 地図が中心の画面で、ドラッグに代わる操作などを用意する手間。自動と人の確かめの両方が要る
+  rank: 8
+primary: true
+conflicts:
+  - with: DRV-26
+    note: 人の確かめ（NFR-23）を一人で回す。量は受け入れた（質問 13）
+  - with: DRV-08
+    note: ピンを動かして場所を決める操作は、WCAG 2.2 AA のドラッグに代わる操作の求めに当たる（第 2・3 段階）
+placeholders:
+  - name: A11Y_guideline
+    meaning: 従うアクセシビリティの指針と水準（WCAG 2.2 レベル AA）
+    from: QR-48
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - version: 2
+    date: 2026-11-03
+    change: DRV-26 との競合を、量を受け入れた（質問 13）と書いた
+    reason: 第 1 段階の再実行（質問 13 の回答）

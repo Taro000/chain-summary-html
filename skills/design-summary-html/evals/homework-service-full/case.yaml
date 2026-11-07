@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: homework-service-full
+expected_outcome: |
+  docs/design/summary.html is built from the YAML items. The page starts with the ranking table of the architecture
+  drivers, open, in the YAML's rank order, without the principle DRV-09 and the retired DRV-10. Every other table is in a
+  closed toggle, and IDs link to their rows. Each stage 2 decision has an entry with its question, its options and the
+  rejected options' reasons from dec/*.yaml, DEC-06 included, although the stage 2 report's decisions table leaves it out;
+  the final report tells the user so. No revision notes (finding numbers, 「版 2」, the previous version, re-runs) reach the
+  page. The reports' diagrams are drawn, the flow numbers on the threat diagram link to the threat table, and NFR-06's hop
+  budgets are a chart against 3 seconds.
+context:
+  scaffold_script: place-files.sh

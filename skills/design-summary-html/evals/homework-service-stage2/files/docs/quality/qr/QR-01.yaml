@@ -1,0 +1,26 @@
+id: QR-01
+title: 提出の可用性
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+model: product
+layer: external
+characteristic: reliability > availability
+statement: 生徒は締め切り前の混雑時にも提出できる。
+applies_to: [FR-01]
+traces_to: [QIU-01]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: 締め切り直前に提出の画面がエラーになる。
+score: {impact: 5, likelihood: 3}
+handling: emphasized
+handling_reason: null
+implies_internal: [QR-05]
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

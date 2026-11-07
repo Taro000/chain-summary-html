@@ -1,0 +1,111 @@
+id: IFC-27
+title: ドライバーの迎車・乗車・受取額・条件の画面
+status: draft
+version: 2
+basis: inferred
+basis_note: FR の受け入れ基準は入力。状態が許さないときの行は FND-34、乗車中に経路がないときと画面の点灯の解放の行は FND-47。画面の分け方は推定
+needs_agreement: false
+approver_candidates: []
+kind: screen
+name: ドライバーの迎車・乗車・受取額・条件の画面
+provider: ELM-02
+consumers:
+- USR-02
+functions:
+- FR-07
+- FR-12
+- FR-22
+- FR-23
+- FR-24
+- FR-25
+- FR-26
+- FR-27
+- FR-28
+- FR-29
+- FR-31
+- FR-32
+- FR-33
+- FR-52
+- FR-54
+operations:
+- name: 迎車中
+  does: 迎車（CUJ にない流れ）と CUJ-07。乗車場所までの経路（FR-23）、乗客の位置（FR-24）、到着（FR-25）、確認コードと運転の開始（FR-26）、不在（FR-27）、取り消し（FR-22）
+- name: 乗車中
+  does: CUJ-08。降車場所までの経路（得られなければ降車場所のピンだけ。FR-23 AC2・3）、降車場所の変更の知らせと音（FR-12 AC2）、乗車の終了（FR-28）、支払いの結果（FR-29、FR-31）。乗車の終了、不在、取り消しで依頼が終わり、受付もしていなければ画面の点灯を解放する（FR-52 AC2）
+- name: 受取額
+  does: 乗車ごとの運賃、手数料、受取額、決済の状態（FR-32）
+- name: 受ける条件
+  does: CUJ-09。受取額の下限と乗車場所までの距離の上限（FR-33）
+format: React の SPA の画面（DEC-23）。文言は日本語（DEC-46）。WCAG 2.2 AA（DRV-24）
+protocol: iOS の Safari。IFC-03、IFC-04、IFC-08、IFC-16、IFC-18 を使う
+auth: ドライバーのセッション
+errors:
+- case: '迎車中: 経路を得られない'
+  signal: routeToPickup が null
+  caller_does: 乗車場所のピンだけを示し、経路を示せないことを示す（FR-23 AC3）
+- case: '迎車中: 乗客の位置がない'
+  signal: passengerSharingLocation が false、ride.live がない
+  caller_does: 乗車場所のピンだけと、乗客の現在地が分からないことを示す（FR-24 AC2）
+- case: '到着: 遠い'
+  signal: IFC-03 TOO_FAR_FROM_PICKUP
+  caller_does: 乗車場所に近づくよう示す（FR-25 AC2）
+- case: '到着: 位置を確かめられない'
+  signal: arrival.verified = false
+  caller_does: 着いたと示す（FR-25 AC3）
+- case: '到着: 取り消された'
+  signal: IFC-03 RIDE_CANCELLED、IFC-08 ride.updated（cancelled）
+  caller_does: その旨と音で知らせる（FR-07 AC2、FR-25 AC4）
+- case: '運転の開始: コードが違う'
+  signal: IFC-03 CONFIRMATION_CODE_MISMATCH
+  caller_does: 依頼主かどうか確かめるよう示す（FR-26 AC2）
+- case: '運転の開始: 回数の上限'
+  signal: IFC-03 CONFIRMATION_ATTEMPTS_EXCEEDED
+  caller_does: 乗客と確かめ、取り消すよう示す
+- case: '運転の開始、不在: 取り消された、まだ到着を知らせていない'
+  signal: IFC-03 RIDE_CANCELLED、RIDE_NOT_ARRIVED
+  caller_does: 読み直して今の状態を示す
+- case: '不在: 早すぎる'
+  signal: IFC-03 NO_SHOW_TOO_EARLY
+  caller_does: あとどれだけ待つかを示す（FR-27 AC2）
+- case: '取り消し: 乗客がもう取り消した'
+  signal: IFC-03 RIDE_CANCELLED
+  caller_does: 読み直して今の状態を示す
+- case: '乗車中: 経路を得られない'
+  signal: routeToDropoff が null（運転の開始、降車場所の変更の応答）
+  caller_does: 降車場所のピンだけを示し、経路を示せないことを示す（FR-23 AC3）
+- case: '乗車の終了: 降車場所から遠い'
+  signal: IFC-03 FAR_FROM_DROPOFF
+  caller_does: 終えてよいか確かめる（FR-28 AC2）
+- case: '乗車の終了: 乗車中でない'
+  signal: IFC-03 RIDE_NOT_IN_PROGRESS
+  caller_does: 読み直して今の状態を示す
+- case: '乗車の終了: 請求を確かめている、未払い'
+  signal: payment.state = checking / unpaid
+  caller_does: 「請求を確かめています」か未払いを示す（FR-29 AC3、FR-31 AC1）。確かめがついたら配信の ride.updated で結果を示す（FR-29 AC4）
+- case: '乗車の終了: 結果が分からない'
+  signal: IFC-03 ROUTE_TIMEOUT、25 秒のタイムアウト
+  caller_does: 同じ冪等キーで送り直すか依頼を読み直す。配信で結果を待つ
+- case: '受取額: ない'
+  signal: 空の一覧
+  caller_does: 「まだありません」
+- case: '受ける条件: ありえない値'
+  signal: IFC-03 INVALID_REQUEST
+  caller_does: 範囲を示す（FR-33 AC3）
+idempotency: 画面は操作ごとに冪等キーを一つ作り、応答が分からないときは同じキーでだけ送り直す（API の呼び出しのモジュール。DEC-48）。二度押しは同じキーにまとまる
+timing:
+  timeout: API の 15 秒（乗車の終了は 25 秒。DEC-50）
+  ordering: null
+  delivery: null
+versioning: SPA の版を X-App-Version と比べ、操作の途中でないときに読み直す（DEC-49）。読み直した後は GET で今の状態を取り直す
+observability: 示した時刻（IFC-05 displays。取り消し、降車場所の変更など。FR-54）
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 乗車中に経路を得られないときの行と、状態が許さないときの 409 の行（RIDE_CANCELLED、RIDE_NOT_ARRIVED、RIDE_NOT_IN_PROGRESS）を足した。依頼が終わって受付もしていなければ画面の点灯を解放すると書き、functions に FR-52 を足した。乗車の終了を待つ時間を 25 秒にし、確かめがついたときの示し方を書いた
+  reason: '第 3 段階の再実行（2026-11-04）: DEC-50 版 2、第 2 段階の DEC-33 版 2、FND-34・47'

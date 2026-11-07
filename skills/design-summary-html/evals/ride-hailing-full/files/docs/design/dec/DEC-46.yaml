@@ -1,0 +1,53 @@
+id: DEC-46
+title: 言語と表示
+status: draft
+version: 1
+basis: inferred
+basis_note: 市場が日本だけであること（第 2 段階の可変性）は入力。置き場所は推定
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: 人向けの文をどこに置き、日付や額をどう表すか
+addresses:
+- DRV-24
+- IFC-23
+- IFC-24
+- IFC-25
+- IFC-26
+- IFC-27
+- IFC-28
+- IFC-29
+options:
+- name: "日本語だけ。画面の文言は web-shared の文言のモジュール、誤りの文は contracts の符号の一覧。表示は ja-JP と Asia/Tokyo。額は「1,234 円」、距離は m と km、時刻は HH:mm（日本時間）、到着予定は分の単位。アクセシビリティの名前も日本語（DRV-24）"
+  effect: 置き場所が二つに決まる
+  cost: ほかの言語は足せない
+- name: 多言語の仕組みを入れる
+  effect: ほかの言語を足せる
+  cost: 市場は一つで要らない
+- name: サーバーは文を返さず、画面が符号から作る
+  effect: 文が画面に一か所
+  cost: ログと Logs Explorer で文が読めない
+chosen: 日本語だけ。画面の文言は web-shared の文言のモジュール、誤りの文は contracts の符号の一覧。表示は ja-JP と Asia/Tokyo。額は「1,234 円」、距離は m と km、時刻は HH:mm（日本時間）、到着予定は分の単位。アクセシビリティの名前も日本語（DRV-24）
+rationale: 市場は日本だけ（第 2 段階の可変性）
+rejected:
+- option: 多言語の仕組みを入れる
+  reason: 要らない
+- option: "サーバーは文を返さず、画面が符号から作る"
+  reason: 誤りの文が二か所になる
+gains: []
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-26
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

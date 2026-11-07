@@ -1,0 +1,40 @@
+id: IFC-03
+title: ストレージへのファイル
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: file
+name: ストレージへのファイル
+provider: ELM-05
+consumers:
+- ELM-01
+- ELM-03
+functions:
+- FR-01
+operations:
+- name: 署名付き URL への PUT
+  does: ファイルを置く
+format: JSON
+protocol: HTTPS
+auth: セッションのクッキー
+errors:
+- case: URL の期限切れ
+  signal: 403 (ObjectStore)
+  caller_does: 新しい URL をもらう
+idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+timing:
+  timeout: ブラウザ 10 秒
+  ordering: null
+  delivery: null
+versioning: 経路に v1
+observability: トレース ID をログに書く
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: 作成
+  reason: 第 3 段階の下書き

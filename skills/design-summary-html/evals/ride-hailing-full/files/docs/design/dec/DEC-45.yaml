@@ -1,0 +1,54 @@
+id: DEC-45
+title: 設定と秘密
+status: draft
+version: 2
+basis: inferred
+basis_note: DEC-32、DEC-34 は入力。設定の一覧と、値のない未定の値で起動を止めることは推定
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: 環境ごとの設定と秘密をどこに置き、画面にどう渡すか
+addresses:
+- DEC-32
+- DEC-34
+- IFC-01
+options:
+- name: "環境変数（手元とデモの回）。秘密は Secret Manager から環境変数へ。画面の設定は GET /api/v1/config。秘密: STRIPE_SECRET_KEY（制限付き）、TURSO_AUTH_TOKEN、MAPS_SERVER_KEY、CHAT_WEBHOOK_URL、STAFF_BOOTSTRAP_SECRET。設定: TURSO_DATABASE_URL、MAPS_BROWSER_KEY、STRIPE_PUBLISHABLE_KEY、APP_VERSION、GCP_PROJECT_ID、しきい値（D_pickup_accuracy、D_arrival、D_dropoff、D_nearby_drivers、T_match_wait、T_request_max、T_noshow_wait、T_cancel_grace、V_moving、N_rating_levels、N_min_ratings）と設計上の値（T_hold_wait、T_op_stale など）。MAPS_BROWSER_KEY は GET /api/v1/config がログインしたセッションの要求にだけ返す（第 2 段階の DEC-21 版 5）。値のない未定の値は起動を止める（未定のまま本番に出さない）"
+  effect: イメージは一つで、手元とデモの回の違いは設定だけ（DEC-32）
+  cost: 設定の一覧を守る
+- name: 設定をイメージに焼く
+  effect: 読み出しが要らない
+  cost: 環境ごとにイメージが変わり、同じイメージの配備が崩れる（DEC-27）
+- name: 秘密を GitHub の秘密に置く
+  effect: 手順から渡せる
+  cost: 公開のリポジトリの CI が本番の秘密を持つ（DEC-34）
+chosen: '環境変数（手元とデモの回）。秘密は Secret Manager から環境変数へ。画面の設定は GET /api/v1/config。秘密: STRIPE_SECRET_KEY（制限付き）、TURSO_AUTH_TOKEN、MAPS_SERVER_KEY、CHAT_WEBHOOK_URL、STAFF_BOOTSTRAP_SECRET。設定: TURSO_DATABASE_URL、MAPS_BROWSER_KEY、STRIPE_PUBLISHABLE_KEY、APP_VERSION、GCP_PROJECT_ID、しきい値（D_pickup_accuracy、D_arrival、D_dropoff、D_nearby_drivers、T_match_wait、T_request_max、T_noshow_wait、T_cancel_grace、V_moving、N_rating_levels、N_min_ratings）と設計上の値（T_hold_wait、T_op_stale など）。MAPS_BROWSER_KEY は GET /api/v1/config がログインしたセッションの要求にだけ返す（第 2 段階の DEC-21 版 5）。値のない未定の値は起動を止める（未定のまま本番に出さない）'
+rationale: DEC-32 と DEC-34 のとおり。画面に渡す鍵（地図のブラウザの鍵、Stripe の公開の鍵）は公開してよいものだけ
+rejected:
+- option: 設定をイメージに焼く
+  reason: 同じイメージを配る決まり（DEC-27）に反する
+- option: 秘密を GitHub の秘密に置く
+  reason: DEC-34 に反する
+gains:
+- しきい値の未定の値（D_*、T_*、N_*）を一つの設定のモジュールに置ける（第 2 段階の可変性）
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-32
+- DEC-34
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: "しきい値に T_request_max（仮に 30 分）を、設計上の値の例に T_hold_wait と T_op_stale を足した。地図のブラウザの鍵はログインしたセッションの要求にだけ返すと書いた。選んだ案と案の名前の書き方をそろえた"
+  reason: "第 3 段階の再実行（2026-11-04）。品質チェーンの再実行（FR-08 版 2）、第 2 段階の DEC-21 版 5"

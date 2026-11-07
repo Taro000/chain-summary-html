@@ -1,0 +1,32 @@
+id: DRV-06
+title: Built and run by two developers within 30,000 yen a month
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+kind: constraint
+statement: Two developers build and run it, for at most 30,000 yen a month
+sources:
+- PC-01
+- PC-03
+concern_of: []
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: A non-negotiable constraint
+  difficulty: low
+  difficulty_reason: Met by keeping the structure small
+  rank: 5
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: Created
+  reason: Stage 1 draft

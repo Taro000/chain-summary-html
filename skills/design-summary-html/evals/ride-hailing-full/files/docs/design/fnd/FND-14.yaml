@@ -1,0 +1,28 @@
+id: FND-14
+title: 配備と戻しで、毎日の処理のジョブのイメージがサービスと一緒に変わるかが決まっていない
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-05・27、ELM-06、NFR-35 の文は入力。版がずれたときに起きることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-27
+- DEC-05
+- ELM-06
+severity: minor
+evidence: ジョブはサーバーと同じイメージで、同じモジュールのコードでサーバーの表を書く（DEC-05）。「期間を始める」がジョブを作り、「デモを開く」がサービスを配備し、「戻す」が前のイメージを配備する（DEC-27、ELM-06）。どの手順もジョブのイメージを替えると書いていない。期間の途中で二度配備すると、ジョブは二つ前の版のまま新しい構造に書き込む。NFR-35 が確かめるのは一つ前の版だけ（DRV-16、DRV-04）
+suggestion: 配備と戻しの手順が、サービスとジョブを同じイメージに替えることを DEC-27 と ELM-06 に書き、配備の記録（FR-41）に両方の版を残す
+resolution: 受け入れた。DEC-27（版 2）と ELM-06（版 2）に、サービスのイメージを替える手順（デモを開く、戻す）は同じ実行でジョブも同じイメージに替え、配備の記録に両方の版を残すことを書いた。配備の記録が指すイメージ（今と一つ前）を消さないことを ELM-09（版 2）に書いた
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階のレビュー（活動 A2、A4）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
+  reason: 第 2 段階の再実行（2026-11-03）

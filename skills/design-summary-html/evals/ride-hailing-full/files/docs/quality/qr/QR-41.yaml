@@ -1,0 +1,40 @@
+id: QR-41
+title: カード情報をシステムに通さない
+status: draft
+version: 2
+basis: inferred
+basis_note: 決済のサービスの入力部品で入れることは質問 9、テスト環境であることは質問 1 で確認済み。標準の中身と点は推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: security > confidentiality
+statement: カード番号などのカード情報は、決済のサービスの入力部品で入れ、システムのサーバー、ログ、データを通らず、保存されない。
+applies_to: [FR-04, FR-37, FR-38]
+traces_to: []
+entry_point:
+  type: policy
+  source: 本物らしく作るため PCI DSS（カード情報の扱い）に従うものとして設計する開発方針（第 1 段階の質問 22）。データとお金の扱いは本物どおりにする範囲に入る（第 2 段階の質問 11）
+  brought_by: 利用者（第 1 段階の質問 7 の回答）
+stakeholders: [USR-01, 決済の外部サービス]
+failure_scenario: 支払い手段の登録の画面で起きたエラーの記録（FR-38）にカード番号が入る。
+score: {impact: 1, likelihood: 2}
+handling: minimum-line
+handling_reason: 開発方針から来る要求なので点に関わらず残す。決済はテスト環境（質問 1）で本物のカード番号を扱わないので最低限守る線
+implies_internal: []
+conflicts:
+  - with: QR-23
+    note: エラーの記録に入力欄の値を入れない
+  - with: QR-33
+    note: エラーの記録に入力欄の値を入れない
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 入口の種類を標準から開発方針に変えた
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

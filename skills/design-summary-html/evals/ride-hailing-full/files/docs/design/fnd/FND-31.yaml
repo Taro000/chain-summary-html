@@ -1,0 +1,28 @@
+id: FND-31
+title: T_hold_wait を過ぎても Stripe が答えないとき、乗客に何を示すかが決まらず、確かめのないまま「押さえていない」と示しうる
+status: accepted
+version: 2
+basis: inferred
+basis_note: CUJ-01-B の見回りの枝、配車依頼の状態遷移図、結果が分からないときの約束、DEC-52 の選んだ案と退けた案、IFC-24 の not_booked の扱い、passenger.openapi.yaml の 202 CANCEL_PENDING は入力。二つの枝が重なるときに起きることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DEC-52
+- IFC-02
+- IFC-24
+severity: major
+evidence: CUJ-01-B の見回りの枝は「T_hold_wait を過ぎた、乗客が取り消した → 押さえがあれば取り消す → 依頼を not_booked にし、押さえていないと示す」と「Stripe が答えない → checking のまま、次の見回りで続ける」を並べており、T_hold_wait を過ぎて Stripe が答えないときは両方に当たる。前者に従えば、Stripe の確かめのないまま「押さえていない」と示す（IFC-24 は not_booked で「押さえていないことを示し、もう一度手配できるようにする」）。これは報告書の結果が分からないときの約束（「押さえていない」と言うのは三つのときだけ）と、第 3 段階の完了条件に反する。後者に従えば、依頼は Stripe が戻るまで hold_checking のままで終わりがなく、DEC-52 が退けた案の理由（確かめがつくまで待つと、Stripe が止まったときに終わりがない）が、選んだ案にもそのまま当たる。配車依頼の状態遷移図は「押さえがないと確かめた」で hold_checking から not_booked に出るが、流れは押さえがなく T_hold_wait の内なら同じキーで送り直すとしていて、出口がそろわない。確かめ中に乗客が取り消すと、流れは 202 CANCEL_PENDING を返し、passenger.openapi.yaml にもこの応答があるが、IFC-02 の取り消しのエラーと報告書のエラーの表にはない
+suggestion: 手配の終わりとお金の確定を分ける。T_hold_wait を過ぎるか乗客が取り消したら、手配はやめる（not_booked にし、探さない）と示し、押さえについては、確かめで解放したか押さえがないと分かるまで「押さえが残っていれば解放します」と示す（押さえの操作は checking のまま、見回りと毎日の処理が続ける）。「押さえていない」は Stripe が答えたときだけ示す。配車依頼の状態遷移図の hold_checking の出口を流れとそろえ、Stripe が答えない間の扱いを描く。IFC-02 と報告書のエラーの表に 202 CANCEL_PENDING を足す。DEC-52 の退けた案の理由と得るものを、Stripe が止まったときの扱いに合わせて書き直す
+resolution: "受け入れた。手配の終わりとお金の確かめを分けた。T_hold_wait を過ぎるか乗客が取り消したら手配をやめ（not_booked。取り消しの応答は 202 HOLD_RELEASE_PENDING）、押さえはお金の操作の checking のまま見回りと毎日の処理が追い、見つかれば取り消す。乗客には解放したか押さえがないと分かるまで「押さえが残っていれば解放します」と示し、「押さえていない」は Stripe が答えたときだけ示す（FR-05 版 3 と同じ）。配車依頼と支払いの状態遷移図、IFC-02、IFC-24、エラーの表、DEC-52 版 2 の退けた案と得るものを直した"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B3、B9、B10）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

@@ -1,0 +1,149 @@
+id: IFC-06
+title: 管理の API
+status: draft
+version: 2
+basis: inferred
+basis_note: FR-45〜50 の受け入れ基準（FR-48 版 2 の乗客のアカウントの作成と設定の符号の出し直し、FR-45 版 2 の記録した位置、FR-50 版 4 の失敗の後のやり直しは新しい返金の要求）、DEC-31（同じトランザクションの追記）、DEC-12（返金は返金の要求ごとのキー）は入力。状態が許さないときの符号は FND-34。経路、写真の扱い（質問 4）は推定（質問 3・4 は回答なし）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+- プロダクトオーナー
+kind: http
+name: 管理の API
+provider: ELM-04
+consumers:
+- ELM-03
+functions:
+- FR-45
+- FR-46
+- FR-47
+- FR-48
+- FR-49
+- FR-50
+operations:
+- name: GET /api/v1/admin/complaints
+  does: 苦情の一覧（状態と種類で絞る）
+- name: GET /api/v1/admin/complaints/{complaintId}
+  does: 苦情の詳細（報告、乗車の記録（状態の履歴、記録した位置、料金と請求）、ドライバーと車、評価値、過去の苦情、対処）。記録した位置は、状態の履歴の四つの操作（迎車の到着、乗車の開始、不在、乗車の終了）の位置と、T_log_retention の間は位置の受信の記録（DAT-09）で示し、受信の記録がなければないことを示す（FR-45 AC3・4）
+- name: POST /api/v1/admin/complaints/{complaintId}/actions
+  does: 対処（対処しないことを含む）と理由を記録し、対処済みにする。停止を選んだら配車の停止もする。冪等キーが要る
+- name: GET /api/v1/admin/passengers
+  does: 乗客のアカウントの一覧（名前、連絡先、設定を済ませたか。一覧の形は DEC-42）
+- name: POST /api/v1/admin/passengers
+  does: 乗客の名前と連絡先（メールアドレス）で乗客のアカウントを作り、一度だけの設定の符号を示す（FR-48 AC1）。冪等キーが要る
+- name: POST /api/v1/admin/passengers/{passengerId}/setup-code
+  does: 設定の符号を出し直す（前の符号は使えない。設定を済ませた後でも出し直せ、新しい符号でパスワードを決めると前のパスワードは使えない。FR-48 AC6）。passengerId はアカウントの ID（acc_ と ULID）。冪等キーが要る
+- name: GET /api/v1/admin/drivers
+  does: ドライバーの一覧
+- name: POST /api/v1/admin/drivers
+  does: 審査を通ったドライバーと車両を登録し、ドライバーのアカウントと一度だけの設定の符号を作る（FR-48 AC2）。冪等キーが要る
+- name: GET /api/v1/admin/drivers/{driverId}
+  does: ドライバーの登録の内容と状態
+- name: GET /api/v1/admin/drivers/{driverId}/photo
+  does: ドライバーの顔写真
+- name: PATCH /api/v1/admin/drivers/{driverId}
+  does: 車両の情報を変える。次の依頼から乗客に示す（FR-48 AC7）。冪等キーが要る
+- name: POST /api/v1/admin/drivers/{driverId}/setup-code
+  does: 設定の符号を出し直す（前の符号は使えない。設定を済ませた後でも出し直せ、新しい符号でパスワードを決めると前のパスワードは使えない。FR-48 AC6）。冪等キーが要る
+- name: POST /api/v1/admin/drivers/{driverId}/suspend
+  does: 配車を停止する（受付を止め、一覧を示さない。迎車中・乗車中の依頼は続く。FR-47 AC1）。冪等キーが要る
+- name: POST /api/v1/admin/drivers/{driverId}/resume
+  does: 配車を再開する。冪等キーが要る
+- name: GET /api/v1/admin/rides/{rideId}/billing
+  does: 請求の記録（示した料金、料金の変化、請求の種類と額、決済の状態、返金、返金できる残り、差、突き合わせの結果）
+- name: POST /api/v1/admin/rides/{rideId}/refunds
+  does: 請求の一部か全部を、返金できる残りの額（請求した額から、成功した返金と確かめ中の返金の額を引いた額）の範囲で、理由を添えて返金する。返金の要求ごとに返金の要求の ID（rfr_）と Stripe へのキーを一つ作る。冪等キーが要る
+format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）。202 の本文は保留の符号（code）と資源で、呼ぶ側は GET で結果を待つ（FND-42）
+protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
+auth: 運営・サポート担当の役割のセッションで、パスキーの確かめが済んだもの（DEC-20、DEC-43）。経路のまとまり /api/v1/admin で一度確かめる
+errors:
+- case: 'POST /api/v1/admin/complaints/{complaintId}/actions: 対処の内容か理由がない（FR-46 AC2）'
+  signal: 400 INVALID_REQUEST
+  caller_does: 入れるよう示す
+- case: 'POST /api/v1/admin/passengers: 必要な項目が欠けている（FR-48 AC3）'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欠けている項目を示す
+- case: 'POST /api/v1/admin/passengers: 同じ連絡先（メールアドレス）のアカウントがある（FR-48 AC4）'
+  signal: 409 EMAIL_ALREADY_REGISTERED
+  caller_does: 作らずその旨を示す
+- case: 'POST /api/v1/admin/drivers: 必要な項目が欠けている（FR-48 AC3）'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欠けている項目を示す
+- case: 'POST /api/v1/admin/drivers: そのナンバーは登録済み（FR-48 AC5）'
+  signal: 409 PLATE_ALREADY_REGISTERED
+  caller_does: 登録せずその旨を示す
+- case: 'POST /api/v1/admin/drivers: そのメールアドレスのアカウントがある（FR-48 AC4）'
+  signal: 409 EMAIL_ALREADY_REGISTERED
+  caller_does: 作らずその旨を示す
+- case: 'POST /api/v1/admin/drivers: 写真が 5 MB を超える'
+  signal: 413 PHOTO_TOO_LARGE
+  caller_does: 小さくするよう示す
+- case: 'POST /api/v1/admin/drivers: 写真が JPEG か PNG でない'
+  signal: 422 PHOTO_INVALID
+  caller_does: 形を示す
+- case: 'PATCH /api/v1/admin/drivers/{driverId}: そのナンバーは登録済み'
+  signal: 409 PLATE_ALREADY_REGISTERED
+  caller_does: その旨を示す
+- case: 'POST /api/v1/admin/rides/{rideId}/refunds: 返金できる残りの額（請求した額から、成功した返金と確かめ中の返金を引いた額）を超える（FR-50 AC2）。残りの額を添える'
+  signal: 422 REFUND_EXCEEDS_REMAINING
+  caller_does: 受け付けず残りの額を示す
+- case: 'POST /api/v1/admin/rides/{rideId}/refunds: 同じ依頼に確かめ中の返金がある（FND-34）'
+  signal: 409 REFUND_IN_PROGRESS
+  caller_does: 読み直して今の状態を示す
+- case: 'POST /api/v1/admin/rides/{rideId}/refunds: 請求がない依頼（FND-34）'
+  signal: 409 RIDE_NOT_CHARGED
+  caller_does: 読み直して今の状態を示す
+- case: 'POST /api/v1/admin/rides/{rideId}/refunds: Stripe が返金を断った（FR-50 AC4）。その返金の要求は失敗と確定する'
+  signal: 402 REFUND_FAILED
+  caller_does: 完了と示さず理由を示す。やり直すときは新しい返金の要求（新しい冪等キー）にする（FR-50 AC4）
+- case: 'POST /api/v1/admin/rides/{rideId}/refunds: Stripe が答えなかった。返金の操作は確かめ中で、返金できる残りの額から引いておく'
+  signal: 202 REFUND_PENDING
+  caller_does: 「確かめています」と示し、請求の記録を読み直す。応答が届かず送り直すときは同じ冪等キーで送る（新しいキーでは送らない）
+- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す。同じものを送り直さない
+- case: '共通: ログインしていないか、セッションが切れた'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
+- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
+  signal: 403 FORBIDDEN
+  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
+- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
+  signal: 404 NOT_FOUND
+  caller_does: 画面を読み直す
+- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
+  signal: 409 OPERATION_IN_PROGRESS
+  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
+- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
+  signal: 422 IDEMPOTENCY_KEY_REUSED
+  caller_does: 画面の誤り。新しい操作として新しいキーで始める
+- case: '共通: 回数の上限（DEC-55）'
+  signal: 429 RATE_LIMITED
+  caller_does: Retry-After まで待つ
+- case: '共通: 想定外の誤り'
+  signal: 500 INTERNAL_ERROR
+  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
+- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
+  signal: 503 ROUTE_TIMEOUT
+  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
+- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
+  signal: 503 DEPENDENCY_UNAVAILABLE
+  caller_does: ROUTE_TIMEOUT と同じ
+idempotency: 状態を変える POST と PATCH はすべて Idempotency-Key（DEC-48）。乗客の作成とドライバーの登録は、送り直しても二つ目のアカウントを作らない（最初の結果を返す）。設定の符号を示す操作（乗客の作成、ドライバーの登録、二つの setup-code）の最初の結果には符号を保たないので、同じキーの送り直しは setupCode を null にした最初の結果を返し、画面は符号の出し直しを案内する（符号は一度だけ示す。DEC-48、DAT-14）。返金は DEC-12 の三つのトランザクションで、Stripe へのキーは返金の要求ごと（返金の要求の ID はこの冪等キーから一つ作る）。応答がなく送り直すときは同じキー。失敗と確定した返金をやり直すときは、新しい返金の要求（新しい rfr_ と新しい冪等キー）にする（FR-50 AC4）
+timing:
+  timeout: ブラウザ 15 秒。返金はサーバーの中で最悪 2.85 秒（手配の確定と同じ形）。Stripe 1 回 2.5 秒（DEC-50）
+  ordering: null
+  delivery: null
+versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
+observability: すべての操作を管理の操作の記録（DAT-18）に担当とともに同じトランザクションで残す（DEC-31、NFR-18。乗客のアカウントの作成と設定の符号の出し直しも）。ログには担当と対象の ID だけで、名前、連絡先、自由記述、写真、設定の符号は書かない
+spec: ifc/specs/admin.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 乗客のアカウントの一覧、作成、設定の符号の出し直しの操作とそのエラーを足した。ドライバーの設定の符号も設定を済ませた後に出し直せるとして 409 SETUP_ALREADY_DONE を外した。苦情の詳細の記録した位置を、状態の履歴の四つの操作の位置と位置の受信の記録で示すとした。返金に 409 REFUND_IN_PROGRESS と RIDE_NOT_CHARGED を足し、返金できる残りの額の計算と、失敗の後のやり直しは新しい返金の要求と書いた。PATCH もキーを求めると直した。FR-48 の受け入れ基準の番号を版 2 に合わせた。設定の符号を示す操作の最初の結果に符号を保たないことを冪等性に書いた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-45 版 2、FR-48 版 2、FR-50 版 4）、FND-34・42・43'

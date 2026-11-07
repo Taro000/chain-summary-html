@@ -1,0 +1,33 @@
+id: FR-54
+title: 状態の変化を相手の画面に示した時刻の記録
+status: draft
+version: 1
+basis: inferred
+basis_note: 機能は FRP-07 から（NFR-02、SLI-02 が使う）。裏に回っていた間の変化に印を付けること、送れないときに保持することは推定。受け入れは第 2 段階の質問 14〜17（2026-11-01）の前提の確認
+needs_agreement: false
+approver_candidates: []
+statement: システムは、配車依頼と状態の変化を相手の画面に示したとき、示した時刻を、状態の変化の ID と相手のアカウントとともにサーバーに送って記録する。
+origin: proposal
+cuj: null
+cuj_step: null
+traces_to: [QIU-01, QIU-04, QIU-12, QIU-13]
+proposal: FRP-07
+existing: false
+extends: null
+interface:
+  - "画面: 乗客の Web アプリ"
+  - "画面: ドライバーの Web アプリ"
+  - "API: 画面に示した時刻の受け取り"
+acceptance_criteria:
+  - 新しい配車依頼がドライバーの一覧に（FR-18）、状態の変化（許諾、迎車の到着、取り消し、降車場所の変更、乗車の終了）が相手の画面に（FR-06、FR-07、FR-12、FR-22、FR-25、FR-28）示されると、示した時刻、状態の変化の ID、相手のアカウントをサーバーに送って記録する。
+  - ブラウザが裏に回っていた間の変化を、前面に戻ってから示したときは、裏から戻って示したという印を付けて記録する。
+  - 同じ変化を同じ相手に二度目に示したときは記録しない。
+  - 通信が切れていて送れないとき、ブラウザに保持し、通信が戻ったら送る。
+  - テスト用アカウントの印を記録に残す（FR-01）。
+quality_hints:
+  - QR-02 - 状態の変化が相手の画面にすぐ届く
+changelog:
+  - version: 1
+    date: '2026-11-01'
+    change: 作成
+    reason: FRP-07 を受け入れた（第 2 段階の質問 14〜17（2026-11-01））

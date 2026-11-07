@@ -1,0 +1,30 @@
+id: FR-13
+title: ドライバーの評価
+status: draft
+version: 1
+basis: inferred
+basis_note: 手順は入力。降車後に評価の画面を示すこと、評価の段階、記録する時刻は推定。N_rating_levels は要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+statement: システムは、乗車を終えた乗客にドライバーの評価の画面を示し、乗客が N_rating_levels 段階で評価を送れるようにする。
+origin: cuj-step
+cuj: CUJ-04
+cuj_step: ドライバーを評価する
+traces_to: [QIU-09, QIU-10]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 乗客の Web アプリ（評価）"
+acceptance_criteria:
+  - 乗車が終わると（FR-28）、乗客の画面に評価の画面を示し、乗客は N_rating_levels 段階で評価を送れる。
+  - 乗客は評価を送らずに評価の画面を閉じられる。
+  - 評価を送った乗車にもう一度評価を送ろうとしたとき、受け付けずその旨を示す。
+  - 評価の画面を開いた時刻と、評価を送った時刻を記録する（QIU-09 の測定に使う）。
+quality_hints:
+  - 効率性 (QIU-09) - T_rate 秒以内に評価を終えられる
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

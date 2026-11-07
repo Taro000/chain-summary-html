@@ -1,0 +1,37 @@
+id: DAT-19
+title: 画面の出来事の記録
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: 表示の記録、画面の出来事、前面と裏の時刻、断った操作
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- '表示の記録: change_id、account_id（一意の組）、displayed_at（ブラウザ）、received_at（サーバー）、after_background、test_account'
+- '画面の出来事: client_event_id、type、at、ride_id'
+- '前面と裏: client_event_id、account_id、type、at'
+- '断った操作と速さが分からなかった操作: account_id、op、at、speed_mps か unknown（FR-21 AC3・4）'
+relations:
+- to: DAT-07
+  kind: many-to-one
+  note: 示した変化
+consistency: 測るモジュールだけが書く。届いた順に追記する。表示の記録は（change_id、account_id）で一つ（FR-54 AC3）、ほかは client_event_id で重複を捨てる。ELM-05 は持ち主のモジュールを通して書く（DEC-53。T_log_retention を過ぎた行の削除）
+retention: T_log_retention（毎日の処理が消す）
+classification: personal
+drivers:
+- DRV-27
+- DRV-02
+- DRV-03
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: T_log_retention を過ぎた行の削除は ELM-05 が持ち主のモジュールを通して行うと書いた
+  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

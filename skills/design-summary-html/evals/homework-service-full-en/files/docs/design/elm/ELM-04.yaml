@@ -1,0 +1,25 @@
+id: ELM-04
+title: Database
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: data-store
+name: Database
+responsibility: Holds assignments, submission records and grades
+functions: []
+drivers:
+- DRV-03
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """Builds docs/design/summary.html from the outputs of the design chain (stages 1 to 3, req-to-design).
 
-  uv run --with pyyaml python3 build_design_summary.py [DESIGN_DIR] [--out PATH] [--text PATH] [--quality-dir DIR]
+  uv run --with pyyaml python3 build_design_summary.py [DESIGN_DIR] [--out PATH] [--quality-dir DIR] [--lang ja|en]
+
+The page and the report are written in the language of the outputs: Japanese when the outputs are written in
+Japanese, English otherwise. --lang overrides that; the content stays in the language it was written in.
 
 The YAML items are the source of truth (req-to-design's artifacts.md), so every table that has items is built from
 them: drv/ and design-context.yaml (stage 1), elm/ and dec/ (stage 2), ifc/, dat/ and dec/ (stage 3). The three
-reports (1-architecture-drivers.md, 2-architecture.md, 3-high-level-design.md) are read for the Mermaid diagrams and
-for the sections that no item holds (concerns, feasibility, views, threat model, walkthroughs, running cost, shared
-conventions, latency budgets, measurement points, the acceptance-criteria trace); report tables that restate items
-are compared with them, so a stale report is reported. The condensed prose of report-only sections, the threat-model
-figure's layout, the latency-budget chart data and exact text fixes come from DESIGN_DIR/summary-text.yaml, which also
-records a hash of each source section, so a condensed text whose source changed is reported. The layout is
-quality-summary-html's (assets/base.css and base.js are copies of its summary.css and summary.js); assets/design.css
-gives it its own orange theme. The page and the report are Japanese, and the reports are read by their Japanese
-headings.
+reports (1-architecture-drivers.md, 2-architecture.md, 3-high-level-design.md) are read for their Mermaid diagrams and
+for the tables that no item holds; their prose is not shown. The reports are found by their headings in Japanese
+(req-to-design's glossary) or English (its report templates). Report tables that restate items are compared with
+them, so a stale report is reported. A latency budget whose hop table has seconds is drawn as a chart. Revision
+notes are removed from YAML texts, table cells and diagram labels, by rules for the language the outputs are written
+in. Labels, terms and report messages are in assets/lang/<lang>.json.
 The same input always produces the same HTML.
 Exit codes: 0 means the page was written (0 even with warnings), 1 means it was written but failed its own check
 (duplicate ids or links without a target), 2 means the inputs could not be read.
@@ -21,7 +21,6 @@ Exit codes: 0 means the page was written (0 even with warnings), 1 means it was 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import html
 import json
 import os
@@ -31,46 +30,129 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-try:
-    import yaml
-except ImportError:  # pragma: no cover
-    print('PyYAML が要る。uv run --with pyyaml python3 … で動かすか、python3 -m pip install --user pyyaml を入れる',
-          file=sys.stderr)
-    sys.exit(2)
-
 SKILL_DIR = Path(__file__).resolve().parent.parent
 ASSETS = SKILL_DIR / 'assets'
+LANGS = ('ja', 'en')
 REPORT_FILES = {1: '1-architecture-drivers.md', 2: '2-architecture.md', 3: '3-high-level-design.md'}
-FONTS_URL = ('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700'
-             '&family=IBM+Plex+Mono:wght@500&family=Zen+Kaku+Gothic+New:wght@700&display=swap')
 MERMAID_URL = 'https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs'
-STAGE_TITLES = {1: '設計を動かす要求', 2: 'アーキテクチャ', 3: '概要設計'}
 STAGE_SOURCES = {1: 'drv/ · design-context.yaml', 2: 'elm/ · dec/', 3: 'ifc/ · dat/ · dec/'}
-# the keys of summary-text.yaml that the page uses
-TEXT_KEYS = {'requirements', 'answers', 'fixes', 'structure', 'code_rules', 'viewpoints', 'threat', 'budgets', 'states',
-             'walk_extra', 'diagram_direction', 'hashes'}
-# warnings that also go into 「この版の注記」 at the bottom of the page
-PAGE_NOTE_KINDS = ('食い違い', '添削文のもとが変わった', '添削文がない', '報告書', 'YAML', '節', '表')
-# the report's kinds of warning, in the order they are printed
-REPORT_KINDS = ('食い違い', '突き合わせなかった表', '添削文のもとが変わった', '添削文がない', '節', '表', '列', '手直し',
-                '報告書', 'YAML', '用語集にない値', '添削文', '使わないキー')
-
-# Japanese terms of the YAML values (req-to-design's glossary)
-T_BASIS = {'stated': '入力', 'inferred': '推定', 'confirmed': '確認済み'}
-T_LEVEL = {'high': '高', 'medium': '中', 'low': '低'}
-T_NEG = {True: '交渉できる', False: '交渉できない'}
-T_DRV_KIND = {'quality': '品質', 'change': '変更', 'constraint': '制約', 'function': '機能', 'observability': '観測',
-              'security': 'セキュリティ', 'principle': '原則'}
-T_TC_KIND = {'mandated': '使う', 'prohibited': '使わない', 'platform': '基盤', 'external-service': '外部サービス'}
-T_PC_KIND = {'budget': '予算', 'deadline': '納期', 'team': '体制', 'other': 'その他'}
-T_ELM_KIND = {'component': 'コンポーネント', 'data-store': 'データの置き場所', 'external-system': '外部システム', 'node': '実行環境'}
-T_IFC_KIND = {'http': 'HTTP', 'event': 'イベント', 'file': 'ファイル', 'screen': '画面', 'batch': 'バッチ'}
-T_AS_IS = {'keep': '残す', 'change': '変える', 'new': '新設', 'remove': '廃止'}
-T_CLASS = {'public': '公開', 'internal': '社内', 'personal': '個人情報', 'payment': '決済情報', 'other': 'その他'}
+# Report headings: the Japanese of req-to-design's glossary, then the English of its report templates
+H = {
+    'rank': ('順位表', 'Ranking table'),
+    'premise': ('設計の前提と利害関係者', 'Design inputs and stakeholders'),
+    'concern': ('関心事の一覧', 'Concern inventory'),
+    'drivers': ('設計を動かす要求', 'Architecture drivers'),
+    'scenario': ('品質と変更のシナリオ', 'Quality and change scenarios'),
+    'constraint': ('制約', 'Constraints'),
+    'fos': ('機能・観測・セキュリティの要求', 'Functional, observability and security drivers'),
+    'principle': ('全体の原則', 'Principles'),
+    'feasible': ('実現できるか', 'Feasibility'),
+    'decisions': ('設計の決定', 'Decisions'),
+    'viewpoint': ('設計の観点', 'Design concerns'),
+    'threat': ('脅威のモデル', 'Threat model'),
+    'elements': ('要素', 'Elements'),
+    'views': ('ビュー', 'Views'),
+    'walk': ('通し確認', 'Walkthroughs'),
+    'walk_cuj': ('CUJ', 'CUJs'),
+    'walk_drv': ('主な設計を動かす要求', 'Primary drivers'),
+    'values': ('設計上の値', 'Design parameters'),
+    'debt': ('技術的負債と先送りした決定', 'Debt and deferred decisions'),
+    'cost': ('費用と体制', 'Cost and team'),
+    'running': ('走る費用', 'Running cost'),
+    'conv': ('共通の約束事', 'Shared conventions'),
+    'ifc': ('インタフェース', 'Interfaces'),
+    'flows': ('端から端の流れ', 'End-to-end flows'),
+    'budget': ('遅延の予算', 'Latency budgets'),
+    'eb': ('失敗したときの流れとエラーバジェット', 'Failure paths and error budgets', 'Failure paths and the error budget'),
+    'screens': ('画面', 'Screens'),
+    'data': ('データ', 'Data'),
+    'dq': ('データの品質の流れ', 'Data quality flows'),
+    'states': ('要素をまたぐ状態', 'States across elements'),
+    'measure': ('測定点', 'Measurement points'),
+    'actrace': ('受け入れ基準のトレース', 'Acceptance criteria trace'),
+}
+# Column and row names read in report tables, in both languages
+COL_BECAME = ('なったもの', 'Became')
+HOP_HEAD = ('区間', 'Hop')
+BUDGET_HEAD = ('予算', 'Budget')
+ROW_MARGIN = ('余り', 'Margin')
+ROW_TOTAL = ('合計', 'Total')
+COMMON_OP = ('共通', 'Common', 'All operations', 'Every operation')
+RERUN_RE = re.compile(r'^## (?:再実行（|Re-run on )(\d{4}-\d{2}-\d{2})', re.M)
+# The warnings of the report, in the order they are printed; those in PAGE_NOTE_KINDS also go into the page's notes
+REPORT_KINDS = ('mismatch', 'uncompared', 'report', 'yaml', 'section', 'table', 'unknown', 'leftout', 'unused')
+PAGE_NOTE_KINDS = ('mismatch', 'report', 'yaml', 'section', 'table')
 
 
 def esc(s) -> str:
     return html.escape(str(s), quote=True)
+
+
+# ---------------------------------------------------------------- language
+
+def read_lang(code):
+    return json.loads((ASSETS / 'lang' / f'{code}.json').read_text(encoding='utf-8'))
+
+
+LANG_DATA = {c: read_lang(c) for c in LANGS}
+LANG: dict = {}
+
+
+def set_lang(code):
+    """Chooses the language of the page and the report. Japanese until this is called"""
+    LANG.clear()
+    LANG.update(LANG_DATA[code])
+    LANG['code'] = code
+
+
+set_lang('ja')
+
+
+def T(key, **kw) -> str:
+    """A label or message of the current language, with its {placeholders} filled in"""
+    t = LANG['text'][key]
+    return t.format(**kw) if kw else t
+
+
+def die_t(key, lang=None, **kw):
+    """Stops on an input error. Until the language is known, the message is printed in every language"""
+    print('\n'.join(LANG_DATA[c]['text'][key].format(**kw) for c in ((lang,) if lang else ('en', 'ja'))), file=sys.stderr)
+    sys.exit(2)
+
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover
+    die_t('die_no_yaml', script=Path(__file__).name)
+
+KANA = re.compile(r'[぀-ヿ]')
+LATIN = re.compile(r'[A-Za-z]')
+
+
+def strings(v):
+    """Every string value in a YAML value (keys are left out)"""
+    if isinstance(v, dict):
+        for x in v.values():
+            yield from strings(x)
+    elif isinstance(v, (list, tuple)):
+        for x in v:
+            yield from strings(x)
+    elif isinstance(v, str):
+        yield v
+
+
+def detect_lang(texts) -> str:
+    """ja when kana make up a tenth or more of the letters (kana and Latin), en otherwise. Japanese prose always has
+    kana; IDs, enum values and English terms are Latin. Outputs in a language other than Japanese get English"""
+    kana = latin = 0
+    for t in texts:
+        kana += len(KANA.findall(t))
+        latin += len(LATIN.findall(t))
+    return 'ja' if kana and kana * 10 >= kana + latin else 'en'
+
+
+# The language the outputs are written in, which chooses the rules for revision notes (not the page's language)
+SRC = {'lang': 'ja'}
 
 
 # ---------------------------------------------------------------- reading the reports
@@ -104,16 +186,15 @@ class Section:
             s = s.parent
         return ' > '.join([self.file] + list(reversed(names)))
 
-    def raw(self) -> str:
-        return '\n'.join(x.rstrip() for x in self.lines[self.start:self.end]).strip()
-
-    def find(self, *titles: str) -> 'Section | None':
-        """Follows headings down. A name ending in * matches by prefix."""
+    def find(self, *keys) -> 'Section | None':
+        """Follows headings down. Each key is a name or a tuple of names (one per language); a heading matches a
+        name exactly, or starts with it followed by a space or a bracket."""
         cur = self
-        for t in titles:
+        for k in keys:
+            names = (k,) if isinstance(k, str) else k
             nxt = None
             for c in cur.children:
-                if (t.endswith('*') and c.title.startswith(t[:-1])) or c.title == t:
+                if any(c.title == n or re.match(re.escape(n) + r'(?:\s|（|\()', c.title) for n in names):
                     nxt = c
                     break
             if nxt is None:
@@ -217,15 +298,7 @@ def parse_md(text: str, name: str) -> Section:
     return root
 
 
-def section_hash(*secs: Section) -> str:
-    h = hashlib.sha256()
-    for s in secs:
-        h.update(s.raw().encode('utf-8'))
-        h.update(b'\0')
-    return h.hexdigest()[:12]
-
-
-# ---------------------------------------------------------------- removing revision history
+# ---------------------------------------------------------------- removing revision notes: Japanese
 
 # 「前の版」 (previous version) means either a document revision or a product version (「前の版に戻す」「一つ前の版」
 # 「本番は前の版のまま」). Only the wordings that mean a revision (「前の版は」「（前の版）」「前の版の欠け」…) count as history
@@ -342,10 +415,7 @@ def _tidy(s: str) -> str:
     return s
 
 
-def clean_text(s: str, top: bool = True) -> tuple:
-    """Removes revision-history notes from a table cell or a diagram line. Returns (text, changed)."""
-    if not s:
-        return s, False
+def clean_ja(s: str, top: bool = True) -> tuple:
     orig = s
     s = VER_ID_RE.sub(r'\1', s)
     for rx in FND_LIST_RES:
@@ -356,6 +426,162 @@ def clean_text(s: str, top: bool = True) -> tuple:
     if top and ended and out and not out.endswith('。'):
         out += '。'
     return out, out != orig
+
+
+# ---------------------------------------------------------------- removing revision notes: English
+
+# The same kinds of note as in Japanese, in the wordings an English report uses. Wordings that can also describe the
+# product are left alone: a job is "re-run", an image is rolled back to "the previous version"
+EN_VER_ID_RE = re.compile(r'(\b[A-Z]{2,4}-\d{2,}(?:–\d{2,})?)\s+version\s+\d+\b')
+_EN_FND = r'FND-\d+(?:(?:,\s*|\s+and\s+)(?:FND-)?\d+)*'
+EN_FND_LIST_RES = [
+    re.compile(r'[,;]\s*' + _EN_FND + r'(?=\s*(?:[,;.)]|$))'),
+    re.compile(r'(?<=\()\s*' + _EN_FND + r'\s*[,;]\s*'),
+    re.compile(r'(?<=\()\s*' + _EN_FND + r'(?=\s*\))'),
+    re.compile(r'^\s*' + _EN_FND + r'(?=\s*(?:[.)]|$))'),
+]
+EN_HIST_RE = re.compile(
+    r'\bFND-\d+'
+    r'|\b(?:\d+(?:st|nd|rd|th)|first|second|third|fourth|fifth) re-?run\b'
+    r'|\bre-?run on \d{4}-\d{2}-\d{2}'
+    r'|\bre-?run of (?:this |the )?stage\b|\bthis stage\'s re-?run\b'
+    r'|\b(?:in|since|after|before) the (?:last |previous )?re-?run\b'
+    r'|\b(?:the )?previous (?:version|revision|draft) (?:of this (?:report|item|decision|driver|table|stage)'
+    r'|said|says|showed|shows|had|has|was|were|listed|assumed|did|missed|used|left|gave|named|wrote|called|counted|kept|put|took'
+    r'|relied|treated)\b'
+    r'|\bthe (?:previous|last) run\b|^\s*Previously\b'
+    r'|\bissue \d+ (?:is|was) (?:settled|closed|resolved)\b'
+    r'|\bversion \d+ (?:of (?:this|the) (?:report|item|decision|driver)|said|had|was|assumed|listed|missed)\b', re.I)
+EN_PROCESS_ONLY_RE = re.compile(
+    r'^(?:\s*(?:(?:stage \d+(?:\'s)?|this stage\'s|the quality chain\'s|answer to)\s+)?'
+    r'(?:issues?|questions?|answer designs?|version)\s+[\d,–\-\s]+(?:and\s+\d+)?\s*[,;.]?)+$', re.I)
+_EN_ABBR = ('e.g.', 'i.e.', 'etc.', 'vs.', 'cf.')
+
+
+def _en_parse(s: str) -> list:
+    """Splits text into strings and bracket groups ('(' or '（'). A group is a tuple (open, items)."""
+    pair = {'(': ')', '（': '）'}
+    stack = [('', [])]
+    buf = []
+    for ch in s:
+        if ch in pair:
+            if buf:
+                stack[-1][1].append(''.join(buf))
+                buf = []
+            stack.append((ch, []))
+        elif len(stack) > 1 and ch == pair[stack[-1][0]]:
+            if buf:
+                stack[-1][1].append(''.join(buf))
+                buf = []
+            g = stack.pop()
+            stack[-1][1].append(g)
+        else:
+            buf.append(ch)
+    if buf:
+        stack[-1][1].append(''.join(buf))
+    while len(stack) > 1:
+        o, g = stack.pop()
+        stack[-1][1].append(o + _en_ser(g))
+    return stack[0][1]
+
+
+def _en_ser(items: list) -> str:
+    return ''.join(x if isinstance(x, str) else x[0] + _en_ser(x[1]) + {'(': ')', '（': '）'}[x[0]] for x in items)
+
+
+def _en_sentences(items: list) -> list:
+    """Splits at a full stop followed by a space or the end, outside brackets (not after e.g., i.e. …).
+    Returns [(items, whether the sentence ended with a full stop)]."""
+    out = [[[], False]]
+    for x in items:
+        if not isinstance(x, str):
+            out[-1][0].append(x)
+            continue
+        start = 0
+        for m in re.finditer(r'\.(?=\s|$)', x):
+            head = x[start:m.start() + 1]
+            if any(head.endswith(a) for a in _EN_ABBR):
+                continue
+            if x[start:m.start()].strip() or out[-1][0]:
+                if x[start:m.start()]:
+                    out[-1][0].append(x[start:m.start()])
+                out[-1][1] = True
+                out.append([[], False])
+            start = m.end()
+        rest = x[start:]
+        if rest.strip():
+            out[-1][0].append(rest)
+    return [(a, b) for a, b in out if a and _en_ser(a).strip()]
+
+
+def _en_clean_items(items: list, drop_top: bool) -> tuple:
+    changed = False
+    inner = []
+    for x in items:
+        if isinstance(x, tuple):
+            g, ch = _en_clean_items(x[1], True)
+            changed |= ch
+            if g and _en_ser(g).strip():
+                inner.append((x[0], g))
+            else:
+                changed = True
+        else:
+            inner.append(x)
+    if not drop_top:
+        return inner, changed
+    kept = []
+    for sent, ended in _en_sentences(inner):
+        if EN_HIST_RE.search(_en_ser(sent).strip()):
+            changed = True
+            continue
+        kept.append((sent, ended))
+    if changed and kept and EN_PROCESS_ONLY_RE.match(' '.join(_en_ser(s).strip() for s, _ in kept)):
+        kept = []
+    out = []
+    for k, (sent, ended) in enumerate(kept):
+        if k:
+            out.append(' ')
+        out.extend([sent[0].lstrip()] + sent[1:] if isinstance(sent[0], str) else sent)
+        if k < len(kept) - 1 or ended:
+            out.append('.')
+    while out and out[-1] == '.' and len(kept) and not kept[-1][1]:
+        out.pop()
+    return out, changed
+
+
+def _en_tidy(s: str) -> str:
+    s = re.sub(r'[（(]\s*[)）]', '', s)
+    s = re.sub(r'\(\s*[,;]\s*', '(', s)
+    s = re.sub(r'\s*[,;]\s*\)', ')', s)
+    s = re.sub(r'\.\s*\)', ')', s)
+    s = re.sub(r'\s+([,;.)])', r'\1', s)
+    s = re.sub(r'([,;])\1+', r'\1', s)
+    s = re.sub(r'\.{2,}', '.', s)
+    s = re.sub(r' {2,}', ' ', s)
+    s = re.sub(r'^[,;.\s]+', '', s)
+    s = re.sub(r'[,;\s]+$', '', s)
+    return s
+
+
+def clean_en(s: str, top: bool = True) -> tuple:
+    orig = s
+    s = EN_VER_ID_RE.sub(r'\1', s)
+    for rx in EN_FND_LIST_RES:
+        s = rx.sub('', s)
+    items, _ = _en_clean_items(_en_parse(s), top)
+    ended = orig.rstrip().endswith('.')
+    out = _en_tidy(_en_ser(items))
+    if top and ended and out and not out.endswith(('.', ')')):
+        out += '.'
+    return out, out != orig
+
+
+def clean_text(s: str, top: bool = True) -> tuple:
+    """Removes revision notes from a YAML text, a table cell or a diagram line, by the rules of the language the
+    outputs are written in. Returns (text, changed)."""
+    if not s:
+        return s, False
+    return clean_en(s, top) if SRC['lang'] == 'en' else clean_ja(s, top)
 
 
 def clean_mermaid(src: str) -> tuple:
@@ -374,10 +600,14 @@ def clean_mermaid(src: str) -> tuple:
 # ---------------------------------------------------------------- IDs and links
 
 ID_PREFIX = ('DRV|DEC|ELM|IFC|DAT|TEAM|STK|CHG|TC|PC|FND|USR|CUJ|QIU|KPI|KGI|OUT|FRP|FR|QR|NFR|SLI|EBP')
-UNIT_AHEAD = r'(?!\d|\s*(?:%|件|秒|回|分|日|時間|人|年|台|本|行|倍|円|個|組|km|m\b|MiB|ms))'
-ID_RE = re.compile(r'(?<![A-Za-z0-9_\-])(?P<p>' + ID_PREFIX + r')-(?P<n>\d{2})(?P<rng>〜\d{2})?'
-                   r'(?P<cont>(?:[、・]\d{2}' + UNIT_AHEAD + r'(?:〜\d{2})?)*)' + r'(?![\d])')
-CONT_RE = re.compile(r'([、・])(\d{2})(?:(〜)(\d{2}))?')
+UNIT_AHEAD = (r'(?!\d|\s*(?:%|件|秒|回|分|日|時間|人|年|台|本|行|倍|円|個|組|km|m\b|MiB|ms|s\b|min\b|h\b|days?\b'
+              r'|hours?\b|minutes?\b|seconds?\b|times?\b|requests?\b|items?\b|people\b|years?\b))')
+# 「DRV-01、02」 and "DRV-01, 02" continue a list; 「FR-01〜14」 and "FR-01–14" are ranges
+_SEP = r'(?:[、・]|,\s)'
+_RNG = r'[〜–]'
+ID_RE = re.compile(r'(?<![A-Za-z0-9_\-])(?P<p>' + ID_PREFIX + r')-(?P<n>\d{2})(?P<rng>' + _RNG + r'\d{2})?'
+                   r'(?P<cont>(?:' + _SEP + r'\d{2}' + UNIT_AHEAD + r'(?:' + _RNG + r'\d{2})?)*)' + r'(?![\d])')
+CONT_RE = re.compile(r'(' + _SEP + r')(\d{2})(?:(' + _RNG + r')(\d{2}))?')
 QUALITY_PREFIXES = {'USR', 'CUJ', 'QIU', 'KPI', 'KGI', 'OUT', 'FRP', 'FR', 'QR', 'NFR', 'SLI', 'EBP'}
 
 
@@ -390,8 +620,6 @@ class Ctx:
         self.cleaned: list = []        # (where, before, after)
         self.warnings: dict = {}       # kind → [messages]
         self.used_tips: set = set()
-        self.directions: dict = {}     # section path → diagram direction (diagram_direction in summary-text.yaml)
-        self.used_directions: set = set()
 
     def warn(self, kind: str, msg: str):
         self.warnings.setdefault(kind, []).append(msg)
@@ -419,22 +647,22 @@ class Ctx:
 
 
 def link_ids(s: str, ctx: Ctx) -> str:
-    """Links the IDs in escaped text. In 「DRV-01、02」, 02 links to DRV-02."""
+    """Links the IDs in escaped text. In 「DRV-01、02」 and "DRV-01, 02", 02 links to DRV-02."""
     def rep(m):
         p, n = m.group('p'), m.group('n')
         out = [ctx.link(f'{p}-{n}')]
         if m.group('rng'):
-            out.append('〜' + ctx.link(f'{p}-{m.group("rng")[1:]}', m.group('rng')[1:]))
+            out.append(m.group('rng')[0] + ctx.link(f'{p}-{m.group("rng")[1:]}', m.group('rng')[1:]))
         for cm in CONT_RE.finditer(m.group('cont') or ''):
             out.append(cm.group(1) + ctx.link(f'{p}-{cm.group(2)}', cm.group(2)))
             if cm.group(3):
-                out.append('〜' + ctx.link(f'{p}-{cm.group(4)}', cm.group(4)))
+                out.append(cm.group(3) + ctx.link(f'{p}-{cm.group(4)}', cm.group(4)))
         return ''.join(out)
     return ID_RE.sub(rep, s)
 
 
 def inline(s: str, ctx: Ctx) -> str:
-    """Turns a table cell or a condensed sentence into HTML (`code`, **bold**, ID links)."""
+    """Turns a table cell or a YAML text into HTML (`code`, **bold**, ID links)."""
     out = []
     for part in re.split(r'(`[^`]+`)', s or ''):
         if len(part) >= 2 and part.startswith('`') and part.endswith('`'):
@@ -450,9 +678,9 @@ ID_ONLY_RE = re.compile(r'^([A-Z]{2,5})-(\d{2,})$')
 
 
 def ids_text(items, sort: bool = True) -> str:
-    """Writes a list of IDs the way the reports do: 「FR-01〜14、24、DRV-03」. With sort, the numbers of each prefix are
-    sorted and three or more in a row become a range; without it, the order is kept (the order means something, such
-    as the drivers a decision addresses, most important first). Other texts are kept as they are."""
+    """Writes a list of IDs the way the reports do: 「FR-01〜14、24、DRV-03」 or "FR-01–14, 24, DRV-03". With sort, the
+    numbers of each prefix are sorted and three or more in a row become a range; without it, the order is kept (the
+    order means something, such as the drivers a decision addresses, most important first). Other texts are kept."""
     order, nums = [], {}
     for x in items or []:
         if x is None:
@@ -483,9 +711,9 @@ def ids_text(items, sort: bool = True) -> str:
                 runs.append([n])
         segs = []
         for r in runs:
-            segs += [f'{r[0]}〜{r[-1]}'] if len(r) >= 3 else r
-        parts.append(f'{p}-' + '、'.join(segs))
-    return '、'.join(parts)
+            segs += [f'{r[0]}{T("range")}{r[-1]}'] if len(r) >= 3 else r
+        parts.append(f'{p}-' + T('sep').join(segs))
+    return T('sep').join(parts)
 
 
 # ---------------------------------------------------------------- tables
@@ -513,9 +741,6 @@ class Table:
         self.where = where
         head = block.rows[0]
         keep = [k for k, h in enumerate(head) if h not in drop]
-        missing = [d for d in drop if d not in head]
-        if missing:
-            ctx.warn('列', f'{where}: 外す列 {"、".join(missing)} が見つからない')
         self.head = [clean_text(head[k])[0] if clean else head[k] for k in keep]
         self.rows = []
         for r in block.rows[1:]:
@@ -531,15 +756,12 @@ class Table:
                 row.append(cell)
             self.rows.append(row)
 
-    def col(self, name: str) -> int:
-        return self.head.index(name)
-
 
 def col_classes(head, rows, col_cls) -> list:
     """Width classes of the columns. col_cls is either the whole list or a dict that overrides some columns."""
     if isinstance(col_cls, list):
         return col_cls
-    out = [width_class([r[k] for r in rows if k < len(r)]) for k in range(len(head))]
+    out = [width_class([r[k] for r in rows if k < len(r) and isinstance(r[k], str)]) for k in range(len(head))]
     for k, v in (col_cls or {}).items():
         if k < len(out):
             out[k] = v
@@ -652,8 +874,7 @@ def _char_w(ch: str) -> float:
 
 
 def wrap_ja(text: str, limit: float) -> str:
-    """Breaks Japanese text with <br/> at punctuation or spaces (Mermaid breaks only at spaces and hyphenates long
-    words)."""
+    """Breaks text with <br/> at punctuation or spaces (Mermaid breaks only at spaces and hyphenates long words)."""
     if '<br' in text or sum(_char_w(c) for c in text) <= limit:
         return text
     lines, cur, w, brk = [], '', 0.0, -1
@@ -701,28 +922,14 @@ def wrap_sequence(src: str) -> str:
     return '\n'.join(out)
 
 
-def set_direction(src: str, d: str) -> str:
-    """Changes a diagram's direction (flowchart LR or TB, the ER diagram's direction). The content stays the same."""
-    lines = src.split('\n')
-    k = next((i for i, x in enumerate(lines) if x.strip()), 0)
-    first = lines[k].strip()
-    if first.startswith(('flowchart', 'graph')):
-        lines[k] = re.sub(r'^(\s*(?:flowchart|graph))(?:\s+\w+)?', r'\1 ' + d, lines[k])
-    elif first.startswith('erDiagram'):
-        lines.insert(k + 1, f'  direction {d}')
-    return '\n'.join(lines)
-
-
-def mermaid(src: str, ctx: Ctx, where: str, kind_hint: str = '') -> str:
+def mermaid(src: str, ctx: Ctx, where: str, links: str = '') -> str:
+    """A Mermaid diagram, drawn by design.js when it comes into view. links="flow" makes the flow numbers on the
+    diagram's arrows (F1, F2…) links to the threat table's rows."""
     src2, ch = clean_mermaid(src)
     if ch:
-        ctx.cleaned.append((where + '（図）', '…', '…'))
-    key = where.split(' > ', 1)[1] if ' > ' in where else where
-    if key in ctx.directions:
-        src2 = set_direction(src2, ctx.directions[key])
-        ctx.used_directions.add(key)
+        ctx.cleaned.append((where + ' (mermaid)', '…', '…'))
     first = src2.strip().split('\n', 1)[0].strip()
-    kind = first.split()[0] if first else kind_hint
+    kind = first.split()[0] if first else ''
     if kind == 'sequenceDiagram':
         src2 = wrap_sequence(src2)
     if kind in ('flowchart', 'graph'):
@@ -731,33 +938,18 @@ def mermaid(src: str, ctx: Ctx, where: str, kind_hint: str = '') -> str:
             t = ctx.titles.get(m.group(2), '')
             return f'{m.group(1)}["{t}"]' if t.startswith(m.group(2) + ' ') and '"' not in t else m.group(0)
         src2 = re.sub(r'(\b\w+)\["(ELM-\d{2})"\]', named, src2)
-    return (f'<figure class="mmd" data-kind="{esc(kind)}"><div class="mmd-bar">'
-            f'<button type="button" class="mmd-fit" aria-pressed="false">幅に合わせる</button>'
-            f'<button type="button" class="mmd-full">全画面</button></div>'
-            f'<div class="mmd-out" aria-live="polite"><p class="mmd-wait">図を描いています…</p></div>'
+    lk = f' data-links="{esc(links)}"' if links else ''
+    return (f'<figure class="mmd" data-kind="{esc(kind)}"{lk}><div class="mmd-bar">'
+            f'<button type="button" class="mmd-fit" aria-pressed="false">{esc(T("fit"))}</button>'
+            f'<button type="button" class="mmd-full">{esc(T("full"))}</button></div>'
+            f'<div class="mmd-out" aria-live="polite"><p class="mmd-wait">{esc(T("drawing"))}</p></div>'
             f'<pre class="mmd-src" hidden>{esc(src2)}</pre></figure>')
 
 
 def chips_index(entries: list) -> str:
     """Turns [(href, text, tooltip)] into an index inside a toggle."""
-    return '<nav class="idx" aria-label="この表の中">' + ''.join(
+    return f'<nav class="idx" aria-label="{esc(T("idx"))}">' + ''.join(
         f'<a class="chip qr-base" href="#{esc(h)}" data-tip="{esc(t)}">{esc(x)}</a>' for h, x, t in entries) + '</nav>'
-
-
-def bullets(items: list, ctx: Ctx, cls: str = 'bul') -> str:
-    lis = []
-    for it in items:
-        if isinstance(it, list) and len(it) == 2:
-            lis.append(f'<li><span class="bl">{esc(it[0])}</span>{inline(it[1], ctx)}</li>')
-        elif isinstance(it, dict):
-            lab = it.get('label')
-            body = inline(it.get('text', ''), ctx)
-            sub = it.get('items')
-            subh = bullets(sub, ctx, 'bul sub-bul') if sub else ''
-            lis.append(f'<li>{f"<span class=bl>{esc(lab)}</span>" if lab else ""}{body}{subh}</li>')
-        else:
-            lis.append(f'<li>{inline(str(it), ctx)}</li>')
-    return f'<ul class="{cls}">' + ''.join(lis) + '</ul>'
 
 
 def subhead(text: str) -> str:
@@ -766,8 +958,9 @@ def subhead(text: str) -> str:
 
 # ---------------------------------------------------------------- latency budget charts
 
-KIND_NAMES = {'own': '自分の処理', 'ext': '外部サービスと回線', 'wait': '待ち',
-              'ok': '新しい', 'edge': '境目', 'stale': '古い'}
+# A budget value: 「1.00 秒」 or "0.15 s", "150 ms", 「2 分」, "1.5 min"
+VALUE_RE = re.compile(r'^\s*(\d+(?:\.\d+)?)\s*(秒|ms|s|分|min)\s*$')
+TO_SECONDS = {'秒': 1.0, 's': 1.0, 'ms': 0.001, '分': 60.0, 'min': 60.0}
 
 
 def nice_step(span: float) -> float:
@@ -783,140 +976,83 @@ def fmt_num(v: float) -> str:
     return f'{v:.2f}'.rstrip('0').rstrip('.') if abs(v * 10 - round(v * 10)) < 1e-9 else f'{v:.2f}'
 
 
-def fmt_tick(v: float, axis: dict) -> str:
-    if axis.get('clock'):
-        h0, m0 = (int(x) for x in axis['clock'].split(':'))
-        t = h0 * 60 + m0 + int(round(v))
-        return f'{t // 60:02d}:{t % 60:02d}'
-    return fmt_num(v)
+def hop_chart(table: Block, ctx: Ctx, where: str) -> dict | None:
+    """Reads a hop table (区間 / Hop, 予算 / Budget …) into chart data: the hops, the margin and the threshold (the
+    total). Returns None when the table has another shape or a value without a time unit."""
+    head = table.rows[0]
+    if len(head) < 2 or head[0].strip() not in HOP_HEAD or not head[1].strip().startswith(BUDGET_HEAD):
+        return None
+    hops, margin, total = [], None, None
+    for r in table.rows[1:]:
+        if len(r) < 2:
+            continue
+        name = clean_text(r[0])[0]
+        m = VALUE_RE.match(r[1])
+        if not m:
+            return None
+        v = float(m.group(1)) * TO_SECONDS[m.group(2)]
+        basis = clean_text(r[2])[0] if len(r) > 2 else ''
+        if name in ROW_MARGIN:
+            margin = v
+        elif name in ROW_TOTAL:
+            total = v
+        else:
+            hops.append({'name': name, 'v': v, 'note': basis})
+    if not hops:
+        return None
+    s = sum(h['v'] for h in hops)
+    if total is None:
+        total = s + (margin or 0)
+    if abs(s + (margin or 0) - total) > 1e-6 and margin is not None:
+        ctx.warn('mismatch', T('w_budget_sum', where=where, sum=fmt_num(s), margin=fmt_num(margin), total=fmt_num(total)))
+    # minutes read better than hundreds of seconds
+    unit = 'min' if total >= 600 else 's'
+    k = 60.0 if unit == 'min' else 1.0
+    for h in hops:
+        h['v'] /= k
+    return {'hops': hops, 'threshold': total / k, 'unit': unit}
 
 
-def budget_chart(spec: dict, ctx: Ctx) -> str:
-    unit = spec.get('unit', '秒')
-    axis = spec.get('axis', {})
-    rows = spec['rows']
-    ths = spec.get('thresholds', [])
-    top = max([sum(s['v'] for s in r['segments']) for r in rows]
-              + [r.get('mark', {}).get('v', 0) for r in rows] + [t['v'] for t in ths])
-    amax = axis.get('max') or top * 1.06
-    step = axis.get('step') or nice_step(amax)
+def budget_chart(specs: list, ctx: Ctx) -> str:
+    """Horizontal stacked bars on one shared axis: each hop table is a row of its hops, with a light track up to the
+    threshold (the margin) and a line at the threshold."""
+    unit = specs[0]['unit']
+    uname = T('unit_s') if unit == 's' else T('unit_min')
+    top = max(max(sp['threshold'], sum(h['v'] for h in sp['hops'])) for sp in specs)
+    amax = top * 1.06
+    step = nice_step(amax)
     pct = lambda v: f'{min(v, amax) / amax * 100:.3f}%'
-    used = []
-    out = [f'<figure class="bud" style="--th:{esc(spec.get("track", ""))}">']
-    rows_h = []
-    table_rows = []
-    for r in rows:
-        segs = []
-        total = 0.0
-        for s in r['segments']:
-            k = s.get('k', 'own')
-            if k not in used:
-                used.append(k)
-            tip = f'{s["name"]}: {fmt_num(s["v"])} {unit}' + (f'（{s["note"]}）' if s.get('note') else '')
-            lab = s.get('label', fmt_num(s['v']))
-            segs.append(f'<span class="seg k-{esc(k)}" style="left:{pct(total)};width:{pct(s["v"])}" '
-                        f'data-tip="{esc(tip)}" tabindex="0"><i>{esc(lab)}</i></span>')
-            table_rows.append([r['label'], s['name'], fmt_num(s['v']), s.get('note', '')])
-            total += s['v']
-        track = r.get('track', ths[0]['v'] if ths else total)
-        marks = ''
-        if r.get('mark'):
-            mk = r['mark']
-            marks = (f'<span class="bud-mark" style="left:{pct(mk["v"])}" '
-                     f'data-tip="{esc(mk["name"])}: {fmt_num(mk["v"])} {esc(unit)}" tabindex="0"></span>')
-            table_rows.append([r['label'], mk['name'], fmt_num(mk['v']), ''])
-        lines = ''.join(f'<span class="bud-th" style="left:{pct(t["v"])}"></span>' for t in ths)
-        sub = f'<span class="bud-sub">{inline(r["sub"], ctx)}</span>' if r.get('sub') else ''
-        tag = f'<span class="tag">{esc(r["tag"])}</span>' if r.get('tag') else ''
-        rows_h.append(f'<div class="bud-row{" is-rejected" if r.get("rejected") else ""}">'
-                      f'<div class="bud-label"><span class="bud-name">{inline(r["label"], ctx)}{tag}</span>{sub}</div>'
-                      f'<div class="bud-plot"><span class="bud-track" style="width:{pct(track)}"></span>'
-                      f'{"".join(segs)}{marks}{lines}</div></div>')
-    # legend
-    lg = []
-    for k in used:
-        lg.append(f'<span class="lg"><span class="sw k-{k}"></span>{esc(KIND_NAMES.get(k, k))}</span>')
-    if spec.get('show_track', True) and ths:
-        lg.append('<span class="lg"><span class="sw sw-track"></span>余り（しきい値までの下地）</span>')
-    for t in ths:
-        lg.append(f'<span class="lg"><span class="sw sw-th"></span>{esc(t["name"])}</span>')
-    if any(r.get('mark') for r in rows):
-        lg.append(f'<span class="lg"><span class="sw sw-mark"></span>{esc(spec.get("mark_name", "最悪"))}</span>')
-    out.append('<div class="legend bud-legend">' + ''.join(lg) + '</div>')
-    out.append('<div class="bud-rows">' + ''.join(rows_h) + '</div>')
-    # axis ticks
-    ticks = []
-    v = 0.0
-    th_vals = [t['v'] for t in ths]
+    rows_h, table_rows = [], []
+    for k, sp in enumerate(specs, 1):
+        label = T('budget_row') if len(specs) == 1 else T('budget_row_n', n=k)
+        segs, total = [], 0.0
+        for h in sp['hops']:
+            tip = f'{h["name"]}: {fmt_num(h["v"])} {uname}' + (T('paren', x=h['note']) if h.get('note') else '')
+            segs.append(f'<span class="seg k-hop" style="left:{pct(total)};width:{pct(h["v"])}" '
+                        f'data-tip="{esc(tip)}" tabindex="0"><i>{esc(fmt_num(h["v"]))}</i></span>')
+            table_rows.append([label, h['name'], fmt_num(h['v']), h.get('note', '')])
+            total += h['v']
+        rows_h.append(f'<div class="bud-row"><div class="bud-label"><span class="bud-name">{esc(label)}</span>'
+                      f'<span class="bud-sub">{esc(T("budget_sum", sum=fmt_num(total), margin=fmt_num(sp["threshold"] - total), unit=uname))}</span></div>'
+                      f'<div class="bud-plot"><span class="bud-track" style="width:{pct(sp["threshold"])}"></span>'
+                      f'{"".join(segs)}<span class="bud-th" style="left:{pct(sp["threshold"])}"></span></div></div>')
+    ths = sorted({sp['threshold'] for sp in specs})
+    lg = (f'<span class="lg"><span class="sw k-hop"></span>{esc(T("budget_hops"))}</span>'
+          f'<span class="lg"><span class="sw sw-track"></span>{esc(T("budget_margin"))}</span>'
+          f'<span class="lg"><span class="sw sw-th"></span>{esc(T("budget_threshold"))}</span>')
+    ticks, v = [], 0.0
     while v <= amax + 1e-9:
-        if not any(abs(v - tv) < 1e-9 for tv in th_vals):   # where a tick falls on a threshold, only the threshold's tick is shown
-            ticks.append(f'<span class="tick" style="left:{pct(v)}">{esc(fmt_tick(v, axis))}</span>')
+        if not any(abs(v - t) < 1e-9 for t in ths):
+            ticks.append(f'<span class="tick" style="left:{pct(v)}">{esc(fmt_num(v))}</span>')
         v += step
-    th_lab = ''.join(f'<span class="tick th" style="left:{pct(t["v"])}">{esc(t.get("tick", fmt_tick(t["v"], axis)))}</span>'
-                     for t in ths)
-    unit_lab = '' if axis.get('clock') else f'<span class="unit">{esc(axis.get("unit_label", unit))}</span>'
-    out.append(f'<div class="bud-axis"><div class="bud-label"></div><div class="bud-ticks">{"".join(ticks)}{th_lab}'
-               f'{unit_lab}</div></div>')
-    # the values as a table (the chart's readable twin)
-    tb = render_table(['行', '区間', unit if not axis.get('clock') else '分', 'もと'], table_rows, ctx,
+    th_lab = ''.join(f'<span class="tick th" style="left:{pct(t)}">{esc(fmt_num(t))} {esc(uname)}</span>' for t in ths)
+    tb = render_table([T('budget_col_row'), T('budget_col_hop'), uname, T('budget_col_basis')], table_rows, ctx,
                       cls='bud-table', col_cls=['w-m', 'w-m', 'num', 'w-m'],
-                      cell=lambda i, k, t: (f'<span class="num">{esc(t)}</span>' if k == 2 else inline(t, ctx)))
-    out.append(f'<details class="bud-num"><summary>数値の表</summary>{tb}</details>')
-    out.append('</figure>')
-    return ''.join(out)
-
-
-# ---------------------------------------------------------------- threat model figure
-
-def threat_svg(spec: dict, flow_tips: dict) -> str:
-    W, H = spec['width'], spec['height']
-    o = [f'<div class="tm-wrap"><svg class="tm" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" '
-         f'aria-label="信頼の境界と、境界を越える流れ F1〜F17">'
-         '<defs><marker id="tm-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" '
-         'orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="tm-head"/></marker></defs>']
-    for z in spec.get('zones', []):
-        o.append(f'<g class="tm-zone{" " + z["cls"] if z.get("cls") else ""}"><rect x="{z["x"]}" y="{z["y"]}" '
-                 f'width="{z["w"]}" height="{z["h"]}" rx="10"/>'
-                 f'<text x="{z["x"] + 12}" y="{z["y"] + 20}" class="tm-zl">{esc(z["label"])}</text></g>')
-    for f in spec.get('flows', []):
-        if not f.get('points'):
-            continue
-        pts = ' '.join(f'{x},{y}' for x, y in f['points'])
-        end = '' if f.get('arrow') is False else ' marker-end="url(#tm-arr)"'
-        ids = f.get('chips') or f.get('joins') or []
-        o.append(f'<polyline class="tm-flow" data-flows="{esc(" ".join(ids))}" points="{pts}"{end}/>')
-    for n in spec.get('nodes', []):
-        k = n.get('kind', 'comp')
-        x, y, w, h = n['x'], n['y'], n['w'], n['h']
-        lines = n['label'] if isinstance(n['label'], list) else [n['label']]
-        o.append(f'<g class="tm-node k-{k}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{6 if k != "store" else 12}"/>')
-        if k == 'ext':
-            o.append(f'<rect class="tm-inner" x="{x + 4}" y="{y + 4}" width="{w - 8}" height="{h - 8}" rx="4"/>')
-        ty = y + h / 2 - (len(lines) - 1) * 8 + 4
-        for li, t in enumerate(lines):
-            cls = 'tm-id' if li == 0 and re.match(r'^ELM-\d\d$', t) else 'tm-nt'
-            o.append(f'<text x="{x + w / 2}" y="{ty + li * 16:.1f}" class="{cls}" text-anchor="middle">{esc(t)}</text>')
-        o.append('</g>')
-    for f in spec.get('flows', []):
-        if not f.get('chips'):
-            continue
-        cx, cy = f['at']
-        for k, fid in enumerate(f['chips']):
-            w = 34 if len(fid) <= 2 else 40
-            x = cx + k * (w + 4) - (len(f['chips']) * (w + 4) - 4) / 2
-            tip = flow_tips.get(fid, fid)
-            o.append(f'<a href="#flow-{esc(fid)}" class="tm-chip" data-tip="{esc(tip)}" data-flow="{esc(fid)}">'
-                     f'<rect x="{x:.1f}" y="{cy - 10}" width="{w}" height="20" rx="4"/>'
-                     f'<text x="{x + w / 2:.1f}" y="{cy + 4.5}" text-anchor="middle">{esc(fid)}</text></a>')
-    for t in spec.get('notes', []):
-        o.append(f'<text x="{t["x"]}" y="{t["y"]}" class="tm-note">{esc(t["text"])}</text>')
-    o.append('</svg></div>')
-    lg = ('<div class="legend tm-legend"><span class="lg"><span class="sw sw-zone"></span>信頼の境界</span>'
-          '<span class="lg"><span class="sw sw-comp"></span>コンポーネント</span>'
-          '<span class="lg"><span class="sw sw-store"></span>データの置き場所</span>'
-          '<span class="lg"><span class="sw sw-ext"></span>外部システム</span>'
-          '<span class="lg"><span class="chip qr-emph">F1</span>流れ（表の行へ）</span></div>')
-    return lg + ''.join(o)
+                      cell=lambda i, k, x: (f'<span class="num">{esc(x)}</span>' if k == 2 else inline(x, ctx)))
+    return (f'<figure class="bud"><div class="legend bud-legend">{lg}</div><div class="bud-rows">{"".join(rows_h)}</div>'
+            f'<div class="bud-axis"><div class="bud-label"></div><div class="bud-ticks">{"".join(ticks)}{th_lab}'
+            f'<span class="unit">{esc(uname)}</span></div></div>'
+            f'<details class="bud-num"><summary>{esc(T("budget_values"))}</summary>{tb}</details></figure>')
 
 
 # ---------------------------------------------------------------- loading
@@ -935,11 +1071,8 @@ def load_items(d: Path, ctx: Ctx | None = None) -> dict:
         try:
             x = yaml.safe_load(f.read_text(encoding='utf-8'))
         except yaml.YAMLError as e:
-            msg = f'読めない: {f.parent.name}/{f.name}（{str(e).splitlines()[0]}）'
             if ctx:
-                ctx.warn('YAML', msg)
-            else:
-                print(msg, file=sys.stderr)
+                ctx.warn('yaml', T('w_yaml_unreadable', file=f'{f.parent.name}/{f.name}', err=str(e).splitlines()[0]))
             continue
         if isinstance(x, dict) and x.get('id'):
             out[x['id']] = x
@@ -958,30 +1091,33 @@ def git(args: list, cwd: Path) -> str:
         return ''
 
 
+def addresses(v: dict) -> list:
+    """What a decision answers, without findings: a finding number is review history, which the page leaves out."""
+    return [a for a in v.get('addresses') or [] if not str(a).startswith('FND-')]
+
+
 def norm(s) -> str:
     return re.sub(r'\s+', '', str(s or ''))
 
 
-def lvl_badge(x: str) -> str:
-    return f'<span class="lvl lvl-{ {"高": "h", "中": "m", "低": "l"}.get(x, "x") }">{esc(x)}</span>'
+def lvl_badge(key: str, text: str) -> str:
+    return f'<span class="lvl lvl-{ {"high": "h", "medium": "m", "low": "l"}.get(key, "x") }">{esc(text)}</span>'
 
 
 # ---------------------------------------------------------------- the page
 
 class Builder:
-    def __init__(self, ddir: Path, qdir: Path, text_path: Path, out: Path):
-        self.ddir, self.qdir, self.text_path, self.out = ddir, qdir, text_path, out
+    def __init__(self, ddir: Path, qdir: Path, out: Path):
+        self.ddir, self.qdir, self.out = ddir, qdir, out
         self.ctx = Ctx()
         self.toc: dict = {}            # stage → [(id, name)]
-        self.text = {}
-        self.hashes: dict = {}         # condensed-text key → current hash of its source
         self.docs: dict = {}
         self.md: dict = {}
         self.stages: list = []
-        self._tables: dict = {}
+        self.lang = self.lang_how = ''
 
     # --- inputs
-    def load(self) -> bool:
+    def load(self, lang: str | None) -> bool:
         c = self.ctx
         # the design items are the source of truth (artifacts.md): every table that has items is built from them
         self.drv = load_items(self.ddir / 'drv', c)
@@ -996,12 +1132,17 @@ class Builder:
             try:
                 self.dctx = yaml.safe_load(dc.read_text(encoding='utf-8')) or {}
             except yaml.YAMLError as e:
-                c.warn('YAML', f'読めない: design-context.yaml（{str(e).splitlines()[0]}）')
-        # the reports: diagrams, and the sections that no item holds
+                c.warn('yaml', T('w_yaml_unreadable', file='design-context.yaml', err=str(e).splitlines()[0]))
         for n, fn in REPORT_FILES.items():
             p = self.ddir / fn
             if p.exists():
                 self.docs[n] = p.read_text(encoding='utf-8')
+        # the language of the outputs: of the page (unless --lang is given) and of the rules for revision notes
+        texts = [s for coll in (self.drv, self.dec, self.elm, self.ifc, self.dat) for v in coll.values() for s in strings(v)]
+        texts += list(strings(self.dctx)) + list(self.docs.values())
+        SRC['lang'] = detect_lang(texts)
+        self.lang, self.lang_how = (lang, 'lang_given') if lang else (SRC['lang'], 'lang_detected')
+        set_lang(self.lang)
         has = {1: bool(self.live(self.drv)),
                2: bool(self.live(self.elm)) or bool(self.decs('architecture')),
                3: bool(self.live(self.ifc)) or bool(self.live(self.dat)) or bool(self.decs('high-level-design'))}
@@ -1010,41 +1151,27 @@ class Builder:
             return False
         for n in self.stages:
             if has[n] and n not in self.docs:
-                c.warn('報告書', f'{REPORT_FILES[n]} がない（第 {n} 段階の図と、報告書にしかない表を省いた）')
+                c.warn('report', T('w_no_report', file=REPORT_FILES[n], n=n))
             if not has[n]:
-                c.warn('YAML', f'第 {n} 段階の YAML の項目がない（回答を反映する前の下書き）。報告書にしかない表と図だけを示した')
-        if self.text_path.exists():
-            self.text = yaml.safe_load(self.text_path.read_text(encoding='utf-8')) or {}
-        else:
-            c.warn('添削文', f'{self.text_path} がない（添削文の節は報告書の表と図で代える）')
-        for k in self.text:
-            if k not in TEXT_KEYS:
-                why = '（DEC の中身は dec/*.yaml から作るので要らない）' if k == 'decisions' else ''
-                c.warn('使わないキー', f'{self.text_path.name} の {k}{why}')
-        c.directions = dict(self.text.get('diagram_direction') or {})
-        # apply the fixes (exact text replacements) to the reports before parsing
-        for fx in self.text.get('fixes', []) or []:
-            n = next((k for k, v in REPORT_FILES.items() if v == fx.get('file')), None)
-            if n is None or n not in self.docs:
-                c.warn('手直し', f'{fx.get("file")}: ファイルがない')
-                continue
-            if fx['find'] not in self.docs[n]:
-                c.warn('手直し', f'{fx["file"]}: 見つからない「{short(fx["find"], 50)}」')
-                continue
-            self.docs[n] = self.docs[n].replace(fx['find'], fx.get('replace', ''))
+                c.warn('yaml', T('w_no_items', n=n))
+        for n in range(max(self.stages) + 1, 4):
+            c.warn('report', T('w_later_missing', n=n, title=T(f'stage_title_{n}')))
+        for name in ('summary-text.yaml',):
+            if (self.ddir / name).exists():
+                c.warn('unused', T('w_unused_file', file=name))
         self.md = {n: parse_md(t, REPORT_FILES[n]) for n, t in self.docs.items()}
         # tooltips, and the IDs that have a row on this page
         t = c.titles
         for coll in (self.drv, self.dec, self.elm, self.ifc, self.dat):
             for k, v in coll.items():
                 if v.get('status') == 'retired':
-                    t[k] = f'{k} {v.get("title", "")}（廃止）'
+                    t[k] = f'{k} {v.get("title", "")}{T("retired")}'
                     continue
                 t[k] = short(f'{k} {self.t(v.get("title"))}')
                 if not (k.startswith('DEC-') and v.get('stage') not in ('architecture', 'high-level-design')):
                     c.own.add(k)
         for k, v in self.fnd.items():
-            t[k] = short(f'{k} {v.get("title", "")}（指摘）')
+            t[k] = short(f'{k} {v.get("title", "")}{T("finding")}')
         for grp, key in (('technology_constraints', 'statement'), ('project_constraints', 'statement'),
                          ('teams', 'name'), ('anticipated_changes', 'change'), ('stakeholders', 'role')):
             for x in self.dctx.get(grp, []) or []:
@@ -1055,15 +1182,16 @@ class Builder:
         q = self.qdir
         for sub in ('fr', 'qr', 'nfr', 'sli', 'qiu', 'kpi', 'ebp', 'frp'):
             for k, v in load_items(q / sub).items():
-                extra = '（廃止）' if v.get('status') == 'retired' else ''
+                extra = T('retired') if v.get('status') == 'retired' else ''
                 t.setdefault(k, short(f'{k} {v.get("title", "")}{extra}'))
         qc = q / 'context.yaml'
+        self.qctx = {}
         if qc.exists():
-            qq = yaml.safe_load(qc.read_text(encoding='utf-8')) or {}
+            self.qctx = yaml.safe_load(qc.read_text(encoding='utf-8')) or {}
             for grp in ('users', 'cujs', 'kgis'):
-                for x in qq.get(grp, []) or []:
+                for x in self.qctx.get(grp, []) or []:
                     t.setdefault(x['id'], f'{x["id"]} {x.get("name", "")}')
-            for x in qq.get('outcomes', []) or []:
+            for x in self.qctx.get('outcomes', []) or []:
                 t.setdefault(x['id'], short(f'{x["id"]} {x.get("statement", "")}'))
         qs = q / 'summary.html'
         if qs.exists():
@@ -1071,7 +1199,7 @@ class Builder:
             c.quality_href = Path(os.path.relpath(qs.resolve(), self.out.parent.resolve())).as_posix()
         for k in list(t):
             if k.split('-')[0] in QUALITY_PREFIXES and k in c.quality_anchor:
-                t[k] = t[k] + '（品質の要約へ）'
+                t[k] = t[k] + T('to_quality')
         return True
 
     # --- items
@@ -1087,25 +1215,27 @@ class Builder:
         if s is None:
             return ''
         if isinstance(s, (list, tuple)):
-            return '、'.join(x for x in (self.t(v, where) for v in s) if x)
+            return T('sep').join(x for x in (self.t(v, where) for v in s) if x)
         if isinstance(s, dict):
-            return '、'.join(f'{k}: {self.t(v, where)}' for k, v in s.items())
+            return T('sep').join(f'{k}: {self.t(v, where)}' for k, v in s.items())
         s = str(s).strip()
         out, ch = clean_text(s)
         if ch:
             self.ctx.cleaned.append((where or 'YAML', s, out))
         return out
 
-    def term(self, table: dict, value, where: str) -> str:
+    def term(self, group: str, value, where: str) -> str:
         if value is None or value == '':
             return '—'
-        if value in table:
-            return table[value]
+        table = LANG['terms'][group]
+        key = str(value).lower() if isinstance(value, bool) else value
+        if key in table:
+            return table[key]
         # a value with a note after it: 「personal（IP アドレス）」
         m = re.match(r'^([A-Za-z-]+)\s*[（(](.*)[）)]$', str(value).strip(), re.S)
         if m and m.group(1) in table:
-            return f'{table[m.group(1)]}（{self.t(m.group(2), where)}）'
-        self.ctx.warn('用語集にない値', f'{where}: {value}')
+            return table[m.group(1)] + T('paren', x=self.t(m.group(2), where))
+        self.ctx.warn('unknown', f'{where}: {value}')
         return str(value)
 
     def title_of(self, id_: str) -> str:
@@ -1120,12 +1250,12 @@ class Builder:
                 + (f'<span class="def-name">{inline(name, self.ctx)}</span>' if name else ''))
 
     # --- comparing a report table with the items (a stale report shows up here)
-    def md_ids(self, n: int, titles: tuple, col: str) -> list | None:
+    def md_ids(self, n: int, keys: tuple, col: str) -> list | None:
         if n not in self.md:
             return None
-        s = self.sec(n, *titles, quiet=True)
+        s = self.sec(n, *keys, quiet=True)
         if s is None or not s.tables():
-            self.ctx.warn('突き合わせなかった表', f'{REPORT_FILES[n]} > {" > ".join(titles)}（見つからない）')
+            self.ctx.warn('uncompared', T('w_uncompared', where=f'{REPORT_FILES[n]} > {" > ".join(H[k][0 if self.lang == "ja" else 1] for k in keys)}'))
             return None
         rows = s.tables()[0].rows
         k = rows[0].index(col) if col in rows[0] else 0
@@ -1133,77 +1263,59 @@ class Builder:
         for r in rows[1:]:
             cell = r[k] if k < len(r) else ''
             m = re.match(r'^\s*([A-Z]{2,5}-\d{2,})', cell)
-            if m and '（廃止）' not in cell:
+            if m and not re.search(r'（廃止）|\(retired\)', cell, re.I):
                 out.append(m.group(1))
         return out
 
-    def compare(self, what: str, n: int, titles: tuple, col: str, yaml_ids) -> None:
-        got = self.md_ids(n, titles, col)
+    def compare(self, what: str, n: int, keys: tuple, col: str, yaml_ids) -> list | None:
+        got = self.md_ids(n, keys, col)
         if got is None:
-            return
+            return None
         a, b = set(got), set(yaml_ids)
         if a - b:
-            self.ctx.warn('食い違い', f'{what}: 報告書にあって YAML にない {"、".join(sorted(a - b, key=id_key))}')
+            self.ctx.warn('mismatch', T('w_report_only', what=what, ids=T('sep').join(sorted(a - b, key=id_key))))
         if b - a:
-            self.ctx.warn('食い違い', f'{what}: YAML にあって報告書にない {"、".join(sorted(b - a, key=id_key))}')
+            self.ctx.warn('mismatch', T('w_yaml_only', what=what, ids=T('sep').join(sorted(b - a, key=id_key))))
+        return got
 
-    # --- condensed texts
-    def curated(self, key: str, *secs) -> dict:
-        """Returns a condensed text, and reports it when its source section changed since it was written."""
-        node = self.text
-        for part in key.split('.'):
-            node = node.get(part, {}) if isinstance(node, dict) else {}
-        secs = [s for s in secs if s is not None]
-        if secs:
-            self.check_hash(key, secs, present=bool(node))
-        return node or {}
-
-    def check_hash(self, key: str, secs: list, present: bool = True):
-        h = section_hash(*secs)
-        self.hashes[key] = h
-        if not present:
-            self.ctx.warn('添削文がない', f'{key}（{secs[0].path()}）')
-        elif (self.text.get('hashes') or {}).get(key) != h:
-            self.ctx.warn('添削文のもとが変わった', f'{key}（{secs[0].path()}）')
-
-    def sec(self, n: int, *titles, quiet: bool = False) -> Section | None:
+    def sec(self, n: int, *keys, quiet: bool = False) -> Section | None:
         root = self.md.get(n)
         if root is None:
             return None
         if len(root.children) == 1 and root.children[0].level == 1:
             root = root.children[0]
-        s = root.find(*titles)
+        s = root.find(*(H[k] for k in keys))
         if s is None and not quiet:
-            self.ctx.warn('節', f'{REPORT_FILES[n]} > {" > ".join(titles)} が見つからない')
+            self.ctx.warn('section', T('w_section', file=REPORT_FILES[n], path=' > '.join(H[k][0 if self.lang == 'ja' else 1] for k in keys)))
         return s
 
-    def table(self, n: int, titles: tuple, idx: int = 0, drop=(), clean=True) -> Table | None:
-        key = (n, titles, idx, tuple(drop), clean)
-        if key in self._tables:
-            return self._tables[key]
-        s = self.sec(n, *titles)
+    def table(self, n: int, keys: tuple, drop=(), clean=True) -> Table | None:
+        s = self.sec(n, *keys)
         if s is None:
             return None
-        tbs = s.tables()
-        if len(tbs) <= idx:
-            self.ctx.warn('表', f'{s.path()} の {idx + 1} つ目の表がない')
+        if not s.tables():
+            self.ctx.warn('table', T('w_table', where=s.path()))
             return None
-        self._tables[key] = Table(tbs[idx], s.path(), self.ctx, drop=drop, clean=clean)
-        return self._tables[key]
+        return Table(s.tables()[0], s.path(), self.ctx, drop=drop, clean=clean)
 
     def add_toc(self, stage, tid, name):
         self.toc.setdefault(stage, []).append((tid, name))
 
     def stage_title(self, n: int) -> str:
         root = self.md.get(n)
-        h1 = root.children[0].title if root is not None and root.children else STAGE_TITLES[n]
-        return h1.split(':')[0].split('：')[0].strip()
+        if root is not None and root.children and root.children[0].level == 1:
+            return root.children[0].title.split(':')[0].split('：')[0].strip()
+        return T(f'stage_title_{n}')
 
     def stage_wrap(self, n: int, parts: list) -> str:
         src = STAGE_SOURCES[n] + (f' · {REPORT_FILES[n]}' if n in self.md else '')
-        return (f'<section id="sec-{n}" class="stage"><header class="stage-head"><span class="stage-no">第 {n} 段階</span>'
+        return (f'<section id="sec-{n}" class="stage"><header class="stage-head"><span class="stage-no">{esc(T("stage_no", n=n))}</span>'
                 f'<h2>{esc(self.stage_title(n))}</h2><span class="src">{esc(src)}</span></header>'
                 + ''.join(parts) + '</section>')
+
+    def toggle(self, n: int, tid: str, name: str, body: str, count: str = '', open_: bool = False) -> str:
+        self.add_toc(n, tid, name)
+        return details(tid, name, body, count, open_)
 
     # --- stage 1
     def stage1(self) -> str:
@@ -1222,17 +1334,18 @@ class Builder:
         ranked = [v for v in drv.values() if v.get('kind') != 'principle']
         for v in ranked:
             if rank_of(v) is None:
-                c.warn('YAML', f'drv/{v["id"]}.yaml: priority.rank がない（順位表の最後に置いた）')
+                c.warn('yaml', T('w_no_rank', file=f'drv/{v["id"]}.yaml'))
         ranked.sort(key=lambda v: (rank_of(v) is None, rank_of(v) or 0, id_key(v['id'])))
         if ranked:
-            rows = []
+            rows, levels = [], []
             for v in ranked:
                 p = v.get('priority') or {}
                 w = f'drv/{v["id"]}.yaml'
                 rows.append([str(rank_of(v) or '—'), v['id'],
-                             self.term(T_LEVEL, p.get('business'), w + ' priority.business'), self.t(p.get('business_reason'), w),
-                             self.term(T_LEVEL, p.get('difficulty'), w + ' priority.difficulty'), self.t(p.get('difficulty_reason'), w),
-                             'はい' if v.get('primary') else 'いいえ'])
+                             self.term('level', p.get('business'), w + ' priority.business'), self.t(p.get('business_reason'), w),
+                             self.term('level', p.get('difficulty'), w + ' priority.difficulty'), self.t(p.get('difficulty_reason'), w),
+                             T('yes') if v.get('primary') else T('no')])
+                levels.append((p.get('business'), p.get('difficulty')))
 
             def cell(i, k, x):
                 if k == 0:
@@ -1240,58 +1353,56 @@ class Builder:
                 if k == 1:
                     return ref_cell(x, c)
                 if k in (2, 4):
-                    return lvl_badge(x)
+                    return lvl_badge(levels[i][0 if k == 2 else 1], x)
                 if k == 6:
-                    return f'<span class="chip {"qr-emph" if x == "はい" else "qr-out"}">{esc(x)}</span>'
+                    return f'<span class="chip {"qr-emph" if x == T("yes") else "qr-out"}">{esc(x)}</span>'
                 return inline(x, c)
             n_main = sum(1 for v in ranked if v.get('primary'))
-            body = render_table(['順位', 'DRV', '事業の優先度', '理由', '設計上の難しさ', '理由', '主'], rows, c,
-                                row_ids=['rank-' + v['id'] for v in ranked], cell=cell, cls='rank',
+            body = render_table([T('h_rank'), 'DRV', T('h_business'), T('h_reason'), T('h_difficulty'), T('h_reason'), T('h_primary')],
+                                rows, c, row_ids=['rank-' + v['id'] for v in ranked], cell=cell, cls='rank',
                                 col_cls=['num', 'w-m', 'w-id', 'w-m', 'w-id', 'w-l', 'w-id'])
-            parts.append(details('t-rank', '順位表', body, f'{len(rows)} 件 · 主 {n_main}', open_=True))
-            self.add_toc(1, 't-rank', '順位表')
-            got = self.md_ids(1, ('順位表',), 'DRV')
+            parts.append(self.toggle(1, 't-rank', T('t_rank'), body, T('count_primary', n=len(rows), p=n_main), open_=True))
+            got = self.compare(T('t_rank'), 1, ('rank',), 'DRV', [v['id'] for v in ranked])
             if got is not None:
-                self.compare('順位表', 1, ('順位表',), 'DRV', [v['id'] for v in ranked])
                 order = [v['id'] for v in ranked if v['id'] in got]
                 if order != [x for x in got if x in order]:
-                    c.warn('食い違い', '順位表: 報告書と YAML（priority.rank）で順位が違う')
+                    c.warn('mismatch', T('w_rank_order'))
         # premises and stakeholders (design-context.yaml)
         dx = self.dctx
         rows = []
+        w = 'design-context.yaml'
         for x in dx.get('technology_constraints') or []:
-            rows.append([x.get('id', ''), '技術制約: ' + self.term(T_TC_KIND, x.get('kind'), f'{x.get("id")} kind'),
-                         self.t(x.get('statement'), 'design-context.yaml') or '（未定）', self.t(x.get('source')),
-                         self.term(T_BASIS, x.get('basis'), f'{x.get("id")} basis')])
+            rows.append([x.get('id', ''), T('kind_tc', kind=self.term('tc_kind', x.get('kind'), f'{x.get("id")} kind')),
+                         self.t(x.get('statement'), w) or T('undecided'), self.t(x.get('source'), w),
+                         self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('project_constraints') or []:
-            rows.append([x.get('id', ''), self.term(T_PC_KIND, x.get('kind'), f'{x.get("id")} kind'),
-                         self.t(x.get('statement'), 'design-context.yaml') or '（未定）', self.t(x.get('source')),
-                         self.term(T_BASIS, x.get('basis'), f'{x.get("id")} basis')])
+            rows.append([x.get('id', ''), self.term('pc_kind', x.get('kind'), f'{x.get("id")} kind'),
+                         self.t(x.get('statement'), w) or T('undecided'), self.t(x.get('source'), w),
+                         self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('teams') or []:
-            rows.append([x.get('id', ''), 'チーム', f'{self.t(x.get("name"))}。受け持ち: {self.t(x.get("owns"))}',
-                         self.t(x.get('source')) or '—', self.term(T_BASIS, x.get('basis'), f'{x.get("id")} basis')])
+            rows.append([x.get('id', ''), T('kind_team'), T('team_owns', name=self.t(x.get('name'), w), owns=self.t(x.get('owns'), w)),
+                         self.t(x.get('source'), w) or '—', self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('anticipated_changes') or []:
-            when = f'（{self.t(x.get("expected"))}）' if x.get('expected') else ''
-            rows.append([x.get('id', ''), '将来の変更', self.t(x.get('change')) + when, self.t(x.get('source')) or '—',
-                         self.term(T_BASIS, x.get('basis'), f'{x.get("id")} basis')])
+            when = T('paren', x=self.t(x.get('expected'), w)) if x.get('expected') else ''
+            rows.append([x.get('id', ''), T('kind_chg'), self.t(x.get('change'), w) + when, self.t(x.get('source'), w) or '—',
+                         self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('stakeholders') or []:
-            conc = self.t(x.get('concerns'))
-            rows.append([x.get('id', ''), '利害関係者', self.t(x.get('role')) + (f'。関心事: {conc}' if conc else ''),
-                         self.t(x.get('source')) or '—', self.term(T_BASIS, x.get('basis'), f'{x.get("id")} basis')])
+            conc = self.t(x.get('concerns'), w)
+            rows.append([x.get('id', ''), T('kind_stk'), self.t(x.get('role'), w) + (T('stk_concerns', x=conc) if conc else ''),
+                         self.t(x.get('source'), w) or '—', self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         if rows:
-            body = render_table(['ID', '種類', '内容', '出どころ', '根拠'], rows, c, row_ids=[r[0] for r in rows],
+            body = render_table(['ID', T('h_kind'), T('h_statement'), T('h_source'), T('h_basis')], rows, c,
+                                row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: f'<span class="def-id">{esc(x)}</span>' if k == 0 else inline(x, c))
-            parts.append(details('t-premise', '設計の前提と利害関係者', body, f'{len(rows)} 件'))
-            self.add_toc(1, 't-premise', '設計の前提と利害関係者')
-            self.compare('設計の前提と利害関係者', 1, ('設計の前提と利害関係者',), 'ID', [r[0] for r in rows])
+            parts.append(self.toggle(1, 't-premise', T('t_premise'), body, T('count', n=len(rows))))
+            self.compare(T('t_premise'), 1, ('premise',), 'ID', [r[0] for r in rows])
         # concerns: only in the report (without the column of what each became)
         if 1 in self.md:
-            t = self.table(1, ('関心事の一覧',), drop=('なったもの',))
+            t = self.table(1, ('concern',), drop=COL_BECAME)
             if t:
-                parts.append(details('t-concern', '関心事の一覧', render_table(t.head, t.rows, c), f'{len(t.rows)} 件'))
-                self.add_toc(1, 't-concern', '関心事の一覧')
+                parts.append(self.toggle(1, 't-concern', T('t_concern'), render_table(t.head, t.rows, c), T('count', n=len(t.rows))))
         # drivers by kind
-        sc_head = ['出どころ', '刺激', '対象', '環境', '応答', '応答の測定量']
+        sc_head = [T('h_src'), T('h_stimulus'), T('h_artifact'), T('h_environment'), T('h_response'), T('h_measure')]
         sc_keys = ['source', 'stimulus', 'artifact', 'environment', 'response', 'measure']
 
         def scen(v):
@@ -1300,48 +1411,44 @@ class Builder:
         sc = [v for v in drv.values() if v.get('kind') in ('quality', 'change')]
         if sc:
             rows = [[v['id']] + scen(v) for v in sc]
-            kinds = {v['id']: T_DRV_KIND.get(v.get('kind'), '') for v in sc}
+            kinds = {v['id']: self.term('drv_kind', v.get('kind'), f'{v["id"]} kind') for v in sc}
             body = render_table(['DRV'] + sc_head, rows, c, row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: self.own_cell(x, kinds[x]) if k == 0 else inline(x, c))
-            parts.append(details('t-scenario', '品質と変更のシナリオ', body, f'{len(rows)} 件'))
-            self.add_toc(1, 't-scenario', '品質と変更のシナリオ')
-            self.compare('品質と変更のシナリオ', 1, ('設計を動かす要求', '品質と変更のシナリオ'), 'DRV', [r[0] for r in rows])
+            parts.append(self.toggle(1, 't-scenario', T('t_scenario'), body, T('count', n=len(rows))))
+            self.compare(T('t_scenario'), 1, ('drivers', 'scenario'), 'DRV', [r[0] for r in rows])
         cs = [v for v in drv.values() if v.get('kind') == 'constraint']
         if cs:
-            rows = [[v['id'], self.t(v.get('statement'), f'drv/{v["id"]}.yaml'), T_NEG.get(v.get('negotiable'), '—'),
+            rows = [[v['id'], self.t(v.get('statement'), f'drv/{v["id"]}.yaml'),
+                     self.term('negotiable', v.get('negotiable'), f'{v["id"]} negotiable') if v.get('negotiable') is not None else '—',
                      ids_text(v.get('sources'), sort=False)] for v in cs]
-            body = render_table(['DRV', '制約', '交渉', '出どころ'], rows, c, row_ids=[r[0] for r in rows],
+            body = render_table(['DRV', T('h_constraint'), T('h_negotiable'), T('h_sources')], rows, c, row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: self.own_cell(x) if k == 0 else inline(x, c))
-            parts.append(details('t-constraint', '制約', body, f'{len(rows)} 件'))
-            self.add_toc(1, 't-constraint', '制約')
-            self.compare('制約', 1, ('設計を動かす要求', '制約'), 'DRV', [r[0] for r in rows])
+            parts.append(self.toggle(1, 't-constraint', T('t_constraint'), body, T('count', n=len(rows))))
+            self.compare(T('t_constraint'), 1, ('drivers', 'constraint'), 'DRV', [r[0] for r in rows])
         fs = [v for v in drv.values() if v.get('kind') in ('function', 'observability', 'security')]
         if fs:
-            rows = [[v['id'], self.term(T_DRV_KIND, v.get('kind'), f'{v["id"]} kind'),
+            rows = [[v['id'], self.term('drv_kind', v.get('kind'), f'{v["id"]} kind'),
                      self.t(v.get('statement'), f'drv/{v["id"]}.yaml'), ids_text(v.get('sources'), sort=False)] for v in fs]
-            b = render_table(['DRV', '種類', '内容', '出どころ'], rows, c, row_ids=[r[0] for r in rows],
+            b = render_table(['DRV', T('h_kind'), T('h_statement'), T('h_sources')], rows, c, row_ids=[r[0] for r in rows],
                              cell=lambda i, k, x: self.own_cell(x) if k == 0 else inline(x, c))
             ws = [v for v in fs if v.get('scenario')]
             if ws:
-                b += subhead('シナリオ')
+                b += subhead(T('sub_scenarios'))
                 b += render_table(['DRV'] + sc_head, [[v['id']] + scen(v) for v in ws], c, col_cls={0: 'w-m'},
                                   cell=lambda i, k, x: ref_cell(x, c) if k == 0 else inline(x, c))
-            parts.append(details('t-fos', '機能・観測・セキュリティの要求', b, f'{len(rows)} 件'))
-            self.add_toc(1, 't-fos', '機能・観測・セキュリティの要求')
-            self.compare('機能・観測・セキュリティの要求', 1, ('設計を動かす要求', '機能・観測・セキュリティの要求'), 'DRV',
-                         [r[0] for r in rows])
+            parts.append(self.toggle(1, 't-fos', T('t_fos'), b, T('count', n=len(rows))))
+            self.compare(T('t_fos'), 1, ('drivers', 'fos'), 'DRV', [r[0] for r in rows])
         ps = [v for v in drv.values() if v.get('kind') == 'principle']
         if ps:
             rows = []
             for v in ps:
                 src = ids_text(v.get('sources'), sort=False)
                 rows.append([v['id'], self.t(v.get('statement'), f'drv/{v["id"]}.yaml'),
-                             ids_text(v.get('derived_from'), sort=False) + (f'（{src}）' if src else '')])
-            body = render_table(['DRV', '原則', '導いたもと'], rows, c, row_ids=[r[0] for r in rows],
+                             ids_text(v.get('derived_from'), sort=False) + (T('paren', x=src) if src else '')])
+            body = render_table(['DRV', T('h_principle'), T('h_derived')], rows, c, row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: self.own_cell(x) if k == 0 else inline(x, c))
-            parts.append(details('t-principle', '全体の原則', body, f'{len(rows)} 件'))
-            self.add_toc(1, 't-principle', '全体の原則')
-            self.compare('全体の原則', 1, ('設計を動かす要求', '全体の原則'), 'DRV', [r[0] for r in rows])
+            parts.append(self.toggle(1, 't-principle', T('t_principle'), body, T('count', n=len(rows))))
+            self.compare(T('t_principle'), 1, ('drivers', 'principle'), 'DRV', [r[0] for r in rows])
         # conflicts: both drivers of a pair record it; the side with more to say is shown
         pairs: dict = {}
         for v in drv.values():
@@ -1356,41 +1463,40 @@ class Builder:
         if pairs:
             rows = []
             for key in sorted(pairs, key=lambda k: (id_key(k[0]), id_key(k[1]))):
-                sides = pairs[key]
-                notes = max(sides.values(), key=lambda ns: (len(ns), sum(len(x) for x in ns)))
-                rows.append([f'{key[0]} と {key[1]}', notes])
+                notes = max(pairs[key].values(), key=lambda ns: (len(ns), sum(len(x) for x in ns)))
+                rows.append([key, notes])
 
             def ccell(i, k, x):
                 if k == 0:
-                    a, b = x.split(' と ')
-                    return ref_cell(a, c) + '<span class="vs">と</span>' + ref_cell(b, c)
-                return inline(x[0], c) if len(x) == 1 else bullets(x, c, 'in-bul')
-            body = render_table(['要求', '競合と解き方'], rows, c, cell=ccell, col_cls=['w-m', 'w-xl'])
-            parts.append(details('t-conflict', '競合', body, f'{len(rows)} 組'))
-            self.add_toc(1, 't-conflict', '競合')
+                    return ref_cell(x[0], c) + f'<span class="vs">{esc(T("and"))}</span>' + ref_cell(x[1], c)
+                if not x:
+                    return '—'
+                return inline(x[0], c) if len(x) == 1 else '<ul class="in-bul">' + ''.join(f'<li>{inline(n, c)}</li>' for n in x) + '</ul>'
+            body = render_table([T('h_drivers'), T('h_conflict')], rows, c, cell=ccell, col_cls=['w-m', 'w-xl'])
+            parts.append(self.toggle(1, 't-conflict', T('t_conflict'), body, T('count_pairs', n=len(rows))))
         if 1 in self.md:
-            t = self.table(1, ('実現できるか',))
+            t = self.table(1, ('feasible',))
             if t:
                 body = render_table(t.head, t.rows, c, cell=lambda i, k, x: ref_cell(x, c) if k == 0 else inline(x, c),
                                     col_cls={0: 'w-m'})
-                parts.append(details('t-feasible', '実現できるか', body, f'{len(t.rows)} 件'))
-                self.add_toc(1, 't-feasible', '実現できるか')
+                parts.append(self.toggle(1, 't-feasible', T('t_feasible'), body, T('count', n=len(t.rows))))
         return self.stage_wrap(1, parts)
 
     # --- decisions (stages 2 and 3)
-    def dec_table(self, decs: dict, tid: str, cards: bool) -> str:
+    def dec_table(self, decs: dict, cards: bool) -> str:
         c = self.ctx
         rows = []
         for k, v in decs.items():
             w = f'dec/{k}.yaml'
             rej = [r for r in v.get('rejected') or [] if isinstance(r, dict)]
-            rows.append([k, self.t(v.get('question'), w), self.t(v.get('chosen'), w),
-                         ids_text(v.get('addresses'), sort=False) or '—',
+            chosen = self.t(v.get('chosen'), w) or (T('c_deferred') if v.get('deferred') else '—')
+            rows.append([k, self.t(v.get('question'), w), chosen,
+                         ids_text(addresses(v), sort=False) or '—',
                          [(self.t(r.get('option'), w), self.t(r.get('reason'), w)) for r in rej]])
 
         def cell(i, k, x):
             if k == 0:
-                more = f'<a class="more" href="#d-{esc(x)}">中身</a>' if cards else ''
+                more = f'<a class="more" href="#d-{esc(x)}">{esc(T("details_link"))}</a>' if cards else ''
                 return self.own_cell(x) + more
             if k == 4:
                 if not x:
@@ -1398,8 +1504,8 @@ class Builder:
                 return ''.join(f'<span class="nr"><span class="opt">{inline(o, c)}</span>'
                                + (f'<span class="note">{inline(r, c)}</span>' if r else '') + '</span>' for o, r in x)
             return inline(x, c)
-        return render_table(['DEC', '問い', '選んだ案', '対象', '退けた案'], rows, c, row_ids=[r[0] for r in rows], cell=cell,
-                            col_cls=['w-m', 'w-l', 'w-xl', 'w-s', 'w-xl'])
+        return render_table(['DEC', T('h_question'), T('h_chosen'), T('h_addresses'), T('h_rejected')], rows, c,
+                            row_ids=[r[0] for r in rows], cell=cell, col_cls=['w-m', 'w-l', 'w-xl', 'w-s', 'w-xl'])
 
     def dec_card(self, v: dict) -> str:
         c = self.ctx
@@ -1422,7 +1528,7 @@ class Builder:
                 verdicts.append(('', ''))
             rows.append([self.t(name, w), self.t(o.get('effect'), w) or '—', self.t(o.get('cost'), w) or '—', ''])
         if chosen and rows and not found:
-            c.warn('YAML', f'{w}: chosen が options のどの name とも合わない')
+            c.warn('yaml', T('w_chosen', file=w))
 
         def entry(label: str, val) -> str:
             if isinstance(val, list):
@@ -1434,27 +1540,27 @@ class Builder:
 
         def il(x) -> str:
             return inline(self.t(x, w), c) if x else ''
-        head = entry('問い', il(v.get('question')))
+        head = entry(T('h_question'), il(v.get('question')))
         if chosen and not found:
-            head += entry('選んだ案', il(chosen))
+            head += entry(T('h_chosen'), il(chosen))
         body = f'<dl class="vp dec">{head}</dl>' if head else ''
         if rows:
             def cell(i, k, x):
                 if k == 3:
                     vd, reason = verdicts[i]
                     if vd == 'chosen':
-                        return '<span class="mk mk-ok">選んだ</span>'
+                        return f'<span class="mk mk-ok">{esc(T("v_chosen"))}</span>'
                     if vd == 'rej':
-                        return '<span class="mk mk-part">退けた</span>' + (f'<span class="mk-n">{inline(reason, c)}</span>' if reason else '')
+                        return f'<span class="mk mk-part">{esc(T("v_rejected"))}</span>' + (f'<span class="mk-n">{inline(reason, c)}</span>' if reason else '')
                     return '—'
                 return inline(x, c)
-            body += render_table(['案', '効き目', '費用', '判定'], rows, c, cls='opts', cell=cell,
+            body += render_table([T('h_option'), T('h_effect'), T('h_cost'), T('h_verdict')], rows, c, cls='opts', cell=cell,
                                  row_cls=['is-chosen' if vd == 'chosen' else '' for vd, _ in verdicts],
                                  col_cls=['w-l', 'w-l', 'w-l', 'w-m'])
-        rest = entry('選んだ理由', il(v.get('rationale')))
-        rest += entry('得るもの', [il(x) for x in v.get('gains') or []])
-        rest += entry('失うもの', [il(x) for x in v.get('costs') or []])
-        rest += entry('応答を左右する点', [il(x) for x in v.get('sensitive_points') or []])
+        rest = entry(T('c_rationale'), il(v.get('rationale')))
+        rest += entry(T('c_gains'), [il(x) for x in v.get('gains') or []])
+        rest += entry(T('c_costs'), [il(x) for x in v.get('costs') or []])
+        rest += entry(T('c_sensitive'), [il(x) for x in v.get('sensitive_points') or []])
         tos = []
         for x in v.get('trade_offs') or []:
             if isinstance(x, dict):
@@ -1463,32 +1569,32 @@ class Builder:
                 tos.append(inline(f'{wi}: {self.t(x.get("note"), w)}' if wi else self.t(x.get('note'), w), c))
             else:
                 tos.append(il(x))
-        rest += entry('引き換え', tos)
-        rest += entry('前提', [il(x) for x in v.get('assumptions') or []])
+        rest += entry(T('c_tradeoffs'), tos)
+        rest += entry(T('c_assumptions'), [il(x) for x in v.get('assumptions') or []])
         ps = []
         for p in v.get('parameters') or []:
             if isinstance(p, dict):
                 basis = self.t(p.get('basis'), w)
                 ps.append(f'<b>{inline(self.t(p.get("name"), w), c)}</b>: {inline(self.t(p.get("value"), w), c)}'
                           + (f'<span class="note">{inline(basis, c)}</span>' if basis else ''))
-        rest += entry('設計上の値', ps)
+        rest += entry(T('c_parameters'), ps)
         d = v.get('debt')
         if isinstance(d, dict) and d.get('what'):
             sub = il(d.get('what'))
             if d.get('why_accepted'):
-                sub += f'<span class="note"><span class="nl">受け入れた理由</span>{il(d["why_accepted"])}</span>'
+                sub += f'<span class="note"><span class="nl">{esc(T("c_why_accepted"))}</span>{il(d["why_accepted"])}</span>'
             if d.get('repay_when'):
-                sub += f'<span class="note"><span class="nl">返すとき</span>{il(d["repay_when"])}</span>'
-            rest += entry('技術的負債', sub)
+                sub += f'<span class="note"><span class="nl">{esc(T("c_repay_when"))}</span>{il(d["repay_when"])}</span>'
+            rest += entry(T('c_debt'), sub)
         if v.get('deferred'):
-            rest += entry('先送り', '見直すとき: ' + (il(v.get('revisit_when')) or '（未定）'))
-        rest += entry('対象', inline(ids_text(v.get('addresses'), sort=False), c) if v.get('addresses') else '')
-        rest += entry('依存する決定', inline(ids_text(v.get('depends_on')), c) if v.get('depends_on') else '')
+            rest += entry(T('c_deferred'), esc(T('c_revisit_when')) + ' ' + (il(v.get('revisit_when')) or esc(T('undecided'))))
+        rest += entry(T('h_addresses'), inline(ids_text(addresses(v), sort=False), c) if addresses(v) else '')
+        rest += entry(T('c_depends'), inline(ids_text(v.get('depends_on')), c) if v.get('depends_on') else '')
         if rest:
             body += f'<dl class="vp dec">{rest}</dl>'
         return item(f'd-{did}', did, self.title_of(did) or did, body, c)
 
-    def values_table(self, decs: dict) -> tuple:
+    def values_toggle(self, n: int, decs: dict, tid: str) -> str:
         rows = []
         for k, v in decs.items():
             for p in v.get('parameters') or []:
@@ -1496,8 +1602,10 @@ class Builder:
                     w = f'dec/{k}.yaml parameters'
                     rows.append([self.t(p.get('name'), w), self.t(p.get('value'), w), self.t(p.get('basis'), w) or '—', k])
         if not rows:
-            return '', 0
-        return render_table(['値', '仮の値', 'もと', '決定'], rows, self.ctx, col_cls={0: 'w-m', 1: 'w-m', 3: 'w-id'}), len(rows)
+            return ''
+        body = render_table([T('h_param'), T('h_value'), T('h_basis_of'), T('h_decision')], rows, self.ctx,
+                            col_cls={0: 'w-m', 1: 'w-m', 3: 'w-id'})
+        return self.toggle(n, tid, T('t_values'), body, T('count', n=len(rows)))
 
     def debt_rows(self, decs: dict) -> list:
         rows = []
@@ -1505,21 +1613,20 @@ class Builder:
             w = f'dec/{k}.yaml'
             d = v.get('debt')
             if isinstance(d, dict) and d.get('what'):
-                rows.append([k, '負債: ' + self.t(d.get('what'), w), self.t(d.get('why_accepted'), w) or '—',
+                rows.append([k, T('debt_prefix', x=self.t(d.get('what'), w)), self.t(d.get('why_accepted'), w) or '—',
                              self.t(d.get('repay_when'), w) or '—'])
             if v.get('deferred'):
-                rows.append([k, '先送り: ' + self.t(v.get('question'), w), self.t(v.get('rationale'), w) or '—',
-                             self.t(v.get('revisit_when'), w) or '（未定）'])
+                rows.append([k, T('deferred_prefix', x=self.t(v.get('question'), w)), self.t(v.get('rationale'), w) or '—',
+                             self.t(v.get('revisit_when'), w) or T('undecided')])
         return rows
 
     def debt_toggle(self, n: int, decs: dict, tid: str) -> str:
         rows = self.debt_rows(decs)
         if not rows:
             return ''
-        body = render_table(['DEC', '負債か先送りか', '理由', '返す・見直すとき'], rows, self.ctx, col_cls={0: 'w-m'},
+        body = render_table(['DEC', T('h_debt_kind'), T('h_why'), T('h_repay')], rows, self.ctx, col_cls={0: 'w-m'},
                             cell=lambda i, k, x: ref_cell(x, self.ctx) if k == 0 else inline(x, self.ctx))
-        self.add_toc(n, tid, '技術的負債と先送りした決定')
-        return details(tid, '技術的負債と先送りした決定', body, f'{len(rows)} 件')
+        return self.toggle(n, tid, T('t_debt'), body, T('count', n=len(rows)))
 
     # --- stage 2
     def stage2(self) -> str:
@@ -1534,11 +1641,11 @@ class Builder:
             kinds: dict = {}
             for k, v in elm.items():
                 w = f'elm/{k}.yaml'
-                kn = self.term(T_ELM_KIND, v.get('kind'), f'{k} kind')
+                kn = self.term('elm_kind', v.get('kind'), f'{k} kind')
                 kinds[kn] = kinds.get(kn, 0) + 1
                 rows.append([k, kn, self.t(v.get('name') or v.get('title'), w), self.t(v.get('responsibility'), w),
                              ids_text(v.get('functions')) or '—', ids_text(v.get('drivers')) or '—', v.get('team') or '—',
-                             self.term(T_AS_IS, v.get('as_is'), f'{k} as_is')])
+                             self.term('as_is', v.get('as_is'), f'{k} as_is')])
 
             def ecell(i, k, x):
                 if k == 0:
@@ -1546,13 +1653,12 @@ class Builder:
                 if k == 2:
                     return f'<b>{inline(x, c)}</b>'
                 return inline(x, c)
-            body = render_table(['ELM', '種類', '名前', '責務', 'FR', '要求', 'チーム', '差分'], rows, c,
-                                row_ids=[r[0] for r in rows], cell=ecell)
-            parts.append(details('t-elm', '要素', body, f'{len(rows)} 件 · ' + ' · '.join(f'{k} {v}' for k, v in kinds.items())))
-            self.add_toc(2, 't-elm', '要素')
-            self.compare('要素', 2, ('要素',), 'ELM', list(elm))
-        # views (second): the diagrams and the tables beside them are only in the report
-        vs = self.sec(2, 'ビュー')
+            body = render_table(['ELM', T('h_kind'), T('h_name'), T('h_responsibility'), T('h_frs'), T('h_drivers'), T('h_team'), T('h_as_is')],
+                                rows, c, row_ids=[r[0] for r in rows], cell=ecell)
+            parts.append(self.toggle(2, 't-elm', T('t_elm'), body, T('count', n=len(rows)) + ' · ' + ' · '.join(f'{k} {v}' for k, v in kinds.items())))
+            self.compare(T('t_elm'), 2, ('elements',), 'ELM', list(elm))
+        # views (second): the diagrams and the tables beside them, from the report
+        vs = self.sec(2, 'views')
         if vs:
             its = []
             for k, v in enumerate(vs.children, 1):
@@ -1560,105 +1666,80 @@ class Builder:
                 for tb in v.tables():
                     tt = Table(tb, v.path(), c)
                     b += render_table(tt.head, tt.rows, c)
-                if v.title == 'コードの分け方':
-                    cr = self.curated('code_rules', v)
-                    if cr.get('rows'):
-                        b += subhead('依存の規則（CI で確かめる）')
-                        b += render_table(cr.get('head', ['対象', '規則']), cr['rows'], c)
-                its.append(item(f'v-{k}', '', v.title, b, c))
-            parts.append(details('t-views', 'ビュー', ''.join(its), f'{len(vs.children)} 枚'))
-            self.add_toc(2, 't-views', 'ビュー')
-        # overall structure (condensed from the report's prose)
-        s = self.sec(2, '全体の構造')
-        if s:
-            cu = self.curated('structure', s)
-            body = bullets(cu.get('bullets', []), c) if cu.get('bullets') else '<p class="none">（添削文なし）</p>'
-            parts.append(details('t-structure', '全体の構造', body))
-            self.add_toc(2, 't-structure', '全体の構造')
+                if b:
+                    its.append(item(f'v-{k}', '', v.title, b, c))
+            if its:
+                parts.append(self.toggle(2, 't-views', T('t_views'), ''.join(its), T('count_views', n=len(its))))
         # decisions: the table, then one card per decision, both from dec/*.yaml
         dec2 = self.decs('architecture')
         if dec2:
-            parts.append(details('t-dec', '設計の決定', self.dec_table(dec2, 't-dec', True), f'{len(dec2)} 件'))
-            self.add_toc(2, 't-dec', '設計の決定')
-            self.compare('設計の決定（第 2 段階）', 2, ('設計の決定',), 'DEC', list(dec2))
+            parts.append(self.toggle(2, 't-dec', T('t_dec'), self.dec_table(dec2, True), T('count', n=len(dec2))))
+            self.compare(T('t_dec_stage', n=2), 2, ('decisions',), 'DEC', list(dec2))
             cards = [self.dec_card(v) for v in dec2.values()]
             idx = chips_index([(f'd-{k}', k, c.titles.get(k, '')) for k in dec2])
-            parts.append(details('t-decd', '決定の中身', idx + ''.join(cards), f'{len(cards)} 件'))
-            self.add_toc(2, 't-decd', '決定の中身')
-        # design concerns (condensed)
-        s = self.sec(2, '設計の観点')
+            parts.append(self.toggle(2, 't-decd', T('t_decd'), idx + ''.join(cards), T('count', n=len(cards))))
+        # design concerns: the report's table, as a definition list
+        s = self.sec(2, 'viewpoint')
+        if s and s.tables():
+            t = Table(s.tables()[0], s.path(), c)
+            body = ('<dl class="vp">' + ''.join(f'<dt>{inline(r[0], c)}</dt><dd>{inline(r[1] if len(r) > 1 else "", c)}</dd>'
+                                                 for r in t.rows) + '</dl>')
+            parts.append(self.toggle(2, 't-viewpoint', T('t_viewpoint'), body, T('count', n=len(t.rows))))
+        # threat model: the report's diagram (its flow numbers link to the table) and the table
+        s = self.sec(2, 'threat')
         if s:
-            cu = self.curated('viewpoints', s)
-            its = cu.get('items', [])
-            body = ('<dl class="vp">' + ''.join(f'<dt>{esc(a)}</dt><dd>{inline(b, c)}</dd>' for a, b in its) + '</dl>'
-                    if its else '<p class="none">（添削文なし）</p>')
-            parts.append(details('t-viewpoint', '設計の観点', body, f'{len(its)} 件' if its else ''))
-            self.add_toc(2, 't-viewpoint', '設計の観点')
-        # threat model (only in the report)
-        s = self.sec(2, '脅威のモデル')
-        if s:
-            cu = self.curated('threat', s)
             t = Table(s.tables()[0], s.path(), c) if s.tables() else None
-            b = ''
-            if cu.get('assets'):
-                b += subhead('守るもの') + bullets(cu['assets'], c, 'bul cols')
-            tips = {}
-            if t:
-                for r in t.rows:
-                    m = re.match(r'^(F\d+)\s*(.*)$', r[0])
-                    if m:
-                        tips[m.group(1)] = f'{m.group(1)} {m.group(2)}'
-            if cu.get('diagram'):
-                b += subhead('信頼の境界と流れ') + threat_svg(cu['diagram'], tips)
-            elif s.codes():
-                # no hand-laid figure yet: show the report's own diagram
-                b += subhead('信頼の境界と流れ') + mermaid(s.codes()[0].text, c, s.path())
-            if cu.get('kinds'):
-                b += subhead('六つの脅威') + bullets(cu['kinds'], c, 'bul cols')
+            b = ''.join(mermaid(m.text, c, s.path(), links='flow') for m in s.codes()[:1])
             if t:
                 ids = []
                 for r in t.rows:
-                    m = re.match(r'^(F\d+)', r[0])
+                    m = re.match(r'^(F\d+)\b', r[0])
                     ids.append('flow-' + m.group(1) if m else '')
                 b += render_table(t.head, t.rows, c, row_ids=ids, cls='threat',
                                   cell=lambda i, k, x: self.flow_cell(x) if k == 0 else inline(x, c))
-            parts.append(details('t-threat', '脅威のモデル', b, f'流れ {len(t.rows) if t else 0}'))
-            self.add_toc(2, 't-threat', '脅威のモデル')
-        # walkthroughs (only in the report)
-        ws = self.sec(2, '通し確認', 'CUJ')
+            if b:
+                parts.append(self.toggle(2, 't-threat', T('t_threat'), b, T('count_flows', n=len(t.rows)) if t else ''))
+        # walkthroughs: the CUJ tables merged into one, then the drivers' tables (a CUJ written as prose is left out)
+        ws = self.sec(2, 'walk', 'walk_cuj')
         if ws:
-            cu = self.curated('walk_extra', ws)
-            head, rows, groups = None, [], []
-            label = None
-            extra = list(cu.get('groups', [])) if cu else []
+            head, rows, groups, prose = None, [], [], []
 
-            def add_extra(after):
-                # a CUJ that the report describes in prose gets rows from the condensed text; after is the start of its label
-                for g in extra:
-                    if after.startswith(g['after']):
-                        m = re.match(r'^(CUJ-[\d〜]+)', g['label'])
-                        gid = 'w-' + (m.group(1).replace('〜', '-') if m else str(len(groups)))
-                        groups.append((len(rows), inline(g['label'], c), gid))
-                        rows.extend(g['rows'])
+            def group(label):
+                m = re.match(r'^(CUJ-\d{2}(?:[〜–]\d{2})?)', label)
+                gid = 'w-' + (m.group(1).replace('〜', '-').replace('–', '-') if m else str(len(groups)))
+                groups.append((len(rows), inline(label, c), gid))
+
+            def add_rows(tbl):
+                nonlocal head
+                tt = Table(tbl, ws.path(), c)
+                head = head or tt.head
+                rows.extend(tt.rows)
+            cur = None                        # [label, whether a table followed it]
             for b in ws.blocks:
                 if b.kind == 'label':
-                    if label:
-                        add_extra(label)
-                    label = clean_text(b.text)[0]
-                elif b.kind == 'table' and label:
-                    tt = Table(b, ws.path(), c)
-                    head = head or tt.head
-                    m = re.match(r'^(CUJ-\d{2})', label)
-                    gid = 'w-' + m.group(1) if m else 'w-' + str(len(groups))
-                    groups.append((len(rows), inline(label, c), gid))
-                    rows.extend(tt.rows)
-            if label:
-                add_extra(label)
+                    if cur and not cur[1]:
+                        prose.append(cur[0])
+                    cur = [clean_text(b.text)[0], False]
+                elif b.kind == 'table' and cur:
+                    if not cur[1]:
+                        group(cur[0])
+                        cur[1] = True
+                    add_rows(b)
+            if cur and not cur[1]:
+                prose.append(cur[0])
+            for sub in ws.children:          # a CUJ under its own heading
+                if sub.tables():
+                    group(clean_text(sub.title)[0])
+                    for tb in sub.tables():
+                        add_rows(tb)
+                else:
+                    prose.append(sub.title)
+            for p in prose:
+                c.warn('leftout', T('w_leftout_walk', label=short(p, 60)))
             if head:
                 body = render_table(head, rows, c, groups=groups, cls='walk')
-                parts.append(details('t-walk', '通し確認（CUJ）', body, f'CUJ {len(groups)} · 手順 {len(rows)}'))
-                self.add_toc(2, 't-walk', '通し確認（CUJ）')
-        ds = self.sec(2, '通し確認', '主な設計を動かす要求')
+                parts.append(self.toggle(2, 't-walk', T('t_walk'), body, T('count_walk', n=len(groups), steps=len(rows))))
+        ds = self.sec(2, 'walk', 'walk_drv')
         if ds and ds.tables():
             tt = Table(ds.tables()[0], ds.path(), c)
             b = render_table(tt.head, tt.rows, c, col_cls={0: 'w-m'},
@@ -1667,28 +1748,25 @@ class Builder:
             if len(ds.tables()) > 1:
                 t2 = Table(ds.tables()[1], ds.path(), c)
                 n2 = len(t2.rows)
-                b += subhead('主でない要求と原則')
+                b += subhead(T('sub_other_drivers'))
                 b += render_table(t2.head, t2.rows, c, col_cls={0: 'w-m'},
                                   cell=lambda i, k, x: ref_cell(x, c) if k == 0 else inline(x, c))
-            parts.append(details('t-walkdrv', '通し確認（設計を動かす要求）', b, f'主 {len(tt.rows)} · ほか {n2}'))
-            self.add_toc(2, 't-walkdrv', '通し確認（設計を動かす要求）')
-        # design parameters and debt (dec/*.yaml), running cost (only in the report)
-        body, n = self.values_table(dec2)
-        if n:
-            parts.append(details('t-values2', '設計上の値', body, f'{n} 件'))
-            self.add_toc(2, 't-values2', '設計上の値')
-        dt = self.debt_toggle(2, dec2, 't-debt')
-        if dt:
-            parts.append(dt)
-            got = self.md_ids(2, ('技術的負債と先送りした決定',), 'DEC')
-            if got is not None:
-                self.compare('技術的負債と先送りした決定', 2, ('技術的負債と先送りした決定',), 'DEC',
-                             {r[0] for r in self.debt_rows(dec2)})
+            parts.append(self.toggle(2, 't-walkdrv', T('t_walkdrv'), b, T('count_walkdrv', n=len(tt.rows), m=n2)))
+        # design parameters and debt (dec/*.yaml), running cost (the report)
+        x = self.values_toggle(2, dec2, 't-values2')
+        if x:
+            parts.append(x)
+        x = self.debt_toggle(2, dec2, 't-debt')
+        if x:
+            parts.append(x)
+            self.compare(T('t_debt'), 2, ('debt',), 'DEC', {r[0] for r in self.debt_rows(dec2)})
         if 2 in self.md:
-            t = self.table(2, ('費用と体制', '走る費用'))
-            if t:
-                parts.append(details('t-cost', '走る費用', render_table(t.head, t.rows, c), f'{len(t.rows)} 件'))
-                self.add_toc(2, 't-cost', '走る費用')
+            s = self.sec(2, 'cost', 'running', quiet=True) or self.sec(2, 'cost', quiet=True)
+            if s and s.tables():
+                t = Table(s.tables()[0], s.path(), c)
+                parts.append(self.toggle(2, 't-cost', T('t_cost'), render_table(t.head, t.rows, c), T('count', n=len(t.rows))))
+            else:
+                c.warn('table', T('w_table', where=f'{REPORT_FILES[2]} > {H["cost"][0 if self.lang == "ja" else 1]}'))
         return self.stage_wrap(2, parts)
 
     def flow_cell(self, x: str) -> str:
@@ -1699,8 +1777,8 @@ class Builder:
 
     # --- stage 3
     def error_rows(self, ifcs: dict) -> tuple:
-        """The error contracts of every interface. A case written 「操作: 場合」 gives the operation. Rows for 「共通」 that
-        are the same in several interfaces are shown once, above the others."""
+        """The error contracts of every interface. A case written 「操作: 場合」 or "Operation: case" gives the
+        operation. Rows for all operations that are the same in several interfaces are shown once, above the others."""
         raw = []
         for k, v in ifcs.items():
             w = f'ifc/{k}.yaml errors'
@@ -1710,12 +1788,15 @@ class Builder:
                     continue
                 case, op = str(e.get('case') or '').strip(), ''
                 m = re.match(r'^(.{1,60}?)(?::\s+|：\s*)(.+)$', case, re.S)
-                if m and (m.group(1) in ops or m.group(1) == '共通' or (len(m.group(1)) <= 24 and '。' not in m.group(1))):
+                if m and (m.group(1) in ops or m.group(1) in COMMON_OP
+                          or (len(m.group(1)) <= 24 and '。' not in m.group(1) and '. ' not in m.group(1))):
                     op, case = m.group(1), m.group(2)
+                if op in COMMON_OP:
+                    op = '*'
                 raw.append((k, op, self.t(case, w), self.t(e.get('signal'), w), self.t(e.get('caller_does'), w)))
         shared: dict = {}
         for r in raw:
-            if r[1] == '共通':
+            if r[1] == '*':
                 shared.setdefault(r[2:], []).append(r[0])
         multi = {key: ids for key, ids in shared.items() if len(ids) >= 2}
         by_set: dict = {}
@@ -1723,11 +1804,11 @@ class Builder:
             by_set.setdefault(tuple(ids), []).append(key)
         rows = []
         for ids, keys in by_set.items():
-            rows += [[ids_text(list(ids)), '共通', *key] for key in keys]
+            rows += [[ids_text(list(ids)), T('all_ops'), *key] for key in keys]
         for r in raw:
-            if r[1] == '共通' and r[2:] in multi:
+            if r[1] == '*' and r[2:] in multi:
                 continue
-            rows.append([r[0], r[1] or '—', *r[2:]])
+            rows.append([r[0], T('all_ops') if r[1] == '*' else (r[1] or '—'), *r[2:]])
         return rows, len(multi)
 
     def stage3(self) -> str:
@@ -1736,30 +1817,28 @@ class Builder:
         c = self.ctx
         parts = []
         if 3 in self.md:
-            t = self.table(3, ('共通の約束事',))
+            t = self.table(3, ('conv',))
             if t:
                 body = render_table(t.head, t.rows, c, cell=lambda i, k, x: f'<b>{esc(x)}</b>' if k == 0 else inline(x, c))
-                parts.append(details('t-conv', '共通の約束事', body, f'{len(t.rows)} 件'))
-                self.add_toc(3, 't-conv', '共通の約束事')
+                parts.append(self.toggle(3, 't-conv', T('t_conv'), body, T('count', n=len(t.rows))))
         dec3 = self.decs('high-level-design')
         if dec3:
-            parts.append(details('t-dec3', '設計の決定', self.dec_table(dec3, 't-dec3', False), f'{len(dec3)} 件'))
-            self.add_toc(3, 't-dec3', '設計の決定')
-            self.compare('設計の決定（第 3 段階）', 3, ('設計の決定',), 'DEC', list(dec3))
+            parts.append(self.toggle(3, 't-dec3', T('t_dec'), self.dec_table(dec3, False), T('count', n=len(dec3))))
+            self.compare(T('t_dec_stage', n=3), 3, ('decisions',), 'DEC', list(dec3))
         ifcs = self.live(self.ifc)
         if ifcs:
             rows, kinds = [], {}
             for k, v in ifcs.items():
                 w = f'ifc/{k}.yaml'
-                kn = self.term(T_IFC_KIND, v.get('kind'), f'{k} kind')
+                kn = self.term('ifc_kind', v.get('kind'), f'{k} kind')
                 kinds[kn] = kinds.get(kn, 0) + 1
                 ops = [self.t(o.get('name'), w) for o in v.get('operations') or [] if isinstance(o, dict)]
                 if not ops:
                     opc = '—'
                 elif len(ops) <= 3 or v.get('kind') == 'event':
-                    opc = '、'.join(ops)
+                    opc = T('sep').join(ops)
                 else:
-                    opc = f'{len(ops)} 件（{ops[0]} ほか）'
+                    opc = T('ops_more', n=len(ops), first=ops[0])
                 spec = v.get('spec')
                 rows.append([k, kn, self.t(v.get('name') or v.get('title'), w), v.get('provider') or '—',
                              ids_text(v.get('consumers')) or '—', opc, ids_text(v.get('functions')) or '—',
@@ -1771,78 +1850,81 @@ class Builder:
                 if k == 2:
                     return f'<b>{inline(x, c)}</b>'
                 return inline(x, c)
-            body = render_table(['IFC', '種類', '名前', '提供側', '利用側', '操作', 'FR', '仕様'], rows, c,
-                                row_ids=[r[0] for r in rows], cell=icell)
-            parts.append(details('t-ifc', 'インタフェース', body,
-                                 f'{len(rows)} 件 · ' + ' · '.join(f'{k} {v}' for k, v in kinds.items())))
-            self.add_toc(3, 't-ifc', 'インタフェース')
-            self.compare('インタフェース', 3, ('インタフェース',), 'IFC', list(ifcs))
+            body = render_table(['IFC', T('h_kind'), T('h_name'), T('h_provider'), T('h_consumers'), T('h_operations'), T('h_frs'), T('h_spec')],
+                                rows, c, row_ids=[r[0] for r in rows], cell=icell)
+            parts.append(self.toggle(3, 't-ifc', T('t_ifc'), body,
+                                     T('count', n=len(rows)) + ' · ' + ' · '.join(f'{k} {v}' for k, v in kinds.items())))
+            self.compare(T('t_ifc'), 3, ('ifc',), 'IFC', list(ifcs))
             erows, n_shared = self.error_rows(ifcs)
             if erows:
-                body = render_grouped(['IFC', '操作', '場合', '知らせ方', '呼ぶ側'], erows, c, [0, 1], cls='err')
-                cnt = f'{len(erows)} 件' + (f' · 共通 {n_shared}' if n_shared else '')
-                parts.append(details('t-err', 'エラーの決まり', body, cnt))
-                self.add_toc(3, 't-err', 'エラーの決まり')
-        fs = self.sec(3, '端から端の流れ')
+                body = render_grouped(['IFC', T('h_operation'), T('h_case'), T('h_signal'), T('h_caller')], erows, c, [0, 1], cls='err')
+                cnt = T('count', n=len(erows)) + (' · ' + T('count_shared', n=n_shared) if n_shared else '')
+                parts.append(self.toggle(3, 't-err', T('t_err'), body, cnt))
+        fs = self.sec(3, 'flows')
         if fs:
             its, idx = [], []
             for v in fs.children:
                 if not v.codes():
                     continue
                 label, title = split_label(v.title)
-                iid = 'f-' + (label or str(len(its) + 1)).replace('〜', '-')
+                iid = 'f-' + (label or str(len(its) + 1)).replace('〜', '-').replace('–', '-')
                 b = ''.join(mermaid(m.text, c, v.path()) for m in v.codes())
                 its.append(item(iid, label, title, b, c))
-                idx.append((iid, label or title.split('（')[0], title))
+                idx.append((iid, label or re.split(r'[（(]', title)[0], title))
             if its:
-                parts.append(details('t-flows', '端から端の流れ', chips_index(idx) + ''.join(its), f'{len(its)} 図'))
-                self.add_toc(3, 't-flows', '端から端の流れ')
-        bs = self.sec(3, '遅延の予算')
+                parts.append(self.toggle(3, 't-flows', T('t_flows'), chips_index(idx) + ''.join(its), T('count_diagrams', n=len(its))))
+        bs = self.sec(3, 'budget')
         if bs:
-            out_sec = bs.find('スクリプトの出力')
             its = []
-            for bd in self.text.get('budgets', []) or []:
-                src = bs.find(bd['source'] + '*') if bd.get('source') else None
-                key = f'budgets.{bd["id"]}'
-                if src is None:
-                    c.warn('節', f'{REPORT_FILES[3]} > 遅延の予算 > {bd.get("source")} が見つからない')
-                else:
-                    self.check_hash(key, [x for x in (src, out_sec) if x])
-                b = bullets(bd.get('text', []), c, 'bul pts') if bd.get('text') else ''
-                if bd.get('chart'):
-                    b = budget_chart(bd['chart'], c) + b
-                its.append(item(f'b-{bd["id"]}', bd['id'], bd.get('title', ''), b, c))
-            known = {(bd.get('source') or '') for bd in self.text.get('budgets', []) or []}
             for v in bs.children:
-                if v.title.startswith('NFR-') and not any(v.title.startswith(k) for k in known if k):
-                    c.warn('添削文がない', f'budgets（{v.path()}）')
-                    # no condensed text yet: show the subsection's own tables
-                    nid = v.title.split('（')[0]
-                    rest = v.title[len(nid):].strip('（）')
-                    tb = ''.join(render_table(Table(x, v.path(), c).head, Table(x, v.path(), c).rows, c)
-                                 for x in v.tables()) or '<p class="none">（添削文なし）</p>'
-                    its.append(item(f'b-{nid}', nid, rest, tb, c))
-            parts.append(details('t-budget', '遅延の予算', ''.join(its), f'{len(its)} 件'))
-            self.add_toc(3, 't-budget', '遅延の予算')
-            t = self.table(3, ('遅延の予算', '失敗したときの流れとエラーバジェット'))
-            if t:
-                body = render_table(t.head, t.rows, c, col_cls={0: 'w-m'}, cell=lambda i, k, x: ref_cell(x.split('（')[0], c) +
-                                    (f'<span class="rk">（{esc(x.split("（", 1)[1])}</span>' if '（' in x else '')
-                                    if k == 0 else inline(x, c))
-                parts.append(details('t-eb', '失敗したときの流れとエラーバジェット', body, f'{len(t.rows)} 件'))
-                self.add_toc(3, 't-eb', '失敗したときの流れとエラーバジェット')
-        ss = self.sec(3, '画面')
+                if not v.title.startswith('NFR-'):
+                    continue
+                nid = re.split(r'[（(\s]', v.title, 1)[0]
+                rest = v.title[len(nid):].strip().strip('（）()')
+                specs, other = [], []
+                for tb in v.tables():
+                    sp = hop_chart(tb, c, v.path())
+                    if sp:
+                        specs.append(sp)
+                    else:
+                        other.append(tb)
+                b = ''
+                if specs:
+                    by_unit = {}
+                    for sp in specs:
+                        by_unit.setdefault(sp['unit'], []).append(sp)
+                    b += ''.join(budget_chart(g, c) for g in by_unit.values())
+                for tb in other:
+                    tt = Table(tb, v.path(), c)
+                    b += render_table(tt.head, tt.rows, c)
+                if b:
+                    its.append(item(f'b-{nid}', nid, rest, b, c))
+                else:
+                    c.warn('leftout', T('w_leftout_budget', nfr=nid))
+            if its:
+                parts.append(self.toggle(3, 't-budget', T('t_budget'), ''.join(its), T('count', n=len(its))))
+            eb = bs.find(H['eb'])
+            if eb and eb.tables():
+                t = Table(eb.tables()[0], eb.path(), c)
+                body = render_table(t.head, t.rows, c, col_cls={0: 'w-m'},
+                                    cell=lambda i, k, x: (ref_cell(re.split(r'[（(]', x)[0].strip(), c)
+                                                          + (f'<span class="rk">{esc(x[len(re.split(r"[（(]", x)[0]):])}</span>'
+                                                             if re.search(r'[（(]', x) else '')) if k == 0 else inline(x, c))
+                parts.append(self.toggle(3, 't-eb', T('t_eb'), body, T('count', n=len(t.rows))))
+        ss = self.sec(3, 'screens')
         if ss:
             its, idx = [], []
             for k, v in enumerate(ss.children, 1):
                 b = ''.join(mermaid(m.text, c, v.path()) for m in v.codes())
+                if not b:
+                    continue
                 iid = f's-{k}'
                 its.append(item(iid, '', v.title, b, c))
-                idx.append((iid, re.sub(r'（.*?）', '', v.title).split('、')[0], v.title))
-            parts.append(details('t-screens', '画面', chips_index(idx) + ''.join(its), f'{len(its)} 図'))
-            self.add_toc(3, 't-screens', '画面')
+                idx.append((iid, re.split(r'[、,]', re.sub(r'[（(].*?[）)]', '', v.title))[0].strip(), v.title))
+            if its:
+                parts.append(self.toggle(3, 't-screens', T('t_screens'), chips_index(idx) + ''.join(its), T('count_diagrams', n=len(its))))
         # data: the ER diagram from the report, the entities from dat/*.yaml
-        ds = self.sec(3, 'データ')
+        ds = self.sec(3, 'data')
         dat = self.live(self.dat)
         b = ''.join(mermaid(self.er_with_names(m.text), c, ds.path()) for m in ds.codes()) if ds else ''
         if dat:
@@ -1851,22 +1933,20 @@ class Builder:
                 w = f'dat/{k}.yaml'
                 rows.append([k, self.t(v.get('entity') or v.get('title'), w), v.get('owner') or '—', v.get('store') or '—',
                              self.t(v.get('consistency'), w) or '—', self.t(v.get('retention'), w) or '—',
-                             self.term(T_CLASS, v.get('classification'), f'{k} classification')])
-            b += render_table(['DAT', '実体', '持ち主', '置き場所', '整合の取り方', '保持期間', '扱いの区分'], rows, c,
-                              row_ids=[r[0] for r in rows],
+                             self.term('classification', v.get('classification'), f'{k} classification')])
+            b += render_table(['DAT', T('h_entity'), T('h_owner'), T('h_store'), T('h_consistency'), T('h_retention'), T('h_classification')],
+                              rows, c, row_ids=[r[0] for r in rows],
                               cell=lambda i, k, x: f'<span class="def-id">{esc(x)}</span>' if k == 0
                               else (f'<b>{inline(x, c)}</b>' if k == 1 else inline(x, c)))
-            self.compare('データ', 3, ('データ',), 'DAT', list(dat))
+            self.compare(T('t_data'), 3, ('data',), 'DAT', list(dat))
         if b:
-            parts.append(details('t-data', 'データ', b, f'{len(dat)} 件' if dat else ''))
-            self.add_toc(3, 't-data', 'データ')
-        qs = ds.find('データの品質の流れ') if ds else None
+            parts.append(self.toggle(3, 't-data', T('t_data'), b, T('count', n=len(dat)) if dat else ''))
+        qs = ds.find(H['dq']) if ds else None
         if qs:
-            b = ''
-            cap = None
+            b, cap = '', None
             for blk in qs.blocks:
-                if blk.kind == 'para' and blk.text.endswith(':'):
-                    cap = blk.text.rstrip(':')
+                if blk.kind == 'para' and re.search(r'[:：]$', blk.text) and len(blk.text) <= 80:
+                    cap = clean_text(blk.text.rstrip(':：'))[0]     # a caption of the diagram that follows
                 elif blk.kind == 'code' and blk.lang == 'mermaid':
                     if cap:
                         b += subhead(cap)
@@ -1874,55 +1954,47 @@ class Builder:
                     cap = None
                 elif blk.kind == 'table':
                     tt = Table(blk, qs.path(), c)
-                    b += subhead('ほかのデータの品質')
+                    b += subhead(T('sub_other_dq'))
                     b += render_table(tt.head, tt.rows, c)
-            parts.append(details('t-dq', 'データの品質の流れ', b, f'図 {len(qs.codes())}'))
-            self.add_toc(3, 't-dq', 'データの品質の流れ')
-        st = self.sec(3, '要素をまたぐ状態')
+            if b:
+                parts.append(self.toggle(3, 't-dq', T('t_dq'), b, T('count_diagrams', n=len(qs.codes()))))
+        st = self.sec(3, 'states')
         if st:
             its, idx = [], []
-            notes = self.text.get('states', {}) or {}
             for k, v in enumerate(st.children, 1):
                 b = ''.join(mermaid(m.text, c, v.path()) for m in v.codes())
-                name = re.sub(r'（.*?）$', '', v.title)
-                nt = notes.get(name)
-                if nt:
-                    self.check_hash(f'states.{name}', [v])
-                    if nt.get('note'):
-                        b += bullets(nt['note'] if isinstance(nt['note'], list) else [nt['note']], c, 'bul pts')
+                if not b:
+                    continue
+                name = re.sub(r'[（(].*?[）)]$', '', v.title).strip()
                 iid = f'st-{k}'
                 its.append(item(iid, '', v.title, b, c))
                 idx.append((iid, name, v.title))
-            parts.append(details('t-states', '要素をまたぐ状態', chips_index(idx) + ''.join(its), f'{len(its)} 図'))
-            self.add_toc(3, 't-states', '要素をまたぐ状態')
-        ms = self.sec(3, '測定点')
+            if its:
+                parts.append(self.toggle(3, 't-states', T('t_states'), chips_index(idx) + ''.join(its), T('count_diagrams', n=len(its))))
+        ms = self.sec(3, 'measure')
         if ms and ms.tables():
             t1 = Table(ms.tables()[0], ms.path(), c)
             b = render_table(t1.head, t1.rows, c, cell=lambda i, k, x: def_cell(x, c) if k == 0 else inline(x, c))
             if len(ms.tables()) > 1:
                 t2 = Table(ms.tables()[1], ms.path(), c)
-                rows = merge_dup_rows(t2.rows)
-                b += subhead('監視の NFR の出どころ')
-                b += render_table(t2.head, rows, c, cell=lambda i, k, x: def_cell(x, c) if k == 0 else inline(x, c))
-            parts.append(details('t-measure', '測定点と監視の NFR の出どころ', b, f'SLI {len(t1.rows)}'))
-            self.add_toc(3, 't-measure', '測定点と監視の NFR の出どころ')
+                b += subhead(T('sub_monitor_sources'))
+                b += render_table(t2.head, merge_dup_rows(t2.rows), c, cell=lambda i, k, x: def_cell(x, c) if k == 0 else inline(x, c))
+            parts.append(self.toggle(3, 't-measure', T('t_measure'), b, T('count_sli', n=len(t1.rows))))
         # the criteria quote the quality chain's acceptance criteria, so nothing is removed from them
         if 3 in self.md:
-            t = self.table(3, ('受け入れ基準のトレース',), clean=False)
-            if t:
+            t = self.table(3, ('actrace',), clean=False)
+            if t and len(t.head) >= 4:
                 head = [t.head[0], t.head[2], t.head[1], t.head[3]]  # FR, IFC, criterion, flow
                 rows = [[r[0], r[2], r[1], r[3]] for r in t.rows]
                 body = render_grouped(head, rows, c, [0, 1], cls='actrace', col_cls=['w-id', 'w-m', 'w-xl', 'w-m'])
-                nfr = len({r[0] for r in rows})
-                parts.append(details('t-actrace', '受け入れ基準のトレース', body, f'FR {nfr} · 基準 {len(rows)}'))
-                self.add_toc(3, 't-actrace', '受け入れ基準のトレース')
-        body, n = self.values_table(dec3)
-        if n:
-            parts.append(details('t-values3', '設計上の値', body, f'{n} 件'))
-            self.add_toc(3, 't-values3', '設計上の値')
-        dt = self.debt_toggle(3, dec3, 't-debt3')
-        if dt:
-            parts.append(dt)
+                parts.append(self.toggle(3, 't-actrace', T('t_actrace'), body,
+                                         T('count_actrace', n=len({r[0] for r in rows}), m=len(rows))))
+        x = self.values_toggle(3, dec3, 't-values3')
+        if x:
+            parts.append(x)
+        x = self.debt_toggle(3, dec3, 't-debt3')
+        if x:
+            parts.append(x)
         return self.stage_wrap(3, parts)
 
     def er_with_names(self, src: str) -> str:
@@ -1941,43 +2013,42 @@ class Builder:
 
     # --- the route at the top
     def route(self) -> str:
-        def kinds(items, key, names):
+        def kinds(items, key, group=None):
             cnt = {}
             for v in items.values():
-                k = names.get(v.get(key), v.get(key))
+                k = LANG['terms'][group].get(v.get(key), v.get(key)) if group else v.get(key)
                 cnt[k] = cnt.get(k, 0) + 1
             return cnt
         drv = self.live(self.drv)
         n_main = sum(1 for v in drv.values() if v.get('primary'))
-        dkind = kinds(drv, 'kind', T_DRV_KIND)
         dec2, dec3 = self.decs('architecture'), self.decs('high-level-design')
         n_debt = sum(1 for v in dec2.values() if isinstance(v.get('debt'), dict) and v['debt'].get('what'))
         n_def = sum(1 for v in dec2.values() if v.get('deferred'))
-        ek = kinds(self.live(self.elm), 'kind', T_ELM_KIND)
-        ik = kinds(self.live(self.ifc), 'kind', T_IFC_KIND)
-        own = kinds(self.live(self.dat), 'owner', {})
-        flows = self.sec(3, '端から端の流れ', quiet=True)
+        own = kinds(self.live(self.dat), 'owner')
+        flows = self.sec(3, 'flows', quiet=True)
         nf = [v for v in (flows.children if flows else []) if v.codes()]
         n_drv = sum(1 for v in nf if v.title.startswith('DRV'))
-        conv = self.table(3, ('共通の約束事',)) if 3 in self.md else None
+        conv = self.sec(3, 'conv', quiet=True)
+        n_conv = len(conv.tables()[0].rows) - 1 if conv and conv.tables() else None
         stops = [
-            (1, 't-rank', '設計を動かす要求', len(drv), '件', [f'主 {n_main}'] + [f'{k} {v}' for k, v in dkind.items()]),
-            (2, 't-dec', '設計の決定', len(dec2), '件', [f'負債 {n_debt}' if n_debt else '', f'先送り {n_def}' if n_def else '']),
-            (2, 't-elm', '要素', len(self.live(self.elm)), '件', [f'{k} {v}' for k, v in ek.items()]),
-            (3, 't-dec3', '約束事と決定', len(dec3), '件',
-             [f'共通の約束事 {len(conv.rows)}' if conv else '', f'ほか {len(dec3) - len(conv.rows)}' if conv else '']),
-            (3, 't-ifc', 'インタフェース', len(self.live(self.ifc)), '件', [f'{k} {v}' for k, v in ik.items()]),
-            (3, 't-flows', '端から端の流れ', len(nf), '図', [f'CUJ {len(nf) - n_drv}', f'設計を動かす要求 {n_drv}']),
-            (3, 't-data', 'データ', len(self.live(self.dat)), '件',
-             [('持ち主 ' if k == 0 else '') + f'{o} {n}' for k, (o, n) in enumerate(sorted(own.items(), key=lambda x: -x[1]))]),
+            (1, 't-rank', T('r_drivers'), len(drv), [T('r_primary', n=n_main)] + [f'{k} {v}' for k, v in kinds(drv, 'kind', 'drv_kind').items()]),
+            (2, 't-dec', T('r_decisions'), len(dec2), [T('r_debt', n=n_debt) if n_debt else '', T('r_deferred', n=n_def) if n_def else '']),
+            (2, 't-elm', T('r_elements'), len(self.live(self.elm)), [f'{k} {v}' for k, v in kinds(self.live(self.elm), 'kind', 'elm_kind').items()]),
+            (3, 't-dec3', T('r_conv_dec'), len(dec3),
+             [T('r_conv', n=n_conv) if n_conv is not None else '', T('r_others', n=len(dec3) - n_conv) if n_conv is not None else '']),
+            (3, 't-ifc', T('r_ifc'), len(self.live(self.ifc)), [f'{k} {v}' for k, v in kinds(self.live(self.ifc), 'kind', 'ifc_kind').items()]),
+            (3, 't-flows', T('r_flows'), len(nf), [T('r_flows_cuj', n=len(nf) - n_drv), T('r_flows_drv', n=n_drv)]),
+            (3, 't-data', T('r_data'), len(self.live(self.dat)),
+             [(T('r_owners') if k == 0 else '') + f'{o} {n}' for k, (o, n) in enumerate(sorted(own.items(), key=lambda x: -x[1]))]),
         ]
         have = {tid for n in self.toc for tid, _ in self.toc[n]}
         stops = [s for s in stops if s[1] in have]
         lis = []
-        for n, href, name, num, unit, sub in stops:
+        for n, href, name, num, sub in stops:
             sub = ' · '.join(f'<span class="nb">{esc(x)}</span>' for x in sub if x)
+            unit = T('unit_diagrams') if href == 't-flows' else T('unit_items')
             lis.append(f'<li class="stop"><a href="#{href}"><span class="dot" aria-hidden="true"></span>'
-                       f'<span class="st-body"><span class="st-stage">第 {n} 段階</span><span class="st-name">{esc(name)}</span>'
+                       f'<span class="st-body"><span class="st-stage">{esc(T("stage_no", n=n))}</span><span class="st-name">{esc(name)}</span>'
                        f'<span class="st-num">{num}<span class="st-unit">{esc(unit)}</span></span>'
                        f'<span class="st-sub">{sub}</span></span></a></li>')
         bands = []
@@ -1986,12 +2057,12 @@ class Builder:
             w = sum(1 for s in stops if s[0] == n)
             if not w:
                 continue
-            bands.append(f'<span class="band" style="grid-column:{col} / {col + w}"><b>第 {n} 段階</b>{esc(self.stage_title(n))}</span>')
+            bands.append(f'<span class="band" style="grid-column:{col} / {col + w}"><b>{esc(T("stage_no", n=n))}</b>{esc(self.stage_title(n))}</span>')
             col += w
         srcs = ' · '.join(dict.fromkeys(x for n in self.stages for x in STAGE_SOURCES[n].split(' · ')))
         return (f'<section id="sec-map" class="stage"><header class="stage-head"><span class="stage-no">DRV → DAT</span>'
-                f'<h2>成果物のつながり</h2><span class="src">{esc(srcs)}</span></header>'
-                f'<div class="route-wrap" style="--n:{len(stops)}"><ol class="route" aria-label="設計の連鎖の成果物">{"".join(lis)}</ol>'
+                f'<h2>{esc(T("t_map"))}</h2><span class="src">{esc(srcs)}</span></header>'
+                f'<div class="route-wrap" style="--n:{len(stops)}"><ol class="route" aria-label="{esc(T("route_label"))}">{"".join(lis)}</ol>'
                 f'<div class="bands">{"".join(bands)}</div></div></section>')
 
     # --- the whole page
@@ -1999,25 +2070,11 @@ class Builder:
         c = self.ctx
         s1, s2, s3 = self.stage1(), self.stage2(), self.stage3()
         route = self.route()
-        for k in sorted(set(c.directions) - c.used_directions):
-            c.warn('手直し', f'diagram_direction: 図のある節「{k}」が見つからない')
-        # notes and requirements
         tail = ''
-        notes = []
-        for kind in PAGE_NOTE_KINDS:
-            for w in c.warnings.get(kind, []):
-                notes.append(f'{kind}: {w}')
+        notes = [f'{T("k_" + kind)}: {w}' for kind in PAGE_NOTE_KINDS for w in c.warnings.get(kind, [])]
         if notes:
-            tail += details('t-notes', 'この版の注記', '<div class="notes"><ul>' +
-                            ''.join(f'<li>{esc(x)}</li>' for x in notes) + '</ul></div>', f'{len(notes)} 件')
-        req = self.text.get('requirements')
-        if req:
-            ans = self.text.get('answers') or []
-            body = f'<div class="req"><pre class="req-text">{esc(req.strip())}</pre>'
-            if ans:
-                body += subhead('質問への回答') + bullets(ans, c)
-            body += '</div>'
-            tail += details('t-req', 'このページの要件', body)
+            tail = details('t-notes', T('t_notes'), '<div class="notes"><ul>' +
+                           ''.join(f'<li>{esc(x)}</li>' for x in notes) + '</ul></div>', T('count', n=len(notes)))
         # header
         dates = []
         for coll in (self.drv, self.dec, self.elm, self.ifc, self.dat):
@@ -2026,50 +2083,49 @@ class Builder:
                     if isinstance(ch, dict) and ch.get('date'):
                         dates.append(str(ch['date']))
         for raw in self.docs.values():
-            dates += re.findall(r'^## 再実行（(\d{4}-\d{2}-\d{2})', raw, re.M)
+            dates += RERUN_RE.findall(raw)
         updated = max(dates) if dates else ''
         root = self.ddir.parent.parent if self.ddir.parent.name == 'docs' else self.ddir.parent
         commit = git(['log', '-1', '--format=%h', '--', str(self.ddir)], root)
         dirty = git(['status', '--porcelain', '--', str(self.ddir)], root)
         dirty = [x for x in dirty.split('\n') if x.strip() and not x.endswith(self.out.name)]
-        repo = root.name
         stages = self.stages
-        meta = f'第 {stages[0]}〜{stages[-1]} 段階の成果物の要約' if len(stages) > 1 else f'第 {stages[0]} 段階の成果物の要約'
+        meta = esc(T('meta_stages', a=stages[0], b=stages[-1]) if len(stages) > 1 else T('meta_stage', a=stages[0]))
         if updated:
-            meta += f' · 更新 {updated}'
+            meta += ' · ' + esc(T('meta_updated', d=updated))
         if commit:
             meta += f' · <span>{esc(commit)}</span>'
             if dirty:
-                meta += '（未コミットの変更あり）'
-        sysname = self.system_name()
-        title = f'{sysname}の設計'
-        toc = ['<nav class="toc" aria-label="目次"><a class="toc-sec" href="#sec-map">成果物のつながり</a>']
+                meta += esc(T('meta_dirty'))
+        title = T('title', name=self.system_name())
+        toc = [f'<nav class="toc" aria-label="{esc(T("toc"))}"><a class="toc-sec" href="#sec-map">{esc(T("t_map"))}</a>']
         for n in stages:
             subs = ''.join(f'<a href="#{t}">{esc(nm)}</a>' for t, nm in self.toc.get(n, []))
             toc.append(f'<div class="toc-grp"><a class="toc-sec" href="#sec-{n}"><span>{n}</span>{esc(self.stage_title(n))}</a>'
                        f'<div class="sub">{subs}</div></div>')
         if notes:
-            toc.append('<a class="toc-sec toc-notes" href="#t-notes">この版の注記</a>')
-        if req:
-            toc.append('<a class="toc-sec toc-notes" href="#t-req">このページの要件</a>')
+            toc.append(f'<a class="toc-sec toc-notes" href="#t-notes">{esc(T("t_notes"))}</a>')
         toc.append('</nav>')
         css = (ASSETS / 'base.css').read_text(encoding='utf-8') + '\n' + (ASSETS / 'design.css').read_text(encoding='utf-8')
         js = (ASSETS / 'base.js').read_text(encoding='utf-8') + '\n' + (ASSETS / 'design.js').read_text(encoding='utf-8')
         js = js.replace('__MERMAID_URL__', MERMAID_URL)
         tips = {k: c.titles[k] for k in sorted(c.used_tips)}
         tips_json = json.dumps(tips, ensure_ascii=False, sort_keys=True).replace('</', '<\\/')
-        desc = f'{title}を、設計を動かす要求、アーキテクチャ、概要設計の表と図でまとめたページ'
-        page = f'''<!doctype html>
-<html lang="ja">
+        ui = {k[3:]: v for k, v in LANG['text'].items() if k.startswith('js_')}
+        ui_json = json.dumps(ui, ensure_ascii=False, sort_keys=True).replace('</', '<\\/')
+        repo = root.name
+        where = self.ddir.relative_to(root).as_posix() if self.ddir.is_relative_to(root) else self.ddir.name
+        return f'''<!doctype html>
+<html lang="{LANG['code']}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{esc(title)}</title>
-<meta name="description" content="{esc(desc)}">
+<meta name="description" content="{esc(T('description', title=title))}">
 <meta name="generator" content="design-summary-html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{esc(FONTS_URL)}">
+<link rel="stylesheet" href="{esc(LANG['fonts'])}">
 <style>
 {css}
 </style>
@@ -2078,11 +2134,11 @@ class Builder:
 <div class="page">
 <header class="masthead">
 <div class="mast-text">
-<p class="eyebrow">{esc(repo)} · {esc(self.ddir.relative_to(root).as_posix() if self.ddir.is_relative_to(root) else self.ddir.name)}</p>
+<p class="eyebrow">{esc(repo)} · {esc(where)}</p>
 <h1>{esc(title)}</h1>
 <p class="meta">{meta}</p>
 </div>
-<div class="tools"><button type="button" class="btn" id="open-all">すべて開く</button><button type="button" class="btn" id="close-all">すべて閉じる</button></div>
+<div class="tools"><button type="button" class="btn" id="open-all">{esc(T('open_all'))}</button><button type="button" class="btn" id="close-all">{esc(T('close_all'))}</button></div>
 </header>
 {''.join(toc)}
 <main>
@@ -2094,41 +2150,36 @@ class Builder:
 </main>
 </div>
 <script type="application/json" id="id-tips">{tips_json}</script>
+<script type="application/json" id="ui-text">{ui_json}</script>
 <script>
 {js}
 </script>
 </body>
 </html>
 '''
-        return page
 
     def system_name(self) -> str:
-        qc = self.qdir / 'context.yaml'
-        if qc.exists():
-            c = yaml.safe_load(qc.read_text(encoding='utf-8')) or {}
-            n = (c.get('system') or {}).get('name') or ''
-            n = re.sub(r'（.*?）$', '', n).strip()
-            if n:
-                return n
-        if self.md:
-            root = self.md[min(self.md)]
-            h1 = root.children[0].title if root.children else ''
-            m = re.search(r':\s*(.+?)(?:（.*）)?$', h1)
+        n = ((self.qctx or {}).get('system') or {}).get('name') or ''
+        n = re.sub(r'\s*[（(][^（()）]*[）)]$', '', n).strip()
+        if n:
+            return n
+        for k in sorted(self.md):
+            root = self.md[k]
+            h1 = root.children[0].title if root.children and root.children[0].level == 1 else ''
+            m = re.search(r'[:：]\s*(.+?)(?:\s*[（(].*[）)])?$', h1)
             if m:
                 return m.group(1).strip()
-        return 'システム'
+        return T('system_fallback')
 
     def counts(self) -> str:
         live = self.live
-        parts = [f'DRV {len(live(self.drv))}',
-                 f'DEC {len(self.decs("architecture")) + len(self.decs("high-level-design"))}'
-                 f'（第 2 段階 {len(self.decs("architecture"))} · 第 3 段階 {len(self.decs("high-level-design"))}）',
-                 f'ELM {len(live(self.elm))}', f'IFC {len(live(self.ifc))}', f'DAT {len(live(self.dat))}']
-        return ' · '.join(parts)
+        return T('rep_counts', drv=len(live(self.drv)), dec=len(self.decs('architecture')) + len(self.decs('high-level-design')),
+                 dec2=len(self.decs('architecture')), dec3=len(self.decs('high-level-design')),
+                 elm=len(live(self.elm)), ifc=len(live(self.ifc)), dat=len(live(self.dat)))
 
 
 def split_label(title: str) -> tuple:
-    m = re.match(r'^((?:CUJ|DRV)-\d{2}(?:〜\d{2})?(?:-[A-Z])?)\s+(.*)$', title)
+    m = re.match(r'^((?:CUJ|DRV)-\d{2}(?:[〜–]\d{2})?(?:-[A-Z])?)\s+(.*)$', title)
     if m:
         return m.group(1), m.group(2)
     return '', title
@@ -2149,7 +2200,7 @@ def merge_dup_rows(rows: list) -> list:
     return out
 
 
-def check_page(page: str, ctx: Ctx) -> tuple:
+def check_page(page: str) -> tuple:
     """Turns ID links without a target into text, and finds duplicate ids and links without a target."""
     ids = re.findall(r' id="([^"]+)"', page)
     idset = set(ids)
@@ -2171,62 +2222,47 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description='Builds a design summary HTML page from the design chain outputs')
     ap.add_argument('design_dir', nargs='?', default='docs/design', help='the design outputs directory (default: docs/design)')
     ap.add_argument('--quality-dir', default=None, help='the quality chain outputs, for titles and links (default: quality next to DESIGN_DIR)')
-    ap.add_argument('--text', default=None, help='the condensed-text YAML (default: DESIGN_DIR/summary-text.yaml)')
     ap.add_argument('--out', default=None, help='where to write the page (default: DESIGN_DIR/summary.html)')
-    ap.add_argument('--show-cleaning', action='store_true', help='print every text (YAML value, table cell) whose revision notes were removed, before and after')
-    ap.add_argument('--hashes', action='store_true', help='print the current hash of every condensed-text source')
-    ap.add_argument('--write-hashes', action='store_true',
-                    help='rewrite the hashes: block at the end of the condensed-text YAML (only after rewriting the texts)')
+    ap.add_argument('--lang', choices=LANGS, help='language of the page and the report (default: Japanese when the outputs are '
+                                                  'written in Japanese, English otherwise)')
+    ap.add_argument('--show-cleaning', action='store_true',
+                    help='print every text (YAML value, table cell) whose revision notes were removed, before and after')
     a = ap.parse_args(argv)
     ddir = Path(a.design_dir).resolve()
     if not ddir.is_dir():
-        print(f'設計の出力がない: {ddir}', file=sys.stderr)
-        return 2
+        die_t('die_no_dir', a.lang, path=ddir)
     qdir = Path(a.quality_dir).resolve() if a.quality_dir else ddir.parent / 'quality'
-    text = Path(a.text).resolve() if a.text else ddir / 'summary-text.yaml'
     out = Path(a.out).resolve() if a.out else ddir / 'summary.html'
-    b = Builder(ddir, qdir, text, out)
-    if not b.load():
-        print('設計の成果物がない: drv/ などの YAML の項目も報告書もない（requirements-to-architecture-drivers から始める）',
-              file=sys.stderr)
-        return 2
+    b = Builder(ddir, qdir, out)
+    if not b.load(a.lang):
+        die_t('die_no_outputs', a.lang, path=ddir)
     page = b.build()
-    page, dup, dangling, unlinked = check_page(page, b.ctx)
+    page, dup, dangling, unlinked = check_page(page)
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page, encoding='utf-8')
     c = b.ctx
     try:
         shown = out.relative_to(Path.cwd())
     except ValueError:
         shown = out
-    print(f'書いた: {shown}（{len(page.encode("utf-8")) // 1024} KB）')
-    print(f'段階: 第 {"・".join(str(n) for n in b.stages)} 段階（報告書: '
-          f'{"・".join(REPORT_FILES[n] for n in sorted(b.md)) or "なし"}）')
-    print(f'項目: {b.counts()}')
+    print(T('rep_written', path=shown, kb=len(page.encode('utf-8')) // 1024))
+    print(T('rep_lang', lang=b.lang, how=T(b.lang_how)))
+    print(T('rep_stages', stages=T('stage_sep').join(str(n) for n in b.stages),
+            reports=T('sep').join(REPORT_FILES[n] for n in sorted(b.md)) or T('none')))
+    print(T('rep_items', counts=b.counts()))
     for kind in REPORT_KINDS:
         ws = c.warnings.get(kind, [])
-        print(f'{kind}: {len(ws)} 件' if ws else f'{kind}: なし')
+        print(T('rep_kind', kind=T('k_' + kind), n=len(ws)) if ws else T('rep_kind_none', kind=T('k_' + kind)))
         for w in ws:
             print(f'  - {w}')
-    print(f'履歴の注記を削った文: {len(c.cleaned)} 件' + ('（--show-cleaning で一覧）' if c.cleaned and not a.show_cleaning else ''))
+    print(T('rep_cleaned', n=len(c.cleaned)) + (T('rep_cleaned_hint') if c.cleaned and not a.show_cleaning else ''))
     if a.show_cleaning:
         for where, before, after in c.cleaned:
-            print(f'  @ {where}\n    前: {before}\n    後: {after}')
+            print(f'  @ {where}\n    - {before}\n    + {after}')
     if unlinked:
-        print(f'行がないのでリンクにしなかった ID: {"、".join(unlinked)}')
-    if a.hashes:
-        print('今の hash（summary-text.yaml の hashes: に写す）:')
-        print('hashes:')
-        for k in sorted(b.hashes):
-            print(f'  {k}: {b.hashes[k]}')
-    if a.write_hashes and text.exists():
-        src = text.read_text(encoding='utf-8')
-        m = re.search(r'^hashes:.*\Z', src, re.M | re.S)
-        block = 'hashes:\n' + ''.join(f'  {k}: {b.hashes[k]}\n' for k in sorted(b.hashes))
-        src = (src[:m.start()] + block) if m else (src.rstrip('\n') + '\n\n' + block)
-        text.write_text(src, encoding='utf-8')
-        print(f'hashes を書き直した: {text.name}（{len(b.hashes)} 件）。もう一度動かすと「もとが変わった」は消える')
+        print(T('rep_unlinked', ids=T('sep').join(unlinked)))
     if dup or dangling:
-        print(f'ページの確かめに落ちた: 重なる id {dup}、行き先のないリンク {dangling}')
+        print(T('rep_selfcheck', dup=dup, dangling=dangling))
         return 1
     return 0
 

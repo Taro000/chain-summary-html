@@ -1,0 +1,40 @@
+id: DAT-20
+title: ブラウザのエラーの記録
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: ブラウザのエラーの記録
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- client_error_id
+- account_id、role
+- kind、message（値を除いたもの）
+- browser
+- occurred_at、received_at
+- trace_id、ride_id
+- test_account
+relations:
+- to: DAT-06
+  kind: many-to-one
+  note: 依頼
+consistency: 測るモジュールだけが書く。client_error_id で一つ。構造化ログ（IFC-09）にも書く。ELM-05 は持ち主のモジュールを通して書く（DEC-53。T_log_retention を過ぎた行の削除）
+retention: T_log_retention
+classification: personal
+drivers:
+- DRV-28
+- DRV-27
+- DRV-07
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: T_log_retention を過ぎた行の削除は ELM-05 が持ち主のモジュールを通して行うと書いた
+  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

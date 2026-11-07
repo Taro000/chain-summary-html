@@ -1,0 +1,28 @@
+id: FND-13
+title: 脅威への備えのいくつかが報告書の表にだけあり、指している DEC にない
+status: accepted
+version: 2
+basis: inferred
+basis_note: 脅威のモデルの表と DEC の YAML は入力（文字列で探して確かめた）。URL の決まりが入口のログで唯一の手立てになることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-16
+- DEC-32
+- DEC-05
+severity: minor
+evidence: 脅威のモデルの表は、F1 に「URL に位置や連絡先を入れない（DEC-16）」、F5 に「使える操作を絞った制限付きの鍵を Secret Manager に置く（DEC-32）」、F14 に「データベースを限ったトークン（DEC-32）」、F9 に「Turso はデータベースを限ったトークン（DEC-05）」を挙げるが、どれも指している DEC の YAML にない。YAML が正で、第 3 段階は DEC を読む。とくに URL の決まりは、Cloud Run の入口のログが URL をそのまま残しアプリが伏せられないので、入口のログで DRV-32 を守る唯一の手立てになる
+suggestion: これらの備えを、指している DEC（または新しい DEC）の選んだ案か前提に書く。URL の決まりは第 3 段階の共通の約束事に渡すことも書く
+resolution: 受け入れた。URL の決まり（位置、連絡先、名前、検索の語を入れない）を DEC-16（版 2）に書き、第 3 段階の共通の約束事に渡す。制限付きの鍵とデータベースを限ったトークンは DEC-34 を新設して書いた。脅威のモデルの F1・F5・F9・F10・F14 の指す先を直した
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階のレビュー（活動 A7）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
+  reason: 第 2 段階の再実行（2026-11-03）

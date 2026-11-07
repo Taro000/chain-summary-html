@@ -1,0 +1,24 @@
+id: FND-78
+title: 報告書と図に、再実行で変わった所と合わない文が残る
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DAT-13
+- DEC-48
+- DAT-14
+severity: minor
+evidence: 活動 B2、B6、B9。「データ」の節は FND-39 の一覧を足したが、その前の段落「持ち主の例外は一つだけで、第 2 段階の DEC-05 が決めた」が残り、すぐ後の表と食い違う。T_op_stale の根拠は「最長は 13.0 秒」「最長の 2.3 倍」のままだが、再実行で乗車の終了の要求の中の最悪は 15.05 秒（T_route_long の中）になり、比は 2.0 倍（スクリプトで計算。30 秒は足りるのでリスクでないもの）。操作キーの状態遷移図に、手配の 503 PAYMENTS_UNAVAILABLE で processing のキーを消す道がない（CUJ-01-B は「K を消す」）
+suggestion: 持ち主の例外の段落を新しい表に合わせて書き直し、T_op_stale の根拠を 15.05 秒で書き直し、操作キーの図に processing → 消す（503 PAYMENTS_UNAVAILABLE）を足す
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

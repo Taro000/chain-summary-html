@@ -1,0 +1,39 @@
+id: QIU-18
+title: 障害の原因を特定できる
+status: draft
+version: 1
+basis: inferred
+basis_note: ニーズは入力。障害の記録が今はないことは質問 9 で確認済み。測定量は推定
+needs_agreement: false
+approver_candidates: []
+user: USR-03
+cuj: CUJ-10
+outcomes: []
+need: 障害・不具合の原因を特定したい。システムのログとデータを確認したい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: エンジニア
+  task: 通知を受けた障害の調査
+  environment: 本番環境
+  other: null
+characteristic: effectiveness
+statement: エンジニアは、通知を受けた本番の異常・エラーについて、ログとデータから原因を特定できる。
+failure_scenario: ログやデータが足りず原因が分からないまま同じ障害が繰り返し起き、そのたびに乗客が配車できない。
+measure:
+  numerator: 原因を特定できた障害
+  denominator: 通知を受けて調査した障害（誤報を除く）
+  narrowed_to: 本番環境の障害
+  denominator_needed_only: 調査が必要だった障害だけ。誤報は除く
+  contribution: ログとデータの揃い方につながる。原因が外部サービス（地図・決済）にある障害も含む
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

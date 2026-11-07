@@ -1,0 +1,22 @@
+id: FND-01
+title: The receipt is shown before the record is written
+status: accepted
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-09-20-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-03
+severity: major
+evidence: A record can go missing after the receipt
+suggestion: Write the record, then return the receipt
+resolution: DEC-03 changed
+changelog:
+- version: 1
+  date: '2026-09-20'
+  change: Raised
+  reason: Review of stage 2

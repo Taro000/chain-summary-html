@@ -1,0 +1,29 @@
+id: QR-31
+title: 評価値が実態の違いを表す
+status: draft
+version: 1
+basis: inferred
+basis_note: データを作るのは乗客。評価の甘さが起こりやすいことは質問 8 で確認済み。影響と扱いは推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+model: data
+layer: data-inherent
+characteristic: accuracy
+statement: ドライバーの評価値は、ドライバーの振る舞いと車の清潔さの違いを表し、ほとんどのドライバーが同じ値に集まらない。
+applies_to: [FR-13, FR-15, FR-16]
+traces_to: [QIU-10]
+entry_point: null
+stakeholders: [USR-01, USR-02]
+failure_scenario: ほとんどの乗客が最高の評価を付け、評価値に差が出ない。しきい値を設定しても態度の悪いドライバーに当たる。評価値は受けた評価の単純な平均（FR-15）。
+score: {impact: 4, likelihood: 4}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

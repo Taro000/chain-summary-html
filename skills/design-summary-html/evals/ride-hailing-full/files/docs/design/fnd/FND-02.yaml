@@ -1,0 +1,29 @@
+id: FND-02
+title: 毎日の処理のジョブをデモの期間だけ有効にすることが TC-07 と DRV-18 の文と食い違う
+status: accepted
+version: 2
+basis: confirmed
+basis_note: 第 2 段階の質問 1 の回答（2026-11-03）
+needs_agreement: false
+approver_candidates: []
+raised_by: architecture-drivers-to-architecture
+raised_in: 2-architecture.md
+to: requirements-to-architecture-drivers
+targets:
+- TC-07
+- TC-08
+- DRV-18
+- DRV-33
+severity: major
+evidence: TC-07 と DRV-18 は「Cloud Run はデモの回と確かめのための短い間だけ配備する。サーバーを動かすのはデモと開発のときだけ」とする。第 2 段階の質問 1 で、毎日の処理を Cloud Scheduler と Cloud Run のジョブにし、デモの期間（最初のデモの回の日から、最後の回の翌朝の処理が終わるまで）だけ有効にすると決まった（DEC-05）。ジョブはデモの回の外にも配備されたまま動く。DRV-33 は「次に動いたときに続ける」とサーバーの起動を前提にしている
+suggestion: TC-07 に「毎日の処理のジョブと定時の起動は、デモの期間だけ有効にする」を足し、DRV-18 の文を合わせる。DRV-33 を「時刻で動く処理は、動かなかった間の分を次の実行で抜けなく続ける」に直す
+resolution: 受け入れた。TC-07 に、サーバーはデモの回と確かめの間だけ、毎日の処理のジョブと定時の起動はデモの期間だけ有効にし、それ以外のときは Cloud Run で何も動かさないことと、デモの期間の読み方（一つのデモの最初の回の日から、最後の回の翌朝の処理が終わるまで。第 1 段階の質問 12 で確認済み）を書いた。TC-08 にサーバーとジョブの違いを書いた。DRV-18 を版 2 にして文を合わせ、DRV-33 との競合は第 2 段階が DEC-05 で解いたと記録した。DRV-33 を版 2 にし、「動かなかった間（デモの期間の外、実行の失敗）の分を、次の実行で抜けなく続ける」に直した。DRV-04 と DRV-27 の測定量の NFR-06 の前提を直し、品質チェーンへの課題 1 を、デモの期間の毎日の処理で解ける部分を除いて絞った
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階の質問 1 の回答
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた
+  reason: 第 1 段階（requirements-to-architecture-drivers）の再実行

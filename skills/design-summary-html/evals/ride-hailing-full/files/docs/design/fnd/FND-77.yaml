@@ -1,0 +1,23 @@
+id: FND-77
+title: not_booked の依頼に理由がなく、SLI-05 が数える「手配をやめた依頼」を見分けられない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DAT-06
+- DAT-07
+severity: minor
+evidence: 活動 B7。SLI-05 版 2 の counting_rule は取り消しに「押さえの結果が分からないまま手配をやめた依頼（FR-05）」を含める。設計の測定点の表は「手配をやめた依頼（not_booked）を含める」とするが、not_booked には 402 の断り、429 と届かなかったときの起きていないもの（503 の後の送り直しで一人に何行もできうる）、確かめ中の取り消し、T_hold_wait の超えが混ざる。DAT-06 に not_booked の理由の欄がなく、DAT-07 の not_booked の行は確かめ中から出た二つの道でしか書かれない（CUJ-01-B の 402 と 503 の枝は履歴を書かない）。SLI-05 の分母が品質チェーンの定めより広くなるか、履歴のない not_booked の依頼を欠けと数えうる
+suggestion: DAT-06（か DAT-07 の not_booked の行）に理由（declined、not_happened、hold_timeout、cancelled_while_checking）を持たせ、測定点の表で SLI-05 に含めるものを hold_timeout と cancelled_while_checking に絞る
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

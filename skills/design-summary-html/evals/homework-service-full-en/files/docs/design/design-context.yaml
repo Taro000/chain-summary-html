@@ -1,0 +1,56 @@
+read_from:
+  quality_chain: docs/quality/
+  other:
+  - User input (2026-09-15)
+technology_constraints:
+- id: TC-01
+  statement: Written in TypeScript
+  kind: mandated
+  source: User input
+  basis: stated
+- id: TC-02
+  statement: Submitted files are kept in an external storage service (ObjectStore)
+  kind: external-service
+  source: context.yaml constraints
+  basis: stated
+- id: TC-03
+  statement: Runs in one region of the school's existing cloud account
+  kind: platform
+  source: User input, question 2
+  basis: confirmed
+project_constraints:
+- id: PC-01
+  kind: budget
+  statement: Within 30,000 yen a month
+  source: User input
+  basis: stated
+- id: PC-02
+  kind: deadline
+  statement: Release before the new school year (April)
+  source: User input
+  basis: stated
+- id: PC-03
+  kind: team
+  statement: Two developers; no dedicated operations engineer
+  source: User input
+  basis: stated
+teams:
+- id: TEAM-01
+  name: Development team
+  owns: Everything
+  basis: stated
+anticipated_changes:
+- id: CHG-01
+  change: Add screens for parents
+  expected: Within a year
+  source: User input
+  basis: stated
+stakeholders:
+- id: STK-01
+  role: The cram school's owner
+  concerns:
+  - Monthly cost
+  - Ready for the new school year
+  source: User input
+  basis: inferred
+as_is: null

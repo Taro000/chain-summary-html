@@ -1,0 +1,26 @@
+id: FND-49
+title: ELM-02 の functions に FR-47 がないが、ELM-02 が提供する IFC-26 は FR-47 を運ぶ
+status: accepted
+version: 2
+basis: inferred
+basis_note: ELM-02、ELM-03、ELM-04 の functions と、第 3 段階の IFC-26 の functions と errors は入力
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-drivers-to-architecture
+targets:
+- ELM-02
+severity: minor
+evidence: FR-47（配車の停止）は ELM-03 と ELM-04 に割り当てられ、ELM-02 にはない。一方、第 3 段階の IFC-26（提供側 ELM-02）は functions に FR-47 を持ち、停止されたドライバーの受付の画面と依頼の一覧を変える（FR-47 AC1）。第 4 段階で ELM-02 を設計する人は、割り当てからこの機能を拾えない
+suggestion: ELM-02 の functions に FR-47 を足し、第 2 段階の割り当ての表とコードの分け方のビューもそろえる
+resolution: 受け入れた。ELM-02（版 3）の functions に FR-47 を足し、責務に停止されたときの受付の画面と依頼の一覧の変化を書いた。報告書の要素の表と CUJ-14 の通し確認もそろえた（コードの分け方のビューは FR を持たないので変わらない）
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B1）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（ELM-02 を直した）
+  reason: architecture-drivers-to-architecture の再実行（第 2 段階の再実行、3 回目）

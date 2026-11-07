@@ -1,0 +1,44 @@
+id: QIU-19
+title: 障害の原因を早く特定できる
+status: draft
+version: 2
+basis: inferred
+basis_note: ニーズ（特定できる）は入力。速さ、T_rca、測定量は推定。障害の記録が今はないことは質問 9 で確認済み。T_rca の値は 2026-11-01 の利用者の回答で決めた
+needs_agreement: true
+approver_candidates:
+  - 開発の責任者
+user: USR-03
+cuj: CUJ-10
+outcomes: []
+need: 障害・不具合の原因を特定したい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: エンジニア
+  task: 通知を受けた障害の調査
+  environment: 本番環境
+  other: null
+characteristic: efficiency
+statement: エンジニアは、通知を受けてから 30 分（T_rca）以内に障害の原因を特定できる。
+failure_scenario: 原因の特定に時間がかかり、その間ずっと乗客が配車できず、ドライバーが依頼を受けられない。
+measure:
+  numerator: 通知を受けてから 30 分（T_rca）以内に原因を特定できた障害
+  denominator: 原因を特定できた障害
+  narrowed_to: 本番環境の障害
+  denominator_needed_only: 原因を特定できた障害だけ（特定できなかったものは QIU-18 で数える）
+  contribution: ログとデータの探しやすさにつながる
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: '2026-11-01'
+    change: しきい値 T_rca に値を入れた
+    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま

@@ -1,0 +1,23 @@
+id: FND-64
+title: ブラウザの地図の鍵の守りを言い過ぎており、Q_maps_day の見込みに地図の表示が入っていない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-21
+- DEC-22
+severity: minor
+evidence: DEC-21 は鍵を「ログインした人にだけ渡す」ことで「参加者でない人が鍵を拾えないようにする」とするが、ログインした人（参加者 2 人、担当、テスト用アカウント、盗まれたアカウント）が一度写せば、鍵はシステムを終えるまで（DEC-36）使え、参照元の制限はブラウザの外では偽れる。脅威のモデルの F7 は「公開される鍵」と書いたまま。Q_maps_day 1,000 回のもと（DEC-21、設計上の値）は経路と到着予定の 198 回と見積もり 100 回だけを数え、報告書の費用の表の「地図の表示は画面を開くごとに 1 回」を Maps JavaScript API の割り当てに対して見込んでいない。漏れた鍵で表示の割り当てを使い切ると、その日は地図が出ない
+suggestion: 得るものを「参加者でない人がログインせずに鍵を得られない」に直す。デモの回 1 回の地図の表示の数を見込み、漏れた鍵で表示の割り当てが尽きうることを失うものに書く。期間ごとに鍵を替えるかを比べる
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A7（F7）、A1（DRV-11）

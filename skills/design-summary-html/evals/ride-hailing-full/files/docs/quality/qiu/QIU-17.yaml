@@ -1,0 +1,44 @@
+id: QIU-17
+title: 条件を設定したドライバーも稼ぎが下がらない
+status: draft
+version: 2
+basis: inferred
+basis_note: 条件（金額・距離）は入力。比べる相手（QIU-12）と G_condition_gap は推定。ブラウザが裏に回っていた時間を除くのは質問 15 の回答から推定
+needs_agreement: true
+approver_candidates:
+  - プロダクトオーナー
+user: USR-02
+cuj: CUJ-09
+outcomes: []
+need: できるだけ高い依頼を受けたい
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 条件を設定したドライバー
+  task: 受付可能にして依頼を受ける
+  environment: null
+  other: 地域と時間帯ごとに数える。受付中はブラウザを前面に開いたままにする（質問 15）
+characteristic: context coverage > context completeness
+statement: 条件（金額・乗車場所までの距離）を設定したドライバーも、設定していないドライバー（QIU-12）と比べて、受付可能な時間あたりの受取額が G_condition_gap を超えて下がらない。
+failure_scenario: 条件を厳しくしたドライバーに依頼がほとんど届かず、高い依頼を待つ空車の時間が延び、かえって稼ぎが減る。ドライバーはそれに気づかない。
+measure:
+  numerator: 完了した乗車でドライバーが受け取った額の合計（手数料を除く）
+  denominator: ドライバーが受付中で、ブラウザを前面に開いていた時間の合計
+  narrowed_to: 条件を設定したドライバー、スマートフォンのブラウザ。地域と時間帯ごとに数える
+  denominator_needed_only: QIU-12 と同じ
+  contribution: 条件を設定するドライバーは経験などが違うため、同じドライバーの設定前後で比べる
+  observable: true
+  compared_with: QIU-12
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-28
+    change: 分母を「受付中で、ブラウザを前面に開いていた時間」に変え、利用状況に前面に開いたままにする前提を加えた
+    reason: 質問 15 でブラウザが裏に回ると通知が止まる制約を受け入れたため。受け入れた制約による取りこぼしを、この QIU の失敗として数えない

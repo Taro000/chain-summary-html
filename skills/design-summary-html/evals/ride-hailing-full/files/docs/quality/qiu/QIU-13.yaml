@@ -1,0 +1,39 @@
+id: QIU-13
+title: 許諾した依頼が迎車到着まで進む
+status: draft
+version: 1
+basis: inferred
+basis_note: ニーズ（多く受けたい）は入力。KPI との重なりは質問 3 で確認済み。測定量は推定
+needs_agreement: false
+approver_candidates: []
+user: USR-02
+cuj: CUJ-06
+outcomes: [OUT-01, OUT-02]
+need: できるだけ多く依頼を受けたい（無駄な迎車をしたくない）
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: ドライバー
+  task: 依頼の許諾から迎車到着まで
+  environment: null
+  other: null
+characteristic: effectiveness
+statement: ドライバーは、内容を確かめて許諾した依頼を、取り消されずに乗車場所への到着まで進められる。
+failure_scenario: 迎車に向かう途中で乗客が取り消す、または依頼の内容（乗車場所・料金）が実際と違ってドライバー自身が取り消し、迎車の時間と燃料が無駄になる。
+measure:
+  numerator: 迎車が乗車場所に到着した依頼
+  denominator: ドライバーが許諾した依頼
+  narrowed_to: スマートフォンのブラウザ。テスト用アカウントを除く
+  denominator_needed_only: 許諾した依頼だけ
+  contribution: 依頼の内容の示し方と迎車の到着予定の正しさにつながる。乗客の都合による取り消しも含まれる
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: KPI-02
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

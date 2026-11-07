@@ -1,0 +1,38 @@
+id: FRP-08
+title: 決済のサービスの記録と毎日突き合わせる
+status: accepted
+version: 3
+basis: inferred
+basis_note: 決済のサービスを選ぶまでは自作の仮のスタブで代わりにする（2026-11-01 の利用者の回答）。その間の突き合わせは自分で書いたスタブとの比較になり、SLI-04 は何も確かめない。テスト環境へ差し替えた後に意味を持つ
+needs_agreement: false
+approver_candidates: []
+proposed_by: product-quality-to-slo
+origin:
+- QR-32
+- QR-09
+- QR-17
+- QR-35
+changes: null
+reason: QR-32 は請求と返金の記録が決済のサービスの記録と一致することを求めるが、突き合わせる FR がない。FR-44 と FR-49 は自分の記録を示すだけ。
+suggested_statement: システムは、毎日、前日の乗車の押さえ・請求・返金の記録を決済のサービスの記録と突き合わせ、一致しない乗車の一覧を記録して、エンジニアと運営・サポート担当に知らせる。
+affects:
+- NFR-04
+- NFR-06
+- NFR-07
+- NFR-38
+- SLI-04
+placeholders: []
+resolution: FR-55 として受け入れた（新しい FR）。FR-49 に一致しなかった項目を示すことを加えた。仮の決済スタブの間は確かめる意味がない。
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 提案
+  reason: 第 4 段階の下書き
+- version: 2
+  date: '2026-11-01'
+  change: basis_note に仮の決済スタブの影響を書いた
+  reason: 2026-11-01 の利用者の回答への追随
+- version: 3
+  date: '2026-11-01'
+  change: 受け入れた（FR-55）
+  reason: 第 2 段階の質問 14〜17（2026-11-01）

@@ -1,0 +1,40 @@
+id: QR-36
+title: 料金が運賃の定めに従う
+status: draft
+version: 3
+basis: inferred
+basis_note: 方針は入力。法令上の義務ではなく開発方針であることは第 1 段階の質問 22、残すことは質問 15 で確認済み。定めの中身と点は推定。R_fare と照らすことに加えて、実在の運賃の定めの中身も誰かが確かめて加えることは質問 17〜19（2026-11-01）。確かめるまで未解決の点に残す
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 法令を確かめる担当（推定）]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムが計算して示し、請求する料金（キャンセル料と不在の料金を含む）は、チームの模擬の運賃表 R_fare に従い、R_fare は本物らしく作るために模す運賃の定めに合う。
+applies_to: [FR-03, FR-07, FR-12, FR-27, FR-29]
+traces_to: []
+entry_point:
+  type: policy
+  source: 本物らしく作るため道路運送法（運賃）に従うものとして設計する開発方針（第 1 段階の質問 22）。模擬の運賃表 R_fare は 2026-11-01 に context.yaml の制約に加わった。実在の定めの中身は未確認
+  brought_by: 利用者（第 1 段階の質問 7 の回答）
+stakeholders: [USR-01, USR-02]
+failure_scenario: R_fare と違う料金を示し、請求する（km と分の刻みや端数の扱いが決まっていないので、作る人ごとに違う計算になる）。R_fare 自体が、模す運賃の定めの示し方や形に合わない。
+score: {impact: 2, likelihood: 2}
+handling: minimum-line
+handling_reason: 開発方針から来る要求なので点に関わらず残す。運送の業務の手続きは模擬（第 2 段階の質問 11）なので最低限守る線（質問 15）
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 入口の種類を法令から開発方針に変えた
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+  - version: 3
+    date: '2026-11-01'
+    change: 照らす相手をチームの模擬の運賃表 R_fare にした。実在の定めの中身は確かめて加える
+    reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）

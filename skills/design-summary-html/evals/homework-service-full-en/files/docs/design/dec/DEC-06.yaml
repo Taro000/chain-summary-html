@@ -1,0 +1,39 @@
+id: DEC-06
+title: How to build the parents' screens
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+stage: architecture
+question: Which web app gets the parents' screens, and how?
+addresses:
+- DRV-04
+options:
+- name: A third web app
+  effect: The existing web apps stay as they are
+  cost: One more thing to deploy
+- name: A parent role in the students' web app
+  effect: Nothing more to deploy
+  cost: Changes overlap with the students' screens
+chosen: null
+rationale: Whether to build the parents' screens is not decided yet (CHG-01).
+rejected: []
+gains: []
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on: []
+parameters: []
+debt: null
+deferred: true
+revisit_when: When the parents' screens are decided on
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-25'
+  change: Created
+  reason: Stage 2 re-run

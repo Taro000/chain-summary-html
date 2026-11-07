@@ -1,0 +1,27 @@
+id: FND-37
+title: 一つ目の規則が、アプリが業務の理由で返す 429 も数えるので、参加者でない人の操作で急ぎの知らせを鳴らせる
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-54 の選んだ案と応答を左右する点と失うもの、IFC-01・03・08 の 429 の行、DEC-55、FND-23 の URL の公開は入力。鳴らせることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DEC-54
+- IFC-19
+severity: minor
+evidence: DEC-54 の一つ目の規則は「5xx か 429 が 5 分で 5 件以上」で、指標で入口とアプリの応答を分けられないため、アプリの 429 も数える。アプリは業務の理由でも 429 を返す。ACCOUNT_LOCKED（IFC-01）、CONFIRMATION_ATTEMPTS_EXCEEDED（IFC-03）、STREAM_LIMIT（IFC-08）、RATE_LIMITED（DEC-55、すべての経路）。デモの URL は公開される（FND-23）ので、誰でもログインの失敗か流れの開き直しで 5 分に 5 件を作れ、急ぎの知らせが一人の運用者（DRV-26）に届く。DEC-54 の応答を左右する点と失うものは、一時の誤りと二度鳴ることだけを挙げ、この引き換えを書いていない
+suggestion: 引き換え（知らせの正しさと、Cloud Run の入口が返す 429 を拾うこと）を DEC-54 に書き、規則の条件を比べ直す（429 を外して 5xx とインスタンスの指標だけにする、429 だけしきい値を高くする、など）
+resolution: "受け入れた。一つ目の規則の条件を、5xx（5 分で 5 件以上、急ぐ知らせ）と 429（5 分で 30 件以上、急がない知らせ）に分け、429 を外す案と比べて引き換えを DEC-54 版 2 に書いた（入口の 429 と業務の 429 は指標で分けられない）。IFC-19 をそろえた。招待制で、参加者でない人が業務の 429 を起こせるのはログインと設定の符号の入口だけになった"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B3、DRV-29 の通し確認）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

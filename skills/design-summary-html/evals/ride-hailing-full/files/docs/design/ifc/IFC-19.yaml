@@ -1,0 +1,49 @@
+id: IFC-19
+title: Cloud Monitoring の規則
+status: draft
+version: 2
+basis: inferred
+basis_note: DEC-17（二つの規則、役目、開け閉めの手順。二つ目の規則は運用のジョブを見ない）と第 2 段階の DEC-37 版 4（期間の終わりに毎日の処理が二つ目の規則を止める）は入力。指標の名前、ラベル（response_code_class、response_code、result）、60 秒ごとに取られ最大 120 秒遅れて見えることは Cloud Monitoring の指標の一覧（2026-11-03）。一つ目の規則の条件の分け方と値は DEC-54 版 2（FND-37）。二つ目の規則をジョブの名前で毎日の処理のジョブに絞ることは推定（最初の配備で確かめる）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+kind: event
+name: Cloud Monitoring の規則（外部）
+provider: ELM-14
+consumers:
+- USR-03
+functions:
+- FR-36
+operations:
+- name: 一つ目の規則（デモの回の間だけ有効）
+  does: 一つの規則に二つの条件を持つ。急ぐ知らせは、(a) run.googleapis.com/request_count の response_code_class が 5xx の数が 5 分で 5 件以上、または (b) run.googleapis.com/container/instance_count が 10 分届かないとき。急がない知らせは、(c) response_code が 429 の数が 5 分で 30 件以上のとき（知らせに条件の名前を入れて見分ける）。ラベルでは入口とアプリの応答を分けられないので、アプリが返した 503（Turso に届かないときを含む）と業務の 429（回数の制限、ログインの停止、流れの上限など）も数える。業務の 429 を外すと入口が返す 429（同時の要求の枠が尽きた）も拾えないので、429 はしきい値を高くして急がない知らせにした（DEC-54 版 2）
+- name: 二つ目の規則（デモの期間だけ有効）
+  does: run.googleapis.com/job/completed_execution_count の result が failed のものが 1 件以上。毎日の処理のジョブだけを見る（ジョブの名前で絞り、運用のジョブは見ない。DEC-17）。期間の終わりに毎日の処理が止める（第 2 段階の DEC-37 版 4）
+format: Cloud Monitoring の通知（チャットへの通知の経路。チャットを選んでから決める）。急ぐか急がないかは条件の名前で示す
+protocol: Cloud Monitoring → 通知先
+auth: 通知先は Cloud Monitoring の設定にだけ置く（DEC-34）
+errors:
+- case: チャットが止まっている
+  signal: 届かない
+  caller_does: 残る危険（第 2 段階の F16）
+- case: 業務の 429 で (c) が鳴った（ログインや設定の符号の総当たり、流れの開き直しなど）
+  signal: 急がない知らせ
+  caller_does: 急がず、Logs Explorer で request.completed の route_id と符号、auth.* と stream.* のログを見て、入口の 429 か業務の 429 かを分ける。攻撃が続くならデモを閉じる（第 2 段階の DEC-21）
+idempotency: 条件が続く間は一度。外れたら閉じる（30 分で自動で閉じる）
+timing:
+  timeout: null
+  ordering: null
+  delivery: 指標は 60 秒ごとに取られ最大 120 秒遅れて見えるので、知らせまで 4〜5 分（遅延の予算）
+versioning: 規則の定義は infra に置き、手順だけが変える（DEC-27）
+observability: Cloud Monitoring が出来事を残す
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 一つ目の規則の条件を、急ぐ知らせ（5xx が 5 分で 5 件以上、またはインスタンスの指標が 10 分ない）と急がない知らせ（429 が 5 分で 30 件以上）に分け、引き換え（業務の 429 と入口の 429 を分けられない）を書いた。業務の 429 で鳴ったときの扱いを足した。二つ目の規則は毎日の処理のジョブだけを見て（運用のジョブは見ない）、期間の終わりに毎日の処理が止めると書いた
+  reason: '第 3 段階の再実行（2026-11-04）: DEC-54 版 2（FND-37）、第 2 段階の DEC-17 版 4・DEC-37 版 4'

@@ -1,0 +1,60 @@
+system:
+  name: Homework submission service (homework-portal)
+  boundary: The web app that students and teachers use (handing out, submitting, grading and returning homework), the monthly report the cram school office reads, and the servers and logs that run them. The parents' screens and tuition payments are left out.
+  purpose: Students hand in homework by the deadline, and teachers return it quickly
+  constraints: [Submitted files are kept in an external storage service]
+  data_producers: [External storage (submitted files)]
+  basis: stated
+kgis:
+- {id: KGI-01, name: Retention, measure: Students enrolled at month end ÷ students enrolled at month start, target: 95%, basis: stated}
+outcomes:
+- id: OUT-01
+  statement: Increase the students who submit homework by the deadline
+  verb: increase
+  kgis: [KGI-01]
+  basis: stated
+- id: OUT-02
+  statement: Decrease the inquiries about late returns
+  verb: decrease
+  kgis: [KGI-01]
+  basis: inferred
+users:
+- {id: USR-01, name: Student, category: primary, data_role: both, considered: true, exclusion_reason: null, basis: stated}
+- {id: USR-02, name: Teacher, category: primary, data_role: both, considered: true, exclusion_reason: null, basis: stated}
+- {id: USR-03, name: Developer, category: secondary-maintenance, data_role: consumer, considered: true, exclusion_reason: null, basis: inferred, basis_note: Inferred as the person who investigates failures}
+- {id: USR-04, name: Cram school office, category: indirect, data_role: consumer, considered: true, exclusion_reason: null, basis: stated}
+- {id: USR-05, name: Parent, category: indirect, data_role: consumer, considered: false, exclusion_reason: No screens for parents this cycle (question 2), basis: confirmed}
+cujs:
+- id: CUJ-01
+  name: Submit homework
+  users: [USR-01]
+  user_goal: Submit the right file by the deadline without getting lost
+  steps: [Open the assignment, Attach a file, Submit]
+  outcomes: [OUT-01]
+  basis: stated
+- id: CUJ-02
+  name: Grade and return
+  users: [USR-02]
+  user_goal: Grade submissions quickly and return them with comments
+  steps: [Open the submission, Grade, Return]
+  outcomes: [OUT-02]
+  basis: stated
+- id: CUJ-03
+  name: Investigate a failed submission
+  users: [USR-03]
+  user_goal: Find and fix the cause of a failed submission quickly
+  steps: [Get notified, Trace the logs, Fix the cause]
+  outcomes: []
+  basis: inferred
+  basis_note: The steps are inferred
+- id: CUJ-04
+  name: Check monthly submissions
+  users: [USR-04, USR-02]
+  user_goal: Find the students who have not submitted each month, and contact them
+  steps: [Open the report, Find the students who have not submitted]
+  outcomes: [OUT-01]
+  basis: stated
+hints:
+- {statement: Handles students' personal information, kind: law, source: The request document in the inputs}
+operational_facts:
+- {fact: Submissions peak in the 24 hours before the deadline, source: The request document in the inputs}

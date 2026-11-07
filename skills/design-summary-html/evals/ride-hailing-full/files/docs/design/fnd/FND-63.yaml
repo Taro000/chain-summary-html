@@ -1,0 +1,24 @@
+id: FND-63
+title: DEC-20 の負債を返すとき「一つのアカウントへの失敗が多くの IP から続いたとき」を知る仕組みがない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-20
+- DEC-16
+- DEC-17
+severity: minor
+evidence: DEC-20 の負債の repay_when は「一つのアカウントへの失敗が多くの IP から続いたとき」。DEC-16・17・35 には、アカウントごとのログインの失敗を IP の数で数えるものも知らせるものもない（grep）。返すときが来ても誰も気づかない
+suggestion: 毎日の処理の結果に、アカウントごとの失敗の数と IP の数を載せるなど、返すときを知る手段を書く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A9

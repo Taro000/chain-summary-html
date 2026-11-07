@@ -1,0 +1,47 @@
+id: DEC-07
+title: サーバーとデータベースを東京に置く
+status: draft
+version: 1
+basis: inferred
+basis_note: 提案（質問 9 は回答なし）。Turso の東京の地域は確かめる
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: サーバーとデータベースをどの地域に置くか
+addresses:
+- DRV-02
+- DRV-01
+- DRV-21
+- DRV-11
+options:
+- name: Cloud Run を東京（asia-northeast1）、Turso を東京（AWS ap-northeast-1）に置く
+  effect: 参加者とサーバー、サーバーとデータベースの往復が短い
+  cost: 地域ごとの値段の違い（未定の値）
+- name: Cloud Run を米国の地域に置く
+  effect: 値段の区分が安い地域がある（未定の値）
+  cost: 参加者との往復が太平洋を越え、データベースとの往復も延びる
+chosen: Cloud Run を東京（asia-northeast1）、Turso を東京（AWS ap-northeast-1）に置く
+rationale: DRV-02 の 5 秒と NFR-24 の 3 秒の中で、往復の多い作り（DEC-02 の状態の読み書き、DEC-03 の追いかけ）を支える。個人情報を国内に置くのは DRV-21 に合う（法令の中身の確かめは未解決の点）
+rejected:
+- option: Cloud Run を米国の地域に置く
+  reason: DRV-02 を一部しか満たさない
+gains:
+- 往復が短い
+- 個人情報を国内に置く
+costs:
+- なし（値段の違いは未定の値）
+sensitive_points: []
+trade_offs: []
+assumptions:
+- Turso に東京の地域（AWS ap-northeast-1）がある
+depends_on: []
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

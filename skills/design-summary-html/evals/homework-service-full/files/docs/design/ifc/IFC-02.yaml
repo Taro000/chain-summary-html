@@ -1,0 +1,53 @@
+id: IFC-02
+title: 採点の API
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: 採点の API
+provider: ELM-03
+consumers:
+- ELM-02
+functions:
+- FR-03
+- FR-05
+- FR-08
+operations:
+- name: GET /api/v1/teacher/submissions
+  does: 担当の提出の一覧
+- name: PUT /api/v1/teacher/submissions/{id}/grade
+  does: 採点を保存する
+- name: POST /api/v1/teacher/submissions/{id}/return
+  does: 返却して通知する
+- name: GET /api/v1/teacher/reports/monthly
+  does: 月次のレポートを返す
+format: JSON
+protocol: HTTPS
+auth: セッションのクッキー
+errors:
+- case: 'POST /api/v1/teacher/submissions/{id}/return: 採点が済んでいない'
+  signal: 409 NOT_GRADED
+  caller_does: 採点を促す
+- case: '共通: ログインしていない'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ
+- case: '共通: 要求の形が違う'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す
+idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+timing:
+  timeout: ブラウザ 10 秒
+  ordering: null
+  delivery: null
+versioning: 経路に v1
+observability: トレース ID をログに書く
+spec: ifc/specs/teacher.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: 作成
+  reason: 第 3 段階の下書き

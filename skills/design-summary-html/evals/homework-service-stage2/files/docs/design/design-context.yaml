@@ -1,0 +1,56 @@
+read_from:
+  quality_chain: docs/quality/
+  other:
+  - 利用者の入力（2026-09-15）
+technology_constraints:
+- id: TC-01
+  statement: TypeScript で書く
+  kind: mandated
+  source: 利用者の入力
+  basis: stated
+- id: TC-02
+  statement: 提出したファイルは外部のストレージ（ObjectStore）に置く
+  kind: external-service
+  source: context.yaml の制約
+  basis: stated
+- id: TC-03
+  statement: 塾の既存のクラウドの一つの地域で動かす
+  kind: platform
+  source: 利用者の入力、質問 2
+  basis: confirmed
+project_constraints:
+- id: PC-01
+  kind: budget
+  statement: 月 3 万円以内
+  source: 利用者の入力
+  basis: stated
+- id: PC-02
+  kind: deadline
+  statement: 新学期（4 月）までに出す
+  source: 利用者の入力
+  basis: stated
+- id: PC-03
+  kind: team
+  statement: 開発者 2 人。運用の専任はいない
+  source: 利用者の入力
+  basis: stated
+teams:
+- id: TEAM-01
+  name: 開発チーム
+  owns: すべて
+  basis: stated
+anticipated_changes:
+- id: CHG-01
+  change: 保護者向けの画面を足す
+  expected: 1 年以内
+  source: 利用者の入力
+  basis: stated
+stakeholders:
+- id: STK-01
+  role: 塾の経営者
+  concerns:
+  - 月の費用
+  - 新学期に間に合うこと
+  source: 利用者の入力
+  basis: inferred
+as_is: null

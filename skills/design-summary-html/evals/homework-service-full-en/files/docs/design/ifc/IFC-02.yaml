@@ -1,0 +1,53 @@
+id: IFC-02
+title: Grading API
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: Grading API
+provider: ELM-03
+consumers:
+- ELM-02
+functions:
+- FR-03
+- FR-05
+- FR-08
+operations:
+- name: GET /api/v1/teacher/submissions
+  does: Lists the teacher's submissions
+- name: PUT /api/v1/teacher/submissions/{id}/grade
+  does: Saves the grade
+- name: POST /api/v1/teacher/submissions/{id}/return
+  does: Returns the submission and notifies
+- name: GET /api/v1/teacher/reports/monthly
+  does: Returns the monthly report
+format: JSON
+protocol: HTTPS
+auth: Session cookie
+errors:
+- case: 'POST /api/v1/teacher/submissions/{id}/return: not graded yet'
+  signal: 409 NOT_GRADED
+  caller_does: Ask for the grade first
+- case: 'Common: not signed in'
+  signal: 401 UNAUTHENTICATED
+  caller_does: Go to the sign-in screen
+- case: 'Common: the request is malformed'
+  signal: 400 INVALID_REQUEST
+  caller_does: Fix the fields
+idempotency: State-changing requests carry an Idempotency-Key (DEC-08)
+timing:
+  timeout: Browser 10 s
+  ordering: null
+  delivery: null
+versioning: v1 in the path
+observability: Trace IDs in the logs
+spec: ifc/specs/teacher.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: Created
+  reason: Stage 3 draft

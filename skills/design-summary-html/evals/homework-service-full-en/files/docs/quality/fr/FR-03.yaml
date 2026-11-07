@@ -1,0 +1,21 @@
+id: FR-03
+title: Grading and returning
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+statement: The system returns to the student a submission that the teacher has scored and commented on.
+origin: cuj-step
+cuj: CUJ-02
+cuj_step: Return
+traces_to: [QIU-03, KPI-02]
+proposal: null
+existing: false
+extends: null
+interface: ['Screen: the student web app']
+acceptance_criteria: ['On return, the score and comments appear on the student''s screen.']
+quality_hints: []
+changelog:
+- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

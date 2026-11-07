@@ -1,0 +1,29 @@
+id: FND-45
+title: お金の結果（不在の料金、料金の請求の失敗、未払い）を乗客の画面に示す道が、受け入れ基準の一部で欠ける
+status: accepted
+version: 2
+basis: inferred
+basis_note: FR-13 AC1、FR-27 AC1、FR-28 AC1、FR-31 AC1、FR-44 AC4、報告書の CUJ-01-C・CUJ-07 の流れと CUJ-02・03 の画面の移り変わり、IFC-24 と IFC-25 の項目、passenger.openapi.yaml の PassengerRide と HistoryItem は入力（トレースはサブエージェント、ここに挙げたものはこの会話で確かめた）
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-24
+- IFC-25
+- IFC-02
+- IFC-08
+severity: major
+evidence: 活動 B1 で FR 54 件の受け入れ基準 200 件をたどると、177 件が通り、23 件は一部だけ通った。そのうち、お金の結果を乗客に示す次の基準は、画面の項目と画面の移り変わりに道がない。FR-27 AC1（不在で終えたことと 500 円を乗客に知らせる）は、流れが ride.updated no_show と 500 円を送るとするが、IFC-24 に不在の行がなく、迎車中の画面の移り先にも不在がない。PassengerRide は額を fare（booked、current）と payment（state、unpaidAmount、reason）でしか持たず、不在の料金を運ぶ欄がない。位置を確かめられなかった到着からの不在には、乗客への知らせがない。FR-31 AC1（請求に失敗すると、乗客の画面に理由と払う手段を示す）は、乗車の終わりの失敗だけが IFC-24 の「結果、請求に失敗」の行で通り、キャンセル料の失敗（取り消しの 200 で payment.state が unpaid）では画面は手配に戻り、不在の料金の失敗では画面がない。FR-13 AC1 と FR-28 AC1（乗車が終わると評価の画面を示す）は、画面の移り変わりで評価に行くのが「支払いの完了」だけで、未払いからは未払いの支払いを経て手配に戻り、確かめ中は結果の画面に留まる。そういう乗車では評価の画面が出ず、FR-13 AC4 の開いた時刻も残らない（CUJ-04）。FR-44 AC4（未払いの依頼に払う手段を示す）は、乗車の履歴（IFC-25）の移り先が報告だけで、HistoryItem は unpaid しか持たない
+suggestion: IFC-24 に、迎車中に不在で終えた場合（ride.updated no_show。確かめた到着なら 500 円、確かめられなかった到着なら請求なし）と、取り消しと不在の料金の請求に失敗した場合の行を足し、PassengerRide に請求した額か料金の欄を足す。画面の移り変わりで、確かめ中と未払い（払った後を含む）からも評価の画面に行けるようにする。乗車の履歴の未払いから未払いの支払い（IFC-23）に移れるようにする
+resolution: "受け入れた。IFC-24 に、迎車中に不在で終えた場合（確かめた到着なら 500 円、確かめられなかった到着なら請求なし）と、キャンセル料と不在の料金の請求に失敗した場合（未払い）の行を足した。PassengerRide に charge（種類と請求した額）を足した。画面の移り変わりで、checking と unpaid（払った後を含む）からも評価の画面に行け、乗車の履歴の未払いから未払いの支払いに移れるようにした"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B1）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

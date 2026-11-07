@@ -1,0 +1,75 @@
+id: IFC-23
+title: 乗客のアカウントと支払い手段の画面
+status: draft
+version: 2
+basis: inferred
+basis_note: FR の受け入れ基準は入力（FR-01 版 3。乗客が自分でアカウントを作る画面はなく、ログインと設定の符号でパスワードを決める画面だけ）。画面の分け方、移り先、空のときの示し方は推定
+needs_agreement: false
+approver_candidates: []
+kind: screen
+name: 乗客のアカウントと支払い手段の画面
+provider: ELM-01
+consumers:
+- USR-01
+functions:
+- FR-01
+- FR-04
+- FR-31
+operations:
+- name: ログイン
+  does: CUJ-01 の前。メールアドレスとパスワード → 手配（未払いがあれば未払いの支払い）。「設定の符号でパスワードを決める」→ パスワードの設定。ログインしていない人にはこの二つの画面だけを示し、自分でアカウントを作る画面はない（FR-01 AC3）
+- name: パスワードの設定
+  does: 運営・サポート担当から受けた設定の符号と新しいパスワード（IFC-01 POST /api/v1/auth/setup）→ 決められたらログインした状態で支払い手段（なければ）か手配（FR-01 AC1）。パスワードを忘れたときも、出し直してもらった符号でここから決め直す（FR-48 AC6）
+- name: 支払い手段
+  does: 登録した支払い手段（種類と下 4 桁）、追加（Stripe の入力部品。IFC-14）、既定の変更、削除（FR-04）
+- name: 未払いの支払い
+  does: 未払いの依頼、額、理由。支払い手段を選んで払う（FR-31 AC1・2）
+format: React の SPA の画面（DEC-23）。文言は日本語（DEC-46）。WCAG 2.2 AA（DRV-24）
+protocol: iOS の Safari（ELM-15）。IFC-01、IFC-02、IFC-14 を呼ぶ
+auth: ログインとパスワードの設定のほかは乗客のセッション
+errors:
+- case: 'ログイン: 資格情報が違う'
+  signal: IFC-01 INVALID_CREDENTIALS
+  caller_does: その旨を示す（FR-01 AC5）
+- case: 'ログイン: 一時の停止'
+  signal: IFC-01 ACCOUNT_LOCKED
+  caller_does: 再開の時刻を示す
+- case: 'パスワードの設定: 符号が違う、期限切れ、使用済み、出し直す前のもの'
+  signal: IFC-01 SETUP_CODE_INVALID
+  caller_does: パスワードを決めさせず、運営・サポート担当に符号の出し直しを頼むよう示す（FR-01 AC2）
+- case: 'パスワードの設定: パスワードが短いなど、形が違う'
+  signal: IFC-01 INVALID_REQUEST
+  caller_does: 欄ごとに理由を示す
+- case: '支払い手段: ない'
+  signal: 空の一覧
+  caller_does: 「支払い手段がありません」と追加の操作を示す
+- case: '支払い手段: カードが受け付けられない'
+  signal: 入力部品のエラー、IFC-02 PAYMENT_METHOD_REJECTED
+  caller_does: 理由を示す（FR-04 AC2）
+- case: '支払い手段: 進行中の依頼で使っている'
+  signal: IFC-02 PAYMENT_METHOD_IN_USE
+  caller_does: 削除しない旨を示す（FR-04 AC3）
+- case: '未払いの支払い: 断られた'
+  signal: IFC-02 CARD_DECLINED
+  caller_does: 理由を示し、別の支払い手段を選ばせる
+- case: '未払いの支払い: 結果が分からない'
+  signal: IFC-02 PAYMENT_PENDING
+  caller_does: 「確かめています」と示し、配信で待つ
+idempotency: 画面は操作ごとに冪等キーを一つ作り、応答が分からないときは同じキーでだけ送り直す（API の呼び出しのモジュール。DEC-48）。二度押しは同じキーにまとまる
+timing:
+  timeout: API の 15 秒を待つ間は進み具合を示す
+  ordering: null
+  delivery: null
+versioning: SPA の版を X-App-Version と比べ、操作の途中でないときに読み直す（DEC-49）。読み直した後は GET で今の状態を取り直す
+observability: ブラウザのエラーの記録（IFC-05）
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 自分でアカウントを作る画面とその二つのエラーの行を外し、ログインと設定の符号でパスワードを決める画面だけにした（IFC-01 POST /api/v1/auth/setup）。符号が違うときは運営・サポート担当に出し直しを頼むよう示す行を足した。FR-01 の受け入れ基準の番号を版 3 に合わせた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-01 版 3、FR-48 版 2）'

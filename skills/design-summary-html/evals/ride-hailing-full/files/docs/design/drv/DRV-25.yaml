@@ -1,0 +1,30 @@
+id: DRV-25
+title: 役割ごとの権限
+status: draft
+version: 2
+basis: inferred
+basis_note: 要求は QR-47（入口はセキュリティのリスク分析。中身は未確認）。交渉できないことは質問 9 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: constraint
+statement: 管理の画面（参加者のアカウントの作成と設定の符号の出し直し、ドライバーと車両の登録、停止と再開、対処、返金）とエンジニアの画面（ログと履歴の検索）の操作は、その役割のアカウントだけに許す
+sources: [QR-47, NFR-31, FR-40, FR-45, FR-46, FR-47, FR-48, FR-49, FR-50]
+concern_of: [USR-03, USR-04]
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: 交渉できない制約。入口（セキュリティのリスク分析）から来た要求
+  difficulty: low
+  difficulty_reason: 役割の判定を一か所に置けば満たせる
+  rank: 17
+primary: true
+conflicts: []
+placeholders: []
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - version: 2
+    date: 2026-11-03
+    change: 役割で限る管理の操作に、参加者のアカウントの作成と設定の符号の出し直しを足した
+    reason: 品質チェーンの再実行（FR-48 版 2、QR-47 版 2。回答の設計 2-9）に追随した（第 1 段階の再実行、3 回目）

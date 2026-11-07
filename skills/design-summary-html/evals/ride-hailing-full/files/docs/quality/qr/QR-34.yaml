@@ -1,0 +1,38 @@
+id: QR-34
+title: ログと状態の履歴を取り出せる
+status: draft
+version: 2
+basis: inferred
+basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意。現在地の受信の記録と苦情の調べ（FR-17 版 2、FR-45 版 2）を加え、たどる先に QIU-23 を足したことは第 3 段階の質問 21 で確認済み。保存期間は変えない（2026-11-03 の回答、設計 2-3。苦情はデモの期間の中で扱う）
+needs_agreement: true
+approver_candidates: [開発の責任者, プロダクトオーナー]
+model: data
+layer: data-system-dependent
+characteristic: availability
+statement: ログ、状態の履歴、現在地の受信の記録は、決めた保存期間（T_log_retention）の間、エンジニアが取り出せる。現在地の受信の記録は、その間、苦情の調べ（FR-45）で運営・サポート担当も取り出せる。
+applies_to: [FR-17, FR-39, FR-40, FR-45]
+traces_to: [QIU-18, QIU-23]
+entry_point: null
+stakeholders: [USR-03, USR-04]
+failure_scenario: 必要なログが保存期間の前に消え、過去の障害を調べられない。苦情を受けた乗車の現在地の受信の記録が保存期間の前に消え、ドライバーがどこを走ったかを確かめられない。
+score: {impact: 3, likelihood: 2}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts:
+  - with: QR-40
+    note: 個人情報を期限で消すほど調べられる期間が短くなる。T_log_retention と T_pii_retention を合わせて決める（要合意）
+stated_numbers: []
+placeholders:
+  - name: T_log_retention
+    meaning: ログ、状態の履歴、現在地の受信の記録を取り出せる期間（第 4 段階の提案は 28 日）
+    from: この段階
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: '2026-11-03'
+    change: 現在地の受信の記録を対象に加え、苦情の調べで運営・サポート担当も取り出せることを要求に足した。FR-17・45 を対象に、QIU-23 をたどる先に足した
+    reason: 第 2 段階の再実行（2026-11-03）の FR-17 版 2・FR-45 版 2 への追随（docs/quality-chain-answers.md の設計 2-3）

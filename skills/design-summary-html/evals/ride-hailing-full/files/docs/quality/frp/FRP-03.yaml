@@ -1,0 +1,28 @@
+id: FRP-03
+title: 現在地の誤差が大きいときに乗る場所を確かめさせる
+status: accepted
+version: 2
+basis: inferred
+basis_note: 推定
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-28]
+changes: FR-02
+reason: FR-02 は現在地を誤差に関わらずそのまま乗る場所に入れる。建物の中などで誤差が大きいと、乗る場所が乗客の待つ場所を表さない。
+suggested_statement: システムは、乗る場所に入れた現在地の誤差が D_pickup_accuracy を超えるとき、乗る場所を現在地のまま確定させず、地図のピンで確かめるよう求める。
+affects: [FR-02, QR-28]
+placeholders:
+  - name: D_pickup_accuracy
+    meaning: 現在地の誤差が何メートルを超えたらピンで確かめさせるか
+    from: この段階
+resolution: FR-02 を版 2 に変えて受け入れた。現在地の誤差が D_pickup_accuracy を超えるとき、ピンで確かめさせる（第 2 段階の質問 13）
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 提案
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 受け入れ
+    reason: 第 2 段階の再実行

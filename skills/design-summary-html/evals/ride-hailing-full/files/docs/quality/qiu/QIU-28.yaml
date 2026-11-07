@@ -1,0 +1,49 @@
+id: QIU-28
+title: 新しい機能を早く配備できる状態にする
+status: draft
+version: 3
+basis: inferred
+basis_note: 変更の速さを扱うことと式は質問 14 で確認済み。T_lead と変更の種類ごとの絞り込みは推定。記録が今はないことは質問 9 で確認済み。T_lead_feature の値は 2026-11-01 の利用者の回答で決めた。値が変更の種類ごとに違うので、T_lead を 3 つの名前に分けた（時間は実時間で数える。推定）。「本番に出す」を「main に入って CI が通り、次のデモの回に配備できる状態になる」として測り、次の回を待つ時間を含めないことは、2026-11-03 の回答（設計 1-1）で確認済み
+needs_agreement: true
+approver_candidates:
+  - 開発の責任者
+  - プロダクトオーナー
+user: USR-03
+cuj: CUJ-11
+outcomes: []
+need: 既存のシステムを壊さずに、早く変更を本番に出したい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: エンジニア
+  task: 新しい機能を加える変更
+  environment: main と CI（デモの環境への配備はデモの回に行う）
+  other: null
+characteristic: efficiency
+statement: エンジニアは、新しい機能の変更を、最初のコミットから 24 時間（T_lead_feature）以内に、次のデモの回に配備できる状態（main に入って CI が通った状態）にできる。
+failure_scenario: テストや確認に手間がかかって新しい機能の変更がなかなか配備できる状態にならず、次のデモの回に間に合わないと、乗客やドライバーの困りごとがその回にも残る。
+measure:
+  numerator: 最初のコミットから 24 時間（T_lead_feature）以内に main に入って CI が通った変更
+  denominator: main に入って CI が通った変更
+  narrowed_to: 新しい機能を加える変更
+  denominator_needed_only: main に入って CI が通った変更だけ（途中でやめた変更は含めない）。次のデモの回を待つ時間は含めない
+  contribution: テストと CI の仕組みに直接つながる。変更の大きさにも左右される。デモの回の日程には左右されない（配備を待つ時間を数えない）
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 質問 9 の回答（変更の速さは扱わないという前提が誤り）と質問 14 の回答から追加
+  - version: 2
+    date: '2026-11-01'
+    change: しきい値 T_lead_feature に値を入れた（T_lead を変更の種類ごとに分けた）
+    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま
+  - version: 3
+    date: '2026-11-03'
+    change: 「本番に出す」を「main に入って CI が通り、次のデモの回に配備できる状態になる」として測るように、要求、測定量、利用状況、失敗のシナリオを変えた。次の回を待つ時間は含めない。T_lead_feature の値（24 時間）は変えない
+    reason: 設計の連鎖の第 1 段階が返した課題 1（サーバーはデモの回にしか動かない。設計の TC-07）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

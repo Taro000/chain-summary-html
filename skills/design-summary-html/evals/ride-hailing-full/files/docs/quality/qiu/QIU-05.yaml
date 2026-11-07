@@ -1,0 +1,39 @@
+id: QIU-05
+title: 手配した車以外に乗らない
+status: draft
+version: 1
+basis: inferred
+basis_note: 確認の手間を省くニーズは入力。なりすましの危険を防ぐ目的は質問 8 で確認済み。測定量は推定
+needs_agreement: false
+approver_candidates: []
+user: USR-01
+cuj: CUJ-02
+outcomes: []
+need: 手配した車かどうかを確かめたい。変なドライバーに当たりたくない
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: 乗客
+  task: 迎車に乗る
+  environment: 乗車場所（路上）
+  other: null
+characteristic: freedom from risk > health and safety risk mitigation
+statement: 乗客は、手配した車以外（手配したドライバーを装った車を含む）に乗ってしまうことがない。
+failure_scenario: 乗客が手配した車と取り違えて、またはドライバーを装った者の車に乗り、危険な目に遭う。
+measure:
+  numerator: 手配した車と違う車に乗ったと報告された乗車
+  denominator: 乗車が始まった乗車
+  narrowed_to: スマートフォンのブラウザ
+  denominator_needed_only: 乗車が始まった乗車だけ
+  contribution: 乗車時の確認の仕組み（車両の番号の表示など）に直接つながるが、件数が少ないため A/B で比べるのは難しい
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

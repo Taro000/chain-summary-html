@@ -1,0 +1,29 @@
+id: FR-51
+title: 近くのドライバーの数の表示
+status: draft
+version: 1
+basis: inferred
+basis_note: QIU-11 から導いた。加えることは質問 7 で確認済み。示す相手と数え方は推定。D_nearby_drivers は要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+statement: システムは、しきい値を設定した乗客に、手配の前に、乗る場所から D_nearby_drivers 以内で受付中のドライバーの数と、そのうちしきい値を満たすドライバーの数を示す。
+origin: quality-in-use
+cuj: CUJ-01
+cuj_step: 移動時間と料金を確認する
+traces_to: [QIU-11]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 乗客の Web アプリ（手配）"
+acceptance_criteria:
+  - しきい値を設定した乗客が乗る場所を決めると、手配の前に、乗る場所から D_nearby_drivers 以内で受付中のドライバーの数と、そのうちしきい値を満たす（FR-16 で依頼を示す）ドライバーの数を示す。
+  - 乗る場所を変えると、数え直す。
+  - しきい値を満たすドライバーが一人もいないとき、その旨と、しきい値を下げられること（FR-14）を示す。手配は止めない。
+quality_hints:
+  - 利用状況完全性 (QIU-11) - しきい値を設定した乗客が、手配の前にしきい値で相手が減ることを知れる
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

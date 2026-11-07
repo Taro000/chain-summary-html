@@ -1,0 +1,51 @@
+id: DEC-02
+title: Upload files straight to the storage with signed URLs
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: How are submitted files stored without passing through the server?
+addresses:
+- DRV-01
+- DRV-05
+- DRV-02
+options:
+- name: Direct upload with a signed URL
+  effect: No extra load on the server
+  cost: The URLs' expiry must be handled
+- name: The server receives and stores the file
+  effect: Simple to build
+  cost: The server chokes before deadlines
+chosen: Direct upload with a signed URL
+rationale: In the rush before a deadline (DRV-01), a server receiving the files would choke.
+rejected:
+- option: The server receives and stores the file
+  reason: Chokes before deadlines (DRV-01)
+gains:
+- Files add no server load, even before deadlines
+costs:
+- Expired URLs must be handled
+sensitive_points:
+- The signed URL's expiry
+trade_offs:
+- with: DRV-08
+  note: Anyone holding the URL can upload until it expires
+assumptions: []
+depends_on:
+- DEC-01
+parameters:
+- name: Signed URL expiry
+  value: 15 minutes
+  basis: Provisional; the time from opening the screen to submitting
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

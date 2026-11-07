@@ -1,0 +1,43 @@
+id: NFR-39
+title: 料金がチームの運賃表に従う
+status: draft
+version: 4
+basis: inferred
+basis_note: チームが運賃表を書き、それと照らすことは質問 3 で確認済み。R_fare は 2026-11-01 の利用者の回答（context.yaml の制約）。km と分の刻み、1 円未満の端数、消費税の扱いは未定で、それまでは境の値の例を書けない。実在の運賃の定めの中身は書かない
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-36
+kind: gate
+cuj: CUJ-01
+statement: チームが書く模擬の運賃の定め（R_fare）の例を自動テストにし、料金の計算（FR-03、FR-07、FR-12、FR-27、FR-29）が R_fare と一致することを確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: R_fare の例（距離、時間、迎車料金、アプリ手配料、降車場所の変更、許諾の後の取り消しのキャンセル料、迎車の遅れで無料になる取り消し、不在の料金、位置を確かめられなかった到着での不在）での計算
+  threshold: すべて一致する
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-01'
+  change: R_fare の中身が決まったので、確かめる例にキャンセル料を足した
+  reason: 2026-11-01 の利用者の回答への追随
+- version: 3
+  date: '2026-11-01'
+  change: 不在の料金と、迎車の遅れで無料になる取り消しの例を加えた
+  reason: 第 4 段階の再実行（第 2 段階 7d0cb6d・08c3ee0、第 3 段階 156240c・9c28917）
+- version: 4
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

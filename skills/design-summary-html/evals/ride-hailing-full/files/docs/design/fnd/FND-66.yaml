@@ -1,0 +1,29 @@
+id: FND-66
+title: 報告書と DEC に、版を上げた項目に追随していない記述が残る
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-03
+- DEC-04
+- DEC-09
+- DEC-10
+- DEC-13
+- DEC-15
+- DEC-37
+- DEC-12
+severity: minor
+evidence: (1) 報告書の DEC-09・10・13 の節が版 2・3・4 の変更（DEC-09 の三つの応答を左右する点、DEC-10 のシステムの取り消しとやめたときの解放、DEC-13 の NFR-07 版 3 の誤りの種類）を映していない（変わった項目の表は書いたとする）。(2) 負債の表の DEC-37 の行は「強いて閉じた・終えたときに残った押さえは」のままで、DEC-37 版 4 の「許諾の後の依頼の押さえ」に縮めていない。(3) 設計上の値の導いた数の段落に、置き換わった「2.7 秒」「3.7 倍」「6.5 秒」と、版 5 で外した「優先の流れは…8 本」「取り置き 300 回は 198 回の 1.52 倍」が、そう断らずに残る。(4) DEC-03（chosen の説明と前提）と報告書の決定の表に「上限と優先は DEC-21」が残る（DEC-21 版 5 は優先を外した）。(5) 報告書の DEC-15 の節に「位置のない変化は理由を持つ」「（到着、運転の開始、乗車の終わり、不在など）」が残り、情報のビューの位置の記録の出どころに ELM-01（乗客）がある（場所で行う四つの操作はどれもドライバーの操作）。(6) DEC-04 の P_sweep のもと「期限は分の単位で、5 秒のずれは小さい」は、版 3 で秒の単位の T_hold_wait（60 秒の 8.3%）を見回りで判定するようになったのに直っておらず、T_hold_wait と T_request_max は設計上の値の表にない。(7) 要合意の DEC-12 の行の「やり直しの回数（…同じキーで 3 回まで）」は、設計上の値の「同じキーで 2 回」と回数の数え方が違う（どちらも 3 回送る意味）
+suggestion: 各所を今の版に合わせる。(3) は置き換わった数に「（版 N で置き換え）」と断るか消す。(6) は T_hold_wait を見て P_sweep のもとを書き直し、二つの値の行を足す
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A5、A3（分かりやすいか）

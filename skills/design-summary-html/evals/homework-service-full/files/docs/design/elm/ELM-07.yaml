@@ -1,0 +1,24 @@
+id: ELM-07
+title: クラウドの実行環境
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: node
+name: クラウドの実行環境
+responsibility: API サーバーと夜間のバッチを動かす
+functions: []
+drivers: []
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: null
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

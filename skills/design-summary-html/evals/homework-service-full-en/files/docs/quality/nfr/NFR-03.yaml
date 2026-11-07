@@ -1,0 +1,19 @@
+id: NFR-03
+title: Receipt E2E test
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-03]
+kind: gate
+cuj: CUJ-01
+statement: An E2E test checks everything from submitting to the receipt, and a failure stops the deploy.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: null
+gate: {where: CI, check: E2E test from submitting to the receipt, threshold: 0 failures}
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

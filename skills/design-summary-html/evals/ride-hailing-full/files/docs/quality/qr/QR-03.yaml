@@ -1,0 +1,40 @@
+id: QR-03
+title: 手配の画面の応答
+status: draft
+version: 2
+basis: inferred
+basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: performance efficiency > time behaviour
+statement: システムは、手配の画面の操作（場所の検索、所要時間・到着予定時刻・料金の計算、手配の確定）に、乗客が T_book 秒以内に手配を終えるのを妨げない速さで応える。
+applies_to: [FR-02, FR-03, FR-05]
+traces_to: [QIU-03]
+entry_point: null
+stakeholders: [USR-01, 地図・経路・渋滞の情報の外部サービス]
+failure_scenario: 場所の検索と料金の計算で外部サービスを続けて呼び、手配の画面が止まり、急ぐ乗客が手配を諦める。
+score: {impact: 3, likelihood: 3}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts:
+  - with: QR-07
+    note: 外部サービスの呼び出しを待つ時間とやり直しが手配の待ち時間に加わる。待つ時間の上限を手配の待ち時間の中に収め、配分は第 4 段階で決める
+  - with: QR-28
+    note: 誤差が大きいときにピンで確かめさせると（FR-02 版 2）手配の手間が増える。誤差が D_pickup_accuracy を超えるときだけ確かめさせる
+stated_numbers: []
+placeholders:
+  - name: T_book
+    meaning: 手配の画面を開いてから手配を確定するまでの秒数
+    from: QIU-03
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: FRP-03 が FR-02 版 2 として受け入れられたことを競合の記述に反映した
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

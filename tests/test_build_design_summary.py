@@ -1,224 +1,47 @@
-"""Tests for design-summary-html's build script. They need PyYAML; run them from the repository root like this:
+"""Tests for design-summary-html's build script and its eval grader. They need PyYAML; run them from the repository root:
 
   uv run --with pyyaml python3 -m unittest discover -s tests -v
 
-The fixture is a small, made-up design (one driver of each kind that matters, two decisions, two elements, one
-interface, one data entity) written into a temporary directory, so the tests do not depend on any other repository.
+The inputs are the eval cases in skills/design-summary-html/evals/: the fictional homework submission service (written
+by tests/make_homework_design_fixture.py, in Japanese and English) and a copy of ride-hailing-app-demo's outputs.
 """
+import importlib.util
+import json
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / 'skills' / 'design-summary-html' / 'scripts' / 'build_design_summary.py'
-
-ITEMS = {
-    'drv/DRV-01.yaml': """
-        id: DRV-01
-        title: 注文をすぐ確定する
-        status: draft
-        kind: quality
-        statement: 注文を待たせずに確定する
-        sources: [QR-02, NFR-01]
-        scenario: {source: 買い手, stimulus: 注文を送る, artifact: FR-01, environment: セールの山, response: 確定を示す, measure: 99% が 1.5 秒以内}
-        priority: {business: high, business_reason: QR-02 が重視, difficulty: high, difficulty_reason: 決済の待ちが入る, rank: 2}
-        primary: true
-        conflicts: [{with: DRV-02, note: 審査が待ちを足す（FND-03）}]
-    """,
-    'drv/DRV-02.yaml': """
-        id: DRV-02
-        title: 決済は外部に任せる
-        status: draft
-        kind: constraint
-        statement: カード番号はサーバーに届かない
-        sources: [TC-01]
-        negotiable: false
-        priority: {business: high, business_reason: 交渉できない制約, difficulty: medium, difficulty_reason: 画面に部品を埋める, rank: 1}
-        primary: true
-        conflicts: [{with: DRV-01, note: 審査が待ちを足す}]
-    """,
-    'drv/DRV-03.yaml': """
-        id: DRV-03
-        title: 古い制約
-        status: retired
-        kind: constraint
-        statement: 廃止した
-    """,
-    'dec/DEC-01.yaml': """
-        id: DEC-01
-        title: 一つのサーバーにする
-        status: draft
-        stage: architecture
-        question: システムをどう分けるか
-        addresses: [DRV-02, DRV-01]
-        options:
-          - {name: 一つのサーバー, effect: 一人で動かせる, cost: 一つが止まると全体が止まる}
-          - {name: 機能ごとのサービス, effect: 別々に増やせる, cost: 運用が増える}
-        chosen: 一つのサーバー
-        rationale: 一人で動かせる案だけが DRV-02 を満たす。前の版は二つに分けていた
-        rejected: [{option: 機能ごとのサービス, reason: 一人で動かせない}]
-        gains: [配備が一つで済む]
-        costs: [一つの障害の単位になる]
-        sensitive_points: [インスタンスの数]
-        trade_offs: [{with: DRV-01, note: 増やす余地が減る}]
-        assumptions: [利用者は少ない]
-        depends_on: []
-        parameters: [{name: 最大のインスタンス, value: '1', basis: 利用者が少ない}]
-        debt: {what: 一つの障害の単位, why_accepted: 規模が小さい, repay_when: 利用者が増えたとき}
-        deferred: false
-    """,
-    'dec/DEC-02.yaml': """
-        id: DEC-02
-        title: エラーの形
-        status: draft
-        stage: high-level-design
-        question: エラーをどの形で返すか
-        addresses: [IFC-01]
-        options: [{name: 問題の詳細, effect: 標準, cost: なし}]
-        chosen: 問題の詳細
-        rejected: []
-        parameters: [{name: limit, value: 既定 20, basis: 提案}]
-    """,
-    'dec/DEC-03.yaml': """
-        id: DEC-03
-        title: 詳細設計の決定
-        status: draft
-        stage: detailed-design
-        question: 第 4 段階の問い
-    """,
-    'elm/ELM-01.yaml': """
-        id: ELM-01
-        title: サーバー
-        status: draft
-        kind: component
-        name: サーバー
-        responsibility: 注文を受けて確定する
-        functions: [FR-01, FR-02, FR-03, FR-05]
-        drivers: [DRV-01]
-        team: TEAM-01
-        as_is: new
-    """,
-    'elm/ELM-02.yaml': """
-        id: ELM-02
-        title: データベース
-        status: draft
-        kind: data-store
-        name: データベース
-        responsibility: 注文を持つ
-        functions: []
-        drivers: []
-        team: TEAM-01
-        as_is: new
-    """,
-    'ifc/IFC-01.yaml': """
-        id: IFC-01
-        title: 注文の API
-        status: draft
-        kind: http
-        name: 注文の API
-        provider: ELM-01
-        consumers: [ELM-02]
-        functions: [FR-01]
-        operations: [{name: POST /v1/orders, does: 注文を確定する}]
-        errors:
-          - {case: 'POST /v1/orders: カードが通らない', signal: 402 CARD_DECLINED, caller_does: 断りを示す}
-          - {case: '共通: ログインしていない', signal: 401 UNAUTHENTICATED, caller_does: ログインの画面へ}
-        spec: ifc/specs/orders.openapi.yaml
-    """,
-    'dat/DAT-01.yaml': """
-        id: DAT-01
-        title: 注文
-        status: draft
-        entity: 注文
-        owner: ELM-01
-        store: ELM-02
-        consistency: 一つのトランザクションで書く
-        retention: null
-        classification: personal（買い手の住所）
-    """,
-    'design-context.yaml': """
-        technology_constraints:
-          - {id: TC-01, statement: カードは決済サービスの部品で受ける, kind: external-service, source: 入力, basis: stated}
-        project_constraints:
-          - {id: PC-01, kind: team, statement: 一人, source: 入力, basis: confirmed}
-        teams:
-          - {id: TEAM-01, name: 開発者, owns: すべて, basis: stated}
-        stakeholders: []
-    """,
-}
-
-# The reports restate some items; this one is stale (its ranking table lists DRV-09, which no item has)
-REPORT1 = """
-    # 設計を動かす要求: お店
-
-    ## 順位表
-
-    | 順位 | DRV | 事業の優先度 | 理由 | 設計上の難しさ | 理由 | 主 |
-    |---|---|---|---|---|---|---|
-    | 1 | DRV-02 | 高 | x | 中 | x | はい |
-    | 2 | DRV-09 | 高 | x | 高 | x | はい |
-
-    ## 関心事の一覧
-
-    | 入力の項目 | 種類 | 誰の関心事 | なったもの |
-    |---|---|---|---|
-    | QR-02 | 品質 | 買い手 | DRV-01 |
-
-    ## 実現できるか
-
-    | 主な要求 | 判定 |
-    |---|---|
-    | DRV-01 | できる |
-"""
-
-REPORT2 = """
-    # アーキテクチャ: お店
-
-    ## 設計の決定
-
-    | DEC | 問い | 選んだ案 | 対象 | 退けた案 | 根拠 |
-    |---|---|---|---|---|---|
-    | DEC-01 | 報告書の古い問い | 報告書の古い案 | DRV-01 | x | 推定 |
-
-    ### DEC-01 全体の構造
-
-    | 要求（順位） | 一つのサーバー | 機能ごと |
-    |---|---|---|
-    | DRV-02（1） | 満たす | 満たさない |
-
-    ## ビュー
-
-    ### 外部との関係
-
-    ```mermaid
-    flowchart LR
-      a["ELM-01"] --> b["ELM-02"]
-    ```
-"""
+SKILL = ROOT / 'skills' / 'design-summary-html'
+SCRIPT = SKILL / 'scripts' / 'build_design_summary.py'
+EVALS = SKILL / 'evals'
+JAPANESE = re.compile(r'[　-ヿ㐀-鿿＀-￯]')
+sys.path.insert(0, str(ROOT / 'tests'))
 
 
-def write_fixture(root: pathlib.Path, reports=True) -> pathlib.Path:
-    d = root / 'docs' / 'design'
-    for name, body in ITEMS.items():
-        p = d / name
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(textwrap.dedent(body).lstrip(), encoding='utf-8')
-    if reports:
-        (d / '1-architecture-drivers.md').write_text(textwrap.dedent(REPORT1).lstrip(), encoding='utf-8')
-        (d / '2-architecture.md').write_text(textwrap.dedent(REPORT2).lstrip(), encoding='utf-8')
-    return d
+def load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    m = importlib.util.module_from_spec(spec)
+    sys.modules[name] = m          # dataclasses look the module up while it loads
+    spec.loader.exec_module(m)
+    return m
 
 
-def build(d: pathlib.Path, *extra):
-    out = d / 'summary.html'
-    r = subprocess.run([sys.executable, str(SCRIPT), str(d), '--out', str(out)] + list(extra),
-                       capture_output=True, text=True, timeout=120)
-    page = out.read_text(encoding='utf-8') if out.exists() else ''
-    return r, page
+bd = load('build_design_summary', SCRIPT)
+gd = load('grade_design_eval', ROOT / 'tests' / 'grade_design_eval.py')
+
+
+def design_of(case):
+    return EVALS / case / 'files' / 'docs' / 'design'
+
+
+def build(design, out, *extra):
+    return subprocess.run([sys.executable, str(SCRIPT), str(design), '--out', str(out)] + list(extra),
+                          capture_output=True, text=True, timeout=180)
 
 
 def toggle(page, tid):
@@ -226,98 +49,314 @@ def toggle(page, tid):
     return m.group(0) if m else ''
 
 
-class YamlFirst(unittest.TestCase):
+def toggle_ids(page):
+    return re.findall(r'<details class="tbl" id="([^"]+)"', page)
+
+
+def visible(page):
+    return re.sub(r'<[^>]+>', ' ', re.sub(r'<script.*?</script>|<style.*?</style>|<pre class="mmd-src".*?</pre>', '', page, flags=re.S))
+
+
+class Case(unittest.TestCase):
+    """Builds one eval case twice, and grades the first page as a run (the script's report stands in for the final report)"""
+    case = None
+
     @classmethod
     def setUpClass(cls):
-        cls.tmp = tempfile.TemporaryDirectory()
-        cls.d = write_fixture(pathlib.Path(cls.tmp.name))
-        cls.r, cls.page = build(cls.d)
+        if cls.case is None:
+            raise unittest.SkipTest('base class')
+        cls.tmp = pathlib.Path(tempfile.mkdtemp())
+        out = cls.tmp / 'iteration' / cls.case / 'script' / 'outputs'
+        out.mkdir(parents=True)
+        cls.run1 = build(design_of(cls.case), out / 'summary.html')
+        cls.run2 = build(design_of(cls.case), cls.tmp / 'b.html')
+        cls.page = (out / 'summary.html').read_text(encoding='utf-8') if cls.run1.returncode == 0 else ''
+        (out / 'report.md').write_text(cls.run1.stdout, encoding='utf-8')
+        cls.passed, cls.total = gd.grade(out.parent, cls.case)
+        cls.grading = json.loads((out.parent / 'grading.json').read_text(encoding='utf-8'))
 
     @classmethod
     def tearDownClass(cls):
-        cls.tmp.cleanup()
+        shutil.rmtree(cls.tmp)
 
-    def test_written(self):
-        self.assertEqual(self.r.returncode, 0, self.r.stdout + self.r.stderr)
-        self.assertIn('<title>お店の設計</title>', self.page)
+    def test_builds_and_is_deterministic(self):
+        self.assertEqual(self.run1.returncode, 0, self.run1.stderr + self.run1.stdout)
+        self.assertEqual((self.tmp / 'iteration' / self.case / 'script' / 'outputs' / 'summary.html').read_bytes(),
+                         (self.tmp / 'b.html').read_bytes())
 
-    def test_ranking_follows_the_yaml(self):
-        rank = toggle(self.page, 't-rank')
-        self.assertLess(rank.index('rank-DRV-02'), rank.index('rank-DRV-01'))
-        self.assertNotIn('DRV-09', rank)
-        self.assertNotIn('DRV-03', rank)                    # retired
+    def test_passes_every_grader(self):
+        failed = [(e['text'][:60], e['evidence']) for e in self.grading['expectations'] if not e['passed']]
+        self.assertEqual(failed, [])
 
-    def test_stale_report_is_reported(self):
-        self.assertIn('順位表: 報告書にあって YAML にない DRV-09', self.r.stdout)
-        self.assertIn('順位表: YAML にあって報告書にない DRV-01', self.r.stdout)
-        self.assertIn('食い違い:', toggle(self.page, 't-notes'))
 
-    def test_decision_from_the_yaml_not_the_report(self):
+class HomeworkFull(Case):
+    case = 'homework-service-full'
+
+    def test_japanese_page(self):
+        self.assertIn('<html lang="ja">', self.page)
+        self.assertIn('<title>課題提出サービスの設計</title>', self.page)
+        self.assertIn('言語: ja（資料から判定）', self.run1.stdout)
+
+    def test_reports_the_planted_mismatch_and_what_it_left_out(self):
+        out = self.run1.stdout
+        self.assertIn('設計の決定（第 2 段階）: YAML にあって報告書にない DEC-06', out)
+        self.assertIn('通し確認: CUJ-03 提出の失敗の調査（報告書に表がない）', out)
+        self.assertIn('遅延の予算: NFR-02（報告書に表がない）', out)
+        self.assertIn('履歴の注記を削った文: 25 件', out)
+
+    def test_yaml_over_the_report(self):
         dec = toggle(self.page, 't-dec')
-        self.assertIn('システムをどう分けるか', dec)
-        self.assertNotIn('報告書の古い問い', self.page)
-        card = toggle(self.page, 't-decd')
-        self.assertIn('class="is-chosen"', card)
-        self.assertIn('一人で動かせない', card)            # the rejected option's reason
-        self.assertIn('配備が一つで済む', card)             # gains
-        self.assertNotIn('満たさない', card)                # the report's comparison table is not used
-        self.assertNotIn('前の版', card)                    # revision notes are removed from YAML text too
+        self.assertIn('DEC-06', dec)
+        self.assertIn('先送り', dec)                                  # a deferred decision has no chosen option
+        self.assertNotIn('DRV-10', toggle(self.page, 't-constraint'))  # retired
+        self.assertIn('個人情報（生徒の答案）', toggle(self.page, 't-data'))
 
-    def test_debt_values_and_stages(self):
-        self.assertIn('一つの障害の単位', toggle(self.page, 't-debt'))
-        self.assertIn('最大のインスタンス', toggle(self.page, 't-values2'))
-        self.assertIn('既定 20', toggle(self.page, 't-values3'))
-        self.assertIn('エラーの形', toggle(self.page, 't-dec3'))
-        self.assertNotIn('第 4 段階の問い', self.page)       # detailed-design decisions are not on this page
+    def test_report_prose_is_left_out(self):
+        self.assertNotIn('t-structure', self.page)
+        self.assertNotIn('依存の規則', self.page)
+        self.assertNotIn('区間の表にするほどの区間はない', self.page)
 
-    def test_conflict_shown_once_per_pair(self):
-        conf = toggle(self.page, 't-conflict')
-        self.assertIn('1 組', conf)
-        self.assertNotIn('FND-03', conf)
+    def test_budget_chart_and_threat_links(self):
+        b = toggle(self.page, 't-budget')
+        self.assertIn('id="b-NFR-06"', b)
+        self.assertIn('class="bud"', b)
+        self.assertIn('和 1.5 秒、余り 1.5 秒', b)
+        self.assertNotIn('b-NFR-02', b)
+        threat = toggle(self.page, 't-threat')
+        self.assertIn('data-links="flow"', threat)
+        self.assertEqual(re.findall(r'id="(flow-F\d)"', threat), ['flow-F1', 'flow-F2', 'flow-F3', 'flow-F4', 'flow-F5'])
 
-    def test_interfaces_errors_and_data(self):
-        self.assertIn('orders.openapi.yaml', toggle(self.page, 't-ifc'))
+    def test_shared_error_contracts_shown_once(self):
         err = toggle(self.page, 't-err')
-        self.assertIn('POST /v1/orders', err)
-        self.assertIn('402 CARD_DECLINED', err)
-        self.assertIn('共通', err)
-        data = toggle(self.page, 't-data')
-        self.assertIn('個人情報（買い手の住所）', data)
-        self.assertIn('用語集にない値: なし', self.r.stdout)
-
-    def test_id_ranges(self):
-        text = re.sub(r'<[^>]+>', '', toggle(self.page, 't-elm'))
-        self.assertIn('FR-01〜03、05', text)
-
-    def test_report_only_sections_and_diagrams(self):
-        self.assertIn('関心事の一覧', self.page)
-        self.assertIn('実現できるか', self.page)
-        self.assertIn('class="mmd"', toggle(self.page, 't-views'))
-
-    def test_premises_from_design_context(self):
-        pre = toggle(self.page, 't-premise')
-        self.assertIn('技術制約: 外部サービス', pre)
-        self.assertIn('体制', pre)
-        self.assertIn('確認済み', pre)
+        self.assertEqual(err.count('401 UNAUTHENTICATED'), 1)
+        self.assertIn('共通 2', err)
 
 
-class WithoutReports(unittest.TestCase):
-    def test_builds_from_the_yaml_alone(self):
-        with tempfile.TemporaryDirectory() as t:
-            d = write_fixture(pathlib.Path(t), reports=False)
-            r, page = build(d)
-            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-            self.assertIn('1-architecture-drivers.md がない', r.stdout)
-            self.assertIn('id="t-rank"', page)
-            self.assertIn('id="t-decd"', page)
-            self.assertNotIn('id="t-views"', page)
+class HomeworkEnglish(Case):
+    case = 'homework-service-full-en'
 
-    def test_nothing_to_build(self):
-        with tempfile.TemporaryDirectory() as t:
-            d = pathlib.Path(t) / 'docs' / 'design'
-            d.mkdir(parents=True)
-            r, _ = build(d)
-            self.assertEqual(r.returncode, 2)
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.ja = build(design_of('homework-service-full'), cls.tmp / 'ja.html')
+        cls.ja_page = (cls.tmp / 'ja.html').read_text(encoding='utf-8')
+
+    def test_english_throughout(self):
+        self.assertIn('<html lang="en">', self.page)
+        self.assertIn('<title>Homework submission service design</title>', self.page)
+        self.assertEqual(JAPANESE.findall(visible(self.page)), [])
+        self.assertEqual(JAPANESE.findall(self.page), [])
+        self.assertIn('IBM+Plex+Sans', self.page)
+
+    def test_same_page_as_the_japanese_one(self):
+        self.assertEqual(toggle_ids(self.page), toggle_ids(self.ja_page))
+        self.assertEqual(self.page.count('<tr'), self.ja_page.count('<tr'))
+        self.assertEqual(sorted(re.findall(r'href="#([^"]+)"', self.page)), sorted(re.findall(r'href="#([^"]+)"', self.ja_page)))
+
+    def test_report_in_english(self):
+        out = self.run1.stdout
+        self.assertEqual(JAPANESE.findall(out), [])
+        self.assertIn('Language: en (detected from the outputs)', out)
+        self.assertIn('Decisions (stage 2): in the YAML but not in the report: DEC-06', out)
+        self.assertIn('Texts with revision notes removed: 25', out)
+
+    def test_english_terms_and_ids(self):
+        self.assertIn('Technology constraint: External service', toggle(self.page, 't-premise'))
+        self.assertIn('Non-negotiable', toggle(self.page, 't-constraint'))
+        self.assertIn('All operations', toggle(self.page, 't-err'))
+        # 「FR-01、02、06」 is written "FR-01, 02, 06" and 02 still links to FR-02's tooltip
+        self.assertRegex(toggle(self.page, 't-elm'), r'FR-01</span>, <span class="id dead" data-ref="FR-02">02')
+
+
+class HomeworkStage2(Case):
+    case = 'homework-service-stage2'
+
+    def test_only_stages_1_and_2(self):
+        self.assertIn('id="sec-2"', self.page)
+        self.assertNotIn('id="sec-3"', self.page)
+        self.assertIn('第 3 段階（概要設計）の成果物はまだない', toggle(self.page, 't-notes'))
+
+
+@unittest.skipUnless(design_of('ride-hailing-full').is_dir(), '配車アプリの成果物がない')
+class RideHailing(Case):
+    case = 'ride-hailing-full'
+
+    def test_real_project(self):
+        out = self.run1.stdout
+        self.assertIn('項目: DRV 32 · DEC 55（第 2 段階 37 · 第 3 段階 18） · ELM 23 · IFC 29 · DAT 29', out)
+        self.assertIn('技術的負債と先送りした決定: 報告書にあって YAML にない DEC-21、DEC-30', out)
+        self.assertIn('突き合わせなかった表: なし', out)
+        self.assertEqual(self.page.count('<figure class="mmd"'), 50)
+        self.assertIn('<title>配車アプリの設計</title>', self.page)
+        self.assertIn('id="b-NFR-02"', self.page)
+        self.assertNotIn('FND-', visible(self.page))
+
+
+class Graders(unittest.TestCase):
+    """The grader fails pages and reports that miss what a statement asks for"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = pathlib.Path(tempfile.mkdtemp())
+        cls.good = cls.tmp / 'good.html'
+        r = build(design_of('homework-service-full'), cls.good)
+        cls.report = r.stdout
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp)
+
+    def grade(self, page, report=None, case='homework-service-full'):
+        d = self.tmp / 'run' / case / 'x'
+        if d.parent.parent.exists():
+            shutil.rmtree(d.parent.parent)
+        (d / 'outputs').mkdir(parents=True)
+        (d / 'outputs' / 'summary.html').write_text(page, encoding='utf-8')
+        (d / 'outputs' / 'report.md').write_text(self.report if report is None else report, encoding='utf-8')
+        gd.grade(d, case)
+        g = json.loads((d / 'grading.json').read_text(encoding='utf-8'))
+        return {pathlib.Path(n).stem.split('-', 1)[1] for n, e in zip(sorted((EVALS / case / 'graders').glob('*.md')), g['expectations'])
+                if not e['passed']}
+
+    def test_good_page_passes(self):
+        self.assertEqual(self.grade(self.good.read_text(encoding='utf-8')), set())
+
+    def test_failures_are_caught(self):
+        page = self.good.read_text(encoding='utf-8')
+        self.assertIn('reports-dec06', self.grade(page, report='Done. The page is at docs/design/summary.html.'))
+        self.assertIn('no-revision-notes', self.grade(page.replace('</td>', ' FND-01</td>', 1)))
+        self.assertIn('threat-links', self.grade(page.replace('data-links="flow"', '').replace('id="flow-F', 'id="row-F')))
+        self.assertIn('toggles', self.grade(page.replace('<details class="tbl" id="t-premise"', '<details class="tbl" id="t-premise" open')))
+        rows = re.findall(r'<tr id="rank-[^"]+">.*?</tr>', page, re.S)
+        swapped = page.replace(rows[1], '\0').replace(rows[2], rows[1]).replace('\0', rows[2])
+        self.assertIn('rank-first', self.grade(swapped))
+        self.assertIn('budget-chart', self.grade(page.replace('class="bud"', 'class="x"').replace('<svg', '<g').replace('width:', 'w:')))
+        self.assertIn('decision-cards', self.grade(page.replace('選んだ', '○')))
+
+    def test_english_page_check(self):
+        en = build(design_of('homework-service-full-en'), self.tmp / 'en.html')
+        page = (self.tmp / 'en.html').read_text(encoding='utf-8')
+        self.assertEqual(self.grade(page, en.stdout, 'homework-service-full-en'), set())
+        self.assertIn('english-page', self.grade(page.replace('Ranking table', '順位表'), en.stdout, 'homework-service-full-en'))
+
+
+class LanguageChoice(unittest.TestCase):
+    def test_detect(self):
+        self.assertEqual(bd.detect_lang(['提出を確定する', 'DRV-01', 'inferred']), 'ja')
+        self.assertEqual(bd.detect_lang(['Confirm the submission', 'DRV-01', '提出']), 'en')
+        self.assertEqual(bd.detect_lang(['确认提交作业']), 'en')        # Chinese has no kana: English labels
+
+    def test_lang_option_overrides(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = build(design_of('homework-service-full'), pathlib.Path(d) / 'p.html', '--lang', 'en')
+            page = (pathlib.Path(d) / 'p.html').read_text(encoding='utf-8')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('Language: en (set with --lang)', r.stdout)
+        self.assertIn('<html lang="en">', page)
+        self.assertIn('Ranking table', page)
+        # labels are English; the content stays Japanese, and its revision notes are removed by the Japanese rules
+        self.assertIn('締め切り前の集中でも提出を受け付け続ける', page)
+        self.assertIn('Texts with revision notes removed: 25', r.stdout)
+
+    def test_input_errors_in_both_languages(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = build(pathlib.Path(d), pathlib.Path(d) / 'p.html')
+        self.assertEqual(r.returncode, 2)
+        self.assertIn('No design outputs', r.stderr)
+        self.assertIn('設計の成果物がない', r.stderr)
+
+
+class LanguageFiles(unittest.TestCase):
+    def test_same_keys_and_placeholders(self):
+        ja, en = bd.LANG_DATA['ja'], bd.LANG_DATA['en']
+        self.assertEqual(set(ja), set(en))
+        self.assertEqual(set(ja['terms']), set(en['terms']))
+        for g in ja['terms']:
+            self.assertEqual(set(ja['terms'][g]), set(en['terms'][g]), g)
+        self.assertEqual(set(ja['text']), set(en['text']))
+
+        def ph(t):
+            return sorted(set(re.findall(r'\{(\w+)\}', t)))
+        for k in ja['text']:
+            self.assertEqual(ph(ja['text'][k]), ph(en['text'][k]), k)
+
+    def test_every_key_is_used_and_exists(self):
+        src = SCRIPT.read_text(encoding='utf-8')
+        used = set(re.findall(r"""\b(?:T|die_t)\(\s*['"](\w+)['"](?!\s*\+)""", src))   # not 「T('k_' + kind)」
+        built = {'k_' + k for k in bd.REPORT_KINDS} | {f'stage_title_{n}' for n in (1, 2, 3)} | {'lang_detected', 'lang_given'}
+        js = {k for k in bd.LANG_DATA['en']['text'] if k.startswith('js_')}
+        design_js = (SKILL / 'assets' / 'design.js').read_text(encoding='utf-8')
+        for k in js:
+            self.assertIn('UI.' + k[3:], design_js, k)
+        keys = set(bd.LANG_DATA['en']['text'])
+        self.assertEqual((used | built) - keys, set(), 'used but not in the language files')
+        self.assertEqual(keys - used - built - js, set(), 'in the language files but never used')
+
+
+class Cleaning(unittest.TestCase):
+    def ja(self, s):
+        bd.SRC['lang'] = 'ja'
+        return bd.clean_text(s)[0]
+
+    def en(self, s):
+        bd.SRC['lang'] = 'en'
+        return bd.clean_text(s)[0]
+
+    def test_japanese(self):
+        self.assertEqual(self.ja('原則 DRV-09 に従う。前の版は、受領を先に示していた（FND-01）。'), '原則 DRV-09 に従う。')
+        self.assertEqual(self.ja('記録が欠けうる（DRV-03 版 2）'), '記録が欠けうる（DRV-03）')
+        self.assertEqual(self.ja('ブラウザの失敗がつながらない（質問 4、FND-02）'), 'ブラウザの失敗がつながらない（質問 4）')
+        self.assertEqual(self.ja('失敗したら前の版に戻す。'), '失敗したら前の版に戻す。')       # a product version is kept
+
+    def test_english(self):
+        self.assertEqual(self.en('It follows principle DRV-09. The previous version showed the receipt first (FND-01).'),
+                         'It follows principle DRV-09.')
+        self.assertEqual(self.en('Records can go missing (DRV-03 version 2)'), 'Records can go missing (DRV-03)')
+        self.assertEqual(self.en('Browser failures are not linked (question 4, FND-02)'), 'Browser failures are not linked (question 4)')
+        self.assertEqual(self.en('Added in the second re-run. A CUJ-03 investigation starts from one ID.'),
+                         'A CUJ-03 investigation starts from one ID.')
+        # product wordings are kept: a job is re-run, an image is rolled back to the previous version
+        for s in ('The nightly job is re-run for every unfinished day.', 'On failure, roll back to the previous version.',
+                  'Use e.g. a signed URL. It expires in 15 minutes.', 'Node.js version 20 is used.'):
+            self.assertEqual(self.en(s), s)
+
+    def tearDown(self):
+        bd.SRC['lang'] = 'ja'
+
+
+class Ids(unittest.TestCase):
+    def test_lists_and_ranges(self):
+        bd.set_lang('ja')
+        self.assertEqual(bd.ids_text(['FR-01', 'FR-02', 'FR-03', 'FR-05', 'DRV-01']), 'FR-01〜03、05、DRV-01')
+        self.assertEqual(bd.ids_text(['DRV-33', 'DRV-04', 'DRV-21'], sort=False), 'DRV-33、04、21')
+        bd.set_lang('en')
+        self.assertEqual(bd.ids_text(['FR-01', 'FR-02', 'FR-03', 'FR-05', 'DRV-01']), 'FR-01–03, 05, DRV-01')
+        bd.set_lang('ja')
+
+    def test_links_in_both_languages(self):
+        ctx = bd.Ctx()
+        ctx.own = {'DRV-01', 'DRV-02', 'DRV-14'}
+        for s in ('DRV-01、02', 'DRV-01, 02', 'DRV-01〜14', 'DRV-01–14'):
+            self.assertEqual(len(re.findall(r'href="#DRV-', bd.link_ids(s, ctx))), 2, s)
+        self.assertNotIn('DRV-10', bd.link_ids('DRV-01, 10 seconds', ctx))
+
+
+class Inputs(unittest.TestCase):
+    def test_yaml_alone_and_an_old_text_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            design = pathlib.Path(d) / 'docs' / 'design'
+            shutil.copytree(design_of('homework-service-full'), design)
+            for md in design.glob('*.md'):
+                md.unlink()
+            (design / 'summary-text.yaml').write_text('structure: {}\n', encoding='utf-8')
+            r = build(design, pathlib.Path(d) / 'p.html')
+            page = (pathlib.Path(d) / 'p.html').read_text(encoding='utf-8')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('1-architecture-drivers.md がない', r.stdout)
+        self.assertIn('summary-text.yaml はもう使わない（消してよい）', r.stdout)
+        for tid in ('t-rank', 't-decd', 't-ifc', 't-err', 't-data'):
+            self.assertIn(f'id="{tid}"', page)
+        self.assertNotIn('id="t-views"', page)
 
 
 if __name__ == '__main__':

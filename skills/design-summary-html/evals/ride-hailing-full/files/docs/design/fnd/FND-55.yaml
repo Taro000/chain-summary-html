@@ -1,0 +1,24 @@
+id: FND-55
+title: T_request_max の取り消しの対象に「探し直している依頼」がなく、サービスが消えた後に毎日の処理が取り消したときの乗客への知らせがない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-04
+- DEC-37
+- ELM-05
+severity: minor
+evidence: FR-08 版 2 の AC5 は、T_request_max を過ぎた許諾のない依頼に「許諾したドライバーが取り消して探し直している依頼を含む」とし、取り消したら「乗客に知らせる」。DEC-04・09・37、ELM-04・05、報告書の決定の節のどこにも「探し直し」がない（grep）。DEC-37 の (B)「許諾の後の終わっていない依頼」は探し直している依頼も含むと読め、自動で取り消すべき依頼が人の動きを待つ (B) に入りうる。また、サービスが消えた後に毎日の処理が取り消すとき、SSE の流れも Web Push（TC-09）もないので、乗客にどう知らせるかが書かれていない（CUJ の通し確認は見回りの場合の「SSE で乗客に知らせる」だけ）
+suggestion: DEC-04 と DEC-37 に、許諾のない依頼には探し直している依頼を含み、手配の時刻から数えると書く。毎日の処理が取り消したときは、次にアプリを開いたときに示すなど、知らせ方を書く（できないなら残る危険にする）
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A2（CUJ-01）、A4

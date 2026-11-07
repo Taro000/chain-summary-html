@@ -1,0 +1,36 @@
+id: NFR-09
+title: 規則に反する割り当てを 1 件ごとに知らせる
+status: draft
+version: 2
+basis: inferred
+basis_note: 目標 0 件にはエラーバジェットがないので監視にした
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-10
+- QR-16
+kind: monitor
+cuj: CUJ-06
+statement: 毎日、状態の履歴（FR-39）と停止の記録（FR-47）から、二人以上への割り当て、取り消し後の割り当て、迎車中・乗車中のドライバーへの割り当て、停止した後のドライバーへの割り当てを探し、見つかれば 1 件ごとにエンジニアに知らせる。目標は 0 件。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 状態の履歴と停止の記録から求めた、規則に反する割り当て
+  threshold: 1 件でも
+  notifies: エンジニア（その日の朝）
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

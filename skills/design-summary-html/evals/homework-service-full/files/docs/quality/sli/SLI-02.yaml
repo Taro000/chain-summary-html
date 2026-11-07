@@ -1,0 +1,24 @@
+id: SLI-02
+title: 夜間レポートの締め切り
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [開発の責任者]
+function: ON_TIME ÷ RUNS
+refs: [QR-08, NFR-02]
+reshaped: null
+target_entity: 本番のサーバー
+purpose: 夜間レポートの締め切り
+unit_event: 要求
+method: ジョブの記録法
+elements:
+  RUNS: {definition: 予定した夜間レポートの実行, inputs: ジョブの記録, unit: runs, counting_rule: 1 晩 1 回}
+  ON_TIME: {definition: 'RUNS のうち、6:00 までに終わったもの', inputs: RUNS と同じ, unit: runs, counting_rule: RUNS と同じ}
+scale: ratio
+applicability: 本番
+lifecycle: 本番で測る
+blind_spots: ブラウザの中の失敗は見えない
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

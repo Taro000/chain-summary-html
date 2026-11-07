@@ -1,0 +1,32 @@
+id: DRV-14
+title: 外部サービスとブラウザの機能を替えても、その部品だけが変わる
+status: draft
+version: 1
+basis: inferred
+basis_note: シナリオは QR-44・NFR-42 から（入力）。サービスの名前は質問 6 で確認済み。予定した替えはない。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: change
+statement: Stripe、Google Maps Platform、ブラウザの機能（位置情報、画面の点灯）への依存は、それぞれ一つの部品に閉じ込められ、替えたり版を上げたりしても、ほかの部品を変えずに済む
+sources: [QR-44, NFR-42, TC-10, TC-11, FR-52]
+concern_of: [USR-03, STK-01]
+scenario:
+  source: 開発者本人（TEAM-01）
+  stimulus: Stripe や Google Maps Platform の版を上げる、または替える。ブラウザの機能が変わる
+  artifact: 決済、地図、位置情報、画面の点灯への依存
+  environment: 開発の間
+  response: その依存を閉じ込めた部品だけが変わり、流れ、保存した記録、突き合わせの規則は変わらない
+  measure: 静的な依存の確かめで違反 0 件（NFR-42）
+negotiable: null
+derived_from: []
+priority:
+  business: medium
+  business_reason: QR-44 は最低限守る線。予定した替えはない
+  difficulty: medium
+  difficulty_reason: Stripe、Google Maps Platform、ブラウザの機能を、それぞれ一つの部品に閉じ込める。解き方は知られている
+  rank: 25
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映。質問 6 で仮のスタブの差し替えがなくなった）}

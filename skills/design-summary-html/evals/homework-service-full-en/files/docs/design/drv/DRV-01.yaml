@@ -1,0 +1,43 @@
+id: DRV-01
+title: Keep accepting submissions in the rush before a deadline
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+kind: quality
+statement: Keep accepting submissions even when they peak in the hour before a deadline
+sources:
+- QR-01
+- NFR-01
+- SLI-01
+- TC-02
+concern_of:
+- USR-01
+scenario:
+  source: Students (USR-01)
+  stimulus: Submit in the hour before a deadline
+  artifact: FR-01
+  environment: The rush before a deadline (300 submissions a minute)
+  response: The submission is accepted and the receipt is shown
+  measure: 99.5% of valid submissions succeed over a rolling 28 days (NFR-01)
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-01 is emphasized (CUJ-01)
+  difficulty: high
+  difficulty_reason: Submissions peak before deadlines and rely on the external storage
+  rank: 1
+primary: true
+conflicts:
+- with: DRV-02
+  note: Writing the record before the receipt slows the confirmation
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: Created
+  reason: Stage 1 draft

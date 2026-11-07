@@ -1,0 +1,30 @@
+id: ELM-11
+title: Google Maps Platform
+status: draft
+version: 1
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: external-system
+name: Google Maps Platform
+responsibility: 地図の表示（Maps JavaScript API）、場所の検索、経路と所要時間（渋滞を含む）を行うと想定する。使った分の料金と無料の枠。約束は入力にない
+functions: []
+drivers:
+- DRV-06
+- DRV-08
+- DRV-11
+- DRV-26
+decisions:
+- DEC-21
+- DEC-22
+team: null
+technology: Google Maps Platform（TC-11）
+runs_on: null
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

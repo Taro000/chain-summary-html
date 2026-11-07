@@ -1,0 +1,23 @@
+id: DAT-03
+title: Submitted file
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+entity: Submitted file
+owner: ELM-01
+store: ELM-05
+key_attributes: []
+relations: []
+consistency: Uploaded once through a signed URL
+retention: One year after graduation
+classification: personal (students' answers)
+drivers: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: Created
+  reason: Stage 3 draft

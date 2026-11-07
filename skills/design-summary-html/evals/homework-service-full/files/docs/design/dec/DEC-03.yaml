@@ -1,0 +1,47 @@
+id: DEC-03
+title: 記録を書いてから受領を示す
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: 受領の表示を、提出の記録とどう一致させるか
+addresses:
+- DRV-03
+- DRV-09
+options:
+- name: 一つのトランザクションで記録を書き、受領を返す
+  effect: 受領と記録が食い違わない
+  cost: 確定が少し遅くなる
+- name: 受領を先に返し、記録は後で書く
+  effect: 確定が速い
+  cost: 記録が欠けても受領が出る
+chosen: 一つのトランザクションで記録を書き、受領を返す
+rationale: 原則 DRV-09 に従う。前の版は、受領を先に示していた（FND-01）。
+rejected:
+- option: 受領を先に返し、記録は後で書く
+  reason: 記録が欠けうる（DRV-03 版 2）
+gains:
+- 受領が出たら必ず記録がある
+costs:
+- 確定に書き込みの時間が乗る（DRV-02）
+sensitive_points:
+- 記録の書き込みの時間
+trade_offs:
+- with: DRV-02
+  note: 書き込みの分だけ確定が遅くなる
+assumptions: []
+depends_on:
+- DEC-01
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

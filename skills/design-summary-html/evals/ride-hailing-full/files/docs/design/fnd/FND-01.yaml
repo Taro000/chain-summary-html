@@ -1,0 +1,27 @@
+id: FND-01
+title: DRV-32 が状態の履歴の位置を禁じ、DRV-27 と食い違う
+status: accepted
+version: 2
+basis: inferred
+basis_note: QR-39、DRV-32、DRV-27、SLI-05 の文（入力）から判断
+needs_agreement: false
+approver_candidates: []
+raised_by: architecture-drivers-to-architecture
+raised_in: 2-architecture.md
+to: requirements-to-architecture-drivers
+targets:
+- DRV-32
+- DRV-27
+severity: major
+evidence: DRV-32 は「ログ、ブラウザのエラーの記録、状態の履歴に、伏せていない位置を残さない」とする。出どころの QR-39 は「伏せるか、権限のある人だけが読める形で保たれる」で、後者の道を DRV-32 は落としている。一方 DRV-27 の測定量（SLI-05）は、どの状態の変化にも位置があることを求め、NFR-14・NFR-45 も到着と運転の開始の位置を使う。文のとおりでは二つを同時に満たせない
+suggestion: DRV-32 を「ログとブラウザのエラーの記録には、伏せていない位置・連絡先・名前とカード情報を残さない。状態の履歴に要る位置は、履歴とは別に、権限のある役割だけが読める形で持つ」に直す。第 2 段階は DEC-15 でこの読み方を採った
+resolution: 受け入れた。DRV-32 を版 2 にした。ログとブラウザのエラーの記録には、伏せていない位置・連絡先・名前とカード情報を残さない。状態の履歴の記録にも書かない。履歴に要る位置（FR-39、SLI-05、NFR-14、NFR-45）は、権限のある役割だけが読める形で持ち、その変化に結び付ける（QR-39 の二つ目の道を戻した）。NFR-40 は状態の履歴も調べるので、勧めの「履歴とは別に」は、履歴の記録に座標を書かないという求めとして書き、持ち方は第 2 段階（DEC-15）に任せた。DRV-27 を版 2 にし、応答に位置の持ち方を書いて、DRV-32 との競合を解いたと記録した
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階（DEC-15 の検討）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた
+  reason: 第 1 段階（requirements-to-architecture-drivers）の再実行

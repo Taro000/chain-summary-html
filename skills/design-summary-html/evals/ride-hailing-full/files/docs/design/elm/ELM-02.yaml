@@ -1,0 +1,80 @@
+id: ELM-02
+title: ドライバーの Web アプリ
+status: draft
+version: 3
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: ドライバーの Web アプリ
+responsibility: 受付、依頼の一覧と内容、許諾、迎車と乗車、到着、確認コード、不在、乗車の終わり、受取額、受ける条件の画面。停止されたときの受付の画面と依頼の一覧の変化（FR-47）。位置の 10 秒ごとの送信、画面の点灯、音、裏に回った時刻の記録と送信、SSE の受信と最新の状態の取り直し
+functions:
+- FR-01
+- FR-07
+- FR-12
+- FR-16
+- FR-17
+- FR-18
+- FR-19
+- FR-20
+- FR-21
+- FR-22
+- FR-23
+- FR-24
+- FR-25
+- FR-26
+- FR-27
+- FR-28
+- FR-29
+- FR-31
+- FR-32
+- FR-33
+- FR-34
+- FR-37
+- FR-38
+- FR-47
+- FR-52
+- FR-54
+drivers:
+- DRV-02
+- DRV-03
+- DRV-05
+- DRV-07
+- DRV-12
+- DRV-14
+- DRV-20
+- DRV-24
+- DRV-27
+- DRV-28
+- DRV-32
+decisions:
+- DEC-03
+- DEC-14
+- DEC-18
+- DEC-21
+- DEC-22
+- DEC-23
+- DEC-24
+- DEC-33
+team: TEAM-01
+technology: React（TC-02）。組み立ては Vite（DEC-23、DEC-32）
+runs_on: ELM-15
+depends_on:
+- ELM-04
+- ELM-11
+- ELM-13
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 形づくる決定に、SSE の流れの上限と 429（DEC-21）、経路の上限の 503（DEC-33）を加えた
+  reason: FND-07、08（第 2 段階のレビュー）を受け入れた
+- version: 3
+  date: '2026-11-03'
+  change: functions に FR-47 を足し、責務に停止されたときの受付の画面と依頼の一覧の変化を書いた
+  reason: FND-49 を受け入れた（第 2 段階の再実行、3 回目）。第 3 段階の IFC-26 が FR-47 を運ぶ

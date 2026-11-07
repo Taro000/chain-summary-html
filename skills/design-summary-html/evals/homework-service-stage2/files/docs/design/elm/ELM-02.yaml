@@ -1,0 +1,29 @@
+id: ELM-02
+title: 講師の Web アプリ
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: 講師の Web アプリ
+responsibility: 提出を開き、採点して返却する。月次のレポートを見る
+functions:
+- FR-03
+- FR-05
+- FR-08
+drivers:
+- DRV-08
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on:
+- ELM-03
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

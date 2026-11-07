@@ -1,0 +1,53 @@
+id: DEC-01
+title: One API server and two web apps
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: How is the system divided, and where does it run?
+addresses:
+- DRV-06
+- DRV-01
+- DRV-04
+options:
+- name: One API server, and web apps for students and teachers
+  effect: Two developers can build and run it
+  cost: The server is a single unit of failure
+- name: A service per function
+  effect: Each function scales on its own
+  cost: Too much for two developers to run
+- name: Serverless functions
+  effect: Pay only for what is used
+  cost: Hard to run the same way locally
+chosen: One API server, and web apps for students and teachers
+rationale: All options meet DRV-01; DRV-06 (two developers, the cost) decides for one server.
+rejected:
+- option: A service per function
+  reason: Two developers cannot run it (DRV-06)
+- option: Serverless functions
+  reason: Does not run the same way locally
+gains:
+- One thing to deploy
+costs:
+- A single unit of failure
+sensitive_points:
+- The number of server instances
+trade_offs:
+- with: DRV-01
+  note: One server takes the rush before deadlines
+assumptions:
+- At most 300 students at once
+depends_on: []
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

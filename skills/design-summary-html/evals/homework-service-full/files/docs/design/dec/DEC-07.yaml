@@ -1,0 +1,41 @@
+id: DEC-07
+title: エラーを問題の詳細の形で返す
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: すべての API で、エラーをどの形で返すか
+addresses:
+- IFC-01
+- IFC-02
+options:
+- name: 問題の詳細（RFC 9457）に code と traceId を足す
+  effect: 標準の形で、道具が使える
+  cost: 欄が少し増える
+- name: 独自の {code, message}
+  effect: 作りが単純
+  cost: 道具の助けを失う
+chosen: 問題の詳細（RFC 9457）に code と traceId を足す
+rationale: 標準の形にすると、画面と道具が同じ読み方をできる。
+rejected:
+- option: 独自の {code, message}
+  reason: 道具の助けを失う
+gains: []
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on: []
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: 作成
+  reason: 第 3 段階の下書き

@@ -1,0 +1,55 @@
+id: DEC-47
+title: 命名
+status: draft
+version: 2
+basis: inferred
+basis_note: DEC-20（役割は経路のまとまりごとに確かめる）、DEC-16（URL の決まり）、SLI-01 の欄の名前は入力。名前の付け方は推定
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: 経路、欄、出来事、符号の名前をどう付けるか
+addresses:
+- IFC-01
+- IFC-08
+- IFC-09
+options:
+- name: "経路は /api/v1/<役割>/ の後に小文字のハイフンつなぎの複数形。ただし一人に一つの資源は単数形（/api/v1/passenger/threshold、/api/v1/driver/conditions、/api/v1/driver/earnings、/api/v1/auth/session）にし、役割のない設定は /api/v1/config に置く。JSON の欄は camelCase、列挙は小文字の _ つなぎ、誤りの符号は UPPER_SNAKE、出来事は小文字の . つなぎ、ログの欄は snake_case。経路のまとまり: /api/v1/auth、/api/v1/passenger、/api/v1/driver、/api/v1/admin、/api/v1/engineer、/api/v1/locations、/api/v1/visibility-events、/api/v1/records、/api/v1/stream。route_id は passenger.rides.create のような . つなぎ。操作は資源の下の動詞（/rides/{rideId}/cancel）を POST で"
+  effect: 役割の確かめを経路のまとまりで一度にできる（DEC-20）。JSON は TypeScript と同じ。ログの欄は SLI の定義の欄名（request_id、trace_id）と同じ
+  cost: 二つの書き方を使い分ける
+- name: すべて snake_case
+  effect: 一つの書き方
+  cost: TypeScript の型と合わない
+- name: すべて camelCase
+  effect: 一つの書き方
+  cost: SLI の定義の欄名と Cloud Logging の問い合わせと合わない
+chosen: '経路は /api/v1/<役割>/ の後に小文字のハイフンつなぎの複数形。ただし一人に一つの資源は単数形（/api/v1/passenger/threshold、/api/v1/driver/conditions、/api/v1/driver/earnings、/api/v1/auth/session）にし、役割のない設定は /api/v1/config に置く。JSON の欄は camelCase、列挙は小文字の _ つなぎ、誤りの符号は UPPER_SNAKE、出来事は小文字の . つなぎ、ログの欄は snake_case。経路のまとまり: /api/v1/auth、/api/v1/passenger、/api/v1/driver、/api/v1/admin、/api/v1/engineer、/api/v1/locations、/api/v1/visibility-events、/api/v1/records、/api/v1/stream。route_id は passenger.rides.create のような . つなぎ。操作は資源の下の動詞（/rides/{rideId}/cancel）を POST で'
+rationale: 役割ごとの経路のまとまりは DEC-20 の「役割は経路のまとまりごとに一か所で確かめる」をそのまま形にする
+rejected:
+- option: すべて snake_case
+  reason: 型と合わない
+- option: すべて camelCase
+  reason: ログの問い合わせと SLI の欄名と合わない
+gains:
+- 経路の名前（route_id）を SLI-01 の操作の名前に使える
+costs: []
+sensitive_points:
+- URL に位置、連絡先、名前、検索の語を入れない（DEC-16）
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-20
+- DEC-16
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: "一人に一つの資源を単数形にすることと、/api/v1/config を足した。選んだ案と案の名前の書き方をそろえた"
+  reason: "第 3 段階の再実行（2026-11-04）。FND-43 を受け入れた"

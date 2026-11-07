@@ -1,0 +1,88 @@
+id: IFC-05
+title: 画面の記録の API
+status: draft
+version: 1
+basis: inferred
+basis_note: FR-38、FR-54 の受け入れ基準と DEC-23（端末に一時に保存して送る）は入力。まとめて送る間隔と、ブラウザに保つ上限は推定
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+kind: http
+name: 画面の記録の API
+provider: ELM-04
+consumers:
+- ELM-01
+- ELM-02
+- ELM-03
+functions:
+- FR-02
+- FR-13
+- FR-38
+- FR-54
+operations:
+- name: POST /api/v1/records/displays
+  does: 状態の変化を相手の画面に示した時刻（まとめて送る）。回数の上限はアカウントごとに 1 分に 60 回
+- name: POST /api/v1/records/client-errors
+  does: ブラウザで起きたエラー（すぐ送る）。回数の上限はアカウントごとに 1 分に 60 回
+- name: POST /api/v1/records/screen-events
+  does: 手配の画面を開いた時刻（FR-02 AC7）と評価の画面を開いた時刻（FR-13 AC4）
+format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）
+protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
+auth: ログインしたセッション。記録のアカウントと役割はセッションで決める
+errors:
+- case: 'POST /api/v1/records/displays: 形が違う'
+  signal: 400 INVALID_REQUEST
+  caller_does: その記録を捨てる（送り直さない）
+- case: 'POST /api/v1/records/displays: Turso に届かない'
+  signal: 503 DEPENDENCY_UNAVAILABLE
+  caller_does: ブラウザに保ち、後で送る
+- case: 'POST /api/v1/records/client-errors: 形が違う'
+  signal: 400 INVALID_REQUEST
+  caller_does: その記録を捨てる
+- case: 'POST /api/v1/records/screen-events: 形が違う'
+  signal: 400 INVALID_REQUEST
+  caller_does: その記録を捨てる
+- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す。同じものを送り直さない
+- case: '共通: ログインしていないか、セッションが切れた'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
+- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
+  signal: 403 FORBIDDEN
+  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
+- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
+  signal: 404 NOT_FOUND
+  caller_does: 画面を読み直す
+- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
+  signal: 409 OPERATION_IN_PROGRESS
+  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
+- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
+  signal: 422 IDEMPOTENCY_KEY_REUSED
+  caller_does: 画面の誤り。新しい操作として新しいキーで始める
+- case: '共通: 回数の上限（DEC-55）'
+  signal: 429 RATE_LIMITED
+  caller_does: Retry-After まで待つ
+- case: '共通: 想定外の誤り'
+  signal: 500 INTERNAL_ERROR
+  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
+- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
+  signal: 503 ROUTE_TIMEOUT
+  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
+- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
+  signal: 503 DEPENDENCY_UNAVAILABLE
+  caller_does: ROUTE_TIMEOUT と同じ
+idempotency: 表示の記録は（変化の ID、アカウント）で一つだけ（FR-54 AC3）。ブラウザのエラーと画面の出来事は clientErrorId、clientEventId で二度目を捨てる。どれも 202 で重複の数を返す
+timing:
+  timeout: ブラウザ 15 秒。5 秒ごとか、裏に回るとき（keepalive）にまとめて送る。送れないものはブラウザに保ち（FR-38 AC2、FR-54 AC4）、最大 500 件、7 日まで（仮）
+  ordering: null
+  delivery: null
+versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
+observability: ブラウザのエラーは client.error のログにも書き（IFC-09）、FR-36 の知らせと NFR-21 の数えに使う。表示の記録は SLI-02 の入力
+spec: ifc/specs/records.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

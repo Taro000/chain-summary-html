@@ -1,0 +1,37 @@
+id: DRV-04
+title: Screens for parents can be added
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+kind: change
+statement: Parents' screens can be added without changing the existing screens and APIs
+sources:
+- CHG-01
+concern_of: []
+scenario:
+  source: Development team
+  stimulus: Add the parents' screens
+  artifact: The web apps and the API
+  environment: After release
+  response: Added without changing the existing screens and APIs
+  measure: Within 4 weeks for two developers
+negotiable: null
+derived_from: []
+priority:
+  business: medium
+  business_reason: An anticipated change (CHG-01)
+  difficulty: low
+  difficulty_reason: Adding a role is expected to be enough
+  rank: 6
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: Created
+  reason: Stage 1 draft

@@ -1,0 +1,39 @@
+id: DRV-10
+title: 評価値がドライバーの違いを表す
+status: draft
+version: 2
+basis: inferred
+basis_note: シナリオは QR-31・NFR-19 から（入力）。規模（PC-05）は質問 11 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: quality
+statement: ドライバーの評価値は、振る舞いと車の清潔さの違いを表し、ほとんどのドライバーが同じ値に集まらない
+sources: [QR-31, NFR-19, FR-13, FR-15, FR-16, PC-05]
+concern_of: [USR-01, USR-02]
+scenario:
+  source: 乗客（USR-01）
+  stimulus: 評価を送る（甘い評価に偏りやすい）
+  artifact: 評価値の計算（FR-15）、しきい値の判定（FR-16）
+  environment: デモのドライバーは 1 人で、評価は全体で多くて 2〜6 件（PC-05）
+  response: 評価値がドライバーの振る舞いと車の清潔さの違いを表す
+  measure: デモの期間ごとに、評価の件数が N_min_ratings 以上のドライバーの評価値の分布を見て、差がなければ評価値の計算を変える提案を出す（NFR-19）。ドライバーが 1 人なので、ドライバーの間の分布は取れない。品質チェーンは直さないと決まった（質問 13）
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-31 が重視（CUJ-05）
+  difficulty: low
+  difficulty_reason: 評価値の計算を一か所に置けば、後から替えられる
+  rank: 22
+primary: false
+conflicts: []
+placeholders:
+  - name: N_min_ratings
+    meaning: 評価が何件未満のドライバーを、しきい値を設定した乗客の依頼から外すか
+    from: FR-16
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - version: 2
+    date: 2026-11-03
+    change: 環境に規模（ドライバーは 1 人、評価は全体で多くて 2〜6 件）を書き、NFR-19 がドライバーの間の分布を取れないことを書いた
+    reason: FND-03 を受け入れた（第 1 段階の再実行。質問 11・13）

@@ -1,0 +1,43 @@
+id: DRV-01
+title: 締め切り前の集中でも提出を受け付け続ける
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+kind: quality
+statement: 締め切り前の 1 時間に提出が集中しても、提出を受け付け続ける
+sources:
+- QR-01
+- NFR-01
+- SLI-01
+- TC-02
+concern_of:
+- USR-01
+scenario:
+  source: 生徒（USR-01）
+  stimulus: 締め切り前の 1 時間に提出する
+  artifact: FR-01
+  environment: 締め切り前の集中（1 分に 300 件）
+  response: 提出が受け付けられ、受領が示される
+  measure: 直近 28 日で、有効な提出の 99.5% が成功する（NFR-01）
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-01 が重視（CUJ-01）
+  difficulty: high
+  difficulty_reason: 提出が締め切り前に集中し、外部のストレージに頼る
+  rank: 1
+primary: true
+conflicts:
+- with: DRV-02
+  note: 受領の前に記録を書くと、確定が遅くなる
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: 作成
+  reason: 第 1 段階の下書き

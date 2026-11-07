@@ -1,0 +1,31 @@
+id: ELM-12
+title: チャット（通知先）
+status: draft
+version: 2
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: external-system
+name: チャット（通知先）
+responsibility: Webhook で知らせを受け、エンジニアと運営・サポート担当に示すと想定する。種類は未定（質問 8）
+functions: []
+drivers:
+- DRV-28
+decisions:
+- DEC-17
+- DEC-34
+team: null
+technology: null
+runs_on: null
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: Webhook の URL を秘密として持つこと（DEC-34）を形づくる決定に加えた
+  reason: FND-09、13（第 2 段階のレビュー）を受け入れた

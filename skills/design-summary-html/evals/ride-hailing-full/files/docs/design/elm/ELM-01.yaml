@@ -1,0 +1,85 @@
+id: ELM-01
+title: 乗客の Web アプリ
+status: draft
+version: 3
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: 乗客の Web アプリ
+responsibility: ログインと、設定の符号で最初のパスワードを決める画面（自分でアカウントを作る画面はない）。手配、手配の状況（押さえを確かめている間の「確かめています」と取り消し、T_request_max でのシステムの取り消しの知らせ）、迎車と乗車の地図、迎車中の乗る前の案内（確認コードを伝え、画面が乗車中に変わってから乗る。乗車中はサーバーの記録した運転の開始を受けたときだけ示す。DEC-30）、降車場所の変更、評価、しきい値、報告、履歴、支払い手段の画面。位置の取得と送信（迎車中で許可したとき）、音、前面と裏の扱い、カードの入力部品、SSE の受信と最新の状態の取り直し、表示の記録とエラーの記録の一時の保存と送信
+functions:
+- FR-01
+- FR-02
+- FR-03
+- FR-04
+- FR-05
+- FR-06
+- FR-07
+- FR-08
+- FR-09
+- FR-10
+- FR-11
+- FR-12
+- FR-13
+- FR-14
+- FR-24
+- FR-26
+- FR-28
+- FR-29
+- FR-31
+- FR-37
+- FR-38
+- FR-43
+- FR-44
+- FR-51
+- FR-54
+drivers:
+- DRV-02
+- DRV-03
+- DRV-07
+- DRV-08
+- DRV-09
+- DRV-14
+- DRV-20
+- DRV-21
+- DRV-22
+- DRV-24
+- DRV-27
+- DRV-28
+- DRV-32
+decisions:
+- DEC-03
+- DEC-10
+- DEC-12
+- DEC-14
+- DEC-18
+- DEC-21
+- DEC-22
+- DEC-23
+- DEC-24
+- DEC-30
+- DEC-33
+team: TEAM-01
+technology: React（TC-02）。組み立ては Vite（DEC-23、DEC-32）
+runs_on: ELM-15
+depends_on:
+- ELM-04
+- ELM-10
+- ELM-11
+- ELM-13
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 形づくる決定に、手配の操作キー（DEC-12）、SSE の流れの上限と 429（DEC-21）、経路の上限の 503（DEC-33）を加えた
+  reason: FND-04、07、08（第 2 段階のレビュー）を受け入れた
+- version: 3
+  date: '2026-11-03'
+  change: 責務に、設定の符号でパスワードを決める画面（自分でアカウントを作る画面はない）、押さえを確かめている間の画面と取り消し、システムの取り消しの知らせ、迎車中の乗る前の案内と、乗車中をサーバーの記録からだけ示すことを足した
+  reason: 品質チェーンの再実行（FR-01 版 3、FR-05 版 3、FR-08 版 2、FR-12 版 4、FR-26 版 2）と DEC-30 版 2 に追随した（第 2 段階の再実行、4 回目）

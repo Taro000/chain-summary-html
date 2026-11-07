@@ -1,0 +1,64 @@
+id: IFC-18
+title: 端末のブラウザの機能
+status: draft
+version: 2
+basis: inferred
+basis_note: TC-09、TC-12（iOS の Safari、裏に回ると止まる、安全な文脈でだけ）と DEC-23（端末の機能は一つのモジュールだけ）は入力。音を最初のタップで鳴らせるようにすること、Wake Lock を前面に戻るたびに取り直すことは推定（実機で確かめる。NFR-20）
+needs_agreement: false
+approver_candidates: []
+kind: event
+name: 端末のブラウザの機能（外部）
+provider: ELM-13
+consumers:
+- ELM-01
+- ELM-02
+functions:
+- FR-02
+- FR-06
+- FR-17
+- FR-21
+- FR-24
+- FR-52
+operations:
+- name: Geolocation（watchPosition、enableHighAccuracy）
+  does: 位置と誤差と測った時刻を受ける（DEC-14 で 10 秒ごとに最新を送る）
+- name: Screen Wake Lock（navigator.wakeLock.request('screen')）
+  does: 受付中・迎車中・乗車中の画面を消さない（FR-52 AC1）。受付を終えて迎車中でも乗車中でもなくなったら解放する（FR-52 AC2）
+- name: 音の再生（Web Audio）
+  does: 許諾、到着、新しい依頼、取り消し、降車場所の変更を音で知らせる
+- name: Page Visibility（visibilitychange）
+  does: 裏に回った時刻と前面に戻った時刻（FR-17 AC5）、前面に戻ったときの取り直し（FR-06 AC3）
+format: ブラウザの API（同じ端末の中）
+protocol: JavaScript の呼び出しと出来事。安全な文脈（HTTPS か localhost）でだけ使える（TC-12）
+auth: 位置情報は利用者の許可。音は利用者の最初の操作（タップ）の後でないと鳴らない（iOS の Safari）
+errors:
+- case: 位置の利用が許可されていない
+  signal: PERMISSION_DENIED
+  caller_does: 乗客には現在地を入れず探して指定するよう示す（FR-02 AC4）。ドライバーには受付を始めさせず許可を求める（FR-17 AC3）
+- case: 位置を得られない
+  signal: POSITION_UNAVAILABLE、TIMEOUT
+  caller_does: その回は送らない。相手の画面は古さを示す（FR-10 AC4）
+- case: 画面の点灯を使えない、失敗
+  signal: 例外か解放の出来事
+  caller_does: 画面が消えると一覧と現在地の更新が止まることを示す（FR-52 AC4）。前面に戻ったら取り直す（FR-52 AC3）
+- case: 音を鳴らせない
+  signal: 再生の失敗
+  caller_does: 画面の知らせだけにし、次のタップで鳴らせるようにする
+idempotency: —
+timing:
+  timeout: null
+  ordering: 出来事は起きた順
+  delivery: 裏に回ると位置と出来事が止まる（受け入れた制約。TC-09）
+versioning: —
+observability: 失敗をブラウザのエラーの記録（IFC-05）に。前面と裏の時刻を IFC-04 で送る
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 画面の点灯を、受付を終えて迎車中でも乗車中でもなくなったら解放すると書いた。FR-17 の受け入れ基準の番号を版 2 に合わせた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-17 版 2）、FND-47'

@@ -1,0 +1,22 @@
+id: QIU-01
+title: Submission finishes by the deadline
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+user: USR-01
+cuj: CUJ-01
+outcomes: [OUT-01]
+need: Students can finish submitting homework by the deadline, even from a smartphone.
+context_of_use: {device: Smartphone browser, network: null, user_type: null, task: Submission finishes by the deadline, environment: null, other: null}
+characteristic: effectiveness
+statement: Students can finish submitting homework by the deadline, even from a smartphone.
+failure_scenario: A submission fails just before the deadline and misses it.
+measure: {numerator: Homework submissions completed, denominator: Homework submissions started, narrowed_to: 'Smartphone browser, the 24 hours before the deadline', denominator_needed_only: null, contribution: null, observable: true, compared_with: null, scale: ratio}
+kpi: KPI-01
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

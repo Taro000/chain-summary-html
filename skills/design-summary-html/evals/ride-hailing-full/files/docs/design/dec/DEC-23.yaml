@@ -1,0 +1,58 @@
+id: DEC-23
+title: 役割ごとの SPA と、端末の機能とカードの入力を閉じ込めるモジュール
+status: draft
+version: 1
+basis: inferred
+basis_note: TC-02、TC-09 は入力。作りは提案（質問 9 の管理の画面の端末は回答なし）
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: 乗客・ドライバー・管理の画面をどう作り、端末の機能とカードの入力をどう閉じ込めるか
+addresses:
+- DRV-20
+- DRV-07
+- DRV-14
+- DRV-22
+- DRV-12
+- DRV-27
+- DRV-32
+- DRV-09
+options:
+- name: 一つの React のコードから役割ごとの三つの SPA を作り、サーバーと同じ入口から配る。位置情報、画面の点灯、音、前面と裏の切り替えは端末のモジュールだけが使う。地図の表示は地図のモジュール、カードの入力は Stripe の入力部品を包む一つのモジュールだけ。表示の記録とブラウザのエラーは端末に一時に保存して送る。エラーの記録に入力欄の値を入れない。読み込めるスクリプトは自分の入口、Stripe、Google Maps だけ
+  effect: 端末の機能とカードの扱いが一か所ずつに閉じる。同じ入口なのでクッキーで認証でき、CORS が要らない
+  cost: 三つの入口の組み立て
+- name: サーバーで組み立てる画面（Hono の JSX と一部だけの React）
+  effect: 送る量が少ない
+  cost: 地図と配信の画面は状態をブラウザに持つので、結局 React の作りが要る。二つの作り方が混ざる
+- name: 全役割で一つの SPA
+  effect: 組み立てが一つ
+  cost: 乗客の端末に管理の画面のコードが届き、読み込む量が増える
+chosen: 一つの React のコードから役割ごとの三つの SPA を作り、サーバーと同じ入口から配る。位置情報、画面の点灯、音、前面と裏の切り替えは端末のモジュールだけが使う。地図の表示は地図のモジュール、カードの入力は Stripe の入力部品を包む一つのモジュールだけ。表示の記録とブラウザのエラーは端末に一時に保存して送る。エラーの記録に入力欄の値を入れない。読み込めるスクリプトは自分の入口、Stripe、Google Maps だけ
+rationale: TC-02（DRV-17）の React で、TC-09・12（DRV-20）の Safari の Web アプリだけで作る。DRV-14 と NFR-42 は端末の機能を一つのモジュールに閉じることを、DRV-22 はカードの入力をサーバーに通さないことを求める。DRV-27 の表示の記録とエラーは、携帯の回線の切れの間も端末に保存して送る。評価の画面の操作の少なさ（DRV-09）は画面の作りで満たし、NFR-15 の操作の数は画面のテストで数える（DEC-25）
+rejected:
+- option: サーバーで組み立てる画面（Hono の JSX と一部だけの React）
+  reason: DRV-07 と DRV-26 で負ける
+- option: 全役割で一つの SPA
+  reason: DRV-22 と DRV-12 で負ける
+gains:
+- 端末の機能とカードの扱いが一か所ずつ
+- 同じ入口でクッキーの認証
+costs:
+- 三つの入口の組み立て
+sensitive_points:
+- 読み込めるスクリプトの制限（CSP）
+trade_offs: []
+assumptions:
+- 管理とエンジニアの画面は PC のブラウザで使う
+depends_on:
+- DEC-26
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

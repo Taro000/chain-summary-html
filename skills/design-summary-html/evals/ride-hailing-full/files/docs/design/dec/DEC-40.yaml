@@ -1,0 +1,53 @@
+id: DEC-40
+title: 時刻
+status: draft
+version: 1
+basis: inferred
+basis_note: SLI-04・05 と FR-55 の前日が日本時間であること、DEC-04（ブラウザの時計を信用しない）は入力。送り方は推定
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: 時刻をどう送り、どう持ち、業務の日付をどこで区切るか
+addresses:
+- IFC-02
+- IFC-05
+- IFC-10
+- SLI-02
+- SLI-04
+options:
+- name: "インタフェースは UTC の RFC 3339（ミリ秒、Z）。業務の日付は Asia/Tokyo。期限の判定はサーバーの時計。送る: 2026-11-03T05:00:00.000Z。持つ: UTC（形は第 4 段階）。業務の日付: Asia/Tokyo の 0 時で区切る。ブラウザの時刻の欄には、サーバーが受けた時刻（received_at）を並べて持つ"
+  effect: 前日の突き合わせ、NFR-06 の 8:30、表示が日本時間でそろう
+  cost: 変換を一か所に置く
+- name: エポックからのミリ秒の数
+  effect: 計算が楽
+  cost: 人が読めない
+- name: 日本時間の文字
+  effect: 読みやすい
+  cost: 時差のある機械で誤る
+chosen: 'インタフェースは UTC の RFC 3339（ミリ秒、Z）。業務の日付は Asia/Tokyo。期限の判定はサーバーの時計。送る: 2026-11-03T05:00:00.000Z。持つ: UTC（形は第 4 段階）。業務の日付: Asia/Tokyo の 0 時で区切る。ブラウザの時刻の欄には、サーバーが受けた時刻（received_at）を並べて持つ'
+rationale: SLI-04、SLI-05、FR-55 の「前日」は日本時間（SLI の定義）。期限（T_match_wait など）はブラウザの時計を信用しない（DEC-04）
+rejected:
+- option: エポックからのミリ秒の数
+  reason: ログと画面で読めない
+- option: 日本時間の文字
+  reason: 時差を持つ機械と道具で誤る
+gains:
+- どの記録も同じ基準
+costs:
+- 表示と日付の区切りの変換を一か所にする
+sensitive_points:
+- ブラウザの時刻（表示した時刻、裏に回った時刻）はサーバーが受けた時刻とともに持つ（SLI-02 の数え方）
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-04
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

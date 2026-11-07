@@ -1,0 +1,19 @@
+id: NFR-11
+title: 復元の訓練
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+from: [QR-13]
+kind: audit
+cuj: null
+statement: 年に一度、消した提出を復元する訓練をする。
+conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+slo: null
+gate: null
+audit: {mechanism: 復元の訓練, criterion: 1 時間以内に復元できる, cadence_or_deadline: 毎年 3 月}
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

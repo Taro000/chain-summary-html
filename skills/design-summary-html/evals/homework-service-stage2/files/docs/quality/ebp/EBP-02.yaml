@@ -1,0 +1,14 @@
+id: EBP-02
+title: データの SLO のエラーバジェット方針
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+applies_to: [NFR-02]
+rules:
+- {when: 'レポートが 6:00 に間に合わなかった', action: 原因を直す作業と、その朝の催促の取り消しを起票する}
+- {when: 同じ月に 2 回遅れた, action: 夜間の処理の見直しを次のスプリントで先にする}
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

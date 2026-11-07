@@ -1,0 +1,32 @@
+id: DAT-25
+title: SLI の日ごとの値
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。SLI-03 を記録から確かめ直した値にすることは SLI-03 版 2 と第 2 段階の DEC-16 版 5、SLI-05 の数え方は SLI-05 版 2（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: SLI の日ごとの値
+owner: ELM-05
+store: ELM-07
+key_attributes:
+- sli_id と business_date と version（一意の組）
+- good、valid
+- 除いた数（テスト用、裏、最初の 30 秒、デモの回の外など）
+- notes
+relations: []
+consistency: 毎日の処理だけが書く。数え直しは version を上げた新しい行にする。SLI-03 はサーバーの毎分の確かめ（DAT-21）ではなく、受信の記録（DAT-09。受けた時刻だけ）、受付（DAT-04）、状態の履歴（DAT-07）、前面と裏（DAT-19）、デモの回の開け閉め（DAT-26）から毎分 0 秒の時点を確かめ直した値を書く（SLI-03 版 2）。SLI-05 は、場所で行う四つの操作は位置か得られなかった印、ほかの変化は時刻と操作した人があればそろったと数え、取り消しにシステムの取り消しと手配をやめた依頼を含める（SLI-05 版 2）
+retention: システムを終えるとき
+classification: internal
+drivers:
+- DRV-27
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: SLI-03 は記録から確かめ直した値で、デモの回の外を除いた数を持つと書いた。SLI-05 の数え方を書いた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（SLI-03 版 2、SLI-05 版 2、FR-41 版 4）、第 2 段階の DEC-16 版 4・5'

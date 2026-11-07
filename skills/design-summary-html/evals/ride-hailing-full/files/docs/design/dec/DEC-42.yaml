@@ -1,0 +1,55 @@
+id: DEC-42
+title: 一覧と並べ方
+status: draft
+version: 1
+basis: inferred
+basis_note: 推定。値は提案
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+stage: high-level-design
+question: 一覧をどう区切って返し、どう並べるか
+addresses:
+- IFC-02
+- IFC-03
+- IFC-06
+- IFC-07
+options:
+- name: "不透明なカーソルと limit。新しい順。?cursor=&limit= で受け、{items, nextCursor} を返す。状態や種類のような列挙の絞り込みは問い合わせの文字に置いてよい。依頼の一覧（ドライバー）は条件で絞った全部を返す（数件）"
+  effect: 追記の多い一覧（履歴、苦情）でも抜けと重なりがない
+  cost: ページの番号に飛べない
+- name: ページの番号と offset
+  effect: 番号に飛べる
+  cost: 追記されるとずれる
+- name: 全部を返す
+  effect: 作る量が最も少ない
+  cost: 履歴が増えると重い
+chosen: 不透明なカーソルと limit。新しい順。?cursor=&limit= で受け、{items, nextCursor} を返す。状態や種類のような列挙の絞り込みは問い合わせの文字に置いてよい。依頼の一覧（ドライバー）は条件で絞った全部を返す（数件）
+rationale: この規模では件数は少ないが、履歴と苦情は追記で増える。形を一つにする
+rejected:
+- option: ページの番号と offset
+  reason: 追記でずれる
+- option: 全部を返す
+  reason: 上限がない
+gains:
+- どの一覧も同じ形（items と nextCursor）
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions:
+- 絞り込みの条件のうち、個人情報と検索の語は本文で送る（DEC-16）
+depends_on:
+- DEC-16
+parameters:
+- name: limit
+  value: 既定 20、最大 100
+  basis: 提案。画面の一覧の長さ
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

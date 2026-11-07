@@ -1,0 +1,25 @@
+id: FND-70
+title: 手配が断られたときと 503 のときの送り直しが、使用済みの見積もりで 409 ESTIMATE_EXPIRED になる
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-02
+- DAT-05
+- DEC-48
+- DEC-52
+severity: major
+evidence: 活動 B3、B9。DAT-05 の consistency は「手配はこの値を依頼に写し（同じトランザクションで used にする）」とし、CUJ-01-B は手配のトランザクション 1 で依頼を booking に書く。ところが IFC-02 は、Stripe が実行しなかった（429）か届かなかったときの 503 PAYMENTS_UNAVAILABLE で「Retry-After の後に同じ冪等キーで送れる（初めからやり直す）」とし、DEC-48 は「この 503 は何も残さず」とする。実際にはトランザクション 2 で依頼は not_booked のまま残り、見積もりは used のままなので、同じキーの送り直しは「見積もりの期限切れか使用済み」の 409 ESTIMATE_EXPIRED になる。402 CARD_DECLINED・CARD_AUTHENTICATION_REQUIRED の後に「別の支払い手段を選び、新しい冪等キーで送る」（FR-05 AC3）ときも同じ。画面の流れ（CUJ-01 の「押さえられない、混み合っている（503）」→ 手配）もこの戻りを描かない。乗客は見積もり直しを強いられ、IFC-02 の caller_does と DEC-48 の例外の文が成り立たない
+suggestion: 押さえが起きていないと定まったとき（402、429、送る前の接続の失敗）は、トランザクション 2 で見積もりの used を外す（または used_by_ride_id を not_booked の依頼に結んだまま、同じ乗客の次の手配に使えるとする）と決め、DAT-05、IFC-02、CUJ-01-B、DEC-48 の「何も残さず」の文をそろえる。あわせて、FR-05 AC3 の「依頼を作らず」と not_booked の行を残すことの関係（履歴の画面に出すか）を書く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

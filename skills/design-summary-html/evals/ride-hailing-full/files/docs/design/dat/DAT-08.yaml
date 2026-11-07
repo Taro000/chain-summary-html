@@ -1,0 +1,40 @@
+id: DAT-08
+title: 位置の記録
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。kind（場所で行う四つの操作と、降車場所の変更の前後）は FR-39 版 3 と FR-12 AC6（FND-46）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: 状態の履歴が参照する位置
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- position_id
+- account_id
+- kind（arrived、started、no_show、ended、dropoff_before、dropoff_after）
+- lat、lng（小数点以下 6 桁以上。NFR-37）
+- accuracy_m、measured_at、received_at（四つの操作の現在地のとき）
+- place_id と表示の名前（降車場所のとき）
+- source（driver、passenger）
+relations:
+- to: DAT-07
+  kind: many-to-one
+  note: 履歴の変化
+consistency: 位置のモジュールだけが読み書きする（DEC-15）。履歴の変化と同じトランザクションで、配車のモジュールが位置のモジュールの操作を呼んで書く。読める相手は DEC-15 の表で、位置のモジュールが役割を確かめる。ELM-05 は持ち主のモジュールを通して書く（DEC-53。T_pii_retention を過ぎた位置の削除）
+retention: T_pii_retention を過ぎたら消す（FR-53）
+classification: personal
+drivers:
+- DRV-21
+- DRV-27
+- DRV-29
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: kind（arrived、started、no_show、ended、dropoff_before、dropoff_after）と、降車場所の位置の持ち方（place_id と表示の名前）を足した。T_pii_retention を過ぎた位置は ELM-05 が持ち主のモジュールを通して消すと書いた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-12 版 4、FR-39 版 3）、FND-39・46'

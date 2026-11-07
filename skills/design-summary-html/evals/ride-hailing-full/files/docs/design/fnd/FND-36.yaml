@@ -1,0 +1,27 @@
+id: FND-36
+title: 最初のデモの前に実機で SLI-02 を測る関門が報告書の文にだけあり、どの項目にも要合意の表にもない
+status: accepted
+version: 2
+basis: inferred
+basis_note: 報告書の要約、遅延の予算、未解決の点、要合意の表、DEC-50 と DEC-51 の項目は入力。項目にないことは grep で確かめた
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DEC-51
+- IFC-08
+severity: minor
+evidence: NFR-02 の予算で最も大きい区間（携帯の回線の 2.00 秒。和 3.45 秒の 58%）は入力になく、報告書は、最初のデモの前の通しの確かめで FR-54 の表示の記録から SLI-02 を測ることを関門にし、「遅延の予算は満たす」と言えるのはその値が出てからとする（要約、遅延の予算、未解決の点）。この関門は DEC にも IFC にもなく、要合意の表にもない。通らなかったときの扱い（DEC-51 の一覧の送り方や、DEC-03 の P_tail を見直す、など）も書かれていない。YAML の項目が正なので、第 4 段階と運用はこの関門を受け取れない。Stripe と地図の遅い応答を測ること（NFR-44）は DEC-50 の revisit_when にあるのと比べると、こちらだけが抜けている
+suggestion: 関門を DEC（DEC-51 か新しい決定）の parameters か revisit_when に書き、通らなかったときの扱いと承認者の候補を添えて要合意の表に載せる
+resolution: "受け入れた。最初のデモの前に実機 2 台で SLI-02 を測る関門を DEC-51 版 2 の設計上の値にし、届かなかったときの扱い（追いかけの間隔と区間を見直してから始める）と承認者の候補を添えて要合意の表に載せた"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B2）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

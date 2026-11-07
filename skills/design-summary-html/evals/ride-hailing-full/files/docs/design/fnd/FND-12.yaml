@@ -1,0 +1,27 @@
+id: FND-12
+title: 位置の受信の記録と最後の位置を読める人が決まっていない
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-14・15、FR-24 AC3、FR-45、報告書の情報の表は入力。決まりがないことの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-15
+- DEC-14
+severity: minor
+evidence: DEC-15 は、位置の記録の表を読めるものを、運営・サポート担当とエンジニアの役割、配車のモジュール、毎日の処理に限る。DEC-14 の位置の受信の記録（時刻、位置、誤差。T_log_retention の間残す）と最後の位置（迎車中の乗客の位置を含む）は別の表で、読めるものの決まりがない。苦情の調べ（FR-45）は受信の記録を使う（第 2 段階の課題 3）。FR-24 AC3 は、乗車が始まるか依頼が終わると乗客の位置を示すのをやめるとするが、乗客の最後の位置をいつ消すかもない（DRV-21、QR-38）
+suggestion: DEC-15 の読める範囲の決まりを、位置を持つすべての表（位置の記録、位置の受信の記録、最後の位置）に広げる。乗客の最後の位置は、FR-24 AC3 で示すのをやめるときに消す
+resolution: 受け入れた。DEC-15（版 2）で、読める相手の決まりを座標を持つ三つの表（位置の記録、位置の受信の記録、最後の位置）に広げ、読み書きを位置のモジュールだけにした（DEC-26 の依存の規則で確かめる）。DEC-14（版 2）に、乗客の最後の位置は示すのをやめるとき（FR-24 AC3）に、ドライバーの分は受付を止めたとき（FR-17）に消すことを書いた
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階のレビュー（活動 A1、A2）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
+  reason: 第 2 段階の再実行（2026-11-03）

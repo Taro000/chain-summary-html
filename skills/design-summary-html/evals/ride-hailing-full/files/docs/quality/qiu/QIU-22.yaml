@@ -1,0 +1,40 @@
+id: QIU-22
+title: 既存の機能を壊さずに利用技術の版を上げる
+status: draft
+version: 1
+basis: inferred
+basis_note: ニーズ（壊さない）は入力。記録が今はないことは質問 9 で確認済み。T_regression_window と測定量は推定
+needs_agreement: true
+approver_candidates:
+  - 開発の責任者
+user: USR-03
+cuj: CUJ-13
+outcomes: []
+need: 機能の追加・修正や技術のバージョンアップで既存のシステムを壊したくない
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: エンジニア
+  task: 利用技術の版を上げる変更
+  environment: 本番環境
+  other: null
+characteristic: effectiveness
+statement: エンジニアは、既存の機能を壊さずに利用技術の新しい版を本番に出せる。
+failure_scenario: 利用技術の版を上げたあと、動きの変わった部分で配車や決済が動かなくなる。
+measure:
+  numerator: 本番に出してから T_regression_window 日以内に既存の機能の障害・不具合を起こさなかった変更
+  denominator: 本番に出した変更
+  narrowed_to: 利用技術の版を上げる変更
+  denominator_needed_only: 本番に出した変更だけ
+  contribution: 変更とそのあとの障害を結び付ける記録があれば直接数えられる
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

@@ -1,0 +1,37 @@
+id: NFR-30
+title: 確認コード、受取額、受付の資格のテスト
+status: draft
+version: 2
+basis: inferred
+basis_note: 推定。乗客の画面の確かめを足したことは QR-14 版 2（確認コードを両方向の確かめに使う、設計 1-5）への追随
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-14
+- QR-15
+- QR-37
+kind: gate
+cuj: CUJ-07
+statement: 確認コード、ドライバーの受取額、受付できるドライバーの規則を自動テストで確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: コードが依頼ごとに作られドライバーが替われば変わること、違うコードで運転が始まらず、乗客の画面も乗車中に変わらないこと。受取額が運賃から手数料を引いた額で、一覧と受取額の画面で同じこと。FR-48 で登録されていないドライバーが受付を始められないこと
+  threshold: すべて通る
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。違うコードでは乗客の画面も乗車中に変わらないことを確かめる場合に足した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。第 3 段階の再実行（2026-11-03）の QR-14 版 2 への追随

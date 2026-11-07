@@ -1,0 +1,158 @@
+id: IFC-24
+title: 乗客の手配から降車までの画面
+status: draft
+version: 2
+basis: inferred
+basis_note: FR の受け入れ基準（FR-05 版 3 の押さえの結果が分からないとき、FR-08 版 2 のシステムの取り消し、FR-12 版 4 の押さえ直しの結果が分からないとき、FR-26 版 2 の確認コードを伝えて画面が乗車中に変わってから乗ること）、DEC-24（ドラッグしない代わり）、第 2 段階の DEC-30 版 2（乗車中は運転の開始の記録を受けたときだけ示す）は入力。確かめ中の示し方は DEC-52 版 2（FND-31）、お金の結果の行と移り先は FND-45。画面の分け方、取り消しの額の確かめ方は推定
+needs_agreement: false
+approver_candidates: []
+kind: screen
+name: 乗客の手配から降車までの画面
+provider: ELM-01
+consumers:
+- USR-01
+functions:
+- FR-02
+- FR-03
+- FR-05
+- FR-06
+- FR-07
+- FR-08
+- FR-09
+- FR-10
+- FR-11
+- FR-12
+- FR-24
+- FR-26
+- FR-27
+- FR-28
+- FR-29
+- FR-31
+- FR-43
+- FR-51
+- FR-54
+operations:
+- name: 手配
+  does: CUJ-01 の三つの手順。乗る場所（現在地を初めから入れる。誤差が大きければピンで確かめる）、降りる場所（探す、ピン）、到着予定時刻と所要時間と料金、近くのドライバーの数（しきい値があるとき）、手配の確定
+- name: 手配の状況
+  does: ドライバーを探しています。T_match_wait を過ぎたら「待ち続ける / 取り消す / しきい値を下げる」（FR-08）。押さえの確かめ中は「支払いを確かめています」と取り消し。手配をやめたら（T_hold_wait を過ぎた、取り消した）「手配をやめました。押さえが残っていれば解放します」を、解放したか押さえがないと分かるまで示す（FR-05 AC4）。T_request_max でシステムが取り消したら、その旨とキャンセル料がかからないことを示す（FR-08 AC5）
+- name: 迎車中
+  does: CUJ-02。ドライバーと車の情報と確認コード（FR-09）、「乗る前に確認コードをドライバーに伝え、画面が乗車中に変わってから乗ってください。変わらなければ手配した車ではありません」の案内（FR-26 AC3）、ドライバーの位置と到着予定（FR-10）、到着の知らせと音（FR-06）、取り消し（額を確かめる）、「手配した車と違う」の報告（FR-43 AC2）、位置を送るか（FR-24）、手で取り直す操作。乗車中への切り替えは配信の ride.updated（state=in_progress）か GET の取り直しでだけ行い、画面が先に変えない（第 2 段階の DEC-30 版 2）
+- name: 不在の結果
+  does: 迎車中に不在で終えたこと（ride.updated の state=no_show）と料金。確かめた到着なら 500 円、確かめられなかった到着なら請求なし（FR-27 AC1・3）。請求に失敗したら未払いの支払いへ（FR-27 AC4、FR-31 AC1）
+- name: 乗車中
+  does: CUJ-03。車の位置、降車場所、到着予定（FR-11）、降車場所の変更（見積もり → 承認。FR-12）、押さえ直しの確かめ中は「確かめています」と変更の取り消し（FR-12 AC5）、報告
+- name: 到着と支払いの結果
+  does: 到着しました、支払いの完了 / 請求を確かめています / 未払い（払う手段へ）。保留の降車場所の変更を乗車の終了で取りやめたら、その旨を示す。支払いの完了、請求を確かめています、未払い（払った後を含む）のどれからも → 評価（FR-13、FR-28 AC1）
+format: React の SPA の画面（DEC-23）。文言は日本語（DEC-46）。WCAG 2.2 AA（DRV-24）
+protocol: iOS の Safari（ELM-15）。IFC-02、IFC-04、IFC-05、IFC-08、IFC-16、IFC-18 を使う
+auth: 乗客のセッション
+errors:
+- case: '手配: 位置の利用が許可されていない'
+  signal: IFC-18 PERMISSION_DENIED
+  caller_does: 現在地を入れず、場所を探して指定するよう示す（FR-02 AC4）
+- case: '手配: 現在地の誤差が大きい'
+  signal: 誤差 > D_pickup_accuracy、IFC-02 PICKUP_NOT_CONFIRMED
+  caller_does: ピンで乗る場所を確かめさせる（FR-02 AC3）
+- case: '手配: 候補がない'
+  signal: IFC-02 の空の候補
+  caller_does: その旨を示し、ピンで指定できるようにする（FR-02 AC5）
+- case: '手配: 経路がない'
+  signal: IFC-02 NO_ROUTE
+  caller_does: 料金の確認に進めず理由を示す（FR-02 AC6）
+- case: '手配: 地図のサービスが使えない'
+  signal: IFC-02 MAPS_UNAVAILABLE、IFC-16 の失敗
+  caller_does: 値を示さず、手配に進めないことと理由を示す（FR-03 AC5）。地図の代わりに住所を示す
+- case: '手配: しきい値を満たすドライバーがいない'
+  signal: IFC-02 NearbyCount の meetingThreshold が 0
+  caller_does: その旨と、しきい値を下げられることを示す。手配は止めない（FR-51 AC3）
+- case: '手配: 支払い手段がない'
+  signal: IFC-02 PAYMENT_METHOD_REQUIRED
+  caller_does: 支払い手段の画面へ（FR-05 AC2）
+- case: '手配: 押さえられない'
+  signal: IFC-02 CARD_DECLINED、CARD_AUTHENTICATION_REQUIRED
+  caller_does: 理由と、別の支払い手段を選ぶ手段を示す（FR-05 AC3）
+- case: '手配: 決済のサービスが実行しなかった、要求が届かなかった'
+  signal: IFC-02 PAYMENTS_UNAVAILABLE
+  caller_does: 押さえていないことを示し、少し後にもう一度手配できるようにする（同じ冪等キーで送る。DEC-52）
+- case: '手配: 進行中の依頼、未払いがある'
+  signal: IFC-02 ACTIVE_RIDE_EXISTS、UNPAID_RIDE_EXISTS
+  caller_does: 手配の状況か未払いの支払いへ（FR-05 AC5）
+- case: '手配: 押さえの結果が分からない'
+  signal: IFC-02 HOLD_PENDING
+  caller_does: 手配の状況に「支払いを確かめています」と取り消しを示す（FR-05 AC4、DEC-52）
+- case: '手配の状況: T_hold_wait までに確かめがつかなかった、確かめ中に取り消した'
+  signal: IFC-08 ride.updated（not_booked）、IFC-02 HOLD_RELEASE_PENDING
+  caller_does: 「手配をやめました。押さえが残っていれば解放します」と示し、もう一度手配できるようにする。「押さえていません」と示すのは payment.state が none か released になったとき（Stripe が答えたとき）だけ（FR-05 AC4）
+- case: '手配の状況: ドライバーが取り消して探し直し'
+  signal: IFC-08 ride.updated（relisted）
+  caller_does: その旨を示す（FR-06 AC4）
+- case: '手配の状況: T_request_max を過ぎてシステムが取り消した'
+  signal: IFC-08 ride.updated（cancelled、cancelledBy=system、reason=request_timeout）
+  caller_does: 誰も許諾しなかったのでシステムが取り消したことと、キャンセル料がかからないことを示し、もう一度手配できるようにする（FR-08 AC5）。押さえの解放を確かめている間（release_checking）はその旨を示す
+- case: '迎車中: ドライバーの位置が届かない'
+  signal: IFC-08 ride.live の stale
+  caller_does: 最後に分かった位置と時刻、更新が止まっていることを示す（FR-10 AC4）。届けば消す（AC5）
+- case: '迎車中: 到着予定を計算できない'
+  signal: pickupEta が null
+  caller_does: その旨を示す（FR-10 AC3）
+- case: '迎車中: 画面が乗車中に変わらない（運転の開始の記録が届かない）'
+  signal: ride.updated（in_progress）が届かない
+  caller_does: 乗車中に変えず、確認コードの案内を示し続ける。手で取り直す操作で GET を読み直す（FR-26 AC3、第 2 段階の DEC-30 版 2）
+- case: '迎車中: 不在で終わった'
+  signal: IFC-08 ride.updated（no_show）と charge
+  caller_does: 不在の結果を示す。確かめた到着なら 500 円、確かめられなかった到着なら請求なし（FR-27 AC1・3）
+- case: '不在の結果、取り消し: 不在の料金かキャンセル料の請求に失敗した'
+  signal: payment.state = unpaid
+  caller_does: 理由と、別の支払い手段で払う手段を示す（FR-31 AC1、FR-27 AC4、FR-07 AC5）
+- case: '取り消し: 額が変わった'
+  signal: IFC-02 CANCELLATION_FEE_CHANGED
+  caller_does: 新しい額を示して確かめ直す（FR-07 AC2）
+- case: '取り消し: 乗車が始まっている'
+  signal: IFC-02 RIDE_ALREADY_STARTED
+  caller_does: 降車場所の変更を案内する（FR-07 AC6）
+- case: '取り消し: 押さえの解放を確かめている（無料の取り消し）'
+  signal: payment.state = release_checking
+  caller_does: 取り消したことと、押さえの解放を確かめていることを示す。released になったら消す
+- case: '乗車中: 車の位置が届かない'
+  signal: IFC-08 ride.live の stale
+  caller_does: 最後に分かった位置と時刻を示す（FR-11 AC2）。届けば消す
+- case: '乗車中: 降車場所を変えられない'
+  signal: IFC-02 NO_ROUTE、MAPS_UNAVAILABLE、HOLD_FAILED
+  caller_does: 変えず理由を示す（FR-12 AC4）
+- case: '乗車中: 押さえ直しの結果が分からない'
+  signal: IFC-02 DESTINATION_CHANGE_PENDING
+  caller_does: 降車場所を変えずに「確かめています」と変更の取り消しを示し、配信で待つ（FR-12 AC5）
+- case: '乗車中: 確かめ中の変更を取り消した、T_hold_wait を過ぎた'
+  signal: IFC-02 HOLD_RELEASE_PENDING、IFC-08 ride.updated（destinationChange）
+  caller_does: 降車場所を変えなかったことを示し、新しい押さえがないと分かるまで「新しい押さえが残っていれば解放します」と示す（FR-12 AC5）
+- case: '結果: 保留の降車場所の変更を乗車の終了で取りやめた'
+  signal: IFC-08 ride.updated（destinationChange.state=abandoned）
+  caller_does: 「降車場所の変更は当てませんでした。新しい押さえが残っていれば解放します」と示す（DEC-52）
+- case: '結果: 請求を確かめている'
+  signal: payment.state = checking
+  caller_does: 「請求を確かめています」と示し、降りてよいことを示す（FR-29 AC3）。評価の画面に進める。確かめがついたら配信の ride.updated（paid か unpaid）で結果を示し、翌朝に決まったときは次に開いたときに GET で示す（FR-29 AC4）
+- case: '結果: 請求に失敗'
+  signal: payment.state = unpaid
+  caller_does: 理由と、別の支払い手段で払う手段を示す（FR-31 AC1）。評価の画面にも進める
+- case: 'どこでも: 流れが上限で断られた'
+  signal: IFC-08 429 STREAM_LIMIT
+  caller_does: 15 秒ごとに取り直す（表示は変えない）
+idempotency: 画面は操作ごとに冪等キーを一つ作り、応答が分からないときは同じキーでだけ送り直す（API の呼び出しのモジュール。DEC-48）。二度押しは同じキーにまとまる
+timing:
+  timeout: API の 15 秒（降車場所の変更の確定は 25 秒。DEC-50）を待つ間は進み具合を示す。前面に戻ったら GET で取り直す（FR-06 AC3）
+  ordering: null
+  delivery: null
+versioning: SPA の版を X-App-Version と比べ、操作の途中でないときに読み直す（DEC-49）。読み直した後は GET で今の状態を取り直す
+observability: 手配の画面を開いた時刻（IFC-05 screen-events。FR-02 AC7）、示した時刻（IFC-05 displays。FR-54）
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 押さえの確かめ中と手配をやめた後の示し方（「押さえていません」は Stripe が答えたときだけ）、PAYMENTS_UNAVAILABLE、システムの取り消し、迎車中の確認コードの案内と乗車中への切り替え（配信か取り直しだけ。手で取り直す操作）、不在の結果と料金、不在の料金とキャンセル料の請求の失敗、無料の取り消しの解放の確かめ、乗車中の位置の古さ、降車場所の変更の保留・取り消し・取りやめ、確かめがついたときの示し方、確かめ中と未払いからの評価の画面への移り先を足した。functions に FR-27 を足した。FR-05 の受け入れ基準の番号を版 3 に合わせ、降車場所の変更の確定を待つ時間を 25 秒にした
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-05 版 3、FR-08 版 2、FR-12 版 4、FR-26 版 2）、第 2 段階の DEC-30 版 2、FND-31・32・33・45・47'

@@ -1,34 +1,37 @@
 # Page specification
 
-What `scripts/build_design_summary.py` puts on `docs/design/summary.html`, where each part comes from, and how to change it. The page is Japanese; labels are quoted as the page shows them. The requirements that shaped the page can be kept in summary-text.yaml (`requirements`, `answers`); they are shown in the closed toggle 「このページの要件」 at the bottom of the page. A complete summary-text.yaml for a real project is `docs/design/summary-text.yaml` in ride-hailing-app-demo (its `decisions` block predates the YAML-built decision cards and is no longer used).
+What `scripts/build_design_summary.py` puts on `docs/design/summary.html`, where each part comes from, and how to change it. Labels are quoted in Japanese and English as the two pages show them (`assets/lang/ja.json`, `assets/lang/en.json`).
 
 ## Contents
 - Sources
+- Language
 - Page structure
 - Stage 1, Stage 2, Stage 3
 - Comparing the reports with the items
-- Stand-ins before the condensed texts exist
-- Revision history in texts
+- Revision notes
 - Links and tooltips
 - Diagrams
 - Latency budget charts
 - Theme
-- summary-text.yaml
 - Checks
+- Evals
 - Changing the page
 
 ## Sources
 
-The YAML items are the source of truth (req-to-design's `artifacts.md`), as in quality-summary-html: every table that has items is built from them. The reports are read for the Mermaid diagrams, for the stage titles (H1 before the colon), and for the sections that no item holds. Enum values become the req-to-design glossary's Japanese terms (`T_…` tables in the script). In the tables below, "YAML" names the fields and "report" names the section.
+The YAML items are the source of truth (req-to-design's `artifacts.md`), as in quality-summary-html: every table that has items is built from them. The reports are read for the Mermaid diagrams, for the stage titles (H1 before the colon), and for the tables that no item holds. The reports' prose is never shown: a section with neither a table nor a diagram is left out and listed in the report. Nothing on the page is written by hand; there is no file of condensed texts (a `summary-text.yaml` from an earlier version of this skill is reported as no longer used). Enum values become the req-to-design glossary's terms in the page's language (`terms` in the language files).
+
+## Language
+
+The page and the report follow the language of the outputs: Japanese when kana make up a tenth or more of the letters (kana and Latin) in the YAML free text and the reports, English otherwise. `--lang ja|en` sets the page's labels; the content stays as written. Report sections are found by their Japanese heading (the glossary's term) or English heading (the report template's), so a Japanese report and an English one are read the same way (`H` at the top of the script). Revision notes are removed by the rules of the outputs' language, not the page's. English pages use IBM Plex Sans; Japanese pages use BIZ UDPGothic and Zen Kaku Gothic New.
 
 ## Page structure
 
-1. Header: repository · docs path, title 「<system name>の設計」 (system name from docs/quality/context.yaml, else the report's H1), stages covered, latest update date (newest `changelog` date of the items or 「再実行（日付」 heading), git commit of docs/design with 「未コミットの変更あり」 when the folder differs from it (summary.html itself is ignored). A band of the icon's five colors runs under the header. 「すべて開く」「すべて閉じる」 open or close every toggle, nested ones included.
+1. Header: repository · docs path, the title 「<system name>の設計」 / "<system name> design" (system name from docs/quality/context.yaml without its trailing bracket, else the report's H1), stages covered, latest update date (newest `changelog` date of the items, or a 「再実行（日付」 / "Re-run on <date>" heading), git commit of docs/design with 「（未コミットの変更あり）」 / "(uncommitted changes)" when the folder differs from it (summary.html itself is ignored). A band of the icon's five colors runs under the header. 「すべて開く」「すべて閉じる」 / "Open all" "Close all" open or close every toggle, nested ones included.
 2. Table of contents on the left (a strip under 1100 px).
-3. 「成果物のつながり」: a route of seven stops with counts from the items: drivers (primary and kinds), stage-2 decisions (debts and deferrals), elements (kinds), stage-3 decisions (shared conventions from the report, and the others), interfaces (kinds), end-to-end flows (diagrams in the report: CUJ and driver flows), data entities (owners). A stop whose toggle is not on the page is left out.
-4. One section per stage, titled with the report's H1 before the colon (or 設計を動かす要求 / アーキテクチャ / 概要設計), with its sources beside the title. Every table is in a closed `details.tbl` toggle with a count, except the ranking table, which is open.
-5. 「この版の注記」 only when there are mismatches, missing reports or items, missing sections, or stale or missing condensed texts.
-6. 「このページの要件」: the user's requirements and the answers to the clarifying questions.
+3. 「成果物のつながり」 / "How the outputs connect": a route of up to seven stops with counts from the items: drivers (primary and kinds), stage-2 decisions (debt and deferred), elements (kinds), stage-3 decisions (shared conventions from the report, and the others), interfaces (kinds), end-to-end flows (diagrams in the report: CUJ and driver flows), data entities (owners). A stop whose toggle is not on the page is left out.
+4. One section per stage, titled with the report's H1 before the colon (or the language file's stage title), with its sources beside the title. Every table is in a closed `details.tbl` toggle with a count, except the ranking table, which is open.
+5. 「この版の注記」 / "Notes on this version", only when there are mismatches, missing reports, items or later stages, or missing sections or tables.
 
 A stage is on the page when its items (stage 1: `drv/`; stage 2: `elm/` or architecture decisions; stage 3: `ifc/`, `dat/` or high-level-design decisions) or its report exist.
 
@@ -36,124 +39,115 @@ A stage is on the page when its items (stage 1: `drv/`; stage 2: `elm/` or archi
 
 | Toggle | Source | Notes |
 |---|---|---|
-| 順位表 (first, open) | YAML `drv/`: `priority.rank`, `business`, `business_reason`, `difficulty`, `difficulty_reason`, `primary` | principles and retired drivers are not ranked; a driver without a rank goes last and is reported; priority and difficulty as badges, 主 as a chip |
-| 設計の前提と利害関係者 | YAML `design-context.yaml`: `technology_constraints`, `project_constraints`, `teams`, `anticipated_changes`, `stakeholders` | 種類 from `kind`; 根拠 is the basis (入力 / 推定 / 確認済み) |
-| 関心事の一覧 | report 関心事の一覧 | なったもの dropped |
-| 品質と変更のシナリオ | YAML `drv/` of kind quality and change: `scenario` | the kind as a tag beside the ID |
-| 制約 | YAML kind constraint: `statement`, `negotiable`, `sources` | |
-| 機能・観測・セキュリティの要求 | YAML kinds function, observability, security: `kind`, `statement`, `sources`; the scenarios of those that have one | both tables in one toggle |
-| 全体の原則 | YAML kind principle: `statement`, `derived_from` (`sources` in brackets) | |
-| 競合 | YAML `conflicts` | one row per pair of drivers; both drivers record the conflict, and the side with more notes is shown |
-| 実現できるか | report 実現できるか | |
+| 順位表 / Ranking table (first, open) | YAML `drv/`: `priority.rank`, `business`, `business_reason`, `difficulty`, `difficulty_reason`, `primary` | principles and retired drivers are not ranked; a driver without a rank goes last and is reported; priority and difficulty as badges, primary as a chip |
+| 設計の前提と利害関係者 / Design inputs and stakeholders | YAML `design-context.yaml`: `technology_constraints`, `project_constraints`, `teams`, `anticipated_changes`, `stakeholders` | kind from `kind`; the basis column is kept |
+| 関心事の一覧 / Concern inventory | report table | the column of what each became (なったもの / Became) dropped |
+| 品質と変更のシナリオ / Quality and change scenarios | YAML kinds quality and change: `scenario` | the kind as a tag beside the ID |
+| 制約 / Constraints | YAML kind constraint: `statement`, `negotiable`, `sources` | |
+| 機能・観測・セキュリティの要求 / Functional, observability and security drivers | YAML kinds function, observability, security: `kind`, `statement`, `sources`; the scenarios of those that have one | both tables in one toggle |
+| 全体の原則 / Principles | YAML kind principle: `statement`, `derived_from` (`sources` in brackets) | |
+| 競合 / Conflicts | YAML `conflicts` | one row per pair of drivers; both drivers record the conflict, and the side with more notes is shown |
+| 実現できるか / Feasibility | report table | |
 
 ## Stage 2
 
 | Toggle | Source | Notes |
 |---|---|---|
-| 要素 (first) | YAML `elm/`: `kind`, `name`, `responsibility`, `functions`, `drivers`, `team`, `as_is` | ID lists as ranges (「FR-01〜14、24」) |
-| ビュー (second) | report ビュー > each H3 | one nested item per view: the diagram and the view's tables; for コードの分け方, the dependency rules as a table (`code_rules`) |
-| 全体の構造 | report 全体の構造 | condensed bullets (`structure`) |
-| 設計の決定 | YAML `dec/` of stage architecture: `question`, `chosen`, `addresses`, `rejected` (option and reason) | each DEC links to its card |
-| 決定の中身 | YAML `dec/` | one card per DEC: 問い; the options (`options`: name, effect, cost) with the chosen one highlighted and each rejected one's reason; then 選んだ理由 (`rationale`), 得るもの, 失うもの, 応答を左右する点, 引き換え, 前提, 設計上の値, 技術的負債, 先送り, 対象, 依存する決定. The reports' option-comparison tables inside each DEC section are not used |
-| 設計の観点 | report 設計の観点 | condensed text per viewpoint (`viewpoints`), as a definition list |
-| 脅威のモデル | report 脅威のモデル | assets and the six threats as bullets (`threat`), a hand-laid SVG of trust boundaries and flows (`threat.diagram`; chips link to the table rows), the table |
-| 通し確認（CUJ） | report 通し確認 > CUJ | all CUJ tables merged into one table with a header row per CUJ; CUJs written as prose come from `walk_extra` |
-| 通し確認（設計を動かす要求） | report 通し確認 > 主な設計を動かす要求 | both tables |
-| 設計上の値 | YAML `parameters` of the stage's decisions | 値, 仮の値, もと (`basis`), 決定 |
-| 技術的負債と先送りした決定 | YAML `debt` (what, why_accepted, repay_when) and `deferred` (question, rationale, revisit_when) | the schema has no field for an accepted risk; one written only in the report is reported as a mismatch |
-| 走る費用 | report 費用と体制 > 走る費用 | |
+| 要素 / Elements (first) | YAML `elm/`: `kind`, `name`, `responsibility`, `functions`, `drivers`, `team`, `as_is` | ID lists as ranges (「FR-01〜14、24」 / "FR-01–14, 24") |
+| ビュー / Views (second) | report, each subsection of the views section | one nested item per view: its diagram and the tables beside it |
+| 設計の決定 / Decisions | YAML `dec/` of stage architecture: `question`, `chosen` (「先送り」 / "Deferred" for a deferred decision without one), `addresses`, `rejected` (option and reason) | each DEC links to its card; findings in `addresses` are left out (review history) |
+| 決定の中身 / Decision details | YAML `dec/` | one card per DEC: the question; the options (`options`: name, effect, cost) with the chosen one highlighted and each rejected one's reason; then the rationale, gains, costs, sensitive points, trade-offs, assumptions, design parameters, technical debt, deferral, addresses and dependencies. The reports' option-comparison tables inside each decision section are not used |
+| 設計の観点 / Design concerns | report table | as a definition list |
+| 脅威のモデル / Threat model | report: the first Mermaid diagram and the table | the flow numbers on the diagram's arrows (F1…) link to the table's rows, which get the ids `flow-F1`…; pointing at one highlights the arrows that carry it |
+| 通し確認（CUJ） / Walkthroughs (CUJs) | report: one table per CUJ, under a bold label or its own heading | all merged into one table with a header row per CUJ; a CUJ written as prose is left out and listed |
+| 通し確認（設計を動かす要求） / Walkthroughs (primary drivers) | report tables | both tables, if there are two |
+| 設計上の値 / Design parameters | YAML `parameters` of the stage's decisions | parameter, value, basis, decision |
+| 技術的負債と先送りした決定 / Debt and deferred decisions | YAML `debt` (what, why_accepted, repay_when) and `deferred` (question, rationale, revisit_when) | the schema has no field for an accepted risk; one written only in the report is reported as a mismatch |
+| 走る費用 / Running cost | report: the running-cost subsection of cost and team, or its first table | |
 
 ## Stage 3
 
 | Toggle | Source | Notes |
 |---|---|---|
-| 共通の約束事 | report 共通の約束事 | |
-| 設計の決定 | YAML `dec/` of stage high-level-design | as in stage 2, without cards; detailed-design decisions are not on the page |
-| インタフェース | YAML `ifc/`: `kind`, `name`, `provider`, `consumers`, `operations`, `functions`, `spec` | 操作 lists up to three operations (every message of an event interface), else 「N 件（最初 ほか）」; 仕様 is the file name |
-| エラーの決まり | YAML `errors` (`case`, `signal`, `caller_does`) | a case written 「操作: 場合」 gives the 操作 column; rows for 「共通」 that are the same in several interfaces are shown once at the top (「IFC-01〜07」); IFC and 操作 merged into row groups |
-| 端から端の流れ | report 端から端の流れ > each H3 with a diagram | one nested item per diagram, with an index |
-| 遅延の予算 | report 遅延の予算 > NFR-xx and スクリプトの出力 | one item per NFR: a chart and condensed text (`budgets`) |
-| 失敗したときの流れとエラーバジェット | report 遅延の予算 > 失敗したときの流れとエラーバジェット | |
-| 画面 | report 画面 > each H3 | one item per diagram |
-| データ | report データ (ER diagram); YAML `dat/`: `entity`, `owner`, `store`, `consistency`, `retention`, `classification` | entity names added to the ER boxes |
-| データの品質の流れ | report データ > データの品質の流れ | the diagrams (captioned by the paragraph before each) and 「ほかのデータの品質」 |
-| 要素をまたぐ状態 | report 要素をまたぐ状態 > each H3 | one item per diagram, plus a short note only where the diagram cannot be read alone (`states`) |
-| 測定点と監視の NFR の出どころ | report 測定点 (both tables) | duplicate rows in the second table (same NFR) merged, keeping the fuller one |
-| 受け入れ基準のトレース | report 受け入れ基準のトレース | columns reordered to FR, IFC, 基準, 流れ and grouped by FR; not cleaned (the criteria are quotations) |
-| 設計上の値 | YAML `parameters` of the stage's decisions | |
-| 技術的負債と先送りした決定 | YAML, as in stage 2 | only when a stage-3 decision has debt or is deferred |
-
-Paragraphs around tables are left out on purpose (the requirements ask for no explanations around tables).
+| 共通の約束事 / Shared conventions | report table | |
+| 設計の決定 / Decisions | YAML `dec/` of stage high-level-design | as in stage 2, without cards; detailed-design decisions are not on the page |
+| インタフェース / Interfaces | YAML `ifc/`: `kind`, `name`, `provider`, `consumers`, `operations`, `functions`, `spec` | operations: up to three names (every message of an event interface), else 「N 件（最初 ほか）」 / "N (first and others)"; spec: the file name |
+| エラーの決まり / Error contracts | YAML `errors` (`case`, `signal`, `caller_does`) | a case written 「操作: 場合」 / "Operation: case" gives the operation; rows for all operations (「共通」 / "Common") that are the same in several interfaces are shown once at the top (「IFC-01〜07」); IFC and operation merged into row groups |
+| 端から端の流れ / End-to-end flows | report: each subsection with a diagram | one nested item per diagram, with an index |
+| 遅延の予算 / Latency budgets | report: each NFR subsection | a hop table becomes a chart (see below); another table is shown as it is; a subsection without a table is left out and listed |
+| 失敗したときの流れとエラーバジェット / Failure paths and error budgets | report table | |
+| 画面 / Screens | report: each subsection with a diagram | one item per diagram |
+| データ / Data | report: the ER diagram; YAML `dat/`: `entity`, `owner`, `store`, `consistency`, `retention`, `classification` | entity names added to the ER boxes; a classification with a note after it (「personal（IP アドレス）」) keeps the note |
+| データの品質の流れ / Data quality flows | report: the diagrams (a short paragraph ending in a colon before one is its caption) and the table | |
+| 要素をまたぐ状態 / States across elements | report: each subsection with a diagram | one item per diagram |
+| 測定点と監視の NFR の出どころ / Measurement points | report tables | duplicate rows in the second table (same NFR) merged, keeping the fuller one |
+| 受け入れ基準のトレース / Acceptance criteria trace | report table | columns reordered to FR, IFC, criterion, flow and grouped by FR; not cleaned (the criteria are quotations) |
+| 設計上の値 / Design parameters | YAML `parameters` of the stage's decisions | |
+| 技術的負債と先送りした決定 / Debt and deferred decisions | YAML, as in stage 2 | only when a stage-3 decision has debt or is deferred |
 
 ## Comparing the reports with the items
 
-These report tables restate items, so their first column is compared with the items' IDs: 順位表 (also the order), 設計の前提と利害関係者, 品質と変更のシナリオ, 制約, 機能・観測・セキュリティの要求, 全体の原則, 要素, 設計の決定 (both stages), 技術的負債と先送りした決定, インタフェース, データ. Retired rows (「（廃止）」) are skipped. A difference is reported under 「食い違い」 and listed in 「この版の注記」; a table that was not found is reported under 「突き合わせなかった表」. Cell contents are not compared.
+These report tables restate items, so their first column (or the named ID column) is compared with the items' IDs: ranking table (also the order), design inputs and stakeholders, quality and change scenarios, constraints, functional/observability/security drivers, principles, elements, decisions (both stages), debt and deferred decisions, interfaces, data. Retired rows (「（廃止）」 / "(retired)") are skipped. A difference is reported as a mismatch and listed in the notes on the page; a table that was not found is reported as not compared. Cell contents are not compared. A hop table whose hops and margin do not add up to its total is also reported as a mismatch.
 
-## Stand-ins before the condensed texts exist
+## Revision notes
 
-On a first run there is no summary-text.yaml, every condensed section is reported under 「添削文がない」, and the page still builds:
+YAML texts, report table cells and diagram labels lose revision notes; their meaning does not change. The rules follow the language the outputs are written in.
 
-- 全体の構造 and 設計の観点 show 「（添削文なし）」;
-- the threat model shows the report's own Mermaid diagram instead of the hand-laid figure, and the table;
-- each latency budget without an entry shows the tables of its subsection;
-- state diagrams have no notes, and prose-only CUJs have no rows in the walkthrough table.
-
-Every table built from the items is complete on the first run.
-
-## Revision history in texts
-
-YAML texts, report table cells and diagram labels lose revision notes; their meaning does not change.
+Japanese:
 
 - A sentence (split at 「。」 outside brackets) is dropped when it contains 前回, 前々回, 「N 回目の再実行」, 再実行, 「課題 N は決着」, 「版 N」 not attached to an ID, an FND number used in a sentence, or 「前の版」 meaning a document revision (followed by は, （, 。, ）, では, が挙, の欠け, の誤り, の負債, or the end). 「前の版に戻す」「前の版の動き」「一つ前の版」「本番は前の版のまま」「戻せる前の版がない」 mean product versions and are kept.
 - Inside brackets the same rule applies per sentence; a bracket left with only process references (課題, 質問, 回答の設計) after a removal goes too, and an empty bracket disappears.
 - 「XX-NN 版 N」 becomes 「XX-NN」. An FND number that is one item of a list (「質問 11・14、FND-27」「（FND-02）」) is removed alone.
-- Diagrams: only bracketed notes are cleaned; lines are never dropped.
-- What the rules cannot see in a report goes in `fixes` (exact text replacements in the report text before parsing). YAML texts have no fixes; their wording belongs to the stage.
+
+English (the same kinds of note; wordings that can also describe the product are kept, such as a job that is re-run or an image rolled back to the previous version):
+
+- A sentence (split at a full stop followed by a space, outside brackets, not after e.g., i.e., etc., vs., cf.) is dropped when it contains an FND number, an ordinal re-run ("the second re-run"), "re-run on <date>", "re-run of (this) stage", "in/since/after/before the re-run", "the previous version/revision/draft" followed by a verb that reports the document (said, showed, had, was, listed, assumed, missed…) or "of this report/item/decision…", "the previous run", a sentence starting with "Previously", "issue N is settled", or "version N" followed by such a verb.
+- Inside brackets the same rule applies; a bracket left with only process references (issues, questions, answer designs) after a removal goes too, and an empty bracket disappears.
+- "XX-NN version N" becomes "XX-NN". An FND number that is one item of a list ("question 11, FND-27", "(FND-02)") is removed alone.
+
+Both: diagrams lose only bracketed notes, and lines are never dropped. Findings are also left out of a decision's `addresses`.
 
 ## Links and tooltips
 
-Design IDs (DRV, DEC, ELM, IFC, DAT, TC, PC, TEAM, CHG, STK) link to their rows; quality IDs (FR, QR, NFR, SLI, CUJ, QIU, USR…) link to `docs/quality/summary.html` when that page has the anchor (dotted underline). 「DRV-01、02」 links 02 to DRV-02; numbers followed by units are not IDs. IDs without a row (FND, FRP, retired items, detailed-design decisions) are plain text. Tooltip texts are stored once in a JSON block (`#id-tips`) and attached on hover by design.js.
+Design IDs (DRV, DEC, ELM, IFC, DAT, TC, PC, TEAM, CHG, STK) link to their rows; quality IDs (FR, QR, NFR, SLI, CUJ, QIU, USR…) link to `docs/quality/summary.html` when that page has the anchor (dotted underline). 「DRV-01、02」 and "DRV-01, 02" link 02 to DRV-02, 「FR-01〜14」 and "FR-01–14" link both ends; numbers followed by units are not IDs. IDs without a row (FND, FRP, retired items, detailed-design decisions) are plain text. Tooltip texts are stored once in a JSON block (`#id-tips`) and attached on hover by design.js; the messages design.js shows are in another JSON block (`#ui-text`, the `js_` keys of the language files).
 
 ## Diagrams
 
 - Mermaid 11.17.2 from jsDelivr, imported only when the first diagram scrolls into view; each diagram renders when it becomes visible. Theme colors and fonts come from the page's CSS tokens (notes use `--note-bg` and `--note-line`); sequence diagrams measure and draw text with the same font so labels do not overlap arrows.
-- Sequence diagram text is pre-wrapped at Japanese punctuation (messages 24 full-width characters, notes 30, block labels 40), because Mermaid only breaks at spaces and hyphenates long words. Participant aliases break after the ELM/USR id.
+- Sequence diagram text is pre-wrapped at punctuation and spaces (messages 24 full-width characters, notes 30, block labels 40), because Mermaid only breaks at spaces and hyphenates long words. Participant aliases break after the ELM/USR id.
 - Flowchart boxes whose label is only an ELM id get the element's name.
-- `diagram_direction` in summary-text.yaml changes a diagram's direction (flowchart LR/TB, ER `direction`) where that makes it fit; the diagram's content is unchanged. Current choices were measured: 外部との関係 TB, 配置 LR, 情報 TB, ER LR, データの品質の流れ TB.
-- 「幅に合わせる」 scales a diagram to the column; it is on by default only when the scale stays at 0.75 or more. 「全画面」 shows the diagram at natural size in an overlay (Esc closes).
+- Direction: a flowchart or ER diagram wider than the column is also drawn the other way (LR ↔ TB, the ER diagram's `direction`), and the drawing that shows larger when fitted to the column is kept, if it is at least 15% larger; very tall drawings count as smaller. The diagram's content does not change.
+- 「幅に合わせる」 / "Fit to width" scales a diagram to the column; it is on by default only when the scale stays at 0.75 or more. 「全画面」 / "Full screen" shows the diagram at natural size in an overlay (Esc closes).
 
 ## Latency budget charts
 
-Horizontal stacked bars on one shared axis per NFR (`budgets[].chart`): segments colored by kind (自分の処理 #e2531b, the theme's color; 外部サービスと回線 #1d5fae; 待ち #1baf7a; validated with the dataviz palette validator, light mode, all pairs, on #ffffff, worst CVD ΔE 9.9), a light track up to the threshold (余り), threshold lines, optional worst-case markers, a rejected option dimmed, status colors for NFR-03. Labels inside segments are hidden when they do not fit; every value is in the tooltip and in the 「数値の表」 toggle under each chart. Axis `clock` turns minutes into times (NFR-06).
+A hop table (first column 区間 / Hop, second column starting 予算 / Budget, values in 秒, s, ms, 分 or min, rows 余り / Margin and 合計 / Total) becomes a horizontal stacked bar: one segment per hop in one color (`--k-hop`, the icon's red-orange), a light track up to the threshold (the margin), and a line at the threshold (the total, or the hops plus the margin). Values of ten minutes or more are shown in minutes. Labels inside segments are hidden when they do not fit; every value is in the tooltip and in the 「数値の表」 / "Values" toggle under each chart. The kinds of hop (own processing, external services, waits) are not in the table, so the chart does not color them.
 
 ## Theme
 
 The layout is quality-summary-html's; the colors are this skill's icon (#fccb52, #f9a330, #f37b20, #e2531b, #b8360f). `assets/design.css` redefines base.css's tokens at the top: warm neutrals (`--paper`, `--head`, `--ink`…), `--route` #c9461a (darkened from #e2531b so that white text on chips and badges keeps 4.8:1), `--route-ink` #a8320e for links and IDs (5.9:1 on `--route-soft`), `--route-soft` and `--route-line` as tints, `--pickup` (the flash on a jump) from the yellow, and `--brand-1`…`--brand-5` for the band under the header. Change colors there, never in base.css.
 
-## summary-text.yaml
-
-| Key | Content |
-|---|---|
-| `requirements`, `answers` | the page's requirements, shown at the bottom |
-| `fixes` | `{file, find, replace}` exact replacements applied to a report before parsing |
-| `structure.bullets` | 全体の構造 |
-| `code_rules` | dependency rules table under コードの分け方 |
-| `viewpoints.items` | [viewpoint, text] |
-| `threat` | `assets`, `kinds`, `diagram` (`width`, `height`, `zones`, `nodes` with `kind` comp/store/ext/person, `flows` with `points`, `chips`, `at`, optional `arrow: false`) |
-| `budgets[]` | `id`, `source` (heading prefix under 遅延の予算), `title`, `chart`, `text` |
-| `states.<name>` | `note` for a state diagram (name = heading without its bracket) |
-| `walk_extra.groups` | rows for CUJs that the report describes in prose (`after` = start of that CUJ's label) |
-| `diagram_direction` | section path → direction |
-| `hashes` | key → hash of the source section(s); written by `--write-hashes` |
-
-Any other key is reported under 「使わないキー」. Text may use `` `code` `` and `**bold**`; IDs are linked automatically.
-
 ## Checks
 
-The script reports mismatches between the reports and the items, report tables it could not compare, unreadable items, enum values without a term, unused keys, missing sections, tables and columns, unmatched `fixes`, unused `diagram_direction` keys, stale or missing condensed texts, and the number of cleaned texts. The page itself is checked for duplicate ids and links without targets (links to IDs that have no row are turned into plain text first). The output is deterministic: no clock, sorted keys. `tests/test_build_design_summary.py` builds a small made-up design and checks the sources, the comparisons and the build without reports.
+The script reports mismatches between the reports and the items, report tables it could not compare, missing reports, items and later stages, unreadable items, enum values without a term, sections left out for having neither a table nor a diagram, files no longer used, missing sections and tables, and the number of cleaned texts. The page itself is checked for duplicate ids and links without targets (links to IDs that have no row are turned into plain text first). The output is deterministic: no clock, sorted keys.
+
+## Evals
+
+`evals/` holds four cases in the skill-creator format (`case.yaml`, `prompt.md`, `place-files.sh`, `graders/`):
+
+| Case | Input | What it tests |
+|---|---|---|
+| homework-service-full | the fictional homework submission service, stages 1 to 3, Japanese | YAML over the report (DEC-06 is missing from the stage 2 report's decisions table), revision notes, a prose-only walkthrough and budget, shared error contracts, a hop-table chart, threat links |
+| homework-service-full-en | the same in English | the same, and an English page with no Japanese |
+| homework-service-stage2 | the same up to stage 2, Japanese | a missing later stage |
+| ride-hailing-full | a copy of ride-hailing-app-demo's docs/design and docs/quality (commit b63c7a1; without summary.html, summary-text.yaml, reviews/ and the OpenAPI specs) | a real project: 37 decisions, 326 error contracts, 50 diagrams, an accepted risk only in the report (DEC-21, DEC-30) |
+
+`tests/make_homework_design_fixture.py` writes the three fictional cases (on top of quality-summary-html's homework-service outputs). `tests/grade_design_eval.py` grades runs of the skill-creator workflow against the grader statements, one deterministic check per statement; `tests/test_build_design_summary.py` builds every case with the script, grades the result, and checks that the grader fails pages that miss what a statement asks for.
 
 ## Changing the page
 
-- Table set and columns: the `stage1` … `stage3` methods; decisions: `dec_table`, `dec_card`, `values_table`, `debt_rows`; error contracts: `error_rows`; comparisons: `compare`; route: `route`; charts: `budget_chart`; threat figure: `threat_svg`; terms: the `T_…` tables.
+- Table set and columns: the `stage1` … `stage3` methods; decisions: `dec_table`, `dec_card`, `values_toggle`, `debt_rows`; error contracts: `error_rows`; comparisons: `compare`; route: `route`; budget charts: `hop_chart`, `budget_chart`; report headings: `H`.
+- Wording and terms: `assets/lang/ja.json` and `en.json` (same keys and placeholders; the tests check this).
 - Look: `assets/design.css` (tokens at the top). `assets/base.css` and `assets/base.js` are copies of `skills/quality-summary-html/assets/summary.css` and `summary.js` in this repository, so that each skill installs on its own. When those change, copy them here unchanged and check the page; the theme survives because design.css comes after base.css.
-- Behavior: `assets/design.js` (tooltips, nested toggles, Mermaid, full screen, chart labels, threat-figure highlight).
+- Behavior: `assets/design.js` (tooltips, nested toggles, Mermaid and its direction, threat-diagram links, full screen, chart labels).
+- After a change, rerun `tests/make_homework_design_fixture.py` if the fixture changed, and the tests.

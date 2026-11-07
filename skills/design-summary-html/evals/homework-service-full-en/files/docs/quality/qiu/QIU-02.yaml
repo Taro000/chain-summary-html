@@ -1,0 +1,22 @@
+id: QIU-02
+title: Can confirm the submission
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+user: USR-01
+cuj: CUJ-01
+outcomes: []
+need: Students can confirm on the spot that their homework reached the teacher.
+context_of_use: {device: Smartphone browser, network: null, user_type: null, task: Can confirm the submission, environment: null, other: null}
+characteristic: satisfaction > trust
+statement: Students can confirm on the spot that their homework reached the teacher.
+failure_scenario: With no receipt shown, students submit the same homework again and again.
+measure: {numerator: Submissions where the receipt was seen, denominator: Completed submissions, narrowed_to: All submissions, denominator_needed_only: null, contribution: null, observable: false, compared_with: null, scale: ratio}
+kpi: null
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

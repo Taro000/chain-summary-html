@@ -1,0 +1,30 @@
+id: DRV-20
+title: iOS の Safari の Web アプリだけで作る
+status: draft
+version: 1
+basis: inferred
+basis_note: Web アプリだけであることは context.yaml の制約、対象を iOS の Safari だけにしたことは質問 10、交渉できないことは質問 9 で確認済み。安全な文脈はブラウザの仕様からの推定。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: constraint
+statement: ネイティブアプリは使わず、スマートフォンのブラウザの Web アプリだけで作る。対象は iOS の Safari だけ。裏に回ると通知と現在地の更新が止まる制約を受け入れる。位置情報と画面の点灯は安全な文脈（HTTPS か localhost）でしか使えない
+sources: [TC-09, TC-12, QR-42]
+concern_of: [USR-01, USR-02]
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: 交渉できない制約。入口から来た要求（QR-42、開発方針）
+  difficulty: medium
+  difficulty_reason: ブラウザの制限（裏で止まる、安全な文脈、音の再生の条件）に合わせる手間。安全な文脈はデモの回の Cloud Run の HTTPS で満たす
+  rank: 6
+primary: true
+conflicts:
+  - with: DRV-18
+    note: 解いた。位置情報と画面の点灯に要る HTTPS の入口は、デモの回の Cloud Run が持つ（質問 1・9）
+  - with: DRV-29
+    note: ブラウザの Web アプリでは端末を確かめる手段がなく、位置の偽りを防ぎ切れない
+placeholders: []
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}

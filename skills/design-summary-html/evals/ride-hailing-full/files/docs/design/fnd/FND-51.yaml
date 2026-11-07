@@ -1,0 +1,24 @@
+id: FND-51
+title: DEC-17 の負債を受け入れた理由が、期間の終わりを毎日の処理が決める形（3 回目の再実行）で成り立たなくなった
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-17
+- DEC-37
+- DEC-05
+severity: major
+evidence: DEC-17 の debt.why_accepted（報告書の負債の表、DEC-17 の節も同じ）は「止めるのは期間を終える手順だけにし…止めたままでも、期間を終える手順は翌朝の処理の記録がないと進まない（DEC-37）ので、遅くとも期間の終わりには気づく」とする。3 回目の再実行（FND-22 の受け入れ）で、DEC-37 と DEC-05 は「期間の終わりは毎日の処理が決める…自分で定時の起動と二つ目の規則を止め」とし、期間を終える手順は強いて終えるときなどに使うものになった。そのため、定時の起動が止められると毎日の処理が動かず、期間を終えるものもなく、「期間の終わりに気づく」ときが来ない。その間、NFR-06 の 8:30 の知らせ、突き合わせ（DEC-13）、(A) の片付け、毎日の SLI と NFR-45 の一覧が知らせなく止まり、確かめ中の押さえは Stripe の 7 日の期限で切れる。DEC-17 は 3 回目の再実行で版 4 になったが、この理由は直っていない
+suggestion: 負債の理由を今の形に合わせて書き直し、要合意をやり直す。返すなら、デモを開く手順（ELM-06）が前の日の毎日の処理の終わりの記録を確かめるか、三つ目の規則（デモの期間に成功した実行が一日ない）を置く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A9、A2（CUJ-10）

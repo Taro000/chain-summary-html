@@ -1,0 +1,35 @@
+id: NFR-37
+title: 座標の精度を保つ
+status: draft
+version: 2
+basis: inferred
+basis_note: 6 桁（約 0.1 m）は提案。建物の入口を区別するのに足りる細かさとして推定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-29
+kind: gate
+cuj: CUJ-03
+statement: 乗る場所と降りる場所の座標を、小数点以下 6 桁以上で保ち、保存して読み出しても丸められないことをテストで確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate:
+  where: CI
+  check: 座標を保存して読み出し、経路（FR-23）と乗車の終了の確かめ（FR-28）に渡る値
+  threshold: 小数点以下 6 桁まで一致する
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

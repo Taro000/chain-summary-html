@@ -1,0 +1,36 @@
+id: DAT-24
+title: 毎日の処理の記録
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。期間を終える条件（最後の回の印と、(A) と (B) の件数）と毎日の処理が期間を終えることは第 2 段階の DEC-37 版 4（入力）。主な属性と整合の取り方はこの段の推定（DEC-53 版 2）。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: 毎日の処理の記録と期間の要約
+owner: ELM-05
+store: ELM-07
+key_attributes:
+- business_date と task（一意の組）
+- status（done、failed、partial）
+- counts
+- started_at、ended_at
+- error_code、run_id
+- '期間の要約: remaining_a（(A) 確かめ中の操作、状態を取り出せる確定も解放もしていない押さえ、T_request_max を過ぎた許諾のない依頼の件数）、remaining_b（(B) 許諾の後の終わっていない依頼とその押さえの件数）、last_session_closed（最後の回の印）、period_end_ready、period_ended_at（毎日の処理が期間を終えた時刻）'
+relations: []
+consistency: 毎日の処理だけが書く。日と処理ごとに一つで、終わったときだけ done にする（終わっていない処理だけを次の実行が続ける。DRV-33）。期間の要約は毎朝書き、最後の回の印があって (A) と (B) が 0 件なら、定時の起動と二つ目の規則を止めてから期間を終えたと書く（DAT-26 にも書く。第 2 段階の DEC-37 版 4、DEC-53）。ELM-06 は period-status を通して読む（DEC-53）
+retention: システムを終えるとき
+classification: internal
+drivers:
+- DRV-33
+- DRV-27
+- DRV-18
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 期間の要約を、(A) と (B) の件数、最後の回の印、period_end_ready、期間を終えた時刻にし、期間を終える条件と書く順を書いた
+  reason: '第 3 段階の再実行（2026-11-04）: 第 2 段階の DEC-37 版 3・4（FND-22 の受け入れ）、DEC-53 版 2'

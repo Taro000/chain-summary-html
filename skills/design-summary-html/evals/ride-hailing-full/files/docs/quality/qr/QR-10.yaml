@@ -1,0 +1,29 @@
+id: QR-10
+title: 一つの依頼を一人のドライバーにだけ割り当てる
+status: draft
+version: 1
+basis: inferred
+basis_note: 失敗のシナリオと点は推定。重視にすることは質問 8 で確認済み
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、一つの依頼を一人のドライバーにだけ割り当て、取り消された依頼や、迎車中・乗車中のドライバーの許諾を割り当てない。
+applies_to: [FR-20, FR-22]
+traces_to: [QIU-01, QIU-13]
+entry_point: null
+stakeholders: [USR-01, USR-02]
+failure_scenario: ほぼ同時の許諾で二人のドライバーに割り当てられたと示され、一人が乗車場所に着いてから取り消す。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
+handling_reason: null
+implies_internal: [QR-45]
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

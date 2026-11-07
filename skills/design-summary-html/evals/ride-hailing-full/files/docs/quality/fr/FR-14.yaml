@@ -1,0 +1,30 @@
+id: FR-14
+title: しきい値の設定
+status: draft
+version: 1
+basis: inferred
+basis_note: 手順は入力。次の手配から使うこと、範囲の外の値の扱いは推定
+needs_agreement: false
+approver_candidates: []
+statement: システムは、乗客がマッチするドライバーの評価の下限（しきい値）を設定・解除できるようにし、次の手配から使う。
+origin: cuj-step
+cuj: CUJ-05
+cuj_step: 評価が一定以上のドライバーのみマッチするように閾値を設定する
+traces_to: [QIU-10, QIU-11]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: 乗客の Web アプリ（しきい値の設定）"
+acceptance_criteria:
+  - 乗客がしきい値を設定すると、次の手配からその値を使う。
+  - 乗客がしきい値を解除すると、次の手配から評価に関わらずすべてのドライバーを対象にする。
+  - 評価の段階（N_rating_levels）の範囲の外の値は受け付けない。
+  - 設定の画面で、評価の件数が N_min_ratings に満たないドライバーには依頼を示さないこと（FR-16）を示す。
+quality_hints:
+  - 実用性 (QIU-10) - しきい値を設定した乗客の評価が L_rating_ok 以上である割合を保つ
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

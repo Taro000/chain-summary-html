@@ -1,0 +1,27 @@
+id: FND-38
+title: 押さえが 5xx を受けた後の、見回りの同じキーでの送り直しは同じ 5xx を受けるだけで、その手配は T_hold_wait で必ず取りやめになる
+status: accepted
+version: 2
+basis: inferred
+basis_note: IFC-13 の basis_note と 5xx の行（Stripe の文書）、DEC-52 の選んだ案、CUJ-01-B の見回りの枝、DEC-12 の (d) は入力。送り直しが進まないことは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DEC-52
+- IFC-13
+severity: minor
+evidence: IFC-13 は、Stripe が 5xx も含めて同じキーに同じ応答を返す（Stripe の文書）とし、5xx の後は送り直さず確かめ中にする。一方、DEC-52 と CUJ-01-B の見回りは「押さえがなく、T_hold_wait の内なら同じキーで送り直す」。最初の押さえが 5xx を受け、Stripe に PaymentIntent がないとき、この送り直しは保存された 5xx を受けるだけで、新しいキーは 24 時間を過ぎるまで使わない（DEC-12 の (d)）ので、押さえは置かれず T_hold_wait で not_booked になる。設計はこの結果を書いておらず、第 4 段階は進まない送り直しを作ることになる
+suggestion: 5xx の後は見回りの同じキーの送り直しが進まないことを DEC-52 に書き、受け入れるか、照らして PaymentIntent がなく最初の要求も動いていない（T_op_stale を過ぎた）と確かめた後に新しいキーで送る形と比べる
+resolution: "受け入れた。5xx の後は、照らして PaymentIntent がなく最初の送信から T_op_stale を過ぎた（最初の要求は動いていない）と確かめてから、試みの番号を進めた新しいキーで送る（第 2 段階の DEC-12 の (d) と同じ。T_hold_wait の内だけ）。押さえのキーは依頼の ID、押さえの何番目か、試みの何回目か。DEC-52 版 2 と IFC-13 に書いた"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B3）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

@@ -1,0 +1,53 @@
+id: DEC-01
+title: 一つの API サーバーと二つの Web アプリにする
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: システムをどう分け、どこで動かすか
+addresses:
+- DRV-06
+- DRV-01
+- DRV-04
+options:
+- name: 一つの API サーバーと、生徒と講師の Web アプリ
+  effect: 2 人で作って動かせる
+  cost: サーバーが一つの障害の単位になる
+- name: 機能ごとのサービス
+  effect: 機能ごとに増やせる
+  cost: 2 人では動かしきれない
+- name: サーバーレスの関数
+  effect: 使った分だけ払う
+  cost: 手元で同じ形に動かしにくい
+chosen: 一つの API サーバーと、生徒と講師の Web アプリ
+rationale: 上位の DRV-01 はどの案でも満たせ、DRV-06（2 人と費用）で一つのサーバーの案が勝つ。
+rejected:
+- option: 機能ごとのサービス
+  reason: 2 人では動かせない（DRV-06）
+- option: サーバーレスの関数
+  reason: 手元で同じ形にならない
+gains:
+- 配備するものが一つで済む
+costs:
+- 一つの障害の単位になる
+sensitive_points:
+- サーバーのインスタンスの数
+trade_offs:
+- with: DRV-01
+  note: 締め切り前の集中を一つのサーバーで受ける
+assumptions:
+- 同時に使う生徒は 300 人まで
+depends_on: []
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

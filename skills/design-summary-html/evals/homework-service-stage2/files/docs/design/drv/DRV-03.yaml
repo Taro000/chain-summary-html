@@ -1,0 +1,41 @@
+id: DRV-03
+title: 受領の表示が提出の記録と一致する
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+kind: quality
+statement: 受領を示した提出は、必ず記録に残っている
+sources:
+- QR-03
+- QR-07
+- NFR-03
+- NFR-07
+concern_of:
+- USR-01
+scenario:
+  source: 生徒（USR-01）
+  stimulus: 提出する
+  artifact: FR-02
+  environment: ふだんと締め切り前の集中
+  response: 受領と記録が一致する
+  measure: 受領と記録の食い違いが 0 件（NFR-07 版 2）
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-03 と QR-07 が重視（CUJ-01、04）
+  difficulty: medium
+  difficulty_reason: ファイルの置き場所と記録の置き場所が別
+  rank: 2
+primary: true
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: 作成
+  reason: 第 1 段階の下書き

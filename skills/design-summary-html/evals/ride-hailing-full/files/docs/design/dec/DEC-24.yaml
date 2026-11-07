@@ -1,0 +1,47 @@
+id: DEC-24
+title: アクセシビリティに配慮した部品とドラッグの代わり
+status: draft
+version: 1
+basis: inferred
+basis_note: WCAG 2.2 AA は入力（QR-48）。作りは提案
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: 地図が中心の画面で WCAG 2.2 AA をどう満たすか
+addresses:
+- DRV-24
+- DRV-08
+- DRV-15
+options:
+- name: アクセシビリティに配慮した部品のライブラリで画面を作り、地図の操作にはすべてドラッグしない代わり（場所の検索で選ぶ、ピンをボタンで少しずつ動かす、現在地を使う）を用意する。画面の自動テストで axe の確かめを行い（NFR-22）、人の確かめは画面ごとの一覧で行う（NFR-23）
+  effect: 自動で確かめられる項目が増え、地図の操作の代わりが最初からある
+  cost: ライブラリを学ぶ
+- name: 部品を自分で作り ARIA を手で付ける
+  effect: 依存が少ない
+  cost: 漏れやすく、人の確かめが重くなる
+chosen: アクセシビリティに配慮した部品のライブラリで画面を作り、地図の操作にはすべてドラッグしない代わり（場所の検索で選ぶ、ピンをボタンで少しずつ動かす、現在地を使う）を用意する。画面の自動テストで axe の確かめを行い（NFR-22）、人の確かめは画面ごとの一覧で行う（NFR-23）
+rationale: DRV-24（交渉できない）を、一人の手間（DRV-26）を抑えて満たす。DRV-08 と DRV-24 の競合（ピンのドラッグ）は、ドラッグしない代わりで解く
+rejected:
+- option: 部品を自分で作り ARIA を手で付ける
+  reason: DRV-26 で負け、DRV-24 を一部しか満たさない
+gains:
+- 自動の確かめが多くなる
+- 地図の操作の代わりが最初からある
+costs:
+- ライブラリを学ぶ
+sensitive_points: []
+trade_offs: []
+assumptions:
+- ライブラリの候補は React Aria（第 4 段階で決める）
+depends_on:
+- DEC-23
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

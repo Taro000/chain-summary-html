@@ -1,0 +1,61 @@
+id: IFC-25
+title: 乗客の評価・設定・履歴・報告の画面
+status: draft
+version: 2
+basis: inferred
+basis_note: FR の受け入れ基準と NFR-15（2 回の操作）は入力。乗車の履歴の未払いから未払いの支払いに移れることと、評価の画面を結果のどれからも開けることは FND-45。画面の分け方は推定
+needs_agreement: false
+approver_candidates: []
+kind: screen
+name: 乗客の評価・設定・履歴・報告の画面
+provider: ELM-01
+consumers:
+- USR-01
+functions:
+- FR-13
+- FR-14
+- FR-43
+- FR-44
+operations:
+- name: 評価
+  does: CUJ-04。到着と支払いの結果（IFC-24）の支払いの完了、請求を確かめています、未払い（払った後を含む）のどれからも開く（FR-13 AC1）。N_rating_levels の段階を選び、送る（2 回の操作。NFR-15）。送らずに閉じられる（FR-13 AC2）
+- name: しきい値の設定
+  does: CUJ-05。しきい値の設定と解除。評価の件数が N_min_ratings に満たないドライバーには依頼を示さないことを示す（FR-14 AC4）
+- name: 乗車の履歴
+  does: 乗車とキャンセル料・不在の料金の依頼、示した料金、請求額、返金、未払い（FR-44）。→ 報告。未払いの依頼 → 未払いの支払い（IFC-23。FR-44 AC4）
+- name: 報告
+  does: CUJ-14 の始まり。種類と内容を入れて送る（FR-43）
+format: React の SPA の画面（DEC-23）。文言は日本語（DEC-46）。WCAG 2.2 AA（DRV-24）
+protocol: iOS の Safari。IFC-02、IFC-05 を使う
+auth: 乗客のセッション
+errors:
+- case: '評価: もう評価した'
+  signal: IFC-02 ALREADY_RATED
+  caller_does: 受け付けなかった旨を示す（FR-13 AC3）
+- case: 'しきい値: 範囲の外'
+  signal: IFC-02 INVALID_REQUEST
+  caller_does: 範囲の中の値を選ばせる（FR-14 AC3）
+- case: '履歴: ない'
+  signal: 空の一覧
+  caller_does: 「乗車の履歴はまだありません」
+- case: '報告: 種類がない'
+  signal: IFC-02 INVALID_REQUEST
+  caller_does: 種類を選ぶよう示す（FR-43 AC3）
+idempotency: 画面は操作ごとに冪等キーを一つ作り、応答が分からないときは同じキーでだけ送り直す（API の呼び出しのモジュール。DEC-48）。二度押しは同じキーにまとまる
+timing:
+  timeout: API の 15 秒
+  ordering: null
+  delivery: null
+versioning: SPA の版を X-App-Version と比べ、操作の途中でないときに読み直す（DEC-49）。読み直した後は GET で今の状態を取り直す
+observability: 評価の画面を開いた時刻（IFC-05 screen-events。FR-13 AC4）
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 乗車の履歴の未払いの依頼から未払いの支払い（IFC-23）に移れるようにし、評価の画面を結果のどれからも開けると書いた
+  reason: '第 3 段階の再実行（2026-11-04）: FND-45'

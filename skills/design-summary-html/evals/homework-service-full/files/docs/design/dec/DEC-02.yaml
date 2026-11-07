@@ -1,0 +1,51 @@
+id: DEC-02
+title: 提出のファイルを署名付き URL でストレージに直接置く
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: 提出のファイルを、サーバーを通さずにどう置くか
+addresses:
+- DRV-01
+- DRV-05
+- DRV-02
+options:
+- name: 署名付き URL で直接置く
+  effect: サーバーの負荷が増えない
+  cost: URL の期限を扱う
+- name: サーバーが受けて置く
+  effect: 作りが単純
+  cost: 締め切り前にサーバーが詰まる
+chosen: 署名付き URL で直接置く
+rationale: 締め切り前の集中（DRV-01）で、サーバーがファイルを受けると詰まる。
+rejected:
+- option: サーバーが受けて置く
+  reason: 締め切り前に詰まる（DRV-01）
+gains:
+- 締め切り前もファイルでサーバーの負荷が増えない
+costs:
+- URL の期限切れを扱う
+sensitive_points:
+- 署名付き URL の有効期限
+trade_offs:
+- with: DRV-08
+  note: URL を持つ人は期限まで置ける
+assumptions: []
+depends_on:
+- DEC-01
+parameters:
+- name: 署名付き URL の有効期限
+  value: 15 分
+  basis: 仮。提出の画面を開いてから送るまでの時間
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

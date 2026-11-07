@@ -1,0 +1,19 @@
+id: NFR-05
+title: Nightly report progress
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-08]
+kind: monitor
+cuj: CUJ-04
+statement: Notify the developers if the nightly report has not finished at 5:30.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: null
+gate: null
+audit: null
+monitor: {signal: The end record of the report job, threshold: 'Not finished at 5:30', notifies: Developers (chat)}
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

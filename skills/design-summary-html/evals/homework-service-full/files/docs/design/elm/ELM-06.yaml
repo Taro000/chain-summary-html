@@ -1,0 +1,27 @@
+id: ELM-06
+title: 夜間のバッチ
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: 夜間のバッチ
+responsibility: 毎晩、提出状況のレポートを作る
+functions:
+- FR-05
+drivers:
+- DRV-06
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on:
+- ELM-04
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

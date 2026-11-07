@@ -1,0 +1,26 @@
+id: FR-35
+title: 条件で除いた依頼の件数の表示
+status: retired
+version: 1
+basis: confirmed
+basis_note: 質問 10 で、この機能を置く前提が誤りと回答されたため廃止
+needs_agreement: false
+approver_candidates: []
+statement: システムは、条件を設定したドライバーの一覧に、条件で示さなかった依頼の件数を示す。
+origin: quality-in-use
+cuj: CUJ-09
+cuj_step: 配車依頼を受ける条件を設定する（金額・現在地から乗車場所までの距離）
+traces_to: [QIU-17]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: ドライバーの Web アプリ（依頼の一覧）"
+acceptance_criteria:
+  - 条件で除いた依頼があるとき、その件数を一覧に示す。
+quality_hints: []
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成し、同日に廃止
+    reason: 第 2 段階の下書きで QIU-17 から導いたが、質問 10 で外すと回答されたため。番号は再利用しない

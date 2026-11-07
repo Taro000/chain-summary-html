@@ -1,0 +1,26 @@
+id: QR-07
+title: 提出の記録の完全性
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+model: data
+layer: data-inherent
+characteristic: completeness
+statement: 提出の記録に、生徒、課題、時刻の欠けがない。
+applies_to: [FR-01, FR-05]
+traces_to: [QIU-05]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: 時刻の欠けた記録がレポートから漏れる。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

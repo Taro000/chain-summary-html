@@ -1,0 +1,61 @@
+id: IFC-09
+title: アプリの構造化ログ
+status: draft
+version: 2
+basis: inferred
+basis_note: DEC-16（Cloud Logging、URL に個人情報を入れない）、DEC-18（トレース ID）と Cloud Run の文書（logging.googleapis.com/trace で入口のログに結び付く）は入力。欄、出来事の種類、入口のログと結ぶ鍵は推定（DEC-44）。ELM-05 も同じモジュールで同じ形を書く
+needs_agreement: false
+approver_candidates: []
+kind: event
+name: アプリの構造化ログ
+provider: ELM-04
+consumers:
+- ELM-05
+- USR-03
+functions:
+- FR-36
+- FR-37
+- FR-38
+operations:
+- name: request.completed
+  does: 要求ごとに一行（route_id、状態の符号、時間、account_kind、トレース）。route_id は仕様書の x-route-id と同じ名前（DEC-47）、account_kind は participant、staff、test（DEC-44）。SLI-01 のテスト用アカウントの除外に使う
+- name: external.call
+  does: Stripe、地図、チャット、Cloud Logging の呼び出しごとに一行（相手、操作、結果、時間、相手の要求の ID）。FR-37 AC2、NFR-28
+- name: money.op
+  does: お金の操作の段ごと（処理中、結果、確かめ中、片付け）
+- name: client.error
+  does: ブラウザのエラー（IFC-05 で届いたもの）
+- name: notification.sent / notification.failed
+  does: 知らせを送った、送れなかった（FR-36 AC2・3）
+- name: job.task
+  does: 毎日の処理の処理ごとと、運用のコマンド（IFC-10）ごとの始まりと終わり
+- name: auth.* / stream.* / app.error
+  does: 認証の結果、流れの開け閉め、想定外の誤り
+format: 標準出力に 1 行 1 JSON（Cloud Logging の構造化ログ）。欄は DEC-44
+protocol: 標準出力 → Cloud Run → Cloud Logging（ELM-08）
+auth: 書くのはコンテナだけ。読むのは GCP の権限を持つ開発者（Logs Explorer）と、毎日の処理のサービスアカウント（IFC-20）
+errors:
+- case: JSON として読めない行
+  signal: Cloud Logging が文字のまま残す
+  caller_does: 集計から外れる。CI のゲート（NFR-32、NFR-40）でそういう行を出さない
+- case: 取り込みの欠け
+  signal: —
+  caller_does: 0.1% 未満と仮定する（SLI-01）。お金と状態は Turso の記録が正で、ログは調べるための写し
+idempotency: 一度だけ書く。送り直さない
+timing:
+  timeout: null
+  ordering: 保証しない。timestamp で並べる
+  delivery: 最善の努力（Cloud Logging の取り込み）
+versioning: 各行に schema_version。欄は足すだけ
+observability: このインタフェースそのものが観測の道。trace と spanId で入口の要求のログ（DAT-28）に結び付く
+spec: ifc/specs/app-logs.asyncapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: request.completed の route_id を仕様書の x-route-id と同じ名前にし、account_kind の値を書いた。job.task に運用のコマンドを含めた
+  reason: '第 3 段階の再実行（2026-11-04）: DEC-44 版 2、DEC-53 版 2、FND-35・41'

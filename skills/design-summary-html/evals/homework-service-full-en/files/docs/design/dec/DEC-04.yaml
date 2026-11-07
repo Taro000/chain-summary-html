@@ -1,0 +1,52 @@
+id: DEC-04
+title: Build the nightly report in a batch
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+stage: architecture
+question: When is the monthly submission report built?
+addresses:
+- DRV-06
+- DRV-03
+options:
+- name: A nightly batch
+  effect: Low cost
+  cost: Daytime submissions appear the next morning
+- name: Count on every submission
+  effect: Shows at once
+  cost: Slows submission processing
+chosen: A nightly batch
+rationale: The office reads it monthly (CUJ-04), so nightly is enough.
+rejected:
+- option: Count on every submission
+  reason: Slows submissions (DRV-02)
+gains:
+- Low cost
+costs:
+- Daytime submissions appear the next morning
+sensitive_points:
+- When the batch starts
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-01
+parameters:
+- name: Batch start
+  value: Daily at 02:00
+  basis: Four hours before NFR-02's 6:00
+debt:
+  what: The report only covers up to the previous day
+  why_accepted: The office reads it monthly (CUJ-04)
+  repay_when: When same-day numbers are asked for
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

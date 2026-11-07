@@ -1,0 +1,22 @@
+id: FND-62
+title: DEC-29 の疑わしい到着を見分けるしきい値が設計上の値になっていない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-29
+severity: minor
+evidence: 'DEC-29 は parameters: [] だが、応答を左右する点に「疑わしいとみなす境目（速さ、誤差）」を挙げる。NFR-45 版 2 は「印を付ける規則は設計が決める（DEC-29）」とする。しきい値は報告書の設計上の値にも要合意にもない'
+suggestion: 速さと誤差のしきい値に仮の値ともとを書いて要合意にするか、第 3・4 段階に回すことと持ち主を書く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A4、review-procedures の「応答を左右する点」

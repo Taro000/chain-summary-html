@@ -1,0 +1,48 @@
+id: DAT-03
+title: ドライバーと車両
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: ドライバーと車両
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- driver_id
+- account_id
+- name
+- photo（JPEG。EXIF を除き小さくしたもの）
+- vehicle_model、vehicle_color、plate_number（一意）
+- registered_by、registered_at
+relations:
+- to: DAT-01
+  kind: one-to-one
+  note: アカウント
+- to: DAT-04
+  kind: one-to-one
+  note: 受付と停止
+- to: DAT-15
+  kind: one-to-one
+  note: 評価値
+- to: DAT-06
+  kind: one-to-many
+  note: 担当した依頼（許諾のときの車両の写しを依頼が持つ）
+consistency: 管理のモジュールだけが書く。登録はアカウント、ドライバー、車両、管理の操作の記録（DAT-18）を一つのトランザクションで書く。車両の変更は次の依頼から使う（依頼は許諾のときの車両の写しを持つ。FR-48 AC7、FR-09）。ELM-05 は持ち主のモジュールを通して書く（DEC-53。保存期間の匿名化）
+retention: 個人に結び付く部分は、記録してから T_pii_retention（3 年）を過ぎると毎日の処理が消して匿名にする（FR-53）。残りはシステムを終えるときに消す（DEC-36）
+classification: personal
+drivers:
+- DRV-23
+- DRV-29
+- DRV-21
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 保存期間の匿名化は ELM-05 が持ち主のモジュールを通して行うと書いた。FR-48 の受け入れ基準の番号を版 2 に合わせた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-48 版 2）、FND-39'
