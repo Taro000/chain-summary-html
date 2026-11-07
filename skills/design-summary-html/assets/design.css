@@ -1,7 +1,12 @@
 /* design-summary-html: additions to base.css (a copy of quality-summary-html's summary.css).
-   The layout is the same; the theme is orange instead of blue. The tokens of base.css are redefined here from the
-   skill's icon (#fccb52, #f9a330, #f37b20, #e2531b, #b8360f), with warm neutrals to match. --route is darkened
-   from #e2531b so that white text on it keeps 4.5:1, and --route-ink keeps 4.5:1 on --route-soft */
+   The layout is the same, and so is the amount of color: one accent hue, used only where quality-summary-html uses
+   its blue (links and IDs, the route, stage numbers, hover and focus, one filled mark per table for the state that
+   matters: a primary driver, the chosen option, and an outline for the highest level, as quality-summary-html
+   outlines the SLO type). Everything else is neutral: no decoration, no second hue, and
+   the diagrams are drawn in ink. The accent is orange instead of blue: the tokens of base.css are redefined here
+   from the skill's icon (#e2531b), with warm neutrals to match, and design.css and design.js add no token of their
+   own. --route is darkened from #e2531b so that white text on it keeps 4.5:1, and --route-ink keeps 4.5:1 on
+   --route-soft */
 :root{
   --paper:#f7f4f1;
   --surface:#ffffff;
@@ -20,23 +25,8 @@
   --pickup:#fde7a6;
   --tip-bg:#2a1f18;
   --tip-fg:#ffffff;
-  --brand-1:#fccb52;
-  --brand-2:#f9a330;
-  --brand-3:#f37b20;
-  --brand-4:#e2531b;
-  --brand-5:#b8360f;
-  --note-bg:#fef6dc;    /* Mermaid notes: the icon's yellow */
-  --note-line:#f3cf73;
-  /* latency budget hops: one series, in the icon's red-orange (white labels on it: 3.8:1, every value is also in the
-     tooltip and the value table) */
-  --k-hop:#e2531b;
-  --track:#f0eae4;
 }
 
-/* the icon's five colors as a band under the title */
-.masthead{position:relative;border-bottom:0}
-.masthead::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:2px;
-  background:linear-gradient(90deg,var(--brand-1) 0 20%,var(--brand-2) 20% 40%,var(--brand-3) 40% 60%,var(--brand-4) 60% 80%,var(--brand-5) 80% 100%)}
 .tip{box-shadow:0 6px 18px rgba(42,31,24,.2)}
 
 /* IDs: links to the quality summary are dotted */
@@ -63,9 +53,9 @@ a.id.ext{text-decoration-style:dotted}
 .item-body > .mmd{margin:0 12px}
 .item.hit > summary{animation:hit 2.8s ease-out}
 
-/* index inside a toggle */
+/* index inside a toggle: links in neutral boxes (a filled or tinted chip marks a state, which an index has none of) */
 .idx{display:flex;flex-wrap:wrap;gap:5px;padding:0 16px}
-.idx a.chip{font-size:11.5px}
+.idx a.chip{font-size:11.5px;background:var(--surface);border-color:var(--rule)}
 
 /* design concerns */
 .vp{margin:0;padding:4px 16px 16px;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 20px;font-size:13.5px;line-height:1.65}
@@ -73,11 +63,13 @@ a.id.ext{text-decoration-style:dotted}
 .vp dd{margin:0}
 @media (max-width:760px){.vp{grid-template-columns:minmax(0,1fr);gap:2px 0}.vp dd{margin-bottom:10px}}
 
-/* table details */
-.lvl{display:inline-block;min-width:1.9em;text-align:center;font-size:12px;font-weight:700;border-radius:3px;padding:0 5px;border:1px solid var(--rule)}
-.lvl-h{background:var(--route);border-color:var(--route);color:var(--on-route)}
-.lvl-m{background:var(--route-soft);border-color:var(--route-line);color:var(--route-ink)}
-.lvl-l{background:var(--surface);color:var(--ink-3)}
+/* table details. Levels (priority, difficulty): the highest is outlined in the accent, as base.css outlines the SLO
+   type (.ntype.is-slo), so that a long ranking can be scanned for it; medium and low are told apart by the darkness
+   of the ink. Only the primary drivers are filled */
+.lvl{display:inline-block;min-width:1.9em;text-align:center;font-size:12px;font-weight:700;border-radius:3px;padding:0 5px;border:1px solid var(--rule);background:var(--surface)}
+.lvl-h{border-color:var(--route);color:var(--route-ink)}
+.lvl-m{color:var(--ink-2)}
+.lvl-l{color:var(--ink-3)}
 .rank td,.rank th{vertical-align:top}
 .more{display:inline-block;margin-top:4px;font-size:12px}
 .rk{color:var(--ink-3);font-size:12px;margin-left:2px}
@@ -89,8 +81,7 @@ a.id.ext{text-decoration-style:dotted}
 /* decision cards (dec/*.yaml): the question, the options, then the rest as a definition list */
 .opts td,.opts th{min-width:13em}
 .opts thead th:last-child,.opts td:last-child{min-width:11em}
-.opts tr.is-chosen > *{background:var(--route-soft)}
-.opts tr.is-chosen > th{box-shadow:inset 3px 0 0 var(--route)}
+.opts tr.is-chosen > th{font-weight:700}
 .vp.dec{padding:0 16px}
 .item-body > .vp.dec:last-child{padding-bottom:2px}
 .vp.dec dd ul{margin:0;padding-left:1.2em}
@@ -129,16 +120,17 @@ table tbody tr.grp:first-child th{border-top:0}
 .mmd-out svg{display:block;margin:0 auto;height:auto}
 .mmd.fit .mmd-out svg{max-width:100%!important;width:100%}
 .mmd-wait{margin:8px 4px;font-size:12.5px;color:var(--ink-3)}
-.mmd-err{margin:6px 4px;font-size:12.5px;color:#9b2c25}
+.mmd-err{margin:6px 4px;font-size:12.5px;color:var(--route-ink)}
 .mmd-err + pre{margin:0;padding:10px;font-family:var(--f-mono);font-size:11.5px;line-height:1.5;white-space:pre-wrap;background:var(--head);border-radius:6px}
 .mmd .edgeLabel,.mmd .edgeLabel p{font-size:12px}
 
-/* latency budget charts */
+/* latency budget charts: one series, in the accent (white labels on it: 4.8:1; every value is also in the tooltip
+   and the value table) */
 .bud{margin:0 16px;display:flex;flex-direction:column;gap:10px}
 .bud-legend{padding-inline:0}
 .sw{display:inline-block;width:14px;height:10px;border-radius:3px}
-.sw.k-hop,.seg.k-hop{background:var(--k-hop)}
-.sw-track{background:var(--track)}
+.sw.k-hop,.seg.k-hop{background:var(--route)}
+.sw-track{background:var(--rule-soft)}
 .sw-th{width:2px;height:14px;border-radius:0;background:var(--ink)}
 .bud-rows{display:flex;flex-direction:column;gap:10px}
 .bud-row,.bud-axis{display:grid;grid-template-columns:minmax(9em,15em) minmax(0,1fr);gap:4px 14px;align-items:center}
@@ -147,11 +139,11 @@ table tbody tr.grp:first-child th{border-top:0}
 .bud-name .tag{margin-left:6px;font-weight:400}
 .bud-sub{font-size:12px;line-height:1.45;color:var(--ink-2)}
 .bud-plot{position:relative;height:24px}
-.bud-track{position:absolute;left:0;top:0;bottom:0;background:var(--track);border-radius:4px}
+.bud-track{position:absolute;left:0;top:0;bottom:0;background:var(--rule-soft);border-radius:4px}
 .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;overflow:visible;box-shadow:inset -2px 0 0 var(--surface);cursor:default}
 .seg:first-of-type{border-radius:4px 0 0 4px}
 .seg:hover,.seg:focus-visible{filter:brightness(1.12);outline:none}
-.seg i{font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:500;color:#fff;padding-left:5px;white-space:nowrap;pointer-events:none}
+.seg i{font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:500;color:var(--on-route);padding-left:5px;white-space:nowrap;pointer-events:none}
 .seg.nolab i{visibility:hidden}
 .bud-th{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink)}
 .bud-ticks{position:relative;height:18px;border-top:1px solid var(--rule)}

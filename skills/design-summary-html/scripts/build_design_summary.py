@@ -949,7 +949,7 @@ def mermaid(src: str, ctx: Ctx, where: str, links: str = '') -> str:
 def chips_index(entries: list) -> str:
     """Turns [(href, text, tooltip)] into an index inside a toggle."""
     return f'<nav class="idx" aria-label="{esc(T("idx"))}">' + ''.join(
-        f'<a class="chip qr-base" href="#{esc(h)}" data-tip="{esc(t)}">{esc(x)}</a>' for h, x, t in entries) + '</nav>'
+        f'<a class="chip" href="#{esc(h)}" data-tip="{esc(t)}">{esc(x)}</a>' for h, x, t in entries) + '</nav>'
 
 
 def subhead(text: str) -> str:

@@ -30,21 +30,23 @@
         var mermaid = m.default;
         var cs = getComputedStyle(document.documentElement);
         var v = function(n){ return cs.getPropertyValue(n).trim(); };
+        // Diagrams are drawn in the page's neutrals: white boxes outlined in ink, groups and notes in the paper color.
+        // The accent appears in a diagram only as a link (the threat model's flow numbers) and its highlight
         mermaid.initialize({
           startOnLoad: false, securityLevel: 'strict', suppressErrorRendering: true, theme: 'base',
           fontFamily: v('--f-body'),
           themeVariables: {
             fontFamily: v('--f-body'), fontSize: '13px',
-            primaryColor: v('--route-soft'), primaryBorderColor: v('--route'), primaryTextColor: v('--ink'),
+            primaryColor: v('--surface'), primaryBorderColor: v('--ink-3'), primaryTextColor: v('--ink'),
             secondaryColor: v('--head'), secondaryBorderColor: v('--rule'), tertiaryColor: v('--surface'),
             tertiaryBorderColor: v('--rule'), lineColor: v('--ink-3'), textColor: v('--ink'),
-            mainBkg: v('--route-soft'), nodeBorder: v('--route'), clusterBkg: v('--paper'), clusterBorder: v('--rule'),
+            mainBkg: v('--surface'), nodeBorder: v('--ink-3'), clusterBkg: v('--paper'), clusterBorder: v('--rule'),
             titleColor: v('--ink'), edgeLabelBackground: v('--surface'),
-            actorBkg: v('--route-soft'), actorBorder: v('--route'), actorTextColor: v('--ink'), actorLineColor: v('--rule'),
+            actorBkg: v('--surface'), actorBorder: v('--ink-3'), actorTextColor: v('--ink'), actorLineColor: v('--rule'),
             signalColor: v('--ink-2'), signalTextColor: v('--ink'), labelBoxBkgColor: v('--head'),
             labelBoxBorderColor: v('--rule'), labelTextColor: v('--ink'), loopTextColor: v('--ink-2'),
-            noteBkgColor: v('--note-bg'), noteBorderColor: v('--note-line'), noteTextColor: v('--ink'),
-            activationBkgColor: v('--route-soft'), activationBorderColor: v('--route'), sequenceNumberColor: '#ffffff',
+            noteBkgColor: v('--paper'), noteBorderColor: v('--rule'), noteTextColor: v('--ink'),
+            activationBkgColor: v('--head'), activationBorderColor: v('--ink-3'), sequenceNumberColor: v('--surface'),
             attributeBackgroundColorOdd: v('--surface'), attributeBackgroundColorEven: v('--head')
           },
           flowchart: { useMaxWidth: false, htmlLabels: true, wrappingWidth: 240, padding: 10 },

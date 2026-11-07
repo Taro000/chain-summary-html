@@ -359,5 +359,44 @@ class Inputs(unittest.TestCase):
         self.assertNotIn('id="t-views"', page)
 
 
+class Palette(unittest.TestCase):
+    """Color is used as in quality-summary-html (references/page-spec.md, Theme): design.css only redefines base.css's
+    tokens, neither design.css nor design.js writes a color of its own, and the diagrams are drawn without the accent"""
+    base = (SKILL / 'assets' / 'base.css').read_text(encoding='utf-8')
+    css = (SKILL / 'assets' / 'design.css').read_text(encoding='utf-8')
+    js = (SKILL / 'assets' / 'design.js').read_text(encoding='utf-8')
+    COLOR = re.compile(r'#[0-9a-fA-F]{3,8}\b|\b(?:rgb|hsl|hwb|lab|lch|oklab|oklch)a?\(')
+
+    @staticmethod
+    def root(css):
+        return re.search(r':root\{(.*?)\}', css, re.S).group(1)
+
+    def tokens(self, css):
+        return set(re.findall(r'(--[\w-]+)\s*:', self.root(css)))
+
+    def test_no_token_of_its_own(self):
+        self.assertEqual(self.tokens(self.css) - self.tokens(self.base), set())
+        self.assertEqual(set(re.findall(r"""v\(['"](--[\w-]+)['"]\)""", self.js)) - self.tokens(self.base), set())
+
+    def test_no_color_outside_the_tokens(self):
+        rest = re.sub(r'/\*.*?\*/', '', self.css.replace(self.root(self.css), ''), flags=re.S)
+        for decl in re.split(r'[;{}]', rest):
+            if self.COLOR.search(decl):
+                self.assertTrue(decl.strip().startswith('box-shadow'), decl.strip())   # a shadow is a shade of ink
+        self.assertIsNone(self.COLOR.search(re.sub(r'//[^\n]*', '', self.js)))
+
+    def test_diagrams_without_the_accent(self):
+        theme = re.search(r'themeVariables:\s*\{(.*?)\}', self.js, re.S).group(1)
+        self.assertNotIn('--route', theme)
+
+    def test_only_the_highest_level_outlined(self):
+        """高 is outlined in the accent exactly as base.css outlines the SLO type; 中 and 低 stay in ink"""
+        def decls(css, sel):
+            return set(re.search(re.escape(sel) + r'\{([^}]*)\}', css).group(1).split(';')) - {''}
+        self.assertEqual(decls(self.css, '.lvl-h'), decls(self.base, '.ntype.is-slo'))
+        for sel in ('.lvl-m', '.lvl-l'):
+            self.assertFalse([d for d in decls(self.css, sel) if '--route' in d], sel)
+
+
 if __name__ == '__main__':
     unittest.main()
