@@ -75,7 +75,7 @@ The page's header shows the git commit of the docs it was built from, and marks 
 
 ## design-summary-html
 
-An agent skill that turns the outputs the [req-to-design](https://github.com/Taro000/req-to-design) skills write to `docs/design/` (stage 1 architecture drivers, stage 2 architecture, stage 3 high-level design) into one HTML page, `docs/design/summary.html`, in the same layout and look as quality-summary-html. Instead of reading three long reports, you can go from the ranked drivers to the elements, decisions, flows and data on a single page. For now it reads Japanese outputs only.
+An agent skill that turns the outputs the [req-to-design](https://github.com/Taro000/req-to-design) skills write to `docs/design/` (stage 1 architecture drivers, stage 2 architecture, stage 3 high-level design) into one HTML page, `docs/design/summary.html`, in quality-summary-html's layout with its own orange theme. Instead of reading three long reports, you can go from the ranked drivers to the elements, decisions, flows and data on a single page. For now it reads Japanese outputs only.
 
 ### What the page shows
 
@@ -83,23 +83,23 @@ An agent skill that turns the outputs the [req-to-design](https://github.com/Tar
 |---|---|
 | Route | Item counts by stage, from architecture drivers to data entities |
 | Stage 1 | The ranking table (first and open), premises and stakeholders, concerns, quality and change scenarios, constraints, functional, observability and security drivers, principles, conflicts, feasibility |
-| Stage 2 | Elements first, then the five views (diagrams and tables), the overall structure, the decisions with one card each (the option comparison and condensed points), design concerns, the threat model (a figure of trust boundaries and flows, and the threat table), walkthroughs, design parameters, debt and deferred decisions, running cost |
+| Stage 2 | Elements first, then the five views (diagrams and tables), the overall structure, the decisions with one card each (the question, the options with the rejected ones' reasons, gains, costs, sensitive points, trade-offs, assumptions, parameters and debt), design concerns, the threat model (a figure of trust boundaries and flows, and the threat table), walkthroughs, design parameters, debt and deferred decisions, running cost |
 | Stage 3 | Shared conventions, decisions, interfaces, error contracts, end-to-end flows (sequence diagrams), latency budgets as charts, failure paths and error budgets, screen flows, data (ER diagram and entities), data quality flows, states across elements, measurement points, the acceptance-criteria trace, design parameters |
 
-Tables and Mermaid diagrams are read from the reports on every run, and revision-history notes (「前の版は…」, finding numbers) are removed from table cells. The agent condenses the prose into `docs/design/summary-text.yaml`, which records a hash of each source section; after a stage re-run, the skill reports which condensed texts are stale, and the agent rewrites only those. Mermaid is loaded from a CDN when the first diagram comes into view, so viewing the page needs network access. Light mode only.
+As in quality-summary-html, the YAML items are the source of truth: every table that has items (drivers, premises, elements, decisions, design parameters, debt, interfaces, error contracts, data entities) is built from them on every run. The reports are read for the Mermaid diagrams and for the sections that no item holds (concerns, feasibility, views, threat model, walkthroughs, running cost, shared conventions, latency budgets, measurement points, the acceptance-criteria trace). Report tables that restate items are compared with them, and a stale report is reported; the page follows the YAML. Revision-history notes (「前の版は…」, finding numbers) are removed from YAML texts and table cells. The agent condenses the prose of report-only sections into `docs/design/summary-text.yaml`, which records a hash of each source section; after a stage re-run, the skill reports which condensed texts are stale, and the agent rewrites only those. Mermaid is loaded from a CDN when the first diagram comes into view, so viewing the page needs network access. Light mode only.
 
 ### Use
 
-1. Run the req-to-design skills, at least stage 1, so that `docs/design/1-architecture-drivers.md` exists.
-2. "Summarize docs/design as an HTML page." On the first run the agent also writes `summary-text.yaml` (the condensed decisions, overall structure, design concerns, threat model and latency budgets); until it exists, the page shows the reports' own tables and diagrams in their place.
+1. Run the req-to-design skills, at least stage 1, so that `docs/design/drv/` exists.
+2. "Summarize docs/design as an HTML page." On the first run the agent also writes `summary-text.yaml` (the condensed overall structure, design concerns, threat model and latency budgets); until it exists, the page shows the reports' own tables and diagrams in their place. Everything built from the YAML is complete on the first run.
 3. After re-running a stage: "Rebuild the design summary."
 
 ### Output
 
 ```
 docs/design/
-├── 1-architecture-drivers.md … 3-high-level-design.md   reports: every table and diagram
-├── drv/ dec/ elm/ ifc/ dat/ …                           YAML items: counts and titles
+├── drv/ dec/ elm/ ifc/ dat/, design-context.yaml        YAML items: every table that has items
+├── 1-architecture-drivers.md … 3-high-level-design.md   reports: diagrams and the sections no item holds
 ├── summary-text.yaml                                    condensed texts and the hashes of their sources
 └── summary.html                                         the page this skill writes
 ```
@@ -109,7 +109,8 @@ Commit `summary-text.yaml` and `summary.html` together with the docs they were b
 ### What the skill will not do
 
 - Write or patch the page by hand, for the same reasons as quality-summary-html.
-- Edit the reports or the YAML items to suit the page. The exact replacements in `summary-text.yaml` only remove revision notes the cleaner cannot see.
+- Edit the reports or the YAML items to suit the page. The exact replacements in `summary-text.yaml` only remove revision notes the cleaner cannot see in the reports.
+- Prefer a report to the YAML. When they disagree, the page shows the YAML and the skill says where.
 - Say more in a condensed text than the report says.
 - Read design outputs written in English. It finds the reports' sections by their Japanese headings.
 - Commit, unless you ask.
@@ -126,10 +127,10 @@ skills/quality-summary-html/
 skills/design-summary-html/
 ├── SKILL.md                          instructions for the agent
 ├── scripts/build_design_summary.py   the generator
-├── assets/                           base.css and base.js (copies of quality-summary-html's summary.css and summary.js), design.css, design.js
+├── assets/                           base.css and base.js (copies of quality-summary-html's summary.css and summary.js), design.css (the orange theme and the design page's parts), design.js
 └── references/page-spec.md           every table with its source, the cleaning rules, the summary-text.yaml format, how to change the page
 scripts/check-chain.py         checks for drift from the cuj-to-slo glossary and artifacts.md
-tests/                         automated tests of quality-summary-html, and the script that builds the fictional service's outputs
+tests/                         automated tests of both skills, and the script that builds the fictional service's outputs
 ```
 
 To run the generator without an agent, use a clone of this repository:
@@ -176,7 +177,7 @@ uv run --with pyyaml python3 skills/design-summary-html/scripts/build_design_sum
 ln -s "$PWD/skills/design-summary-html" ~/.claude/skills/design-summary-html
 ```
 
-When quality-summary-html's `summary.css` or `summary.js` changes, copy it unchanged to design-summary-html's `assets/base.css` or `assets/base.js`, so that both pages keep the same look. design-summary-html has no automated tests or evals yet. A complete `summary-text.yaml` for a real project is `docs/design/summary-text.yaml` in ride-hailing-app-demo.
+When quality-summary-html's `summary.css` or `summary.js` changes, copy it unchanged to design-summary-html's `assets/base.css` or `assets/base.js`, so that both pages keep the same layout; the orange theme lives in `design.css`, which redefines the color tokens after `base.css`. design-summary-html's tests are `tests/test_build_design_summary.py` (it has no evals yet). A complete `summary-text.yaml` for a real project is `docs/design/summary-text.yaml` in ride-hailing-app-demo.
 
 ## License
 

@@ -75,7 +75,7 @@ docs/quality/
 
 ## design-summary-html
 
-[req-to-design](https://github.com/Taro000/req-to-design) のスキルが `docs/design/` に書いた成果物（第 1 段階の設計を動かす要求、第 2 段階のアーキテクチャ、第 3 段階の概要設計）を、quality-summary-html と同じ形と見た目の 1 枚の HTML のページ（`docs/design/summary.html`）にまとめるエージェントスキルです。長い報告書を 3 つ読まなくても、順位の付いた要求から、要素、決定、流れ、データまでを 1 枚のページでたどれます。今は日本語の成果物だけを読みます。
+[req-to-design](https://github.com/Taro000/req-to-design) のスキルが `docs/design/` に書いた成果物（第 1 段階の設計を動かす要求、第 2 段階のアーキテクチャ、第 3 段階の概要設計）を、quality-summary-html と同じ形で、オレンジの配色の 1 枚の HTML のページ（`docs/design/summary.html`）にまとめるエージェントスキルです。長い報告書を 3 つ読まなくても、順位の付いた要求から、要素、決定、流れ、データまでを 1 枚のページでたどれます。今は日本語の成果物だけを読みます。
 
 ### ページの中身
 
@@ -83,23 +83,23 @@ docs/quality/
 |---|---|
 | 成果物のつながり | 設計を動かす要求からデータの実体までの、段階ごとの項目の数 |
 | 第 1 段階 | 「順位表」（いちばん上で、開いておく）、「設計の前提と利害関係者」「関心事の一覧」「品質と変更のシナリオ」「制約」「機能・観測・セキュリティの要求」「全体の原則」「競合」「実現できるか」 |
-| 第 2 段階 | 「要素」（いちばん上）、五つの「ビュー」（図と表）、「全体の構造」、「設計の決定」と決定ごとのカード（案の比べと添削した要点）、「設計の観点」、「脅威のモデル」（信頼の境界と流れの図と、脅威の表）、「通し確認」、「設計上の値」「技術的負債と先送りした決定」「走る費用」 |
+| 第 2 段階 | 「要素」（いちばん上）、五つの「ビュー」（図と表）、「全体の構造」、「設計の決定」と決定ごとのカード（問い、案と退けた理由、得るもの、失うもの、応答を左右する点、引き換え、前提、設計上の値、負債）、「設計の観点」、「脅威のモデル」（信頼の境界と流れの図と、脅威の表）、「通し確認」、「設計上の値」「技術的負債と先送りした決定」「走る費用」 |
 | 第 3 段階 | 「共通の約束事」「設計の決定」「インタフェース」「エラーの決まり」、「端から端の流れ」（シーケンス図）、グラフにした「遅延の予算」、「失敗したときの流れとエラーバジェット」、「画面」の図、「データ」（ER 図と実体の表）、「データの品質の流れ」「要素をまたぐ状態」「測定点と監視の NFR の出どころ」「受け入れ基準のトレース」「設計上の値」 |
 
-表と mermaid の図は実行のたびに報告書から読み、表のセルからは改訂の履歴の注記（「前の版は…」や指摘の番号）を削ります。文章はエージェントが添削して `docs/design/summary-text.yaml` に置き、そのもとの節の hash も記録します。段階を再実行したあとは、もとが変わった添削文をスキルが伝え、エージェントがそれだけを書き直します。mermaid は最初の図が見える所に来たときに CDN から読むので、ページを見るにはネットが要ります。ライトモードだけです。
+quality-summary-html と同じく、YAML の項目を正とします。項目のある表（設計を動かす要求、設計の前提、要素、設計の決定、設計上の値、負債、インタフェース、エラーの決まり、データの実体）は、実行のたびに YAML から作ります。報告書から読むのは、mermaid の図と、どの項目にもない節（関心事の一覧、実現できるか、ビュー、脅威のモデル、通し確認、走る費用、共通の約束事、遅延の予算、測定点、受け入れ基準のトレース）だけです。項目を書き写した報告書の表は YAML と突き合わせ、食い違えばそう伝えます。ページは YAML に従います。YAML の文と表のセルからは、改訂の履歴の注記（「前の版は…」や指摘の番号）を削ります。報告書にしかない節の文章はエージェントが添削して `docs/design/summary-text.yaml` に置き、そのもとの節の hash も記録します。段階を再実行したあとは、もとが変わった添削文をスキルが伝え、エージェントがそれだけを書き直します。mermaid は最初の図が見える所に来たときに CDN から読むので、ページを見るにはネットが要ります。ライトモードだけです。
 
 ### 使い方
 
-1. req-to-design のスキルを少なくとも第 1 段階まで実行し、`docs/design/1-architecture-drivers.md` を作る。
-2. 「docs/design の成果物を HTML にまとめてください。」最初の実行では、エージェントが `summary-text.yaml`（決定、全体の構造、設計の観点、脅威のモデル、遅延の予算の添削文）も書きます。それができるまでは、その場所に報告書の表や図を出します。
+1. req-to-design のスキルを少なくとも第 1 段階まで実行し、`docs/design/drv/` を作る。
+2. 「docs/design の成果物を HTML にまとめてください。」最初の実行では、エージェントが `summary-text.yaml`（全体の構造、設計の観点、脅威のモデル、遅延の予算の添削文）も書きます。それができるまでは、その場所に報告書の表や図を出します。YAML から作る部分は、最初の実行から揃います。
 3. 段階を再実行したあとで: 「設計の要約を作り直してください。」
 
 ### 出力
 
 ```
 docs/design/
-├── 1-architecture-drivers.md … 3-high-level-design.md   報告書: どの表と図もここから取る
-├── drv/ dec/ elm/ ifc/ dat/ …                           YAML の項目: 数と表題
+├── drv/ dec/ elm/ ifc/ dat/、design-context.yaml       YAML の項目: 項目のある表はすべてここから作る
+├── 1-architecture-drivers.md … 3-high-level-design.md   報告書: 図と、どの項目にもない節
 ├── summary-text.yaml                                    添削文と、そのもとの hash
 └── summary.html                                         このスキルが書くページ
 ```
@@ -109,7 +109,8 @@ docs/design/
 ### スキルがしないこと
 
 - ページを手で書いたり直したりすること。理由は quality-summary-html と同じです。
-- ページに合わせて報告書や YAML の項目を直すこと。`summary-text.yaml` の置き換えは、削る規則に掛からない改訂の注記を消すためだけに使います。
+- ページに合わせて報告書や YAML の項目を直すこと。`summary-text.yaml` の置き換えは、報告書の中で削る規則に掛からない改訂の注記を消すためだけに使います。
+- 報告書を YAML より優先すること。食い違えば、ページは YAML を示し、スキルがどこで食い違ったかを伝えます。
 - 報告書が言っていないことを添削文に書くこと。
 - 英語で書かれた設計の成果物を読むこと。報告書の節は日本語の見出しで探します。
 - 頼まれていないのにコミットすること。
@@ -126,10 +127,10 @@ skills/quality-summary-html/
 skills/design-summary-html/
 ├── SKILL.md                          エージェントへの指示
 ├── scripts/build_design_summary.py   生成スクリプト
-├── assets/                           base.css と base.js（quality-summary-html の summary.css と summary.js の写し）、design.css、design.js
+├── assets/                           base.css と base.js（quality-summary-html の summary.css と summary.js の写し）、design.css（オレンジの配色と設計のページの部品）、design.js
 └── references/page-spec.md           表ごとの出どころ、履歴の注記を削る規則、summary-text.yaml の形、ページの変え方
 scripts/check-chain.py         cuj-to-slo の用語集と artifacts.md との食い違いを確かめる
-tests/                         quality-summary-html の自動テストと、架空のサービスの成果物を作るスクリプト
+tests/                         二つのスキルの自動テストと、架空のサービスの成果物を作るスクリプト
 ```
 
 エージェントを通さずに生成スクリプトを動かすときは、このリポジトリを clone して使います。
@@ -176,7 +177,7 @@ uv run --with pyyaml python3 skills/design-summary-html/scripts/build_design_sum
 ln -s "$PWD/skills/design-summary-html" ~/.claude/skills/design-summary-html
 ```
 
-quality-summary-html の `summary.css` か `summary.js` を変えたら、design-summary-html の `assets/base.css` か `assets/base.js` にそのまま写し、二つのページの見た目をそろえてください。design-summary-html には、まだ自動テストも評価ケースもありません。実際のプロジェクトの `summary-text.yaml` の例は、ride-hailing-app-demo の `docs/design/summary-text.yaml` です。
+quality-summary-html の `summary.css` か `summary.js` を変えたら、design-summary-html の `assets/base.css` か `assets/base.js` にそのまま写し、二つのページの形をそろえてください。オレンジの配色は `design.css` にあり、`base.css` の後で色のトークンを定め直します。design-summary-html の自動テストは `tests/test_build_design_summary.py` です（評価ケースはまだありません）。実際のプロジェクトの `summary-text.yaml` の例は、ride-hailing-app-demo の `docs/design/summary-text.yaml` です。
 
 ## ライセンス
 

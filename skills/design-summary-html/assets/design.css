@@ -1,13 +1,47 @@
-/* design-summary-html: additions to base.css (a copy of quality-summary-html's summary.css). Colors and fonts use its tokens */
+/* design-summary-html: additions to base.css (a copy of quality-summary-html's summary.css).
+   The layout is the same; the theme is orange instead of blue. The tokens of base.css are redefined here from the
+   skill's icon (#fccb52, #f9a330, #f37b20, #e2531b, #b8360f), with warm neutrals to match. --route is darkened
+   from #e2531b so that white text on it keeps 4.5:1, and --route-ink keeps 4.5:1 on --route-soft */
 :root{
-  --k-own:#1d5fae;      /* own processing */
-  --k-ext:#eb6834;      /* external services and the network */
+  --paper:#f7f4f1;
+  --surface:#ffffff;
+  --head:#faf7f4;
+  --ink:#2a1f18;
+  --ink-2:#574a42;
+  --ink-3:#7c6f66;
+  --rule:#e5ddd5;
+  --rule-soft:#f0eae4;
+  --route:#c9461a;
+  --route-ink:#a8320e;
+  --route-soft:#fdeee3;
+  --route-line:#f4c4a3;
+  --on-route:#ffffff;
+  --risk:#f9a330;
+  --pickup:#fde7a6;
+  --tip-bg:#2a1f18;
+  --tip-fg:#ffffff;
+  --brand-1:#fccb52;
+  --brand-2:#f9a330;
+  --brand-3:#f37b20;
+  --brand-4:#e2531b;
+  --brand-5:#b8360f;
+  --note-bg:#fef6dc;    /* Mermaid notes and people in the threat figure: the icon's yellow */
+  --note-line:#f3cf73;
+  /* latency budget segments, validated with the dataviz palette validator (light, all pairs, on #ffffff; worst CVD ΔE 9.9) */
+  --k-own:#e2531b;      /* own processing: the theme's color */
+  --k-ext:#1d5fae;      /* external services and the network */
   --k-wait:#1baf7a;     /* waiting */
   --s-good:#0ca30c;
   --s-warn:#fab219;
   --s-crit:#d03b3b;
-  --track:#e7ebf0;
+  --track:#f0eae4;
 }
+
+/* the icon's five colors as a band under the title */
+.masthead{position:relative;border-bottom:0}
+.masthead::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:2px;
+  background:linear-gradient(90deg,var(--brand-1) 0 20%,var(--brand-2) 20% 40%,var(--brand-3) 40% 60%,var(--brand-4) 60% 80%,var(--brand-5) 80% 100%)}
+.tip{box-shadow:0 6px 18px rgba(42,31,24,.2)}
 
 /* IDs: links to the quality summary are dotted */
 a.id.ext{text-decoration-style:dotted}
@@ -63,11 +97,27 @@ a.id.ext{text-decoration-style:dotted}
 .more{display:inline-block;margin-top:4px;font-size:12px}
 .rk{color:var(--ink-3);font-size:12px;margin-left:2px}
 .mk{display:inline-block;margin-right:6px;font-size:11.5px;font-weight:700;line-height:1.45;padding:0 6px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
-.mk-ok{background:var(--route-soft);color:var(--route-ink);border-color:var(--route-line)}
+.mk-ok{background:var(--route);color:var(--on-route);border-color:var(--route)}
 .mk-part{background:var(--surface);color:var(--ink-2);border:1px dashed var(--ink-3)}
-.mk-ng{background:#fde8e6;color:#9b2c25;border-color:#f3c3be}
-.cmp-n{color:var(--ink)}
-.cmp td{min-width:13em}
+.mk-n{display:block;margin-top:4px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+
+/* decision cards (dec/*.yaml): the question, the options, then the rest as a definition list */
+.opts td,.opts th{min-width:13em}
+.opts thead th:last-child,.opts td:last-child{min-width:11em}
+.opts tr.is-chosen > *{background:var(--route-soft)}
+.opts tr.is-chosen > th{box-shadow:inset 3px 0 0 var(--route)}
+.vp.dec{padding:0 16px}
+.item-body > .vp.dec:last-child{padding-bottom:2px}
+.vp.dec dd ul{margin:0;padding-left:1.2em}
+.vp.dec dd li + li{margin-top:3px}
+.vp.dec .note,.nr .note{display:block;margin-top:2px;font-size:12px;line-height:1.5;color:var(--ink-2)}
+.nl{display:inline-block;margin-right:6px;font-size:11.5px;font-weight:700;color:var(--ink-3)}
+.nr{display:block}
+.nr + .nr{margin-top:6px}
+.nr .opt{display:block}
+.vs{margin-right:6px;font-size:12px;color:var(--ink-3)}
+.in-bul{margin:0;padding-left:1.2em}
+.in-bul li + li{margin-top:4px}
 
 /* group heading rows and merged cells */
 table tr.grp th{background:var(--paper);padding:8px 12px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--ink)}
@@ -157,7 +207,7 @@ table tbody tr.grp:first-child th{border-top:0}
 .tm-node.k-store > rect:first-child{fill:var(--route-soft);stroke:var(--route-line)}
 .tm-node.k-ext > rect:first-child{fill:var(--head);stroke:var(--ink-3)}
 .tm-node.k-ext .tm-inner{fill:none;stroke:var(--ink-3);stroke-width:.8}
-.tm-node.k-person > rect:first-child{fill:#fff8e1;stroke:#e8d48a}
+.tm-node.k-person > rect:first-child{fill:var(--note-bg);stroke:var(--note-line)}
 .tm-id{font-family:var(--f-mono);font-size:11px;font-weight:500;fill:var(--route-ink)}
 .tm-nt{font-size:12.5px;fill:var(--ink)}
 .tm-flow{fill:none;stroke:var(--ink-2);stroke-width:1.5;stroke-linejoin:round}

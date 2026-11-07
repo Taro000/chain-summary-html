@@ -40,7 +40,7 @@
             actorBkg: v('--route-soft'), actorBorder: v('--route'), actorTextColor: v('--ink'), actorLineColor: v('--rule'),
             signalColor: v('--ink-2'), signalTextColor: v('--ink'), labelBoxBkgColor: v('--head'),
             labelBoxBorderColor: v('--rule'), labelTextColor: v('--ink'), loopTextColor: v('--ink-2'),
-            noteBkgColor: '#fff8e1', noteBorderColor: '#e8d48a', noteTextColor: v('--ink'),
+            noteBkgColor: v('--note-bg'), noteBorderColor: v('--note-line'), noteTextColor: v('--ink'),
             activationBkgColor: v('--route-soft'), activationBorderColor: v('--route'), sequenceNumberColor: '#ffffff',
             attributeBackgroundColorOdd: v('--surface'), attributeBackgroundColorEven: v('--head')
           },
