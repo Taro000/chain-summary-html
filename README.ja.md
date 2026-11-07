@@ -2,9 +2,35 @@
 
 [English](README.md) | 日本語
 
+スキルの連鎖が書いた成果物を、それぞれ 1 枚の HTML のページにまとめる二つのエージェントスキルです。ページの形と見た目は同じです。
+
+| スキル | 読むもの | 書くもの |
+|---|---|---|
+| [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) の 4 つのスキルが `docs/quality/` に書いた成果物 | `docs/quality/summary.html` |
+| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design) のスキルが `docs/design/` に書いた成果物（第 1〜3 段階） | `docs/design/summary.html` |
+
+## インストール
+
+```sh
+# 今のプロジェクトに入れる（どのスキルを、どのエージェントに入れるかを聞かれる）
+npx skills add Taro000/quality-summary-html
+
+# 二つとも、Claude Code にだけ、すべてのプロジェクトで使えるように、確認なしで入れる
+npx skills add Taro000/quality-summary-html -a claude-code -g -y
+
+# 一つだけ入れる
+npx skills add Taro000/quality-summary-html -s design-summary-html
+```
+
+スキルは Python のスクリプトを動かすので、Python 3.9 以降と PyYAML が要ります。[uv](https://docs.astral.sh/uv/) があれば、`uv run --with pyyaml` で PyYAML ごと動きます。
+
+quality-summary-html の `evals/`（試験用の成果物、約 1.7 MB）も一緒に入ります。使うだけなら消してかまいません。
+
+## quality-summary-html
+
 [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) の 4 つのスキルが `docs/quality/` に書いた成果物を、1 枚の HTML のページ（`docs/quality/summary.html`）にまとめるエージェントスキルです。4 つの報告書と項目ごとの YAML ファイルを読まなくても、各 CUJ から、それを支える要求と SLO までを 1 枚のページでたどれます（CUJ → QIU → FR → QR → NFR / SLI）。
 
-## ページの中身
+### ページの中身
 
 | 部分 | 中身 |
 |---|---|
@@ -18,21 +44,7 @@
 
 すばやく読めるように、ページは、ほとんどの項目の根拠、SLO の数値の理由、測定点、見えないもの（測定の制約）などを省いています。これらは YAML と報告書で読んでください。ライトモードだけです。
 
-## インストール
-
-```sh
-# 今のプロジェクトに入れる（どのエージェントに入れるかを聞かれる）
-npx skills add Taro000/quality-summary-html
-
-# Claude Code にだけ、すべてのプロジェクトで使えるように、確認なしで入れる
-npx skills add Taro000/quality-summary-html -a claude-code -g -y
-```
-
-スキルは Python のスクリプトを動かすので、Python 3.9 以降と PyYAML が要ります。[uv](https://docs.astral.sh/uv/) があれば、`uv run --with pyyaml` で PyYAML ごと動きます。
-
-`evals/`（試験用の成果物、約 1.7 MB）もスキルと一緒に入ります。使うだけなら消してかまいません。
-
-## 使い方
+### 使い方
 
 1. cuj-to-slo のスキルを少なくとも第 1 段階まで実行し、`docs/quality/context.yaml` を作る。
 2. 「docs/quality の成果物を HTML にまとめてください。」
@@ -42,7 +54,7 @@ npx skills add Taro000/quality-summary-html -a claude-code -g -y
 
 ページは成果物の言語で書きます。日本語の成果物なら日本語、それ以外の言語なら英語です。変わるのはラベルだけで、中身は書かれた言語のままです。ラベルをもう一方の言語にすることや、表題や書き出す先を変えることも頼めます。
 
-## 出力
+### 出力
 
 ```
 docs/quality/
@@ -53,12 +65,53 @@ docs/quality/
 
 ページの見出しには、もとにした docs の git のコミットを出し、コミットしていない変更があればそう示します。`summary.html` は実行のたびに上書きされるので、もとにした docs と一緒にコミットしてください。
 
-## スキルがしないこと
+### スキルがしないこと
 
 - ページを手で書いたり直したりすること。手で直したページは YAML とずれ、次の実行で消えます。ページを変えたいときは、スクリプトと `assets/` を直します。その変更は、このスキルを使うすべてのプロジェクトに及びます。
 - 食い違いを消すために YAML や報告書を直すこと。ページはチェーンの状態を伝えるだけです。直すのは、その項目を持つ段階の仕事です。
 - 報告書を YAML より優先すること。cuj-to-slo の artifacts.md のとおり、YAML の項目を正とします。報告書にしかない表は見出しで探し、見つからなければページから省いて、そう伝えます。
 - チェーンを実行していないのに、ほかの文書からページを作ること。`context.yaml` がなければ、代わりに `cuj-to-quality-in-use` を案内します。
+- 頼まれていないのにコミットすること。
+
+## design-summary-html
+
+[req-to-design](https://github.com/Taro000/req-to-design) のスキルが `docs/design/` に書いた成果物（第 1 段階の設計を動かす要求、第 2 段階のアーキテクチャ、第 3 段階の概要設計）を、quality-summary-html と同じ形と見た目の 1 枚の HTML のページ（`docs/design/summary.html`）にまとめるエージェントスキルです。長い報告書を 3 つ読まなくても、順位の付いた要求から、要素、決定、流れ、データまでを 1 枚のページでたどれます。今は日本語の成果物だけを読みます。
+
+### ページの中身
+
+| 部分 | 中身 |
+|---|---|
+| 成果物のつながり | 設計を動かす要求からデータの実体までの、段階ごとの項目の数 |
+| 第 1 段階 | 「順位表」（いちばん上で、開いておく）、「設計の前提と利害関係者」「関心事の一覧」「品質と変更のシナリオ」「制約」「機能・観測・セキュリティの要求」「全体の原則」「競合」「実現できるか」 |
+| 第 2 段階 | 「要素」（いちばん上）、五つの「ビュー」（図と表）、「全体の構造」、「設計の決定」と決定ごとのカード（案の比べと添削した要点）、「設計の観点」、「脅威のモデル」（信頼の境界と流れの図と、脅威の表）、「通し確認」、「設計上の値」「技術的負債と先送りした決定」「走る費用」 |
+| 第 3 段階 | 「共通の約束事」「設計の決定」「インタフェース」「エラーの決まり」、「端から端の流れ」（シーケンス図）、グラフにした「遅延の予算」、「失敗したときの流れとエラーバジェット」、「画面」の図、「データ」（ER 図と実体の表）、「データの品質の流れ」「要素をまたぐ状態」「測定点と監視の NFR の出どころ」「受け入れ基準のトレース」「設計上の値」 |
+
+表と mermaid の図は実行のたびに報告書から読み、表のセルからは改訂の履歴の注記（「前の版は…」や指摘の番号）を削ります。文章はエージェントが添削して `docs/design/summary-text.yaml` に置き、そのもとの節の hash も記録します。段階を再実行したあとは、もとが変わった添削文をスキルが伝え、エージェントがそれだけを書き直します。mermaid は最初の図が見える所に来たときに CDN から読むので、ページを見るにはネットが要ります。ライトモードだけです。
+
+### 使い方
+
+1. req-to-design のスキルを少なくとも第 1 段階まで実行し、`docs/design/1-architecture-drivers.md` を作る。
+2. 「docs/design の成果物を HTML にまとめてください。」最初の実行では、エージェントが `summary-text.yaml`（決定、全体の構造、設計の観点、脅威のモデル、遅延の予算の添削文）も書きます。それができるまでは、その場所に報告書の表や図を出します。
+3. 段階を再実行したあとで: 「設計の要約を作り直してください。」
+
+### 出力
+
+```
+docs/design/
+├── 1-architecture-drivers.md … 3-high-level-design.md   報告書: どの表と図もここから取る
+├── drv/ dec/ elm/ ifc/ dat/ …                           YAML の項目: 数と表題
+├── summary-text.yaml                                    添削文と、そのもとの hash
+└── summary.html                                         このスキルが書くページ
+```
+
+`summary-text.yaml` と `summary.html` は、もとにした docs と一緒にコミットしてください。
+
+### スキルがしないこと
+
+- ページを手で書いたり直したりすること。理由は quality-summary-html と同じです。
+- ページに合わせて報告書や YAML の項目を直すこと。`summary-text.yaml` の置き換えは、削る規則に掛からない改訂の注記を消すためだけに使います。
+- 報告書が言っていないことを添削文に書くこと。
+- 英語で書かれた設計の成果物を読むこと。報告書の節は日本語の見出しで探します。
 - 頼まれていないのにコミットすること。
 
 ## メンテナンス
@@ -70,8 +123,13 @@ skills/quality-summary-html/
 ├── assets/                    summary.css、summary.js と、言語ごとの文言（lang/ja.json、lang/en.json）
 ├── references/page-spec.md    表ごとの列と出どころ、省いたものとその理由、ページの変え方
 └── evals/                     試験の 4 件
+skills/design-summary-html/
+├── SKILL.md                          エージェントへの指示
+├── scripts/build_design_summary.py   生成スクリプト
+├── assets/                           base.css と base.js（quality-summary-html の summary.css と summary.js の写し）、design.css、design.js
+└── references/page-spec.md           表ごとの出どころ、履歴の注記を削る規則、summary-text.yaml の形、ページの変え方
 scripts/check-chain.py         cuj-to-slo の用語集と artifacts.md との食い違いを確かめる
-tests/                         自動テストと、架空のサービスの成果物を作るスクリプト
+tests/                         quality-summary-html の自動テストと、架空のサービスの成果物を作るスクリプト
 ```
 
 エージェントを通さずに生成スクリプトを動かすときは、このリポジトリを clone して使います。
@@ -105,6 +163,20 @@ python3 scripts/check-chain.py [path/to/cuj-to-slo]
 `check-chain.py` が食い違いを出したら、`assets/lang/ja.json`、`assets/lang/en.json` と生成スクリプトを合わせてください。引数を省くと、環境変数 `CUJ_TO_SLO` のパスを読み、それもなければ `../cuj-to-slo`（このリポジトリの隣に `git clone` したときの場所）を見ます。入れたスキルのディレクトリを渡すこともできます。自動テストも同じ場所で同じ確認をし、cuj-to-slo のリポジトリがなければその確認を飛ばします。
 
 `evals/ride-hailing-full` は ride-hailing-app-demo の `docs/quality`（コミット ba28153）の写しです。
+
+design-summary-html も同じように動かします。報告は日本語で、終了コードの意味も同じです。
+
+```sh
+uv run --with pyyaml python3 skills/design-summary-html/scripts/build_design_summary.py path/to/docs/design
+
+# summary-text.yaml の添削文を書き直したあと: もとの hash を記録する
+uv run --with pyyaml python3 skills/design-summary-html/scripts/build_design_summary.py path/to/docs/design --write-hashes
+
+# 手元のコピーを、Claude Code に入れたスキルとして使う
+ln -s "$PWD/skills/design-summary-html" ~/.claude/skills/design-summary-html
+```
+
+quality-summary-html の `summary.css` か `summary.js` を変えたら、design-summary-html の `assets/base.css` か `assets/base.js` にそのまま写し、二つのページの見た目をそろえてください。design-summary-html には、まだ自動テストも評価ケースもありません。実際のプロジェクトの `summary-text.yaml` の例は、ride-hailing-app-demo の `docs/design/summary-text.yaml` です。
 
 ## ライセンス
 
