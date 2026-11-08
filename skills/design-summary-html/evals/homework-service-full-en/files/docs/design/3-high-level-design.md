@@ -155,7 +155,7 @@ erDiagram
 | DAT | Entity | Owner | Store | Consistency | Retention | Classification | Basis |
 |---|---|---|---|---|---|---|---|
 | DAT-01 | Assignment | ELM-03 | ELM-04 | Written per request from teachers | Until the end of the school year | internal | Inferred |
-| DAT-02 | Submission | ELM-03 | ELM-04 | The record and the receipt are written in one transaction (DEC-03) | One year after graduation | personal | Inferred |
+| DAT-02 | Submission | ELM-03 | ELM-04 | The record and the receipt are written in one transaction (DEC-03). The receipt number comes from the record's ID | One year after graduation | personal | Inferred |
 | DAT-03 | Submitted file | ELM-01 | ELM-05 | Uploaded once through a signed URL | One year after graduation | personal (students' answers) | Inferred |
 | DAT-04 | Grade | ELM-03 | ELM-04 | Written per grading | One year after graduation | personal | Inferred |
 

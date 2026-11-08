@@ -15,7 +15,9 @@ Planted on purpose, so that the evals can check the skill notices them:
 - revision notes in YAML texts and report cells (finding numbers, 「DRV-03 版 2」 / "DRV-03 version 2", a sentence about
   the previous version, a sentence about a re-run);
 - a retired driver (DRV-10), a CUJ walkthrough written as prose (CUJ-03), a latency budget without a table (NFR-02),
-  common error contracts shared by two interfaces, and a hop table that the page draws as a chart (NFR-06).
+  common error contracts shared by two interfaces, and a hop table that the page draws as a chart (NFR-06);
+- texts with more than one sentence and bracketed asides, which the page cuts to their gist (DEC-02's rationale,
+  ELM-01's and ELM-02's responsibilities, DAT-02's consistency).
 """
 import pathlib
 import shutil
@@ -217,7 +219,8 @@ def data(lang):
         dec('DEC-02', 'architecture', J('提出のファイルを署名付き URL でストレージに直接置く', 'Upload files straight to the storage with signed URLs'), DAY2, S2,
             J('提出のファイルを、サーバーを通さずにどう置くか', 'How are submitted files stored without passing through the server?'),
             ['DRV-01', 'DRV-05', 'DRV-02'], [U1, U2], U1[0],
-            J('締め切り前の集中（DRV-01）で、サーバーがファイルを受けると詰まる。', 'In the rush before a deadline (DRV-01), a server receiving the files would choke.'),
+            J('締め切り前の集中（DRV-01）で、サーバーがファイルを受けると詰まる。署名付き URL なら、ファイルはサーバーを通らない。',
+              'In the rush before a deadline (DRV-01), a server receiving the files would choke. With signed URLs, files never pass through the server.'),
             [(U2[0], J('締め切り前に詰まる（DRV-01）', 'Chokes before deadlines (DRV-01)'))],
             gains=[J('締め切り前もファイルでサーバーの負荷が増えない', 'Files add no server load, even before deadlines')],
             costs=[J('URL の期限切れを扱う', 'Expired URLs must be handled')],
@@ -284,10 +287,10 @@ def data(lang):
     elms = [
         elm('ELM-01', J('生徒の Web アプリ', 'Student web app'), 'component',
             J('課題を開き、ファイルをストレージに直接置き、提出して受領を示す。下書きを保存する',
-              'Opens assignments, uploads files straight to the storage, submits and shows receipts; saves drafts'),
+              'Opens assignments, uploads files straight to the storage, submits and shows receipts. Saves drafts'),
             ['FR-01', 'FR-02', 'FR-06'], ['DRV-01', 'DRV-02', 'DRV-03'], depends=['ELM-03', 'ELM-05']),
         elm('ELM-02', J('講師の Web アプリ', 'Teacher web app'), 'component',
-            J('提出を開き、採点して返却する。月次のレポートを見る', 'Opens submissions, grades and returns them; shows the monthly report'),
+            J('提出を開き、採点して返却する。月次のレポートを見る', 'Opens submissions, grades and returns them. Shows the monthly report'),
             ['FR-03', 'FR-05', 'FR-08'], ['DRV-08'], depends=['ELM-03']),
         elm('ELM-03', J('API サーバー', 'API server'), 'component',
             J('提出の確定と受領、署名付き URL、採点と返却、トレース ID の記録', 'Confirms submissions and receipts, issues signed URLs, grading and returns, records trace IDs'),
@@ -354,7 +357,8 @@ def data(lang):
         dat('DAT-01', J('課題', 'Assignment'), 'ELM-03', 'ELM-04', J('講師の要求ごとに書く', 'Written per request from teachers'),
             J('学年の終わりまで', 'Until the end of the school year'), 'internal', [('DAT-02', 'one-to-many', J('提出', 'Submissions'))]),
         dat('DAT-02', J('提出', 'Submission'), 'ELM-03', 'ELM-04',
-            J('提出の記録と受領を一つのトランザクションで書く（DEC-03）', 'The record and the receipt are written in one transaction (DEC-03)'),
+            J('提出の記録と受領を一つのトランザクションで書く（DEC-03）。受領の番号は記録の ID から作る',
+              "The record and the receipt are written in one transaction (DEC-03). The receipt number comes from the record's ID"),
             J('卒業の後 1 年', 'One year after graduation'), 'personal', [('DAT-03', 'one-to-one', J('ファイル', 'File'))]),
         dat('DAT-03', J('提出のファイル', 'Submitted file'), 'ELM-01', 'ELM-05', J('署名付き URL で一度だけ置く', 'Uploaded once through a signed URL'),
             J('卒業の後 1 年', 'One year after graduation'), J('personal（生徒の答案）', "personal (students' answers)")),

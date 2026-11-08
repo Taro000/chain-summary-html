@@ -75,8 +75,8 @@ flowchart LR
 
 | ELM | Kind | Name | Responsibility | FR | Drivers | Team | As-is | Basis |
 |---|---|---|---|---|---|---|---|---|
-| ELM-01 | Component | Student web app | Opens assignments, uploads files straight to the storage, submits and shows receipts; saves drafts | FR-01, FR-02, FR-06 | DRV-01, DRV-02, DRV-03 | TEAM-01 | New | Inferred |
-| ELM-02 | Component | Teacher web app | Opens submissions, grades and returns them; shows the monthly report | FR-03, FR-05, FR-08 | DRV-08 | TEAM-01 | New | Inferred |
+| ELM-01 | Component | Student web app | Opens assignments, uploads files straight to the storage, submits and shows receipts. Saves drafts | FR-01, FR-02, FR-06 | DRV-01, DRV-02, DRV-03 | TEAM-01 | New | Inferred |
+| ELM-02 | Component | Teacher web app | Opens submissions, grades and returns them. Shows the monthly report | FR-03, FR-05, FR-08 | DRV-08 | TEAM-01 | New | Inferred |
 | ELM-03 | Component | API server | Confirms submissions and receipts, issues signed URLs, grading and returns, records trace IDs | FR-01, FR-02, FR-03, FR-04, FR-06, FR-08 | DRV-01, DRV-02, DRV-03, DRV-07, DRV-08 | TEAM-01 | New | Inferred |
 | ELM-04 | Data store | Database | Holds assignments, submission records and grades | — | DRV-03 | TEAM-01 | New | Inferred |
 | ELM-05 | External system | External storage | Keeps the submitted files (ObjectStore) | — | DRV-05 | — | New | Inferred |

@@ -8,7 +8,7 @@ needs_agreement: false
 approver_candidates: []
 kind: component
 name: Student web app
-responsibility: Opens assignments, uploads files straight to the storage, submits and shows receipts; saves drafts
+responsibility: Opens assignments, uploads files straight to the storage, submits and shows receipts. Saves drafts
 functions:
 - FR-01
 - FR-02

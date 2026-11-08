@@ -86,18 +86,41 @@ class Run:
     def clean(self, s):
         return bd.clean_text(str(s or '').strip())[0]
 
+    @staticmethod
+    def squeeze(s):
+        return re.sub(r'\s+', '', s or '')
+
+    def forms(self, s):
+        """A YAML text as a page may show it: whole (without revision notes) or as its gist, spaces left out"""
+        full = self.clean(s)
+        return {self.squeeze(x) for x in (full, bd.gist(full)) if x}
+
+    def shows(self, s, text):
+        return any(f in text for f in self.forms(s))
+
     def decs(self, stage):
         return {k: v for k, v in self.live(self.dec).items() if v.get('stage') == stage}
 
     def holder(self, *needles):
-        """The smallest details, section, article or div whose text holds every needle"""
-        best = None
+        """The smallest details, section, article or div whose text holds every needle: a string, or a YAML text that
+        may be shown whole or as its gist (a set of forms; spaces are left out for those)"""
+        best, best_len = None, 0
         for n in self.nodes:
             if n.tag not in ('details', 'section', 'article', 'div', 'li'):
                 continue
             t = self.texts[id(n)]
-            if all(x in t for x in needles) and (best is None or len(t) < len(self.texts[id(best)])):
-                best = n
+            sq = None
+            ok = True
+            for x in needles:
+                if isinstance(x, set):
+                    sq = sq if sq is not None else self.squeeze(t)
+                    ok = any(f in sq for f in x)
+                else:
+                    ok = x in t
+                if not ok:
+                    break
+            if ok and (best is None or len(t) < best_len):
+                best, best_len = n, len(t)
         return best
 
     # One check per grader statement. Each returns (passed, evidence)
@@ -159,15 +182,15 @@ class Run:
         bad = []
         decs = self.decs('architecture')
         for k, v in decs.items():
-            q = self.clean(v.get('question'))
-            first = [self.clean(o.get('name')) for o in v.get('options') or []][:1]
-            card = self.holder(k, q, *first)
+            first = [self.forms(o.get('name')) for o in v.get('options') or []][:1]
+            card = self.holder(k, self.forms(v.get('question')), *first)
             if card is None:
                 bad.append('%s（問いがない）' % k)
                 continue
             t = self.texts[id(card)]
-            miss = [o['name'] for o in v.get('options') or [] if self.clean(o.get('name')) not in t]
-            miss += [r['reason'] for r in v.get('rejected') or [] if self.clean(r.get('reason')) not in t]
+            sq = self.squeeze(t)
+            miss = [o['name'] for o in v.get('options') or [] if not self.shows(o.get('name'), sq)]
+            miss += [r['reason'] for r in v.get('rejected') or [] if not self.shows(r.get('reason'), sq)]
             marked = re.search(r'選んだ|採用|Chosen|chosen|Selected|selected', t)
             if miss or (v.get('chosen') and not marked):
                 bad.append('%s（%s）' % (k, '案か理由がない' if miss else '選んだ案の印がない'))
@@ -175,8 +198,48 @@ class Run:
 
     def follows_yaml_dec06(self):
         v = self.dec.get('DEC-06') or {}
-        q = self.clean(v.get('question'))
-        return 'DEC-06' in self.text and q in self.text, 'ページに DEC-06: %s、その問い: %s' % ('DEC-06' in self.text, q in self.text)
+        q = self.shows(v.get('question'), self.squeeze(self.text))
+        return 'DEC-06' in self.text and q, 'ページに DEC-06: %s、その問い: %s' % ('DEC-06' in self.text, q)
+
+    def report_cells(self):
+        """Every cell of every table in the reports"""
+        out = []
+        for p in sorted(self.docs.glob('*.md')):
+            stack = [bd.parse_md(p.read_text(encoding='utf-8'), p.name)]
+            while stack:
+                s = stack.pop()
+                out += [c for b in s.blocks if b.kind == 'table' for r in b.rows for c in r]
+                stack += s.children
+        return out
+
+    def gist_only(self):
+        """No sentence after the first of a YAML item's text is on the page: every text is cut to its gist. A later
+        sentence that is also part of a title or name (shown whole) or of the gist of another text (a YAML text,
+        design-context.yaml, a report table cell) is on the page by right and does not count"""
+        whole = ('changelog', 'basis_note', 'title', 'name', 'entity')      # not texts, or shown whole
+        items = [v for coll in (self.drv, self.elm, self.ifc, self.dat, self.dec) for v in self.live(coll).values()]
+        texts = [s for v in items for k, x in v.items() if k not in whole for s in bd.strings(x)]
+        dc = self.docs / 'design-context.yaml'
+        others = list(bd.strings(yaml.safe_load(dc.read_text(encoding='utf-8')) or {})) if dc.is_file() else []
+        gists = '\n'.join([self.squeeze(bd.gist(self.clean(s))) for s in texts + others + self.report_cells()]
+                          + [self.squeeze(self.clean(v.get(k))) for v in items for k in ('title', 'name', 'entity') if v.get(k)])
+        page = self.squeeze(self.text)
+        later, checked = [], 0
+        for s in texts:
+            rest = self.clean(s)
+            sents = []
+            while rest:
+                head = bd.first_sentence(rest)
+                sents.append(head)
+                rest = rest[len(head):].lstrip('。. ')
+            for sent in sents[1:]:
+                forms = {self.squeeze(x) for x in (sent, bd.drop_asides(sent))}
+                if max(len(f) for f in forms) < 12:
+                    continue
+                checked += 1
+                if any(f in page and f not in gists for f in forms if len(f) >= 12):
+                    later.append(sent.strip()[:40])
+        return checked > 0 and not later, '2 文目より後の文 %d 個のうち、ページに出ているもの: %s' % (checked, later[:5] or 'なし')
 
     def follows_yaml_debt(self):
         want = sorted(k for k, v in self.decs('architecture').items()

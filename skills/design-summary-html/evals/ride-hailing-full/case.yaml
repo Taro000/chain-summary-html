@@ -2,11 +2,13 @@ schema_version: "1.1"
 name: ride-hailing-full
 expected_outcome: |
   docs/design/summary.html is built from the YAML items. The page starts with the ranking table of the 28 architecture
-  drivers that are not principles or retired, open, in the YAML's rank order. Every other table is in a closed toggle, IDs
-  link to their rows, and each of the 37 stage 2 decisions has an entry with its question, options and rejected options'
-  reasons from dec/*.yaml. The debt table shows only the debts dec/*.yaml records, and the final report tells the user
-  that the stage 2 report's debt table also lists DEC-21 and DEC-30 as accepted risks, which the YAML does not record. No
-  revision notes reach the page. All 50 diagrams of the reports are drawn, the flow numbers on the threat diagram link to
-  the threat table, and NFR-02's hop budgets are a chart against 5 seconds.
+  drivers that are not principles or retired, open, in the YAML's rank order. Every other table is in a closed toggle,
+  IDs link to their rows, and each of the 37 stage 2 decisions has an entry with its question, options and rejected
+  options' reasons from dec/*.yaml. The debt table shows only the debts dec/*.yaml records, and the final report tells
+  the user that the stage 2 report's debt table also lists DEC-21 and DEC-30 as accepted risks, which the YAML does not
+  record. Every text, table cell and diagram label shows only its gist, its first sentence without bracketed asides,
+  although the YAML writes most of them as paragraphs. No revision notes reach the page. All 50 diagrams of the reports
+  are drawn, the flow numbers on the threat diagram link to the threat table, and NFR-02's hop budgets are a chart
+  against 5 seconds.
 context:
   scaffold_script: place-files.sh

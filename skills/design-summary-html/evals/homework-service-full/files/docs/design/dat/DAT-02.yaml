@@ -14,7 +14,7 @@ relations:
 - to: DAT-03
   kind: one-to-one
   note: ファイル
-consistency: 提出の記録と受領を一つのトランザクションで書く（DEC-03）
+consistency: 提出の記録と受領を一つのトランザクションで書く（DEC-03）。受領の番号は記録の ID から作る
 retention: 卒業の後 1 年
 classification: personal
 drivers: []

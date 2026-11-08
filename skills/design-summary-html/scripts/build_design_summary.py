@@ -597,6 +597,97 @@ def clean_mermaid(src: str) -> tuple:
     return '\n'.join(out), changed
 
 
+# ---------------------------------------------------------------- the gist of a text
+
+# The page is for grasping the design's direction quickly; the whole text stays in the YAML item or the report. So every
+# text on the page is cut to its gist: bracketed asides go, then everything after the first sentence. A bracket that
+# holds only a quantity stays, because the number is the point: 「T_deliver（5 秒）以内」 "within T_deliver (5 s)"
+QTY_RE = re.compile(
+    r'^(?:(?:約|最大|最小|上限|下限|およそ|about|up to|at most|at least|within|max\.?|min\.?)\s*)?[\d.,]+\s*'
+    r'(?:秒|分|時間|日|週間?|か月|ヶ月|年|件|回|人|台|%|％|ms|s|sec|seconds?|min|minutes?|h|hours?|days?|weeks?|months?|years?'
+    r'|KB|MB|GB|KiB|MiB|GiB|円|倍|個|行|km|m|パーセンタイル|percentile)'
+    r'(?:\s*(?:以内|以上|以下|未満|まで|ごと|or less|or more))?$', re.I)
+_OPENERS, _CLOSERS = '（(', '）)'
+# After a removed bracket, a Latin word gets its space back before the next word: 「DRV-05（…）と」 → 「DRV-05 と」
+_NO_SPACE_BEFORE = re.compile(r'[\s、。，,.;:：）)」』!?！？・]')
+
+
+def _closing(s: str, i: int) -> int | None:
+    """The index of the bracket that closes the one at s[i], or None when it is never closed"""
+    depth = 0
+    for j in range(i, len(s)):
+        if s[j] in _OPENERS:
+            depth += 1
+        elif s[j] in _CLOSERS:
+            depth -= 1
+            if depth == 0:
+                return j
+    return None
+
+
+def drop_asides(s: str, half: bool = True) -> str:
+    """Removes bracketed asides: every （…）, and with half, every (…) that does not follow a Latin letter or digit as in
+    f(x). A bracket that holds only a quantity stays, and so does code in backticks."""
+    out, i, code = [], 0, False
+    while i < len(s):
+        ch = s[i]
+        if ch == '`':
+            code = not code
+        elif (not code and (ch == '（' or (half and ch == '('))
+              and not (ch == '(' and i and s[i - 1].isascii() and s[i - 1].isalnum())):
+            j = _closing(s, i)
+            if j is not None:
+                if QTY_RE.match(s[i + 1:j].strip()):
+                    out.append(s[i:j + 1])
+                elif (out and re.match(r'[A-Za-z0-9_]', out[-1][-1:]) and j + 1 < len(s)
+                      and not _NO_SPACE_BEFORE.match(s[j + 1])):
+                    out.append(' ')
+                i = j + 1
+                continue
+        out.append(ch)
+        i += 1
+    return ''.join(out)
+
+
+def first_sentence(s: str) -> str:
+    """The text up to its first 「。」, or up to a full stop followed by a space or the end (not after e.g., i.e. …),
+    outside brackets, quotes and code. The full stop itself is left out; a question or exclamation mark stays."""
+    depth, code = 0, False
+    for k, ch in enumerate(s):
+        if ch == '`':
+            code = not code
+        if code:
+            continue
+        if ch in '（(「『':
+            depth += 1
+        elif ch in '）)」』':
+            depth = max(depth - 1, 0)
+        elif depth == 0:
+            if ch == '。':
+                return s[:k]
+            if ch in '？！':
+                return s[:k + 1]
+            if ch in '.?!' and (k + 1 == len(s) or s[k + 1].isspace()) and not s[:k + 1].endswith(_EN_ABBR):
+                return s[:k] if ch == '.' else s[:k + 1]
+    return s
+
+
+def _tidy_gist(s: str) -> str:
+    s = re.sub(r'\s+', ' ', s).strip()
+    s = re.sub(r' +([、。，,;:：])', r'\1', s)
+    s = re.sub(r'([、，,])\1+', r'\1', s)
+    return re.sub(r'^[、，,;:：・\s]+|[、，,;:：・\s]+$', '', s)
+
+
+def gist(s) -> str:
+    """The gist of a text, which is all the page shows of it: the first sentence, without bracketed asides and without
+    its full stop. A text that is all aside keeps its first sentence as written."""
+    s = str(s or '').strip()
+    if not s:
+        return s
+    return _tidy_gist(first_sentence(_tidy_gist(drop_asides(s)))) or _tidy_gist(first_sentence(s))
+
+
 # ---------------------------------------------------------------- IDs and links
 
 ID_PREFIX = ('DRV|DEC|ELM|IFC|DAT|TEAM|STK|CHG|TC|PC|FND|USR|CUJ|QIU|KPI|KGI|OUT|FRP|FR|QR|NFR|SLI|EBP')
@@ -735,13 +826,14 @@ def width_class(values: list) -> str:
 
 
 class Table:
-    """A table from a report, with columns dropped by name and revision notes removed from its cells."""
+    """A table from a report, with columns dropped by name, revision notes removed from its cells (unless clean is false)
+    and every cell cut to its gist."""
 
     def __init__(self, block: Block, where: str, ctx: Ctx, drop=(), clean=True):
         self.where = where
         head = block.rows[0]
         keep = [k for k, h in enumerate(head) if h not in drop]
-        self.head = [clean_text(head[k])[0] if clean else head[k] for k in keep]
+        self.head = [gist(clean_text(head[k])[0] if clean else head[k]) for k in keep]
         self.rows = []
         for r in block.rows[1:]:
             r = r + [''] * (len(head) - len(r))
@@ -753,7 +845,7 @@ class Table:
                     if ch:
                         ctx.cleaned.append((where, cell, c))
                     cell = c
-                row.append(cell)
+                row.append(gist(cell))
             self.rows.append(row)
 
 
@@ -904,6 +996,48 @@ SEQ_MSG_RE = re.compile(r'^(\s*[\w-]+\s*(?:-{1,2}>>|-{1,2}>|-{1,2}x|-{1,2}\))\s*
 SEQ_NOTE_RE = re.compile(r'^(\s*Note\s+(?:over|left of|right of)\s+[^:]+:\s*)(.*)$')
 SEQ_BLOCK_RE = re.compile(r'^(\s*(?:alt|else|opt|loop|par|and|critical|break)\s+)(.*)$')
 SEQ_PART_RE = re.compile(r'^(\s*(?:participant|actor)\s+[\w-]+\s+as\s+)((?:ELM|USR)-\d{2})\s+(.*)$')
+SEQ_ALIAS_RE = re.compile(r'^(\s*(?:participant|actor)\s+[\w-]+\s+as\s+)(.*)$')
+# Lines that hold no label, or whose parentheses and colons are syntax (styles, colors, links, directives)
+MMD_SKIP_RE = re.compile(r'^\s*(?:%%|style\s|classDef\s|class\s|linkStyle\s|click\s|direction\s|rect\s|box\s)')
+MMD_QUOTED_RE = re.compile(r'"([^"\n]*)"')
+MMD_EDGE_RE = re.compile(r'\|([^|"\n]+)\|')                  # a flowchart's unquoted edge label: -->|label|
+MMD_AFTER_COLON_RE = re.compile(r'^([^":]*:\s*)([^"\s][^"]*)$')  # a state or ER label: S1 --> S2: label
+
+
+def gist_label(s: str) -> str:
+    return gist(s) or s
+
+
+def gist_mermaid(src: str, kind: str) -> str:
+    """Cuts the labels of a diagram to their gist, as every text on the page. Only the label text is touched, never the
+    syntax: in a sequence diagram the text of messages, notes, blocks and participants; elsewhere the quoted labels, a
+    flowchart's edge labels, a state or ER diagram's label after the colon, and any （…）, which Mermaid never uses."""
+    out = []
+    for line in src.split('\n'):
+        if MMD_SKIP_RE.match(line):
+            out.append(line)
+            continue
+        if kind == 'sequenceDiagram':
+            m = SEQ_ALIAS_RE.match(line)
+            if m:
+                line = m.group(1) + (_tidy_gist(drop_asides(m.group(2))) or m.group(2))
+            else:
+                for rx in (SEQ_MSG_RE, SEQ_NOTE_RE, SEQ_BLOCK_RE):
+                    m = rx.match(line)
+                    if m:
+                        line = m.group(1) + gist_label(m.group(2))
+                        break
+            out.append(line)
+            continue
+        line = MMD_QUOTED_RE.sub(lambda m: '"' + gist_label(m.group(1)) + '"', line)
+        if kind in ('flowchart', 'graph'):
+            line = MMD_EDGE_RE.sub(lambda m: '|' + gist_label(m.group(1)) + '|', line)
+        if kind in ('stateDiagram', 'stateDiagram-v2', 'erDiagram'):
+            m = MMD_AFTER_COLON_RE.match(line)
+            if m:
+                line = m.group(1) + gist_label(m.group(2))
+        out.append(drop_asides(line, half=False))
+    return '\n'.join(out)
 
 
 def wrap_sequence(src: str) -> str:
@@ -930,14 +1064,16 @@ def mermaid(src: str, ctx: Ctx, where: str, links: str = '') -> str:
         ctx.cleaned.append((where + ' (mermaid)', '…', '…'))
     first = src2.strip().split('\n', 1)[0].strip()
     kind = first.split()[0] if first else ''
-    if kind == 'sequenceDiagram':
-        src2 = wrap_sequence(src2)
+    src2 = gist_mermaid(src2, kind)
     if kind in ('flowchart', 'graph'):
-        # a box labelled only with an element ID (「ELM-04」) gets the element's name, so the diagram reads on its own
+        # a box labelled only with an element ID (「ELM-04」, also once its aside is gone) gets the element's name, so the
+        # diagram reads on its own
         def named(m):
-            t = ctx.titles.get(m.group(2), '')
+            t = gist(ctx.titles.get(m.group(2), ''))
             return f'{m.group(1)}["{t}"]' if t.startswith(m.group(2) + ' ') and '"' not in t else m.group(0)
         src2 = re.sub(r'(\b\w+)\["(ELM-\d{2})"\]', named, src2)
+    if kind == 'sequenceDiagram':
+        src2 = wrap_sequence(src2)
     lk = f' data-links="{esc(links)}"' if links else ''
     return (f'<figure class="mmd" data-kind="{esc(kind)}"{lk}><div class="mmd-bar">'
             f'<button type="button" class="mmd-fit" aria-pressed="false">{esc(T("fit"))}</button>'
@@ -986,12 +1122,12 @@ def hop_chart(table: Block, ctx: Ctx, where: str) -> dict | None:
     for r in table.rows[1:]:
         if len(r) < 2:
             continue
-        name = clean_text(r[0])[0]
+        name = gist(clean_text(r[0])[0])
         m = VALUE_RE.match(r[1])
         if not m:
             return None
         v = float(m.group(1)) * TO_SECONDS[m.group(2)]
-        basis = clean_text(r[2])[0] if len(r) > 2 else ''
+        basis = gist(clean_text(r[2])[0]) if len(r) > 2 else ''
         if name in ROW_MARGIN:
             margin = v
         elif name in ROW_TOTAL:
@@ -1180,10 +1316,12 @@ class Builder:
                     c.own.add(x['id'])
         # quality-chain items (tooltips, and links to the quality summary)
         q = self.qdir
+        self.qtitle = {}
         for sub in ('fr', 'qr', 'nfr', 'sli', 'qiu', 'kpi', 'ebp', 'frp'):
             for k, v in load_items(q / sub).items():
                 extra = T('retired') if v.get('status') == 'retired' else ''
                 t.setdefault(k, short(f'{k} {v.get("title", "")}{extra}'))
+                self.qtitle[k] = clean_text(str(v.get('title') or '').strip())[0]
         qc = q / 'context.yaml'
         self.qctx = {}
         if qc.exists():
@@ -1223,6 +1361,13 @@ class Builder:
         if ch:
             self.ctx.cleaned.append((where or 'YAML', s, out))
         return out
+
+    def g(self, s, where: str = '') -> str:
+        """The gist of a text from a YAML item (see gist); of a list, the gist of each entry. Titles and names are short
+        already and are shown whole, with t."""
+        if isinstance(s, (list, tuple)):
+            return T('sep').join(x for x in (self.g(v, where) for v in s) if x)
+        return gist(self.t(s, where))
 
     def term(self, group: str, value, where: str) -> str:
         if value is None or value == '':
@@ -1337,13 +1482,14 @@ class Builder:
                 c.warn('yaml', T('w_no_rank', file=f'drv/{v["id"]}.yaml'))
         ranked.sort(key=lambda v: (rank_of(v) is None, rank_of(v) or 0, id_key(v['id'])))
         if ranked:
+            # the levels without their reasons: the reasons justify the rank, and stay in drv/*.yaml
             rows, levels = [], []
             for v in ranked:
                 p = v.get('priority') or {}
                 w = f'drv/{v["id"]}.yaml'
                 rows.append([str(rank_of(v) or '—'), v['id'],
-                             self.term('level', p.get('business'), w + ' priority.business'), self.t(p.get('business_reason'), w),
-                             self.term('level', p.get('difficulty'), w + ' priority.difficulty'), self.t(p.get('difficulty_reason'), w),
+                             self.term('level', p.get('business'), w + ' priority.business'),
+                             self.term('level', p.get('difficulty'), w + ' priority.difficulty'),
                              T('yes') if v.get('primary') else T('no')])
                 levels.append((p.get('business'), p.get('difficulty')))
 
@@ -1352,46 +1498,48 @@ class Builder:
                     return f'<span class="num">{esc(x)}</span>'
                 if k == 1:
                     return ref_cell(x, c)
-                if k in (2, 4):
-                    return lvl_badge(levels[i][0 if k == 2 else 1], x)
-                if k == 6:
+                if k in (2, 3):
+                    return lvl_badge(levels[i][k - 2], x)
+                if k == 4:
                     return f'<span class="chip {"qr-emph" if x == T("yes") else "qr-out"}">{esc(x)}</span>'
                 return inline(x, c)
             n_main = sum(1 for v in ranked if v.get('primary'))
-            body = render_table([T('h_rank'), 'DRV', T('h_business'), T('h_reason'), T('h_difficulty'), T('h_reason'), T('h_primary')],
+            body = render_table([T('h_rank'), 'DRV', T('h_business'), T('h_difficulty'), T('h_primary')],
                                 rows, c, row_ids=['rank-' + v['id'] for v in ranked], cell=cell, cls='rank',
-                                col_cls=['num', 'w-m', 'w-id', 'w-m', 'w-id', 'w-l', 'w-id'])
+                                col_cls=['num', 'w-l', 'w-id', 'w-id', 'w-id'])
             parts.append(self.toggle(1, 't-rank', T('t_rank'), body, T('count_primary', n=len(rows), p=n_main), open_=True))
             got = self.compare(T('t_rank'), 1, ('rank',), 'DRV', [v['id'] for v in ranked])
             if got is not None:
                 order = [v['id'] for v in ranked if v['id'] in got]
                 if order != [x for x in got if x in order]:
                     c.warn('mismatch', T('w_rank_order'))
-        # premises and stakeholders (design-context.yaml)
+        # premises and stakeholders (design-context.yaml), without where each came from; the basis stays, since these
+        # are the inputs (as quality-summary-html keeps it only for users and CUJs)
         dx = self.dctx
         rows = []
         w = 'design-context.yaml'
         for x in dx.get('technology_constraints') or []:
             rows.append([x.get('id', ''), T('kind_tc', kind=self.term('tc_kind', x.get('kind'), f'{x.get("id")} kind')),
-                         self.t(x.get('statement'), w) or T('undecided'), self.t(x.get('source'), w),
+                         self.g(x.get('statement'), w) or T('undecided'),
                          self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('project_constraints') or []:
             rows.append([x.get('id', ''), self.term('pc_kind', x.get('kind'), f'{x.get("id")} kind'),
-                         self.t(x.get('statement'), w) or T('undecided'), self.t(x.get('source'), w),
+                         self.g(x.get('statement'), w) or T('undecided'),
                          self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('teams') or []:
-            rows.append([x.get('id', ''), T('kind_team'), T('team_owns', name=self.t(x.get('name'), w), owns=self.t(x.get('owns'), w)),
-                         self.t(x.get('source'), w) or '—', self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
+            owns = self.g(x.get('owns'), w)
+            rows.append([x.get('id', ''), T('kind_team'), self.t(x.get('name'), w) + (T('team_owns', owns=owns) if owns else ''),
+                         self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('anticipated_changes') or []:
-            when = T('paren', x=self.t(x.get('expected'), w)) if x.get('expected') else ''
-            rows.append([x.get('id', ''), T('kind_chg'), self.t(x.get('change'), w) + when, self.t(x.get('source'), w) or '—',
+            when = T('paren', x=self.g(x.get('expected'), w)) if x.get('expected') else ''
+            rows.append([x.get('id', ''), T('kind_chg'), self.g(x.get('change'), w) + when,
                          self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         for x in dx.get('stakeholders') or []:
-            conc = self.t(x.get('concerns'), w)
-            rows.append([x.get('id', ''), T('kind_stk'), self.t(x.get('role'), w) + (T('stk_concerns', x=conc) if conc else ''),
-                         self.t(x.get('source'), w) or '—', self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
+            conc = self.g(x.get('concerns'), w)
+            rows.append([x.get('id', ''), T('kind_stk'), self.g(x.get('role'), w) + (T('stk_concerns', x=conc) if conc else ''),
+                         self.term('basis', x.get('basis'), f'{x.get("id")} basis')])
         if rows:
-            body = render_table(['ID', T('h_kind'), T('h_statement'), T('h_source'), T('h_basis')], rows, c,
+            body = render_table(['ID', T('h_kind'), T('h_statement'), T('h_basis')], rows, c,
                                 row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: f'<span class="def-id">{esc(x)}</span>' if k == 0 else inline(x, c))
             parts.append(self.toggle(1, 't-premise', T('t_premise'), body, T('count', n=len(rows))))
@@ -1401,13 +1549,14 @@ class Builder:
             t = self.table(1, ('concern',), drop=COL_BECAME)
             if t:
                 parts.append(self.toggle(1, 't-concern', T('t_concern'), render_table(t.head, t.rows, c), T('count', n=len(t.rows))))
-        # drivers by kind
-        sc_head = [T('h_src'), T('h_stimulus'), T('h_artifact'), T('h_environment'), T('h_response'), T('h_measure')]
-        sc_keys = ['source', 'stimulus', 'artifact', 'environment', 'response', 'measure']
+        # drivers by kind. A scenario shows its stimulus, environment and response measure: the source and the artifact are
+        # mostly implied by the stimulus, and the response is the measure in words
+        sc_head = [T('h_stimulus'), T('h_environment'), T('h_measure')]
+        sc_keys = ['stimulus', 'environment', 'measure']
 
         def scen(v):
             s = v.get('scenario') or {}
-            return [self.t(s.get(k), f'drv/{v["id"]}.yaml scenario') or '—' for k in sc_keys]
+            return [self.g(s.get(k), f'drv/{v["id"]}.yaml scenario') or '—' for k in sc_keys]
         sc = [v for v in drv.values() if v.get('kind') in ('quality', 'change')]
         if sc:
             rows = [[v['id']] + scen(v) for v in sc]
@@ -1416,20 +1565,21 @@ class Builder:
                                 cell=lambda i, k, x: self.own_cell(x, kinds[x]) if k == 0 else inline(x, c))
             parts.append(self.toggle(1, 't-scenario', T('t_scenario'), body, T('count', n=len(rows))))
             self.compare(T('t_scenario'), 1, ('drivers', 'scenario'), 'DRV', [r[0] for r in rows])
+        # constraints and the other drivers, without their sources (traceability, in drv/*.yaml)
         cs = [v for v in drv.values() if v.get('kind') == 'constraint']
         if cs:
-            rows = [[v['id'], self.t(v.get('statement'), f'drv/{v["id"]}.yaml'),
-                     self.term('negotiable', v.get('negotiable'), f'{v["id"]} negotiable') if v.get('negotiable') is not None else '—',
-                     ids_text(v.get('sources'), sort=False)] for v in cs]
-            body = render_table(['DRV', T('h_constraint'), T('h_negotiable'), T('h_sources')], rows, c, row_ids=[r[0] for r in rows],
+            rows = [[v['id'], self.g(v.get('statement'), f'drv/{v["id"]}.yaml'),
+                     self.term('negotiable', v.get('negotiable'), f'{v["id"]} negotiable') if v.get('negotiable') is not None else '—']
+                    for v in cs]
+            body = render_table(['DRV', T('h_constraint'), T('h_negotiable')], rows, c, row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: self.own_cell(x) if k == 0 else inline(x, c))
             parts.append(self.toggle(1, 't-constraint', T('t_constraint'), body, T('count', n=len(rows))))
             self.compare(T('t_constraint'), 1, ('drivers', 'constraint'), 'DRV', [r[0] for r in rows])
         fs = [v for v in drv.values() if v.get('kind') in ('function', 'observability', 'security')]
         if fs:
             rows = [[v['id'], self.term('drv_kind', v.get('kind'), f'{v["id"]} kind'),
-                     self.t(v.get('statement'), f'drv/{v["id"]}.yaml'), ids_text(v.get('sources'), sort=False)] for v in fs]
-            b = render_table(['DRV', T('h_kind'), T('h_statement'), T('h_sources')], rows, c, row_ids=[r[0] for r in rows],
+                     self.g(v.get('statement'), f'drv/{v["id"]}.yaml')] for v in fs]
+            b = render_table(['DRV', T('h_kind'), T('h_statement')], rows, c, row_ids=[r[0] for r in rows],
                              cell=lambda i, k, x: self.own_cell(x) if k == 0 else inline(x, c))
             ws = [v for v in fs if v.get('scenario')]
             if ws:
@@ -1440,11 +1590,8 @@ class Builder:
             self.compare(T('t_fos'), 1, ('drivers', 'fos'), 'DRV', [r[0] for r in rows])
         ps = [v for v in drv.values() if v.get('kind') == 'principle']
         if ps:
-            rows = []
-            for v in ps:
-                src = ids_text(v.get('sources'), sort=False)
-                rows.append([v['id'], self.t(v.get('statement'), f'drv/{v["id"]}.yaml'),
-                             ids_text(v.get('derived_from'), sort=False) + (T('paren', x=src) if src else '')])
+            rows = [[v['id'], self.g(v.get('statement'), f'drv/{v["id"]}.yaml'), ids_text(v.get('derived_from'), sort=False) or '—']
+                    for v in ps]
             body = render_table(['DRV', T('h_principle'), T('h_derived')], rows, c, row_ids=[r[0] for r in rows],
                                 cell=lambda i, k, x: self.own_cell(x) if k == 0 else inline(x, c))
             parts.append(self.toggle(1, 't-principle', T('t_principle'), body, T('count', n=len(rows))))
@@ -1456,7 +1603,7 @@ class Builder:
                 if not isinstance(x, dict) or not x.get('with') or x['with'] not in drv:
                     continue
                 key = tuple(sorted((v['id'], x['with']), key=id_key))
-                note = self.t(x.get('note'), f'drv/{v["id"]}.yaml conflicts')
+                note = self.g(x.get('note'), f'drv/{v["id"]}.yaml conflicts')
                 side = pairs.setdefault(key, {}).setdefault(v['id'], [])
                 if note and note not in side:
                     side.append(note)
@@ -1484,28 +1631,29 @@ class Builder:
 
     # --- decisions (stages 2 and 3)
     def dec_table(self, decs: dict, cards: bool) -> str:
+        """One row per decision: the question, the chosen option and the rejected ones with their reasons. What the
+        decision addresses is in its card (and in dec/*.yaml for the stages without cards)."""
         c = self.ctx
         rows = []
         for k, v in decs.items():
             w = f'dec/{k}.yaml'
             rej = [r for r in v.get('rejected') or [] if isinstance(r, dict)]
-            chosen = self.t(v.get('chosen'), w) or (T('c_deferred') if v.get('deferred') else '—')
-            rows.append([k, self.t(v.get('question'), w), chosen,
-                         ids_text(addresses(v), sort=False) or '—',
-                         [(self.t(r.get('option'), w), self.t(r.get('reason'), w)) for r in rej]])
+            chosen = self.g(v.get('chosen'), w) or (T('c_deferred') if v.get('deferred') else '—')
+            rows.append([k, self.g(v.get('question'), w), chosen,
+                         [(self.g(r.get('option'), w), self.g(r.get('reason'), w)) for r in rej]])
 
         def cell(i, k, x):
             if k == 0:
                 more = f'<a class="more" href="#d-{esc(x)}">{esc(T("details_link"))}</a>' if cards else ''
                 return self.own_cell(x) + more
-            if k == 4:
+            if k == 3:
                 if not x:
                     return '—'
                 return ''.join(f'<span class="nr"><span class="opt">{inline(o, c)}</span>'
                                + (f'<span class="note">{inline(r, c)}</span>' if r else '') + '</span>' for o, r in x)
             return inline(x, c)
-        return render_table(['DEC', T('h_question'), T('h_chosen'), T('h_addresses'), T('h_rejected')], rows, c,
-                            row_ids=[r[0] for r in rows], cell=cell, col_cls=['w-m', 'w-l', 'w-xl', 'w-s', 'w-xl'])
+        return render_table(['DEC', T('h_question'), T('h_chosen'), T('h_rejected')], rows, c,
+                            row_ids=[r[0] for r in rows], cell=cell, col_cls=['w-m', 'w-l', 'w-l', 'w-l'])
 
     def dec_card(self, v: dict) -> str:
         c = self.ctx
@@ -1523,10 +1671,10 @@ class Builder:
                 verdicts.append(('chosen', ''))
                 found = True
             elif norm(name) in rej:
-                verdicts.append(('rej', self.t(rej[norm(name)], w)))
+                verdicts.append(('rej', self.g(rej[norm(name)], w)))
             else:
                 verdicts.append(('', ''))
-            rows.append([self.t(name, w), self.t(o.get('effect'), w) or '—', self.t(o.get('cost'), w) or '—', ''])
+            rows.append([self.g(name, w), self.g(o.get('effect'), w) or '—', self.g(o.get('cost'), w) or '—', ''])
         if chosen and rows and not found:
             c.warn('yaml', T('w_chosen', file=w))
 
@@ -1539,7 +1687,7 @@ class Builder:
             return f'<dt>{esc(label)}</dt><dd>{val}</dd>' if val else ''
 
         def il(x) -> str:
-            return inline(self.t(x, w), c) if x else ''
+            return inline(self.g(x, w), c) if x else ''
         head = entry(T('h_question'), il(v.get('question')))
         if chosen and not found:
             head += entry(T('h_chosen'), il(chosen))
@@ -1566,26 +1714,15 @@ class Builder:
             if isinstance(x, dict):
                 wi = x.get('with')
                 wi = ids_text(wi, sort=False) if isinstance(wi, list) else self.t(wi, w)
-                tos.append(inline(f'{wi}: {self.t(x.get("note"), w)}' if wi else self.t(x.get('note'), w), c))
+                tos.append(inline(f'{wi}: {self.g(x.get("note"), w)}' if wi else self.g(x.get('note'), w), c))
             else:
                 tos.append(il(x))
         rest += entry(T('c_tradeoffs'), tos)
         rest += entry(T('c_assumptions'), [il(x) for x in v.get('assumptions') or []])
-        ps = []
-        for p in v.get('parameters') or []:
-            if isinstance(p, dict):
-                basis = self.t(p.get('basis'), w)
-                ps.append(f'<b>{inline(self.t(p.get("name"), w), c)}</b>: {inline(self.t(p.get("value"), w), c)}'
-                          + (f'<span class="note">{inline(basis, c)}</span>' if basis else ''))
-        rest += entry(T('c_parameters'), ps)
+        # the design parameters, and why the debt was accepted and when it is repaid, are in the tables of the stage
         d = v.get('debt')
         if isinstance(d, dict) and d.get('what'):
-            sub = il(d.get('what'))
-            if d.get('why_accepted'):
-                sub += f'<span class="note"><span class="nl">{esc(T("c_why_accepted"))}</span>{il(d["why_accepted"])}</span>'
-            if d.get('repay_when'):
-                sub += f'<span class="note"><span class="nl">{esc(T("c_repay_when"))}</span>{il(d["repay_when"])}</span>'
-            rest += entry(T('c_debt'), sub)
+            rest += entry(T('c_debt'), il(d.get('what')))
         if v.get('deferred'):
             rest += entry(T('c_deferred'), esc(T('c_revisit_when')) + ' ' + (il(v.get('revisit_when')) or esc(T('undecided'))))
         rest += entry(T('h_addresses'), inline(ids_text(addresses(v), sort=False), c) if addresses(v) else '')
@@ -1595,16 +1732,17 @@ class Builder:
         return item(f'd-{did}', did, self.title_of(did) or did, body, c)
 
     def values_toggle(self, n: int, decs: dict, tid: str) -> str:
+        """The provisional design parameters, without the basis of each value (in dec/*.yaml)"""
         rows = []
         for k, v in decs.items():
             for p in v.get('parameters') or []:
                 if isinstance(p, dict):
                     w = f'dec/{k}.yaml parameters'
-                    rows.append([self.t(p.get('name'), w), self.t(p.get('value'), w), self.t(p.get('basis'), w) or '—', k])
+                    rows.append([self.t(p.get('name'), w), self.g(p.get('value'), w) or '—', k])
         if not rows:
             return ''
-        body = render_table([T('h_param'), T('h_value'), T('h_basis_of'), T('h_decision')], rows, self.ctx,
-                            col_cls={0: 'w-m', 1: 'w-m', 3: 'w-id'})
+        body = render_table([T('h_param'), T('h_value'), T('h_decision')], rows, self.ctx,
+                            col_cls={0: 'w-m', 1: 'w-m', 2: 'w-id'})
         return self.toggle(n, tid, T('t_values'), body, T('count', n=len(rows)))
 
     def debt_rows(self, decs: dict) -> list:
@@ -1613,11 +1751,11 @@ class Builder:
             w = f'dec/{k}.yaml'
             d = v.get('debt')
             if isinstance(d, dict) and d.get('what'):
-                rows.append([k, T('debt_prefix', x=self.t(d.get('what'), w)), self.t(d.get('why_accepted'), w) or '—',
-                             self.t(d.get('repay_when'), w) or '—'])
+                rows.append([k, T('debt_prefix', x=self.g(d.get('what'), w)), self.g(d.get('why_accepted'), w) or '—',
+                             self.g(d.get('repay_when'), w) or '—'])
             if v.get('deferred'):
-                rows.append([k, T('deferred_prefix', x=self.t(v.get('question'), w)), self.t(v.get('rationale'), w) or '—',
-                             self.t(v.get('revisit_when'), w) or T('undecided')])
+                rows.append([k, T('deferred_prefix', x=self.g(v.get('question'), w)), self.g(v.get('rationale'), w) or '—',
+                             self.g(v.get('revisit_when'), w) or T('undecided')])
         return rows
 
     def debt_toggle(self, n: int, decs: dict, tid: str) -> str:
@@ -1643,7 +1781,7 @@ class Builder:
                 w = f'elm/{k}.yaml'
                 kn = self.term('elm_kind', v.get('kind'), f'{k} kind')
                 kinds[kn] = kinds.get(kn, 0) + 1
-                rows.append([k, kn, self.t(v.get('name') or v.get('title'), w), self.t(v.get('responsibility'), w),
+                rows.append([k, kn, self.t(v.get('name') or v.get('title'), w), self.g(v.get('responsibility'), w),
                              ids_text(v.get('functions')) or '—', ids_text(v.get('drivers')) or '—', v.get('team') or '—',
                              self.term('as_is', v.get('as_is'), f'{k} as_is')])
 
@@ -1667,7 +1805,7 @@ class Builder:
                     tt = Table(tb, v.path(), c)
                     b += render_table(tt.head, tt.rows, c)
                 if b:
-                    its.append(item(f'v-{k}', '', v.title, b, c))
+                    its.append(item(f'v-{k}', '', gist(clean_text(v.title)[0]), b, c))
             if its:
                 parts.append(self.toggle(2, 't-views', T('t_views'), ''.join(its), T('count_views', n=len(its))))
         # decisions: the table, then one card per decision, both from dec/*.yaml
@@ -1722,14 +1860,14 @@ class Builder:
                     cur = [clean_text(b.text)[0], False]
                 elif b.kind == 'table' and cur:
                     if not cur[1]:
-                        group(cur[0])
+                        group(gist(cur[0]))
                         cur[1] = True
                     add_rows(b)
             if cur and not cur[1]:
                 prose.append(cur[0])
             for sub in ws.children:          # a CUJ under its own heading
                 if sub.tables():
-                    group(clean_text(sub.title)[0])
+                    group(gist(clean_text(sub.title)[0]))
                     for tb in sub.tables():
                         add_rows(tb)
                 else:
@@ -1793,7 +1931,7 @@ class Builder:
                     op, case = m.group(1), m.group(2)
                 if op in COMMON_OP:
                     op = '*'
-                raw.append((k, op, self.t(case, w), self.t(e.get('signal'), w), self.t(e.get('caller_does'), w)))
+                raw.append((k, op, self.g(case, w), self.g(e.get('signal'), w), self.g(e.get('caller_does'), w)))
         shared: dict = {}
         for r in raw:
             if r[1] == '*':
@@ -1832,7 +1970,7 @@ class Builder:
                 w = f'ifc/{k}.yaml'
                 kn = self.term('ifc_kind', v.get('kind'), f'{k} kind')
                 kinds[kn] = kinds.get(kn, 0) + 1
-                ops = [self.t(o.get('name'), w) for o in v.get('operations') or [] if isinstance(o, dict)]
+                ops = [self.g(o.get('name'), w) for o in v.get('operations') or [] if isinstance(o, dict)]
                 if not ops:
                     opc = '—'
                 elif len(ops) <= 3 or v.get('kind') == 'event':
@@ -1866,7 +2004,7 @@ class Builder:
             for v in fs.children:
                 if not v.codes():
                     continue
-                label, title = split_label(v.title)
+                label, title = split_label(gist(clean_text(v.title)[0]))
                 iid = 'f-' + (label or str(len(its) + 1)).replace('〜', '-').replace('–', '-')
                 b = ''.join(mermaid(m.text, c, v.path()) for m in v.codes())
                 its.append(item(iid, label, title, b, c))
@@ -1898,7 +2036,8 @@ class Builder:
                     tt = Table(tb, v.path(), c)
                     b += render_table(tt.head, tt.rows, c)
                 if b:
-                    its.append(item(f'b-{nid}', nid, rest, b, c))
+                    # the NFR's title from docs/quality, which the heading's bracket only restates
+                    its.append(item(f'b-{nid}', nid, self.qtitle.get(nid) or gist(clean_text(rest)[0]), b, c))
                 else:
                     c.warn('leftout', T('w_leftout_budget', nfr=nid))
             if its:
@@ -1919,8 +2058,9 @@ class Builder:
                 if not b:
                     continue
                 iid = f's-{k}'
-                its.append(item(iid, '', v.title, b, c))
-                idx.append((iid, re.split(r'[、,]', re.sub(r'[（(].*?[）)]', '', v.title))[0].strip(), v.title))
+                title = gist(clean_text(v.title)[0])
+                its.append(item(iid, '', title, b, c))
+                idx.append((iid, re.split(r'[、,]', title)[0].strip(), title))
             if its:
                 parts.append(self.toggle(3, 't-screens', T('t_screens'), chips_index(idx) + ''.join(its), T('count_diagrams', n=len(its))))
         # data: the ER diagram from the report, the entities from dat/*.yaml
@@ -1932,7 +2072,7 @@ class Builder:
             for k, v in dat.items():
                 w = f'dat/{k}.yaml'
                 rows.append([k, self.t(v.get('entity') or v.get('title'), w), v.get('owner') or '—', v.get('store') or '—',
-                             self.t(v.get('consistency'), w) or '—', self.t(v.get('retention'), w) or '—',
+                             self.g(v.get('consistency'), w) or '—', self.g(v.get('retention'), w) or '—',
                              self.term('classification', v.get('classification'), f'{k} classification')])
             b += render_table(['DAT', T('h_entity'), T('h_owner'), T('h_store'), T('h_consistency'), T('h_retention'), T('h_classification')],
                               rows, c, row_ids=[r[0] for r in rows],
@@ -1946,7 +2086,7 @@ class Builder:
             b, cap = '', None
             for blk in qs.blocks:
                 if blk.kind == 'para' and re.search(r'[:：]$', blk.text) and len(blk.text) <= 80:
-                    cap = clean_text(blk.text.rstrip(':：'))[0]     # a caption of the diagram that follows
+                    cap = gist(clean_text(blk.text.rstrip(':：'))[0])     # a caption of the diagram that follows
                 elif blk.kind == 'code' and blk.lang == 'mermaid':
                     if cap:
                         b += subhead(cap)
@@ -1965,10 +2105,10 @@ class Builder:
                 b = ''.join(mermaid(m.text, c, v.path()) for m in v.codes())
                 if not b:
                     continue
-                name = re.sub(r'[（(].*?[）)]$', '', v.title).strip()
+                title = gist(clean_text(v.title)[0])
                 iid = f'st-{k}'
-                its.append(item(iid, '', v.title, b, c))
-                idx.append((iid, name, v.title))
+                its.append(item(iid, '', title, b, c))
+                idx.append((iid, title, title))
             if its:
                 parts.append(self.toggle(3, 't-states', T('t_states'), chips_index(idx) + ''.join(its), T('count_diagrams', n=len(its))))
         ms = self.sec(3, 'measure')

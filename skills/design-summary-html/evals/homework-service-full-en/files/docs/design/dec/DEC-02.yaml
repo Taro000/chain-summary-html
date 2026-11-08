@@ -20,7 +20,7 @@ options:
   effect: Simple to build
   cost: The server chokes before deadlines
 chosen: Direct upload with a signed URL
-rationale: In the rush before a deadline (DRV-01), a server receiving the files would choke.
+rationale: In the rush before a deadline (DRV-01), a server receiving the files would choke. With signed URLs, files never pass through the server.
 rejected:
 - option: The server receives and stores the file
   reason: Chokes before deadlines (DRV-01)

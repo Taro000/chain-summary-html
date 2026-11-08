@@ -131,6 +131,28 @@ class HomeworkFull(Case):
         self.assertEqual(err.count('401 UNAUTHENTICATED'), 1)
         self.assertIn('共通 2', err)
 
+    def test_texts_cut_to_their_gist(self):
+        """Every text shows its first sentence without asides, and what only justifies or traces it is left out"""
+        self.assertEqual(len(re.findall(r'<th scope="col"', toggle(self.page, 't-rank'))), 5)   # no reasons for the levels
+        self.assertNotIn('出どころ', toggle(self.page, 't-premise'))
+        self.assertNotIn('出どころ', toggle(self.page, 't-constraint'))
+        decd = toggle(self.page, 't-decd')
+        self.assertIn('締め切り前の集中で、サーバーがファイルを受けると詰まる', decd)            # DEC-02's rationale
+        self.assertNotIn('署名付き URL なら', decd)
+        self.assertNotIn('設計上の値', decd)                     # in the design parameters' table, not in the cards
+        self.assertNotIn('提出の画面を開いてから送るまでの時間', self.page)   # the basis of a value
+        data = toggle(self.page, 't-data')
+        self.assertIn('提出の記録と受領を一つのトランザクションで書く', data)
+        self.assertNotIn('受領の番号', data)
+        self.assertNotIn('下書きを保存する', toggle(self.page, 't-elm'))
+
+    def test_diagram_labels_cut_to_their_gist(self):
+        src = ''.join(re.findall(r'<pre class="mmd-src" hidden>(.*?)</pre>', self.page, re.S))
+        self.assertIn('A-&gt;&gt;P: POST /api/v1/submissions\n', src)
+        self.assertIn('署名付き URL（15 分）', src)                # a bracket that holds a quantity stays
+        self.assertIn('s[&quot;提出&quot;] --&gt; r[&quot;夜間のバッチ&quot;]', src)
+        self.assertIn('draft --&gt; submitted: 提出\n', src)
+
 
 class HomeworkEnglish(Case):
     case = 'homework-service-full-en'
@@ -232,6 +254,7 @@ class Graders(unittest.TestCase):
         self.assertIn('rank-first', self.grade(swapped))
         self.assertIn('budget-chart', self.grade(page.replace('class="bud"', 'class="x"').replace('<svg', '<g').replace('width:', 'w:')))
         self.assertIn('decision-cards', self.grade(page.replace('選んだ', '○')))
+        self.assertIn('gist-only', self.grade(page.replace('</td>', ' 署名付き URL なら、ファイルはサーバーを通らない</td>', 1)))
 
     def test_english_page_check(self):
         en = build(design_of('homework-service-full-en'), self.tmp / 'en.html')
@@ -322,6 +345,50 @@ class Cleaning(unittest.TestCase):
 
     def tearDown(self):
         bd.SRC['lang'] = 'ja'
+
+
+class Gist(unittest.TestCase):
+    """Every text on the page is its gist: the first sentence, without bracketed asides (a quantity stays) and without
+    the full stop. Diagrams lose only label text, never syntax"""
+
+    def test_japanese(self):
+        g = bd.gist
+        self.assertEqual(g('上位の DRV-01 はどの案でも満たせ、DRV-06（2 人と費用）で一つのサーバーの案が勝つ。'),
+                         '上位の DRV-01 はどの案でも満たせ、DRV-06 で一つのサーバーの案が勝つ')
+        self.assertEqual(g('状態の変化を T_deliver（5 秒）以内に届ける。追いかけは 1 秒ごと'), '状態の変化を T_deliver（5 秒）以内に届ける')
+        self.assertEqual(g('TC-07（デモの回だけ）は「配備する」と決める'), 'TC-07 は「配備する」と決める')   # the space comes back
+        self.assertEqual(g('「確かめています。」と示す（DEC-52）。取り消せる'), '「確かめています。」と示す')
+        self.assertEqual(g('サーバー(Cloud Run)で動かす'), 'サーバーで動かす')
+        self.assertEqual(g('`f(a)` を呼ぶ（DEC-01）。'), '`f(a)` を呼ぶ')
+        self.assertEqual(g('（未定）'), '（未定）')                                   # all aside: kept as written
+
+    def test_english(self):
+        g = bd.gist
+        self.assertEqual(g('In the rush (DRV-01), a server would choke. With signed URLs, files never pass through it.'),
+                         'In the rush, a server would choke')
+        self.assertEqual(g('Use e.g. a signed URL (15 min). It expires.'), 'Use e.g. a signed URL (15 min)')
+        self.assertEqual(g('Call watchPosition() and f(x) as before'), 'Call watchPosition() and f(x) as before')
+        self.assertEqual(g('Timeout is 0.5 s. Then retry.'), 'Timeout is 0.5 s')
+        self.assertEqual(g('Is it idempotent? Yes.'), 'Is it idempotent?')
+
+    def test_diagrams(self):
+        seq = '\n'.join(['sequenceDiagram', '  participant S as ELM-04 サーバー（Cloud Run）', '  rect rgb(240, 240, 240)',
+                         '  S->>D: 書く（DAT-06）。二度目は弾く', '  alt 押さえた（200）', '  Note over S: 待つ（30 秒）', '  end', '  end'])
+        self.assertEqual(bd.gist_mermaid(seq, 'sequenceDiagram').split('\n'),
+                         ['sequenceDiagram', '  participant S as ELM-04 サーバー', '  rect rgb(240, 240, 240)', '  S->>D: 書く',
+                          '  alt 押さえた', '  Note over S: 待つ（30 秒）', '  end', '  end'])
+        flow = '\n'.join(['flowchart LR', '  db[("ELM-07 データベース（Turso）")]', '  a -->|"F1 操作（HTTPS）"| b',
+                          '  c -->|読む（毎日）| d', '  style a fill:#fff,stroke:#333', '  e[箱（補足）] --> f(("丸 (round)"))'])
+        self.assertEqual(bd.gist_mermaid(flow, 'flowchart').split('\n'),
+                         ['flowchart LR', '  db[("ELM-07 データベース")]', '  a -->|"F1 操作"| b', '  c -->|読む| d',
+                          '  style a fill:#fff,stroke:#333', '  e[箱] --> f(("丸"))'])
+        state = '\n'.join(['stateDiagram-v2', '  state "手配の処理中（booking）" as booking', '  a --> b: 許諾（30 秒）。後で見直す',
+                           '  b --> c : 取り消し（無料）'])
+        self.assertEqual(bd.gist_mermaid(state, 'stateDiagram-v2').split('\n'),
+                         ['stateDiagram-v2', '  state "手配の処理中" as booking', '  a --> b: 許諾（30 秒）', '  b --> c : 取り消し'])
+        er = '\n'.join(['erDiagram', '  A ||--o{ B : "持つ（複数）"', '  A }|..|{ C : 使う（毎日）', '    string id PK "ID（ULID）"'])
+        self.assertEqual(bd.gist_mermaid(er, 'erDiagram').split('\n'),
+                         ['erDiagram', '  A ||--o{ B : "持つ"', '  A }|..|{ C : 使う', '    string id PK "ID"'])
 
 
 class Ids(unittest.TestCase):

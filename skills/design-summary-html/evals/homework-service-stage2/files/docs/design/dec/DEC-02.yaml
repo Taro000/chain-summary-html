@@ -20,7 +20,7 @@ options:
   effect: 作りが単純
   cost: 締め切り前にサーバーが詰まる
 chosen: 署名付き URL で直接置く
-rationale: 締め切り前の集中（DRV-01）で、サーバーがファイルを受けると詰まる。
+rationale: 締め切り前の集中（DRV-01）で、サーバーがファイルを受けると詰まる。署名付き URL なら、ファイルはサーバーを通らない。
 rejected:
 - option: サーバーが受けて置く
   reason: 締め切り前に詰まる（DRV-01）

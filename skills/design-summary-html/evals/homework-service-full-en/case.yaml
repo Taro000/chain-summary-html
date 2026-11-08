@@ -5,7 +5,9 @@ expected_outcome: |
   terms are English, with no Japanese. The page starts with the ranking table of the architecture drivers, open, in the
   YAML's rank order, without the principle DRV-09 and the retired DRV-10. Each stage 2 decision has an entry from
   dec/*.yaml, DEC-06 included, although the stage 2 report's decisions table leaves it out; the final report tells the
-  user so. No revision notes (finding numbers, "version 2", the previous version, re-runs) reach the page. The flow
-  numbers on the threat diagram link to the threat table, and NFR-06's hop budgets are a chart against 3 seconds.
+  user so. Every text shows only its gist, its first sentence without bracketed asides (DEC-02's rationale stops before
+  "With signed URLs"). No revision notes (finding numbers, "version 2", the previous version, re-runs) reach the page.
+  The flow numbers on the threat diagram link to the threat table, and NFR-06's hop budgets are a chart against 3
+  seconds.
 context:
   scaffold_script: place-files.sh

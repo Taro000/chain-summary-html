@@ -4,6 +4,7 @@ expected_outcome: |
   docs/design/summary.html is built with the stage 1 and 2 tables only, and the page or the report says that stage 3 has
   no outputs yet; nothing fails. The page starts with the ranking table of the architecture drivers, in the YAML's rank
   order. Each stage 2 decision has an entry from dec/*.yaml, DEC-06 included, although the stage 2 report's decisions
-  table leaves it out; the final report tells the user so. No revision notes reach the page.
+  table leaves it out; the final report tells the user so. Every text shows only its gist, its first sentence without
+  bracketed asides. No revision notes reach the page.
 context:
   scaffold_script: place-files.sh

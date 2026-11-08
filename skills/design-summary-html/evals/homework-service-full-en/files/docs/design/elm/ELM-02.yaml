@@ -8,7 +8,7 @@ needs_agreement: false
 approver_candidates: []
 kind: component
 name: Teacher web app
-responsibility: Opens submissions, grades and returns them; shows the monthly report
+responsibility: Opens submissions, grades and returns them. Shows the monthly report
 functions:
 - FR-03
 - FR-05

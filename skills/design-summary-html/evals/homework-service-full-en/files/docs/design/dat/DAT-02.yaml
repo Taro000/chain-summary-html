@@ -14,7 +14,7 @@ relations:
 - to: DAT-03
   kind: one-to-one
   note: File
-consistency: The record and the receipt are written in one transaction (DEC-03)
+consistency: The record and the receipt are written in one transaction (DEC-03). The receipt number comes from the record's ID
 retention: One year after graduation
 classification: personal
 drivers: []
