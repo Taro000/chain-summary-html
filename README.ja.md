@@ -1,4 +1,4 @@
-# quality-summary-html
+# chain-summary-html
 
 [English](README.md) | 日本語
 
@@ -13,13 +13,13 @@
 
 ```sh
 # 今のプロジェクトに入れる（どのスキルを、どのエージェントに入れるかを聞かれる）
-npx skills add Taro000/quality-summary-html
+npx skills add Taro000/chain-summary-html
 
 # 二つとも、Claude Code にだけ、すべてのプロジェクトで使えるように、確認なしで入れる
-npx skills add Taro000/quality-summary-html -a claude-code -g -y
+npx skills add Taro000/chain-summary-html -a claude-code -g -y
 
 # 一つだけ入れる
-npx skills add Taro000/quality-summary-html -s design-summary-html
+npx skills add Taro000/chain-summary-html -s design-summary-html
 ```
 
 スキルは Python のスクリプトを動かすので、Python 3.9 以降と PyYAML が要ります。[uv](https://docs.astral.sh/uv/) があれば、`uv run --with pyyaml` で PyYAML ごと動きます。

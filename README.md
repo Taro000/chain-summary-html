@@ -1,4 +1,4 @@
-# quality-summary-html
+# chain-summary-html
 
 English | [日本語](README.ja.md)
 
@@ -13,13 +13,13 @@ Two agent skills that each turn a skill chain's outputs into one HTML page, with
 
 ```sh
 # into the current project (asks which skills and which agents to install for)
-npx skills add Taro000/quality-summary-html
+npx skills add Taro000/chain-summary-html
 
 # both skills, for Claude Code only, available in every project, without prompts
-npx skills add Taro000/quality-summary-html -a claude-code -g -y
+npx skills add Taro000/chain-summary-html -a claude-code -g -y
 
 # one skill only
-npx skills add Taro000/quality-summary-html -s design-summary-html
+npx skills add Taro000/chain-summary-html -s design-summary-html
 ```
 
 The skills run Python scripts, so they need Python 3.9 or later and PyYAML. With [uv](https://docs.astral.sh/uv/), `uv run --with pyyaml` brings PyYAML along.
