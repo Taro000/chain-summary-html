@@ -1,0 +1,51 @@
+id: IFC-22
+title: Turso の管理の操作
+status: draft
+version: 1
+basis: inferred
+basis_note: 時点を指定した復元が無料の枠で 24 時間で新しいデータベースとして作ること、.dump での書き出し、保管と unarchive、トークンを一つのデータベースと読むだけに限れることは Turso の文書（第 2 段階で確かめた）。コマンドの細かい形は第 4 段階で確かめる
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: Turso の管理の操作（外部、CLI）
+provider: ELM-18
+consumers:
+- ELM-22
+functions: []
+operations:
+- name: turso db shell <db> .dump
+  does: 書き出し
+- name: 書き出しからのデータベースの作成
+  does: 復元（新しいデータベース）
+- name: 時点を指定した復元
+  does: 直近 24 時間（無料の枠）から新しいデータベースを作る
+- name: turso group unarchive
+  does: 保管からの戻し
+- name: turso db destroy
+  does: 削除（システムを終えるとき）
+- name: turso db tokens create
+  does: トークンを作る（一つのデータベース、読むだけか読み書き）
+format: CLI（Turso の Platform API）
+protocol: HTTPS
+auth: 開発者自身の Turso のログイン（組織全体。手元だけ。DEC-34）
+errors:
+- case: CLI の失敗
+  signal: 終わりの符号
+  caller_does: 手順を止める
+- case: 保管に回っている
+  signal: 問い合わせに答えない
+  caller_does: 先に unarchive
+idempotency: 作成と削除は名前で決まる。二度目は「ある」「ない」で終わる
+timing:
+  timeout: null
+  ordering: null
+  delivery: null
+versioning: Turso の CLI の版は手順で固める
+observability: 手元の端末に出す
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

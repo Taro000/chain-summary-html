@@ -1,0 +1,29 @@
+id: ELM-02
+title: Teacher web app
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: Teacher web app
+responsibility: Opens submissions, grades and returns them. Shows the monthly report
+functions:
+- FR-03
+- FR-05
+- FR-08
+drivers:
+- DRV-08
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on:
+- ELM-03
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

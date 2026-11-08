@@ -1,0 +1,27 @@
+id: FND-15
+title: トランザクションが外部の呼び出しをまたがない決まりがない
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-08・09・12 と設計の観点の表は入力。Turso（SQLite）の書き手が一つであることから起きることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-08
+- DEC-12
+severity: minor
+evidence: DEC-12 は操作キーと最初の結果を「効果と同じトランザクションで」記録するとし、DEC-09 は割り当ての条件を同じトランザクションで確かめ直す。どちらも、Stripe の呼び出し（最大 2.5 秒）をトランザクションの外に置くとは書いていない。Turso（SQLite）は書き手が一つで、書くトランザクションの間ほかの書き込みを待たせる。またげば、10 秒ごとの位置と状態の変化の書き込みが止まる（DRV-02、DRV-03）。設計の観点の「並行性」にもこの決まりがない
+suggestion: 「トランザクションは外部の呼び出しをまたがない。お金の操作は、確かめ中を書く、呼び出す、結果を書く、の別々のトランザクションにする」を DEC-08 か DEC-12 に書き、設計の観点の「並行性」に加える
+resolution: 受け入れた。DEC-08（版 2）に、トランザクションは外部の呼び出しをまたがず短く書く決まりを、DEC-12（版 2）に、お金の操作を、キーと処理中を書く、Stripe を呼ぶ、結果と状態と履歴を書く、の三つに分けることを書いた。設計の観点の並行性に加えた
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階のレビュー（活動 A1、A8）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
+  reason: 第 2 段階の再実行（2026-11-03）

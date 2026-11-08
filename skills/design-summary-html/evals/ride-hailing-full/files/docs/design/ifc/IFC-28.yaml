@@ -1,0 +1,89 @@
+id: IFC-28
+title: 管理の画面
+status: draft
+version: 2
+basis: inferred
+basis_note: FR の受け入れ基準（FR-48 版 2 の乗客のアカウントの作成と設定の符号の出し直し、FR-45 版 2 の記録した位置）と DEC-20（パスキー）、DEC-23（PC のブラウザ）は入力。状態が許さないときの行は FND-34。画面の分け方、設定の符号の示し方は推定
+needs_agreement: false
+approver_candidates: []
+kind: screen
+name: 管理の画面
+provider: ELM-03
+consumers:
+- USR-04
+functions:
+- FR-01
+- FR-45
+- FR-46
+- FR-47
+- FR-48
+- FR-49
+- FR-50
+operations:
+- name: ログイン
+  does: メールアドレスとパスワード、続けてパスキー。最初の一人は一度だけの秘密とパスキーの登録（IFC-01 staff-bootstrap）
+- name: 苦情の一覧と詳細
+  does: CUJ-14。状態と種類で絞る（FR-45 AC1）。詳細に報告、乗車の記録（状態の履歴、記録した位置、料金と請求）、ドライバーと車、評価値、過去の苦情（FR-45 AC2）。記録した位置は状態の履歴の四つの操作の位置と、T_log_retention の間は位置の受信の記録で示し、受信の記録がなければないことを示す（FR-45 AC3・4）
+- name: 対処の記録
+  does: CUJ-14。対処と理由（FR-46）。停止を選べば配車を停止する（FR-47）
+- name: 乗客のアカウント
+  does: 一覧、作成（名前と連絡先。FR-48 AC1）、設定の符号の出し直し（FR-48 AC6）。符号は作ったときと出し直したときに一度だけ示す
+- name: ドライバー
+  does: 一覧、登録（FR-48 AC2。設定の符号を一度だけ示す）、設定の符号の出し直し（FR-48 AC6。一度だけ示す）、車両の変更（FR-48 AC7）、停止と再開（FR-47）
+- name: 請求と返金
+  does: CUJ-16。請求の記録（FR-49）、返金（FR-50）
+format: React の SPA の画面（DEC-23）。文言は日本語（DEC-46）。WCAG 2.2 AA（DRV-24）
+protocol: PC のブラウザ（ELM-16）。IFC-01、IFC-06、IFC-16 を使う
+auth: 運営・サポート担当の役割で、パスキーの確かめが済んだセッション
+errors:
+- case: 'ログイン: パスキーの失敗'
+  signal: IFC-01 PASSKEY_FAILED
+  caller_does: もう一度確かめる
+- case: '苦情: ない'
+  signal: 空の一覧
+  caller_does: 「該当する苦情はありません」
+- case: '苦情の詳細: 位置の受信の記録がもうない（T_log_retention を過ぎた）'
+  signal: 受信の記録が空
+  caller_does: 状態の履歴の位置だけを示し、受信の記録がないことを示す（FR-45 AC4）
+- case: '対処: 内容がない'
+  signal: IFC-06 INVALID_REQUEST
+  caller_does: 入れるよう示す（FR-46 AC2）
+- case: '乗客の作成: 欠けている、同じ連絡先のアカウントがある'
+  signal: IFC-06 INVALID_REQUEST、EMAIL_ALREADY_REGISTERED
+  caller_does: 欠けている項目か、作らなかったことを示す（FR-48 AC3・4）
+- case: '登録: 欠けている、ナンバーが登録済み、同じ連絡先のアカウントがある'
+  signal: IFC-06 INVALID_REQUEST、PLATE_ALREADY_REGISTERED、EMAIL_ALREADY_REGISTERED
+  caller_does: 欠けている項目か重なりを示す（FR-48 AC3〜5）
+- case: '返金: 残りの額を超える'
+  signal: IFC-06 REFUND_EXCEEDS_REMAINING
+  caller_does: 残りの額を示す（FR-50 AC2）
+- case: '返金: 確かめ中の返金がある、請求がない'
+  signal: IFC-06 REFUND_IN_PROGRESS、RIDE_NOT_CHARGED
+  caller_does: 読み直して今の状態を示す
+- case: '返金: 断られた'
+  signal: IFC-06 REFUND_FAILED
+  caller_does: 完了と示さず理由を示す（FR-50 AC4）。やり直すときは新しい返金の要求にする
+- case: '返金: 結果が分からない'
+  signal: IFC-06 REFUND_PENDING
+  caller_does: 「確かめています」と示し、請求の記録を読み直す
+- case: '請求の記録: Stripe と一致しなかった'
+  signal: Billing.reconciliation の matched = false
+  caller_does: 一致しなかった項目を示す（FR-49 AC3）
+idempotency: 画面は操作ごとに冪等キーを一つ作り、応答が分からないときは同じキーでだけ送り直す（API の呼び出しのモジュール。DEC-48）。二度押しは同じキーにまとまる
+timing:
+  timeout: API の 15 秒
+  ordering: null
+  delivery: null
+versioning: SPA の版を X-App-Version と比べ、操作の途中でないときに読み直す（DEC-49）。読み直した後は GET で今の状態を取り直す
+observability: 操作は管理の操作の記録（DAT-18）に残る
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 乗客のアカウントの画面（一覧、作成、設定の符号の出し直し。符号は一度だけ示す）を足し、ドライバーにも設定の符号の出し直しを足した。苦情の詳細の記録した位置と受信の記録がないときの行、乗客の作成と同じ連絡先の行、返金の REFUND_IN_PROGRESS と RIDE_NOT_CHARGED の行を足した。FR-48 の受け入れ基準の番号を版 2 に合わせた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-45 版 2、FR-48 版 2、FR-50 版 4）、FND-34'

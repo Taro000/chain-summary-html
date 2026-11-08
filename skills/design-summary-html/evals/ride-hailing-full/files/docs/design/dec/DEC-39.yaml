@@ -1,0 +1,57 @@
+id: DEC-39
+title: ID の形と作る場所
+status: draft
+version: 2
+basis: inferred
+basis_note: data-and-conventions.md の決まり（推測できない ID、URL に連番を入れない）は入力。接頭辞と ULID は推定
+needs_agreement: false
+approver_candidates: []
+stage: high-level-design
+question: 公開する ID をどの形にし、誰が作るか
+addresses:
+- IFC-02
+- IFC-03
+- IFC-06
+- IFC-08
+- DRV-29
+options:
+- name: "種類の接頭辞と ULID（サーバーが作る）。ブラウザが作るキーは UUIDv4 と W3C のトレース ID。サーバーが作る: 依頼 ride_、アカウント acc_、ドライバー drv_、見積もり est_、状態の変化 chg_、お金の操作 mop_、返金の要求 rfr_、苦情 cmp_、降車場所の変更 dch_、位置の記録 pos_ の後に ULID（26 文字）。ブラウザが作る: Idempotency-Key（UUIDv4）、トレース ID（W3C の 32 桁の 16 進）、clientEventId、clientErrorId、位置の送信の clientSendId（UUIDv4）。配信のカーソルは状態の履歴とドライバーの受付の記録の通し番号から作る不透明な文字"
+  effect: 推測できない（80 ビットの乱数）、時刻の順に並ぶ、ログで種類が分かる
+  cost: 接頭辞の一覧を守る
+- name: UUIDv7 だけ
+  effect: 推測できず時刻の順
+  cost: ログで種類が分からない
+- name: データベースの連番
+  effect: 短い
+  cost: 推測でき、件数が漏れ、他人の依頼を試せる（DRV-29）
+chosen: '種類の接頭辞と ULID（サーバーが作る）。ブラウザが作るキーは UUIDv4 と W3C のトレース ID。サーバーが作る: 依頼 ride_、アカウント acc_、ドライバー drv_、見積もり est_、状態の変化 chg_、お金の操作 mop_、返金の要求 rfr_、苦情 cmp_、降車場所の変更 dch_、位置の記録 pos_ の後に ULID（26 文字）。ブラウザが作る: Idempotency-Key（UUIDv4）、トレース ID（W3C の 32 桁の 16 進）、clientEventId、clientErrorId、位置の送信の clientSendId（UUIDv4）。配信のカーソルは状態の履歴とドライバーの受付の記録の通し番号から作る不透明な文字'
+rationale: URL に載る ID は推測できないものでなければならない（data-and-conventions.md）。接頭辞は一人で調べるときの手がかりになる
+rejected:
+- option: UUIDv7 だけ
+  reason: 推測できなさは同じで、種類が読めない分だけ調べにくい
+- option: データベースの連番
+  reason: 推測でき、件数が漏れる
+gains:
+- ID を見れば種類が分かる（ride_、acc_、drv_、est_、chg_、mop_、rfr_、cmp_）
+costs:
+- ID の生成は差し替えられる口にする（DEC-25）
+sensitive_points: []
+trade_offs: []
+assumptions:
+- 状態の履歴の通し番号（seq）は配信のカーソルにだけ使い、URL には出さない
+depends_on:
+- DEC-25
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: "サーバーが作る ID に降車場所の変更 dch_ と位置の記録 pos_ を、ブラウザが作る ID に位置の送信の clientSendId を足した。選んだ案と案の名前の書き方をそろえた"
+  reason: "第 3 段階の再実行（2026-11-04）。FR-12 版 4、DEC-52 版 2（FND-33）"

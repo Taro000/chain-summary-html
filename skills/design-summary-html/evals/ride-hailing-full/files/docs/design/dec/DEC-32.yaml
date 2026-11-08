@@ -1,0 +1,51 @@
+id: DEC-32
+title: Node.js の上の Hono を一つのコンテナイメージで動かす
+status: draft
+version: 1
+basis: inferred
+basis_note: TC-01〜05、TC-13 は入力。実行の土台と道具は提案（質問 11 は回答なし）
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: 何の上で動かし、手元とデモの回で同じ形をどう保つか
+addresses:
+- DRV-17
+- DRV-18
+- DRV-15
+options:
+- name: Node.js（LTS）の上の Hono。一つのコンテナイメージを手元（Docker）と Cloud Run（サービスとジョブ）で動かし、ふだんの開発は Node.js と手元の libSQL で回す。設定は環境変数、秘密は Secret Manager（GitHub の秘密は CI の分だけ）。React の組み立ては Vite、テストは Vitest と Playwright
+  effect: Stripe、libSQL、Hono の Node.js 向けの部品がそのまま使える
+  cost: 特になし
+- name: Bun の上の Hono
+  effect: 起動と実行が速い
+  cost: ライブラリとの相性の確かめが要る
+- name: Deno の上の Hono
+  effect: 型と権限の仕組みが組み込み
+  cost: 道具が TC-04・05 と重なる
+chosen: Node.js（LTS）の上の Hono。一つのコンテナイメージを手元（Docker）と Cloud Run（サービスとジョブ）で動かし、ふだんの開発は Node.js と手元の libSQL で回す。設定は環境変数、秘密は Secret Manager（GitHub の秘密は CI の分だけ）。React の組み立ては Vite、テストは Vitest と Playwright
+rationale: TC-01〜05（DRV-17）をそのまま満たし、TC-06・07（DRV-18）の Cloud Run と Turso に同じイメージで載る。足す道具（Vite、Playwright、axe、依存の確かめ）は TC-13 の範囲
+rejected:
+- option: Bun の上の Hono
+  reason: 相性の確かめで DRV-26 の手間が増える
+- option: Deno の上の Hono
+  reason: 道具が TC-04・05 と重なる
+gains:
+- ライブラリがそのまま使える
+- 手元と Cloud Run で同じイメージ
+costs:
+- 特になし
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-01
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

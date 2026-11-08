@@ -1,0 +1,30 @@
+id: FND-42
+title: エラーに添えるとした値を仕様書の Problem で運べず、ログインのない状態を変える操作に Origin の 403 がない
+status: accepted
+version: 2
+basis: inferred
+basis_note: IFC-01・03・06 の errors と auth、報告書の CUJ-01-C の流れ、DEC-38 の形、FR-27 AC2、仕様書の Problem と auth.openapi.yaml の応答は入力
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-01
+- IFC-02
+- IFC-03
+- IFC-06
+- DEC-38
+severity: minor
+evidence: IFC-03 は TOO_FAR_FROM_PICKUP と FAR_FROM_DROPOFF に距離を、CONFIRMATION_CODE_MISMATCH に残りの回数を、NO_SHOW_TOO_EARLY に残りの秒数を添えるとし、報告書の流れは CANCELLATION_FEE_CHANGED で新しい額を返し、IFC-06 は REFUND_EXCEEDS_REMAINING で残りの額を示すとする。仕様書の Problem は type、title、status、code、detail、traceId、errors、retryAfterSeconds だけで、これらの値の欄がない。FR-27 AC2 は「あとどれだけ待つかを示す」ことを求めるが、残りの秒数を retryAfterSeconds で運ぶのかも書かれていない。DEC-38 の形では detail は省けない欄だが、仕様書の Problem は detail を必須にしていない。IFC-01 は状態を変える要求で Origin を確かめるとするが、ログインのない signup、login、driver-setup、staff-bootstrap の仕様書の応答に 403 がない（ログインの CSRF を防ぐ所）。202 の保留の符号（HOLD_PENDING など）は説明の文にだけあり、4 か所の 202 の説明からは呼ぶ側の扱い（新しい冪等キーで送り直さない、など）が抜けている
+suggestion: Problem に場合ごとの拡張の欄（距離、残りの回数、今の額、残りの額。残りの秒数に retryAfterSeconds を使うならそう書く）を決めて仕様書に書き、detail の必須を DEC-38 とそろえ、ログインのない状態を変える操作に 403 を足し、202 の本文で保留の符号を示す形と呼ぶ側の扱いを書く
+resolution: "受け入れた。エラーの形に場合ごとの拡張の欄（distanceMeters、remainingAttempts、currentFee、remainingRefundable、retryAfterSeconds）を決め、detail を任意にして DEC-38 版 2 とそろえた。ログインのない状態を変える操作（login、setup、staff-bootstrap）に 403 を足した。202 の本文は {code, …資源} で保留の符号を示し、呼ぶ側は配信か GET で待つと書いた"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B3、B8、B10）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

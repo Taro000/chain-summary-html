@@ -1,0 +1,26 @@
+id: FND-75
+title: 仕様書のエラーの説明の受け入れ基準の番号が、品質チェーンの新しい版より古い
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-01
+- IFC-02
+- IFC-03
+- IFC-06
+- IFC-07
+severity: minor
+evidence: 活動 B10。IFC と報告書は新しい番号だが、仕様書は古い。auth の login の 401（IFC は FR-01 AC5、仕様書は AC4）、engineer の PATCH accounts（AC6 と AC5）、passenger の rides の ACTIVE_RIDE_EXISTS と UNPAID_RIDE_EXISTS（FR-05 AC5 と AC4。passenger.openapi.yaml 1014・1015・1040 行）、driver の reception/start（FR-17 AC4 と AC3、AC3 と AC2）、admin の POST drivers（FR-48 AC3 と AC2、AC5 と AC3）、PATCH drivers（FR-48 AC7 と AC4）。報告書の CUJ-14 の流れ（1175 行）もナンバーの重なりを「FR-48 AC2・3」と古い番号で書く
+suggestion: 仕様書の説明と例の番号を IFC の errors から作り直し、CUJ-14 の番号を FR-48 版 2 に合わせる
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

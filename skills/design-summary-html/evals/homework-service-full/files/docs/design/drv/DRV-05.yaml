@@ -1,0 +1,31 @@
+id: DRV-05
+title: 提出したファイルは外部のストレージに置く
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+kind: constraint
+statement: 提出したファイルは外部のストレージ（ObjectStore）に置き、サーバーには置かない
+sources:
+- TC-02
+concern_of: []
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: 交渉できない制約
+  difficulty: medium
+  difficulty_reason: ストレージの障害で提出が止まりうる
+  rank: 3
+primary: true
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: 作成
+  reason: 第 1 段階の下書き

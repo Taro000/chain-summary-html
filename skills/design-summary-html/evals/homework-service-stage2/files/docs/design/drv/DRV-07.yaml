@@ -1,0 +1,33 @@
+id: DRV-07
+title: 一つのトレース ID で提出の失敗をたどる
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+kind: observability
+statement: 提出の失敗を、ブラウザからストレージまで一つのトレース ID でたどれる
+sources:
+- QR-10
+- FR-04
+- NFR-09
+concern_of: []
+scenario: null
+negotiable: null
+derived_from: []
+priority:
+  business: medium
+  business_reason: QR-10 は最低限守る線
+  difficulty: low
+  difficulty_reason: ログの欄をそろえれば済む
+  rank: 7
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: 作成
+  reason: 第 1 段階の下書き

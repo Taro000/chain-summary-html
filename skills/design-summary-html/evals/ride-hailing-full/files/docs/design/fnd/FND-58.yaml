@@ -1,0 +1,24 @@
+id: FND-58
+title: DEC-34 の得るもの「データを読むにはコードを配備しなければならず」が、運用のジョブを引数と環境変数を替えて動かせることと合わない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-34
+- ELM-06
+- ELM-05
+severity: minor
+evidence: 'DEC-34 の得るもの（選んだ案の effect と報告書の節）は「CI の環境が漏れても使えるのは実行ごとに短い期限の連携のトークンで、データを読むにはコードを配備しなければならず、配備は記録に残る」とする。一方、同じ DEC-34 の前提は「Cloud Run のジョブは、実行ごとに引数と環境変数を替えて動かせ（run.jobs.runWithOverrides の権限）」とし、ELM-06 は運用のジョブを引数を渡して動かす。環境変数（例: Node.js の NODE_OPTIONS）か引数を替えれば、新しいイメージを配備せずに、Turso のトークンを持つ運用のジョブのサービスアカウントでコードを動かせうる。連携の条件「main の枝の手順だけ」は、main を基に動く pull_request_target の手順を除いていない'
+suggestion: 得るものを直す。運用のジョブの入口が決まったコマンドだけを受け、NODE_OPTIONS などを消すか、CI には上書きのない実行の権限だけを渡してコマンドごとにジョブを分けるかを比べる。連携の条件を手順のファイルと出来事に絞り、pull_request_target を使わないことを書く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A7（F10・F17）、A4

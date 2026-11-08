@@ -1,0 +1,42 @@
+id: QR-04
+title: 降車時の請求の速さ
+status: draft
+version: 2
+basis: inferred
+basis_note: 失敗のシナリオ、点、扱いは推定。QR-09・QR-32 との競合の解き方は質問 9 で確認済み
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: performance efficiency > time behaviour
+statement: システムは、乗車の終了から請求の結果を両方の画面に示すまでを、乗客が T_alight 秒以内に降りるのを妨げない速さで終える。
+applies_to: [FR-28, FR-29]
+traces_to: [QIU-07]
+entry_point: null
+stakeholders: [USR-01, USR-02, 決済の外部サービス]
+failure_scenario: 降車時の請求の応答が遅く、乗客が車内で結果を待つ。
+score: {impact: 3, likelihood: 2}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts:
+  - with: QR-07
+    note: 外部サービスの呼び出しを待つ時間とやり直しが降車の待ち時間に加わる。待つ時間の上限を降車の待ち時間の中に収める
+  - with: QR-09
+    note: 結果の分からない請求を確かめ終えるまで結果が出ない（FR-29 版 2）。乗客は待たずに降りられ、画面に「請求を確かめています」と示す（質問 9 で確認済み）
+  - with: QR-32
+    note: QR-09 と同じ。確かめ終えるのを待たずに降りられる
+stated_numbers: []
+placeholders:
+  - name: T_alight
+    meaning: 降車場所に着いてから決済を終えるまでの秒数
+    from: QIU-07
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: FRP-02 が FR-29 版 2 として受け入れられたことを競合の記述に反映した
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

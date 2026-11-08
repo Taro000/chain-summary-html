@@ -1,0 +1,27 @@
+id: FND-26
+title: システムを終える手順が、Stripe のサンドボックスに残る参加者の記録を扱っていない
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-36 の選んだ案と得るもの、DEC-34 の Stripe の鍵の範囲、ELM-10 の責務、DEC-12・13 のメタデータ、DEC-20 のメールアドレスでのログインは入力。顧客に何を入れるかが決まっていないことの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture-2.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-36
+- DEC-10
+severity: minor
+evidence: DEC-36 の得るものは「最後の期間の後に個人情報が残らない」で、消すものに Turso のデータベース、手元の書き出し、ジョブ、定時の起動、規則、秘密、地図の鍵、Cloud Logging の保持を挙げる。一方、サーバーは Stripe のデモのサンドボックスに顧客と支払い手段を作り（DEC-34 の鍵の範囲、ELM-10）、押さえ・確定・返金に依頼の ID と操作の ID をメタデータとして付ける（DEC-12、DEC-13）。アカウントはメールアドレスで作る（DEC-20）。Stripe の顧客に何を入れるか（メールアドレスや名前を入れるか）はどの DEC にもなく、入れれば T_pii_retention を過ぎても Stripe の側に残る（DRV-21）
+suggestion: Stripe の顧客には内部の ID だけを入れ、メールアドレスや名前を送らないと DEC-10 か DEC-36 に書く（そうすれば、データベースを消した後の Stripe の記録は誰にも結び付かない）。送るなら、システムを終える手順にサンドボックスの顧客を消すこと（またはサンドボックスごと消すこと）を加え、脅威のモデルの守るものにも挙げる
+resolution: 勧めの一つ目の形で受け入れ、サンドボックスを消すことを足した。DEC-10（版 2）に、Stripe に送る個人の情報は内部の ID だけ（顧客にはアカウントの ID だけを入れ、メールアドレスと名前を送らない。カードの入力部品は請求先の名前、メールアドレス、住所を集めない）と書いた（第 3 段階の IFC-13 のとおり）。要求の記録（入力部品が送る IP アドレスなど）は Stripe に残りうるので、DEC-36（版 2）のシステムを終える手順の最後に、開発者が Stripe のダッシュボードでデモと CI のサンドボックスを消すことを足した（ELM-10・22、脅威のモデルの F5）
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階の再実行分のレビュー（活動 A4）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（DEC-10、DEC-36 を直した）
+  reason: architecture-drivers-to-architecture の再実行（第 2 段階の再実行、3 回目）

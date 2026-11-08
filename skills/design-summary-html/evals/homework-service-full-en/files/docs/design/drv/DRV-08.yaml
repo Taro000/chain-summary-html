@@ -1,0 +1,38 @@
+id: DRV-08
+title: Protect students' answers and personal information
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+kind: security
+statement: Only the student and their teacher can open a submission and its grade
+sources:
+- QR-09
+- NFR-08
+concern_of: []
+scenario:
+  source: Another student
+  stimulus: Tries to open someone else's submission
+  artifact: FR-01, FR-03
+  environment: Normal operation
+  response: It cannot be opened
+  measure: No violations in the NFR-08 audit
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-09 is emphasized (a law)
+  difficulty: low
+  difficulty_reason: Checking the role and the class is enough
+  rank: 8
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: Created
+  reason: Stage 1 draft

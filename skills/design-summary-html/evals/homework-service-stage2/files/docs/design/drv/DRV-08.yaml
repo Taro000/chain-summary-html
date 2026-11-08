@@ -1,0 +1,38 @@
+id: DRV-08
+title: 生徒の答案と個人情報を守る
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+kind: security
+statement: 提出と採点は、その生徒と担当の講師だけが開ける
+sources:
+- QR-09
+- NFR-08
+concern_of: []
+scenario:
+  source: ほかの生徒
+  stimulus: 他人の提出を開こうとする
+  artifact: FR-01, FR-03
+  environment: ふだん
+  response: 開けない
+  measure: NFR-08 の監査で違反 0 件
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-09 が重視（法令）
+  difficulty: low
+  difficulty_reason: 役割と担当の確かめで足りる
+  rank: 8
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: 作成
+  reason: 第 1 段階の下書き

@@ -1,0 +1,82 @@
+id: IFC-07
+title: エンジニアの API
+status: draft
+version: 2
+basis: inferred
+basis_note: FR-40 の受け入れ基準と DEC-19（履歴は管理の画面、ログは Logs Explorer）、DEC-15（エンジニアの役割は位置の記録を読める）は入力。検索の条件の送り方と範囲の上限は推定
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: エンジニアの API
+provider: ELM-04
+consumers:
+- ELM-03
+functions:
+- FR-01
+- FR-39
+- FR-40
+operations:
+- name: POST /api/v1/engineer/history-search
+  does: 依頼 ID、トレース ID、利用者 ID、時間の範囲、エラーの種類で状態の履歴とブラウザのエラーの記録を探し、各行に Logs Explorer を開く URL を付ける
+- name: GET /api/v1/engineer/rides/{rideId}/positions
+  does: 依頼の位置の記録と、保持の間の位置の受信の記録（原因の特定。DEC-15）
+- name: PATCH /api/v1/engineer/accounts/{accountId}
+  does: テスト用の印を付ける・外す。後の記録に写る（FR-01 AC6）。冪等キーが要る
+format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）
+protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
+auth: エンジニアの役割のセッションで、パスキーの確かめが済んだもの。経路のまとまり /api/v1/engineer
+errors:
+- case: 'POST /api/v1/engineer/history-search: 条件がない'
+  signal: 400 SEARCH_CONDITION_REQUIRED
+  caller_does: 条件を入れるよう示す
+- case: 'POST /api/v1/engineer/history-search: 時間の範囲が 31 日を超える'
+  signal: 400 RANGE_TOO_WIDE
+  caller_does: 狭めるよう示す
+- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す。同じものを送り直さない
+- case: '共通: ログインしていないか、セッションが切れた'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
+- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
+  signal: 403 FORBIDDEN
+  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
+- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
+  signal: 404 NOT_FOUND
+  caller_does: 画面を読み直す
+- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
+  signal: 409 OPERATION_IN_PROGRESS
+  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
+- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
+  signal: 422 IDEMPOTENCY_KEY_REUSED
+  caller_does: 画面の誤り。新しい操作として新しいキーで始める
+- case: '共通: 回数の上限（DEC-55）'
+  signal: 429 RATE_LIMITED
+  caller_does: Retry-After まで待つ
+- case: '共通: 想定外の誤り'
+  signal: 500 INTERNAL_ERROR
+  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
+- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
+  signal: 503 ROUTE_TIMEOUT
+  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
+- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
+  signal: 503 DEPENDENCY_UNAVAILABLE
+  caller_does: ROUTE_TIMEOUT と同じ
+idempotency: 検索は読むだけの POST（条件に識別子と時刻を含むので本文で送る。DEC-16）。PATCH も Idempotency-Key を求める（DEC-48）
+timing:
+  timeout: ブラウザ 15 秒。サーバーの中は T_route 10 秒
+  ordering: null
+  delivery: null
+versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
+observability: 検索の条件（ID と時間の範囲）と件数を engineer.search のログに。位置を読んだことは位置の読み出しのログに（アカウントと依頼の ID だけ）
+spec: ifc/specs/engineer.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: PATCH もキーを求めると直した（自然に冪等とした記述を外した）。FR-01 の受け入れ基準の番号を版 3 に合わせた（テスト用の印は AC6）
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-01 版 3）、FND-43'

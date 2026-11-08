@@ -1,0 +1,32 @@
+id: ELM-09
+title: イメージの置き場所（Artifact Registry）
+status: draft
+version: 2
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: data-store
+name: イメージの置き場所（Artifact Registry）
+responsibility: ゲートを通ったコンテナイメージ。回ごとの配備と戻しに使う。配備の記録が指すイメージ（今と一つ前）は消さない（DEC-27）
+functions: []
+drivers:
+- DRV-16
+- DRV-18
+decisions:
+- DEC-06
+- DEC-27
+team: TEAM-01
+technology: Artifact Registry
+runs_on: ELM-19
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 配備の記録が指すイメージを消さないことを責務に書いた
+  reason: FND-14、06（第 2 段階のレビュー）を受け入れた

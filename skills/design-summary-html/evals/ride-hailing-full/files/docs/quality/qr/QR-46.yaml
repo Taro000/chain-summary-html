@@ -1,0 +1,33 @@
+id: QR-46
+title: データベースの構造の変更を前の版と両立させる
+status: draft
+version: 2
+basis: inferred
+basis_note: 外部品質 QR-25 から導いた。点は持たない
+needs_agreement: true
+approver_candidates: [開発の責任者]
+model: product
+layer: internal
+characteristic: maintainability > modifiability
+statement: データベースの構造の変更は、一つ前の版のプログラムでも動く形で行う。
+applies_to: [FR-41, FR-42]
+traces_to: [QIU-20, QIU-21, QIU-22]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 列の名前を変えた版を前の版に戻すと、前の版が列を見つけられず、戻した後も手配と決済が動かない。
+score: null
+handling: minimum-line
+handling_reason: QR-25（最低限守る線）を支える内部品質で、その扱いを受け継ぐ
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: QR-25 に合わせて最低限守る線にした
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

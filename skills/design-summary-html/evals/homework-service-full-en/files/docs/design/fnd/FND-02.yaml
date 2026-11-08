@@ -1,0 +1,22 @@
+id: FND-02
+title: No trace ID is passed on
+status: accepted
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-09-20-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-05
+severity: minor
+evidence: Browser failures are not linked
+suggestion: Create the ID in the browser
+resolution: DEC-05 changed
+changelog:
+- version: 1
+  date: '2026-09-20'
+  change: Raised
+  reason: Review of stage 2

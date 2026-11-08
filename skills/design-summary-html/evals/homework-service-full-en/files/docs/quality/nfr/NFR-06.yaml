@@ -1,0 +1,19 @@
+id: NFR-06
+title: Slow submission monitor
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+from: [QR-02]
+kind: monitor
+cuj: CUJ-01
+statement: Notify when the 95th percentile of submission confirmation exceeds 3 seconds.
+conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+slo: null
+gate: null
+audit: null
+monitor: {signal: Response time of submission confirmation, threshold: The 95th percentile stays above 3 seconds for an hour, notifies: Developers (ticket)}
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

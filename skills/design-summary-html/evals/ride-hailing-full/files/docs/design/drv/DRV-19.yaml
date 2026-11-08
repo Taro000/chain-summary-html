@@ -1,0 +1,21 @@
+id: DRV-19
+title: Turso と Cloud Run に載せられる形を保つ（廃止）
+status: retired
+version: 1
+basis: confirmed
+basis_note: 質問 1・2 で、Turso と Cloud Run は想定ではなくデモの回の実行の場所になったので、DRV-18 に統合した
+needs_agreement: false
+approver_candidates: []
+kind: constraint
+statement: データベースは Turso、実行環境は GCP Cloud Run を想定先とし、その上でも動く形を保つ（DRV-18 に統合）
+sources: [TC-06, TC-07]
+concern_of: [STK-01]
+scenario: null
+negotiable: true
+derived_from: []
+priority: null
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成と同時に廃止, reason: 下書きにあったが、質問 1・2 の回答で DRV-18 に統合した}

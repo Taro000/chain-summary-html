@@ -1,0 +1,26 @@
+id: QR-05
+title: 提出の処理の自動テスト
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+model: product
+layer: internal
+characteristic: maintainability > testability
+statement: 提出と受領の処理は、自動テストで振る舞いを確かめられる。
+applies_to: [FR-01, FR-02]
+traces_to: [QIU-01, QIU-02]
+entry_point: null
+stakeholders: [USR-01]
+failure_scenario: null
+score: null
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

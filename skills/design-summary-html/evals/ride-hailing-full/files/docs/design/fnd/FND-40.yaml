@@ -1,0 +1,26 @@
+id: FND-40
+title: 配信の仕様書（stream.asyncapi.yaml）が、流れを開くときの見出しと断り、アカウントの本数を超えたときの扱いで IFC-08 と合わない
+status: accepted
+version: 2
+basis: inferred
+basis_note: IFC-08 の protocol、auth、errors、operations、2-architecture.md の上限の文、stream.asyncapi.yaml の冒頭と messages は入力。つなぎ直しが断られることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-08
+severity: minor
+evidence: IFC-08 は 401 UNAUTHENTICATED と、429 STREAM_LIMIT と Retry-After を返し、ブラウザは traceparent と Last-Event-ID の見出しを付けて開くとするが、仕様書にはどれもなく、断りは冒頭の説明の一文だけ。アカウントごとの 2 本を超えたとき、IFC-08 と 2-architecture.md（DEC-21）は古い流れを閉じるとし、仕様書は 429 と Retry-After を返すとする。後者では、前面に戻ってつなぎ直すときに前の流れがまだ切れていないと断られ、15 秒ごとの問い合わせに落ちる（DRV-02）。ride.live の「1 秒に 1 回まで」と、古い流れを閉じるときの stream.closing の理由の値も仕様書にない
+suggestion: 仕様書に、流れを開く要求の見出し（Last-Event-ID、traceparent、X-Client-Trace-Id）、401 と 429 の応答、ride.live の頻度、stream.closing の理由の値を書き、アカウントの本数を超えたときの扱いを IFC-08 と DEC-21 の「古い流れを閉じる」にそろえる
+resolution: "受け入れた。stream.asyncapi.yaml に、流れを開く要求の見出し、401 と 429 の応答、ride.live の頻度、stream.closing の理由の値（max_age、replaced、shutdown）を書き、アカウントの本数を超えたときの扱いを IFC-08 と第 2 段階の DEC-21 の「古い流れを閉じる」にそろえた。流れの優先は第 2 段階の DEC-21 版 5 で外した"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B5、B10）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

@@ -1,0 +1,52 @@
+id: DEC-04
+title: 夜間のレポートをバッチで作る
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+stage: architecture
+question: 月次の提出状況のレポートをいつ作るか
+addresses:
+- DRV-06
+- DRV-03
+options:
+- name: 毎晩のバッチ
+  effect: 費用が小さい
+  cost: 昼の提出は翌朝まで出ない
+- name: 提出のたびに数える
+  effect: すぐ出る
+  cost: 提出の処理が重くなる
+chosen: 毎晩のバッチ
+rationale: 塾の事務は月次で見る（CUJ-04）ので、毎晩で足りる。
+rejected:
+- option: 提出のたびに数える
+  reason: 提出が重くなる（DRV-02）
+gains:
+- 費用が小さい
+costs:
+- 昼の提出は翌朝まで出ない
+sensitive_points:
+- バッチの起動の時刻
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-01
+parameters:
+- name: バッチの起動
+  value: 毎日 02:00
+  basis: NFR-02 の 6:00 まで 4 時間
+debt:
+  what: レポートは前の日までの分しか出ない
+  why_accepted: 塾の事務は月次で見る（CUJ-04）
+  repay_when: 当日の数字が要ると言われたとき
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

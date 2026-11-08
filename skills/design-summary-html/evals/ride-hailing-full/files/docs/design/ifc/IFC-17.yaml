@@ -1,0 +1,46 @@
+id: IFC-17
+title: チャットの Webhook
+status: draft
+version: 1
+basis: inferred
+basis_note: DEC-17（種類ごとに 1 分まとめる、送った記録）、第 2 段階の質問 8（チャットの種類は未定）は入力。知らせの形、送り直しの回数、記録を書けなくても送ることは推定（DEC-54。FND-20 の一部）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+kind: http
+name: チャットの Webhook（外部）
+provider: ELM-12
+consumers:
+- ELM-04
+- ELM-05
+- ELM-14
+functions:
+- FR-36
+- FR-55
+operations:
+- name: POST <Webhook の URL>
+  does: 知らせを一つ送る（ELM-14 は自分の通知の経路で送る）
+format: JSON。中身は DEC-54 の知らせの形（種類、急ぎか、件数、窓、トレース ID の例、依頼 ID、受け手が重複を見分ける ID）を、チャットの Webhook の形に変えて送る
+protocol: HTTPS
+auth: Webhook の URL そのもの（秘密。Secret Manager。DEC-34）
+errors:
+- case: 2xx 以外、タイムアウト
+  signal: —
+  caller_does: 1、2、4 秒の間を置いて 3 回まで送り直す。429 は Retry-After に従う
+- case: それでも送れない
+  signal: —
+  caller_does: 送れなかったと記録し（FR-36 AC3）、次の 1 分のまとめで送り直す。毎日の処理は失敗として終わる（DEC-17）
+idempotency: 送り直しで同じ知らせが二度届くことがある。本文に知らせの ID を入れ、人が見分けられるようにする
+timing:
+  timeout: 1 回 5 秒（仮）
+  ordering: null
+  delivery: 少なくとも一度（送り直しで二度届きうる）
+versioning: 知らせの形は足すだけ
+observability: 送った記録（DAT-22）と notification.sent / failed のログ
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

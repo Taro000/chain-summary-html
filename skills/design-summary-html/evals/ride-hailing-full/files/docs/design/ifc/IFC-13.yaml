@@ -1,0 +1,96 @@
+id: IFC-13
+title: Stripe のサーバーの API
+status: draft
+version: 2
+basis: inferred
+basis_note: Stripe の振る舞い（冪等キーは少なくとも 24 時間、5xx も含めて同じキーには同じ応答、同じキーが動いている間は 409、サンドボックスの上限は 1 秒に 25 件、Search は書いた直後の読み出しに使わない）は Stripe の文書（Context7、2026-11-02 と 2026-11-03）。手配の押さえで 429 と送る前の接続の失敗を起きていないと扱うこと、5xx の後に照らして試みの番号を進めた新しいキーで送ること、押さえのキーに試みの何回目かを入れることは DEC-52 版 2（FND-30・38）。顧客に内部の ID だけを送ることは第 2 段階の DEC-10 版 2。Search を使わないこと、未払いの支払いの形は推定（FND-26、FND-29）
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: Stripe のサーバーの API（外部）
+provider: ELM-10
+consumers:
+- ELM-04
+- ELM-05
+functions:
+- FR-04
+- FR-05
+- FR-07
+- FR-08
+- FR-12
+- FR-27
+- FR-29
+- FR-30
+- FR-31
+- FR-50
+- FR-55
+operations:
+- name: POST /v1/customers
+  does: 顧客を作る。metadata に内部のアカウント ID だけを入れ、メールアドレスと名前は送らない（FND-26。データベースを消した後の Stripe の記録が誰にも結び付かない）
+- name: POST /v1/setup_intents、GET /v1/setup_intents/{id}
+  does: カードの登録の準備と結果（FR-04）
+- name: GET /v1/customers/{id}/payment_methods、POST /v1/payment_methods/{id}/detach
+  does: 支払い手段の表示と削除（FR-04）
+- name: POST /v1/payment_intents（capture_method=manual、confirm=true）
+  does: 押さえ（手配、押さえ直し。FR-05、FR-12）。キーは依頼の ID、押さえの何番目か、試みの何回目か（DEC-52）
+- name: POST /v1/payment_intents/{id}/capture（amount_to_capture）
+  does: 確定（運賃、キャンセル料と不在の料金は 500 円だけ確定し残りを解放。FR-07、FR-27、FR-29）
+- name: POST /v1/payment_intents/{id}/cancel
+  does: 押さえの取り消し（無料の取り消し、T_request_max でのシステムの取り消し、手配をやめた依頼と当てなかった降車場所の変更に残っていた押さえ、押さえ直しの古い押さえ、確かめられなかった到着での不在。第 2 段階の DEC-10 版 3）。キーは PaymentIntent の ID と「取り消し」
+- name: POST /v1/payment_intents（自動で確定、confirm=true）
+  does: 未払いの支払い（FR-31 AC2。FND-29）。キーは依頼と「未払い」と何回目かで、前の試みが失敗と確定したときだけ何回目かを進める（FR-30 AC3）
+- name: POST /v1/refunds（payment_intent、amount、metadata）
+  does: 返金（FR-50）。キーは返金の要求ごとで、失敗と分かった後のやり直しは新しい返金の要求にする（FR-50 AC4）
+- name: GET /v1/payment_intents/{id}、GET /v1/payment_intents?customer=&created[gte]=
+  does: 確かめ中の照らし合わせと突き合わせ（FR-55）。書いた直後でも一覧はすぐ読める。押さえはメタデータの依頼の ID、押さえの何番目か、試みの何回目かで照らす（DEC-52）
+- name: GET /v1/refunds?payment_intent=
+  does: 返金の照らし合わせと突き合わせ
+format: 要求は application/x-www-form-urlencoded、応答は JSON（Stripe の文書）
+protocol: HTTPS（api.stripe.com）。Stripe の Node のライブラリを adapters の Stripe の包みからだけ使う（DEC-26）
+auth: 制限付きの鍵（デモのサンドボックス。サーバーとジョブで別の鍵。DEC-34）。Stripe-Version の見出しで版を固める（版は第 4 段階）
+errors:
+- case: カードが断られた
+  signal: 402 card_error と decline_code
+  caller_does: 押さえ・請求の失敗として扱う（FR-05 AC3、FR-31）。同じキーで送り直さない（やり直すときは新しいキー。FR-30 AC3）
+- case: 本人の確かめを求められた
+  signal: PaymentIntent の status が requires_action
+  caller_does: 押さえられないと扱い、その PaymentIntent を取り消す（DEC-11）
+- case: 要求の誤り、同じキーで違う引数
+  signal: 400 invalid_request_error、idempotency_error
+  caller_does: 設計の誤り。送り直さず確かめ中にして知らせる
+- case: 同じキーの要求が動いている
+  signal: '409'
+  caller_does: 要求の中では待たず確かめ中にし、見回りが確かめる
+- case: 回数の上限か、ロックの待ち
+  signal: 429（回数の上限は見出しを持つ。持たないものはロックの待ち。Stripe の文書）
+  caller_does: Stripe は動いていない。手配の押さえでは起きていないと扱い、依頼を not_booked、押さえの操作を not_happened にする（IFC-02 の 503 PAYMENTS_UNAVAILABLE。DEC-52）。ほかの操作は要求の中では送らず確かめ中にし、見回りが同じキーで送る
+- case: Stripe の中の誤り
+  signal: 5xx
+  caller_does: 同じキーの送り直しは同じ応答を返す（Stripe の文書）ので送り直さず、確かめ中にする（DEC-12 (c)）。押さえは、見回りが照らして PaymentIntent がなく、最初の送信から T_op_stale（30 秒）を過ぎた（最初の要求は動いていない）と確かめてから、試みの番号を進めた新しいキーで送る（T_hold_wait の内だけ。DEC-52）
+- case: 送る前の接続の失敗（要求が Stripe に届かなかったと分かる）
+  signal: —
+  caller_does: 手配の押さえでは起きていないと扱う（429 と同じ。DEC-52）。ほかの操作はタイムアウトと同じに扱う
+- case: タイムアウト、送った後の接続の切れ
+  signal: —
+  caller_does: 要求の中では同じキーでだけ送り直す（降車の確定は 2 回まで、ほかは送り直さない。DEC-12）。それでも分からなければ確かめ中（手配の押さえは 202 HOLD_PENDING、押さえ直しは 202 DESTINATION_CHANGE_PENDING。DEC-52）
+- case: Stripe-Should-Retry の見出しがある
+  signal: true か false
+  caller_does: それに従う
+idempotency: 書く要求はすべて Idempotency-Key（DEC-12 の表）。押さえは ride_<依頼 ID>_hold_<何番目か>_a<試みの何回目か>（DEC-52）、確定と取り消しは押さえごと（<PaymentIntent の ID>_capture と _cancel）、未払いの支払いは ride_<依頼 ID>_unpaid_<何回目か>、返金は返金の要求ごと、顧客は customer_<アカウント ID>。metadata に ride_id、money_op_id、op_kind、hold_seq と試みの何回目か、または refund_request_id を入れ、照らし合わせと突き合わせに使う（DEC-13）。キーは 24 時間を過ぎると消えうるので、その後の送り直しは照らしてから新しいキーで（DEC-12 (d)）
+timing:
+  timeout: 要求の中は 1 回 2.5 秒（DEC-12。正常なときの遅い応答から決めた値ではないので、最初のデモの前に NFR-44 の確かめで測る）。毎日の処理は 1 回 10 秒。上限はサンドボックスで 1 秒に 25 件、Search は 20 件（Stripe の文書。この規模では 1 秒に数件まで）
+  ordering: null
+  delivery: null
+versioning: Stripe-Version を固める。上げるのは adapters の包みだけ（DRV-14）
+observability: external.call のログに操作、Stripe の Request-Id、冪等キー、結果、時間、トレース ID。カードの情報は扱わない（DRV-22）
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 手配の押さえで 429 と送る前の接続の失敗を起きていないと扱い（503 PAYMENTS_UNAVAILABLE）、5xx の後は照らして PaymentIntent がなく T_op_stale を過ぎたと確かめてから試みの番号を進めた新しいキーで送ると書いた。押さえのキーに試みの何回目かを入れ、キーとメタデータの形を書いた。押さえの取り消しの場面にシステムの取り消しと、手配や降車場所の変更をやめたときの押さえを足した。未払いの支払いと返金のやり直しのキーを書いた。functions に FR-08 を足した
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-05 版 3、FR-08 版 2、FR-12 版 4、FR-30 版 4、FR-50 版 4）、第 2 段階の DEC-10 版 3、FND-30・38'

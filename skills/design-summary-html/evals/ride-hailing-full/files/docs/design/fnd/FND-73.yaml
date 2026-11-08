@@ -1,0 +1,25 @@
+id: FND-73
+title: 配信が状態の履歴だけから作られるのに、押さえがないと確かめたときと降車場所の変更の取り消しを履歴に書く種類がない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- DAT-07
+- IFC-08
+- DEC-51
+- IFC-24
+severity: major
+evidence: 活動 B5、B9。DEC-51 は ride.updated を「状態の履歴とドライバーの受付の記録を通し番号で追い」作る。CUJ-01-B は手配をやめた後の確かめで「ride.updated payment.state released か none（ここで初めて「押さえていません」と示す）」を送り、CUJ-03 は変更の取り消しと新しい押さえの結果を配信で待たせる（IFC-02 の destination-changes/cancel の caller_does「配信で待つ」）。ところが DAT-07 の type は hold_released はあるが、押さえがないと確かめたとき（hold_checking → none）、乗客が降車場所の変更を取り消したとき（destination_change.state cancelled）、変更をやめた後の新しい押さえの結果に当たる種類がない。これらは配信に乗らず、乗客の画面は前面に戻るか読み直すまで「押さえが残っていれば解放します」を示し続ける（FR-05 AC4、FR-12 AC5 の「分かるまで」の後の表示が遅れる）。IFC-08 の changeType にも hold_checking から searching になったことを区別する値がない
+suggestion: DAT-07 の type に、押さえがないと確かめた（hold_absent など）、降車場所の変更の取り消し（destination_change_cancelled）、変更の新しい押さえの解放を足し、IFC-08 の ride.updated と stream.asyncapi.yaml の列挙をそろえる。あるいは DEC-51 に、支払いの状態の変化も追う出どころを足す
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

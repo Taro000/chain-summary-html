@@ -1,0 +1,27 @@
+id: FND-41
+title: ログの仕様書（app-logs.asyncapi.yaml）が IFC-09・IFC-02・DEC-44 と合わない
+status: accepted
+version: 2
+basis: inferred
+basis_note: IFC-09 の operations、IFC-01・02・08 の observability、DEC-44 の選んだ案、app-logs.asyncapi.yaml の messages は入力
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-09
+- DEC-44
+severity: minor
+evidence: IFC-09 の auth.* と stream.* のメッセージ（中身は IFC-01 と IFC-08 が決めている）が仕様書にない。account_kind の値は、DEC-44 が participant か test とするのに、仕様書は participant、test、staff、none の四つで、SLI-01 がテスト用のアカウントを除く数え方で staff と none をどう扱うかが決まらない。IFC-02 は money.op に操作の ID、種類、キー、結果を書くとするが、仕様書の moneyOp にキーの欄がない（キーは external.call にだけある）。DEC-44 が「どの行にも」とする trace、spanId、client_trace_id が必須の欄になく、「書かない」の一覧から Webhook の URL が抜けている
+suggestion: auth.* と stream.* を仕様書に足し、account_kind の値を DEC-44 とそろえて SLI-01 での扱いを書き、money.op にキーを足すか IFC-02 の文を直し、どの行にもある欄を必須にして「書かない」の一覧を DEC-44 とそろえる
+resolution: "受け入れた。app-logs.asyncapi.yaml に auth.* と stream.* を足し、account_kind の値を DEC-44 版 2（participant、staff、test）とそろえて SLI-01 での扱いを書き、money.op に操作キーと Stripe のキーを持たせ、どの行にもある欄を必須にし、「書かない」の一覧を DEC-44 とそろえた"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B7、B8、B10）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

@@ -1,0 +1,37 @@
+id: DAT-04
+title: ドライバーの受付と停止
+status: draft
+version: 1
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: ドライバーの受付と停止（今の状態と変化の記録）
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- driver_id
+- reception（off、receiving）
+- suspended
+- version
+- '変化の記録: seq（配信のカーソル）、kind（reception_started、reception_stopped、suspended、resumed）、at、actor、reason_ref（DAT-18）'
+relations:
+- to: DAT-03
+  kind: one-to-one
+  note: ドライバー
+- to: DAT-18
+  kind: one-to-many
+  note: 停止と再開の管理の操作
+consistency: 配車のモジュールだけが書く。受付の開始と停止、停止と再開は version の条件付きの書き込みで、同じトランザクションで変化の記録を追記する。停止は管理のモジュールが配車のモジュールの操作を呼ぶ（二人目の書き手を作らない）。許諾は同じトランザクションで停止を確かめ直す（DEC-09）。変化の記録は配信（IFC-08 driver.status、driver.requests）の出どころ
+retention: 変化の記録は T_pii_retention（FR-17 の受付の時間、FR-47 AC4）を過ぎたら、毎日の処理が配車のモジュールを通して消す（FR-53）。今の状態はシステムを終えるとき
+classification: personal
+drivers:
+- DRV-05
+- DRV-02
+- DRV-27
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成。保持期間を過ぎた記録を誰が消すかを書いた
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

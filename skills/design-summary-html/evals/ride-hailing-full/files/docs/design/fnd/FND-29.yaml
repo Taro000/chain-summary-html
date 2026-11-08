@@ -1,0 +1,27 @@
+id: FND-29
+title: DEC-12 のお金の操作の表に、未払いを別の支払い手段で払う操作がない
+status: accepted
+version: 2
+basis: inferred
+basis_note: FR-31 AC2（乗客が別の支払い手段で払うと未払いを解消する）、DEC-12 のキーの表（押さえ、確定、押さえの取り消し、返金）、DEC-13 の突き合わせは入力。この操作が新しい PaymentIntent を自動で確定することと、そのキーの決め方はこの段の推定
+needs_agreement: false
+approver_candidates: []
+raised_by: architecture-to-high-level-design
+raised_in: 3-high-level-design.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-12
+- DEC-13
+severity: minor
+evidence: FR-31 AC2 は、請求に失敗した依頼を乗客が別の支払い手段で払うと未払いを解消するとする。押さえは失敗した請求で使えなくなっているので、この支払いは新しい PaymentIntent（自動で確定）になる。DEC-12 の表は、押さえ、確定、押さえの取り消し、返金の四つのキーの決め方だけを持ち、この操作がない。この操作は一つの依頼で何度も試されうる（断られたら別の支払い手段で）が、成功は一度だけでなければならない（DRV-30）。また DEC-13 の突き合わせは、依頼ごとの押さえと確定を比べる形で、この支払い（押さえを経ない請求）の比べ方を書いていない。この段は IFC-02 と IFC-13 で、キーを ride_<依頼 ID>_unpaid_<何回目か>、何回目かは前の試みが失敗と確定したときだけ進め、確かめ中か成功の試みがあれば新しい試みを受け付けない（409 PAYMENT_IN_PROGRESS）形にした。決まりは DEC-12 の表に置くもの
+suggestion: 'DEC-12 のキーの表に「未払いの支払い（自動で確定する PaymentIntent）: 一つの依頼に成功は一度、試みは失敗と確定するたびに一つ。キーは依頼の ID と何回目か。確かめで照らすものは顧客の PaymentIntent の一覧の、メタデータの依頼の ID と何回目か」を足す。DEC-13 の突き合わせの比べ方に、この支払いを依頼の請求として数えることを足す'
+resolution: 受け入れた。DEC-12（版 3）のキーの表に、未払いの支払い（自動で確定する PaymentIntent。成功は一度、試みは失敗と確定するたびに一つ。キーは依頼の ID と「未払い」と何回目か。確かめで照らすものは顧客の PaymentIntent の一覧の、メタデータの依頼の ID と何回目か）を足した。DEC-13（版 3）の突き合わせに、これを押さえを経ない依頼の請求として数えることを足した
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階の下書き（インタフェースの設計で見つけた）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（DEC-12、DEC-13 を直した）
+  reason: architecture-drivers-to-architecture の再実行（第 2 段階の再実行、3 回目）

@@ -1,0 +1,23 @@
+id: FND-57
+title: '押さえ直し（DEC-11）の端の所が二つ決まっていない: 新しい押さえを確かめている間の乗車の終了と、料金が下がるときの結果が分からない押さえ直し'
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-11
+- DEC-12
+severity: minor
+evidence: DEC-11 の選んだ案は、料金が上がるときに新しい押さえの結果が分からなければ「降車場所を変えずに確かめ中と示し、T_hold_wait までに押さえたと分かれば変え」るとするが、その間に乗車が終わったとき、どちらの押さえを確定し、後から見つかった新しい押さえをどう解放するかがない（CUJ の通し確認の降車場所の変更の行は残る危険を「なし」とする）。第 3 段階は DEC-52（FND-33）でこれを扱うが、第 2 段階には決めがない。また「料金が下がるときは新しい額で押さえ直し、できなければ古い押さえのまま下がった額だけを確定する」とするが、新しい押さえの結果が分からないときの扱いがない。QR-09 版 5 と NFR-07 版 3 が二重の押さえから除くのは「料金が上がる降車場所の変更での押さえ直し」だけで、下がるときの押さえ直しは含まれない（品質チェーンへの課題 1）
+suggestion: 乗車の終了が確かめ中の押さえ直しより先に来たときの扱い（変更を取りやめて古い押さえを確定し、新しい押さえは見つかれば解放する、など）と、料金が下がるときの結果が分からない押さえ直しの扱いを DEC-11 に書く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A1（DRV-04）、A2（CUJ の降車場所の変更）

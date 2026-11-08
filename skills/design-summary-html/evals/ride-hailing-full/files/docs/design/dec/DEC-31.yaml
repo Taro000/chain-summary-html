@@ -1,0 +1,54 @@
+id: DEC-31
+title: 管理の操作は同じトランザクションで追記だけの表に残す
+status: draft
+version: 2
+basis: inferred
+basis_note: QR-22 と NFR-18 は入力。仕組みは提案
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: 管理の画面の操作を担当一人ひとりにたどれるよう、どう残すか
+addresses:
+- DRV-29
+- DRV-25
+- DRV-21
+options:
+- name: 管理の操作（参加者のアカウントの作成と設定の符号の出し直し、ドライバーと車両の登録と変更、停止と再開、対処、返金）ごとに、担当のアカウント、時刻、対象、理由を、操作と同じトランザクションで追記だけの表に書く
+  effect: 操作と記録の片方だけが残らない。保存期間の内はたどれる
+  cost: 表と書き込みの手間
+- name: ログに残す
+  effect: 作る量が少ない
+  cost: 操作が通っても記録が落ちうる。30 日で消える
+- name: Turso の監査ログに頼る
+  effect: 作らなくてよい
+  cost: データベースの操作の記録で、誰が何をしたかの意味がない。保持が短い
+chosen: 管理の操作（参加者のアカウントの作成と設定の符号の出し直し、ドライバーと車両の登録と変更、停止と再開、対処、返金）ごとに、担当のアカウント、時刻、対象、理由を、操作と同じトランザクションで追記だけの表に書く
+rationale: QR-22（DRV-29）と NFR-18 はすべての管理の操作に担当の記録を求め、記録が落ちてはならない。DEC-08 と同じく一つのトランザクションで書く。保存期間（DRV-21）で担当を匿名化できる
+rejected:
+- option: ログに残す
+  reason: 記録が落ちうるうえ 30 日で消え、DRV-29 を一部しか満たさない
+- option: Turso の監査ログに頼る
+  reason: DRV-29 を満たさない
+gains:
+- 管理の操作と記録が必ずそろう
+costs:
+- 表と書き込みの手間
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on:
+- DEC-08
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 記録する管理の操作に、参加者のアカウントの作成と設定の符号の出し直しを足した
+  reason: 品質チェーンの再実行（FR-48 版 2、QR-22 版 2、NFR-18。回答の設計 2-9）と、第 1 段階の 3 回目の再実行（DRV-25 版 2、DRV-29 版 2）に追随した（第 2 段階の再実行、4 回目）

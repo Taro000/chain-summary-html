@@ -1,0 +1,24 @@
+id: SLI-01
+title: Submission availability
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Head of development]
+function: OK ÷ VALID
+refs: [QR-01, NFR-01]
+reshaped: null
+target_entity: Production servers
+purpose: Submission availability
+unit_event: Request
+method: Access log method
+elements:
+  VALID: {definition: Submission requests from signed-in students, inputs: Access logs, unit: requests, counting_rule: Summed per minute}
+  OK: {definition: Requests in VALID whose status is not 5xx, inputs: Same as VALID, unit: requests, counting_rule: Same as VALID}
+scale: ratio
+applicability: Production
+lifecycle: Measured in production
+blind_spots: Failures inside the browser are not visible
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

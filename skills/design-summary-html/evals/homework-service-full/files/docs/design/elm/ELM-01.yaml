@@ -1,0 +1,32 @@
+id: ELM-01
+title: 生徒の Web アプリ
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: 生徒の Web アプリ
+responsibility: 課題を開き、ファイルをストレージに直接置き、提出して受領を示す。下書きを保存する
+functions:
+- FR-01
+- FR-02
+- FR-06
+drivers:
+- DRV-01
+- DRV-02
+- DRV-03
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on:
+- ELM-03
+- ELM-05
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

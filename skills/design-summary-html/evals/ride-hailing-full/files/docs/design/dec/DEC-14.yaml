@@ -1,0 +1,73 @@
+id: DEC-14
+title: 現在地を 10 秒ごとに HTTP で受ける
+status: draft
+version: 2
+basis: inferred
+basis_note: 10 秒は NFR-03 の仮の値（入力）。仕組み、保持、最後の位置を消すときは提案（質問 10・16 は回答なし）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+stage: architecture
+question: 現在地をどう受け取り、新しさをどう保つか
+addresses:
+- DRV-03
+- DRV-12
+- DRV-21
+- DRV-27
+- DRV-20
+options:
+- name: 受付中・迎車中・乗車中のドライバーと、迎車中で許可した乗客のブラウザが、位置情報を見張り、L_send ごとに HTTP で送る。サーバーは最後の位置を上書きし、受けた記録（時刻、位置、誤差）を追記し、相手への配信（DEC-03）に載せる。裏に回る時刻を送り、届かなくても前面に戻ったときに送り直す。最後の位置が T_loc_fresh より古いドライバーは受付中に数えない。乗客の最後の位置は示すのをやめるとき（FR-24 AC3）に、ドライバーの最後の位置は受付を止めたとき（FR-17）に消す
+  effect: 最新の位置と受信の記録（SLI-03 のもと）が一か所にそろう。要らなくなった最後の位置が残らない
+  cost: 参加者 1 人あたり 1 時間に 720 行を書く（計算）
+- name: WebSocket で送る
+  effect: 接続を使い回せる
+  cost: DEC-03 の SSE と別の接続が要る
+- name: 動いたときだけ送る
+  effect: 通信が減る
+  cost: 止まっているドライバーが古く見え、SLI-03 で悪く数えられる
+chosen: 受付中・迎車中・乗車中のドライバーと、迎車中で許可した乗客のブラウザが、位置情報を見張り、L_send ごとに HTTP で送る。サーバーは最後の位置を上書きし、受けた記録（時刻、位置、誤差）を追記し、相手への配信（DEC-03）に載せる。裏に回る時刻を送り、届かなくても前面に戻ったときに送り直す。最後の位置が T_loc_fresh より古いドライバーは受付中に数えない。乗客の最後の位置は示すのをやめるとき（FR-24 AC3）に、ドライバーの最後の位置は受付を止めたとき（FR-17）に消す
+rationale: DRV-03（30 秒の新しさ）と DRV-12（電池）を、NFR-03 の 10 秒を上限にした間隔で両立する（続けて 2 回届かなくても新しいと数えられる。計算）。乗客の位置は迎車中で許可したときだけ送り、乗車が始まるか依頼が終わるとやめる（DRV-21、FR-24）。最後の位置はその後に使う機能がないので、そのときに消す（FND-12）。TC-09（DRV-20）の裏の制約は受け入れ、裏の時間は数えない
+rejected:
+- option: WebSocket で送る
+  reason: 別の接続が要る（DRV-26）
+- option: 動いたときだけ送る
+  reason: DRV-03 を満たさない
+gains:
+- 位置の新しさと受信の記録が一か所にそろう
+- 裏に回った時間が記録に残る（FR-17）
+- 要らなくなった最後の位置が残らない（DRV-21）
+costs:
+- 位置の書き込みの量（参加者 1 人 1 時間に 720 行）
+sensitive_points:
+- 位置を送る間隔 L_send（電池と新しさの引き換え）
+trade_offs:
+- with: DRV-12
+  note: 10 秒ごとの通信と位置の取得
+assumptions:
+- iOS の Safari は前面で位置の更新を 10 秒より長く間引かない（NFR-20 の確かめで見る）
+depends_on:
+- DEC-03
+- DEC-15
+parameters:
+- name: L_send（位置を送る間隔）
+  value: 10 秒
+  basis: NFR-03 の上限 10 秒。T_loc_fresh 30 秒の内に続けて 2 回届かなくてよい（計算）
+- name: 受付中に数えない古さ
+  value: 30 秒（T_loc_fresh）
+  basis: NFR-03
+- name: 位置の受信の記録の保持
+  value: T_log_retention（28 日、仮）
+  basis: 品質チェーンの値をそのまま使う。毎日の処理が消す。期間の外は次の期間の最初の実行まで残る（T_pii_retention の内）
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 乗客の最後の位置は示すのをやめるときに、ドライバーの分は受付を止めたときに消すことを足し、受信の記録を消すものと時期を書いた
+  reason: FND-12（第 2 段階のレビュー）を受け入れた

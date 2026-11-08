@@ -1,0 +1,30 @@
+id: FND-03
+title: 規模の事実が設計の前提にない
+status: accepted
+version: 2
+basis: confirmed
+basis_note: 第 2 段階の質問 7 の回答（2026-11-03）
+needs_agreement: false
+approver_candidates: []
+raised_by: architecture-drivers-to-architecture
+raised_in: 2-architecture.md
+to: requirements-to-architecture-drivers
+targets:
+- DRV-26
+- DRV-01
+- DRV-02
+- DRV-03
+- DRV-27
+severity: minor
+evidence: 第 2 段階の質問 7 で、デモは 1〜2 回で終わり、参加者は 2 人（乗客とドライバー）、1 回の乗車は 2〜3 回、1 回のデモは 1〜2 日と分かった。設計の前提（design-context.yaml）にこの事実がなく、DRV-01〜03・27 の環境は「少人数」としか言わない。この規模では 28 日の SLO が何も見分けず、DRV-26 の実現の判定と第 1 段階の課題 2 の重さが変わる
+suggestion: 設計の前提に規模の事実（PC の「その他」など）を加え、DRV-01〜03・27 の環境に参加者 2 人と乗車の数を書く。DRV-26 の実現の判定と、品質チェーンへの課題 2 の書き方を見直す
+resolution: 受け入れた。設計の前提に PC-05（規模）を加えた。デモは全体で 1〜2 回、参加者 2 人（乗客 1 人とドライバー 1 人）、乗車はデモ 1 回で 2〜3 回、1 回のデモは 1〜2 日で 1 日に 3 時間の回が一つ（第 1 段階の質問 11 で確認済み）、iPhone は 2 台そろう（質問 14）。DRV-01・02・03・27 の環境に規模を書き、規模が届く DRV-05・07・10 も直した。DRV-26 の難しさの理由と実現の判定を直した。品質チェーンへの課題 2 に規模からの計算（乗車ごとの SLO のエラーバジェットは全体で 0.02〜0.06 件）と NFR-19 を足した。課題 2 は、利用者が NFR の量を受け入れて進むと決めたので決着にした（質問 13）
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階の質問 7 の回答
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた
+  reason: 第 1 段階（requirements-to-architecture-drivers）の再実行

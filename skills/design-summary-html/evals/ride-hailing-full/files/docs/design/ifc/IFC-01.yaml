@@ -1,0 +1,113 @@
+id: IFC-01
+title: 認証と起動の API
+status: draft
+version: 2
+basis: inferred
+basis_note: DEC-20（サーバーの中の認証、管理とエンジニアはパスキーも。ログインの一時の停止はアカウントと IP の組。版 3・4）と FR-01 版 3・FR-48 版 2（招待制。乗客もドライバーも運営・サポート担当から受けた一度だけの設定の符号でパスワードを決め、符号の出し直しはパスワードの再設定を兼ねる）は入力。地図のブラウザの鍵をログインしたセッションにだけ返すことは第 2 段階の DEC-21 版 5。経路、セッションの長さ、最初の役割のアカウントの作り方は推定（質問 3・4 は回答なし）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+kind: http
+name: 認証と起動の API
+provider: ELM-04
+consumers:
+- ELM-01
+- ELM-02
+- ELM-03
+functions:
+- FR-01
+- FR-48
+operations:
+- name: GET /api/v1/config
+  does: 画面が使う設定（Stripe の公開の鍵、位置を送る間隔、未定の値のしきい値、キャンセル料、サーバーの版）を返す。ログインなしで読めるが、地図のブラウザの鍵（mapsBrowserKey）はログインしたセッションの要求の応答にだけ入れ、ログインしていない要求の応答には入れない（第 2 段階の DEC-21 版 5、DEC-45）
+- name: POST /api/v1/auth/login
+  does: 'メールアドレスとパスワードでログインする。役割のアカウントは nextStep: passkey を返す。回数の上限は、同じアカウントと同じ IP の組で 5 回続けて失敗すると、その組を 15 分止める（アカウント全体は止めない。第 2 段階の DEC-20 版 3・4。Turso に数える）。IP ごとに 1 時間に 30 回（DEC-55）'
+- name: POST /api/v1/auth/passkeys/authentication-options
+  does: パスキーの確かめの準備（WebAuthn の options）
+- name: POST /api/v1/auth/passkeys/authenticate
+  does: パスキーで確かめ、役割の経路を使えるセッションにする
+- name: POST /api/v1/auth/passkeys/registration-options
+  does: 役割のアカウントのパスキーの登録の準備
+- name: POST /api/v1/auth/passkeys/register
+  does: 役割のアカウントにパスキーを登録する
+- name: POST /api/v1/auth/setup
+  does: 参加者（乗客とドライバー）が、運営・サポート担当から受けた一度だけの設定の符号でパスワードを決め、ログインする。符号は使うか出し直すと使えない。設定を済ませた後に出し直した符号で決めると前のパスワードは使えず、そのアカウントのほかのセッションを終える（パスワードの再設定を兼ねる。FR-48 AC6）。冪等キーが要る。回数の上限は IP ごとに 1 時間に 10 回（Turso に数える。DEC-55）
+- name: POST /api/v1/auth/staff-bootstrap
+  does: 役割のアカウントが一つもないときだけ、Secret Manager の一度だけの秘密で最初の運営・エンジニアのアカウントを作る。冪等キーが要る。回数の上限は IP ごとに 1 時間に 5 回（Turso に数える）
+- name: GET /api/v1/auth/session
+  does: ログインしているアカウント（ID、役割、テスト用の印）と次の段
+- name: POST /api/v1/auth/logout
+  does: セッションを消す
+format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）
+protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
+auth: config、login、setup、staff-bootstrap はログインなし。ほかはセッションのクッキー（DEC-43）。役割のアカウントはパスワードの後にパスキーの確かめが済むまで、役割の経路を使えない（DEC-20）。状態を変える要求は、ログインのない login、setup、staff-bootstrap も Origin を確かめ、違えば 403 FORBIDDEN（FND-42）
+errors:
+- case: 'POST /api/v1/auth/login: メールアドレスかパスワードが違う（FR-01 AC5）'
+  signal: 401 INVALID_CREDENTIALS
+  caller_does: その旨を示す（どちらが違うかは言わない）
+- case: 'POST /api/v1/auth/login: 同じアカウントと同じ IP の組で続けて失敗したので、その組を一時に止めている（第 2 段階の DEC-20 版 3）'
+  signal: 429 ACCOUNT_LOCKED
+  caller_does: 再開の時刻を示して待たせる
+- case: 'POST /api/v1/auth/passkeys/authenticate: パスキーの確かめに失敗した'
+  signal: 401 PASSKEY_FAILED
+  caller_does: もう一度確かめる。続くならパスワードからやり直す
+- case: 'POST /api/v1/auth/passkeys/register: 登録の確かめに失敗した'
+  signal: 400 PASSKEY_REGISTRATION_FAILED
+  caller_does: もう一度登録する
+- case: 'POST /api/v1/auth/setup: 符号が違う、期限切れ、使用済み、出し直す前のもの（FR-01 AC2）'
+  signal: 400 SETUP_CODE_INVALID
+  caller_does: 運営・サポート担当に符号の出し直しを頼むよう示す（IFC-06 の setup-code）
+- case: 'POST /api/v1/auth/staff-bootstrap: 秘密が違う'
+  signal: 401 BOOTSTRAP_SECRET_INVALID
+  caller_does: 何もしない
+- case: 'POST /api/v1/auth/staff-bootstrap: 役割のアカウントがもうある'
+  signal: 409 ALREADY_BOOTSTRAPPED
+  caller_does: 使わない（ログインする）
+- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す。同じものを送り直さない
+- case: '共通: ログインしていないか、セッションが切れた'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
+- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない（ログインのない login、setup、staff-bootstrap も。FND-42）'
+  signal: 403 FORBIDDEN
+  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
+- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
+  signal: 404 NOT_FOUND
+  caller_does: 画面を読み直す
+- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
+  signal: 409 OPERATION_IN_PROGRESS
+  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
+- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
+  signal: 422 IDEMPOTENCY_KEY_REUSED
+  caller_does: 画面の誤り。新しい操作として新しいキーで始める
+- case: '共通: 回数の上限（DEC-55）'
+  signal: 429 RATE_LIMITED
+  caller_does: Retry-After まで待つ
+- case: '共通: 想定外の誤り'
+  signal: 500 INTERNAL_ERROR
+  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
+- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
+  signal: 503 ROUTE_TIMEOUT
+  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
+- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
+  signal: 503 DEPENDENCY_UNAVAILABLE
+  caller_does: ROUTE_TIMEOUT と同じ
+idempotency: setup と staff-bootstrap は Idempotency-Key（DEC-48）。最初の結果を返すので、応答が届かず送り直しても「使用済み」「もうある」にならない。login と passkeys は送り直してよい（新しいセッションを作り、古いものは期限で消える）。logout は何度でも同じ
+timing:
+  timeout: ブラウザ 15 秒。サーバーの中は T_route 10 秒、Turso 1 回 T_db 2 秒（DEC-50）
+  ordering: null
+  delivery: null
+versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
+observability: 構造化ログ（IFC-09）の auth.* に、アカウントの ID、結果（成功、資格情報の違い、一時の停止、パスキーの失敗、符号の違い）、トレース ID を書く。メールアドレス、パスワード、符号、秘密は書かない（DEC-44）。ログインの失敗の数はアカウントと IP の組ごとに DAT-01 に残す（第 2 段階の DEC-20 版 3）
+spec: ifc/specs/auth.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 乗客の登録（POST /api/v1/auth/signup）とそのエラーの 2 行を外した。POST /api/v1/auth/driver-setup を POST /api/v1/auth/setup に改めて乗客とドライバーの両方に使い、出し直した符号でのパスワードの再設定とほかのセッションの終了を書いた。SETUP_CODE_INVALID に出し直す前の符号を足した。config は地図のブラウザの鍵をログインしたセッションの応答にだけ入れるとした。ログインのない login、setup、staff-bootstrap も Origin を確かめて 403 を返すとした。ログインの一時の停止をアカウントと IP の組にした。FR-01 の受け入れ基準の番号を版 3 に合わせた
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-01 版 3、FR-48 版 2）、第 2 段階の DEC-20 版 3・4、DEC-21 版 5、FND-42・44'

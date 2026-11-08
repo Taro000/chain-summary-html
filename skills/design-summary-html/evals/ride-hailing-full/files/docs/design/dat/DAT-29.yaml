@@ -1,0 +1,28 @@
+id: DAT-29
+title: データベースの書き出し
+status: draft
+version: 1
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: データベースの書き出し
+owner: ELM-22
+store: ELM-23
+key_attributes:
+- ファイル名（データベースと UTC の日時）
+- 暗号化した .dump の SQL
+- チェックサム
+relations: []
+consistency: 手元の保守の手順だけが書く。書き終えて確かめてから名前を付ける。最新の二つだけ残す
+retention: 最新の二つ。システムを終えるときに消す（DEC-28、DEC-36）
+classification: personal（全員の個人情報と決済情報の記録）
+drivers:
+- DRV-13
+- DRV-21
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

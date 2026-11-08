@@ -1,0 +1,37 @@
+id: ELM-03
+title: API server
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: API server
+responsibility: Confirms submissions and receipts, issues signed URLs, grading and returns, records trace IDs
+functions:
+- FR-01
+- FR-02
+- FR-03
+- FR-04
+- FR-06
+- FR-08
+drivers:
+- DRV-01
+- DRV-02
+- DRV-03
+- DRV-07
+- DRV-08
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on:
+- ELM-04
+- ELM-05
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

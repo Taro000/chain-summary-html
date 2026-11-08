@@ -1,0 +1,56 @@
+id: IFC-01
+title: Submission API
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: Submission API
+provider: ELM-03
+consumers:
+- ELM-01
+functions:
+- FR-01
+- FR-02
+- FR-06
+operations:
+- name: POST /api/v1/uploads
+  does: Returns a signed URL
+- name: POST /api/v1/submissions
+  does: Confirms the submission and returns the receipt
+- name: GET /api/v1/submissions/{id}
+  does: Returns the submission and its receipt
+- name: PUT /api/v1/drafts/{id}
+  does: Saves the draft
+format: JSON
+protocol: HTTPS
+auth: Session cookie
+errors:
+- case: 'POST /api/v1/submissions: the deadline has passed'
+  signal: 409 DEADLINE_PASSED
+  caller_does: Show that the deadline has passed
+- case: 'POST /api/v1/submissions: the file is not in the storage'
+  signal: 422 FILE_MISSING
+  caller_does: Upload the file again
+- case: 'Common: not signed in'
+  signal: 401 UNAUTHENTICATED
+  caller_does: Go to the sign-in screen
+- case: 'Common: the request is malformed'
+  signal: 400 INVALID_REQUEST
+  caller_does: Fix the fields
+idempotency: State-changing requests carry an Idempotency-Key (DEC-08)
+timing:
+  timeout: Browser 10 s
+  ordering: null
+  delivery: null
+versioning: v1 in the path
+observability: Trace IDs in the logs
+spec: ifc/specs/submissions.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: Created
+  reason: Stage 3 draft

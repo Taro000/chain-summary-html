@@ -1,0 +1,38 @@
+id: DRV-09
+title: 評価を少ない操作で送れる
+status: draft
+version: 1
+basis: inferred
+basis_note: シナリオは QR-19・NFR-15 から（入力）。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: quality
+statement: 評価の画面は、降車後に少ない操作で評価を送れる
+sources: [QR-19, NFR-15, FR-13]
+concern_of: [USR-01]
+scenario:
+  source: 乗客（USR-01）
+  stimulus: 降車後に評価の画面を開く
+  artifact: 評価の画面（FR-13）
+  environment: 降車の直後。T_rate は 15 秒（QIU-09）
+  response: 少ない操作で評価を送れる
+  measure: 段階を選ぶ操作と送る操作の 2 回以下で送れる（NFR-15、完成の定義）
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-19 が重視（CUJ-04。事業が重視にすると決めた）
+  difficulty: low
+  difficulty_reason: 画面の作りで済む
+  rank: 21
+primary: false
+conflicts: []
+placeholders:
+  - name: T_rate
+    meaning: 評価の画面を開いてから評価を送るまでの秒数（15 秒）
+    from: QIU-09
+  - name: N_rating_levels
+    meaning: 評価の段階の数
+    from: FR-13
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}

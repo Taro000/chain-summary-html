@@ -1,0 +1,35 @@
+id: ELM-21
+title: 開発者の手元の機械
+status: draft
+version: 2
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: node
+name: 開発者の手元の機械
+responsibility: ふだんの開発で ELM-04（Node.js かコンテナ）と、ELM-07 と同じ形の libSQL、テストが動く。ELM-22（手元の保守の手順）と ELM-23（書き出しの置き場所）が動く。ディスクを暗号化している（前提。DEC-28）
+functions: []
+drivers:
+- DRV-13
+- DRV-18
+- DRV-21
+decisions:
+- DEC-28
+- DEC-32
+- DEC-34
+- DEC-36
+team: TEAM-01
+technology: Node.js、Docker、libSQL（TC-06、TC-08）
+runs_on: null
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: ELM-22・23 が動くことと、ディスクを暗号化している前提を書き、DRV-13・21 と DEC-28・34・36 を加えた
+  reason: FND-09（第 2 段階のレビュー）を受け入れた

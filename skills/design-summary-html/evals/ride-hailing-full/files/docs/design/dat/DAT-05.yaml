@@ -1,0 +1,46 @@
+id: DAT-05
+title: 見積もり
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: 見積もり（手配と降車場所の変更）
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- estimate_id
+- account_id
+- kind（booking、destination_change）
+- pickup と dropoff（位置、place_id、表示の名前）
+- distance_m、duration_s
+- fare の内訳（R_fare）
+- eta の三つの要素
+- route_ref（DAT-11）
+- created_at、expires_at（10 分、降車場所は 5 分。仮）
+- used_by_ride_id
+relations:
+- to: DAT-06
+  kind: one-to-one
+  note: 手配した依頼
+- to: DAT-11
+  kind: one-to-one
+  note: 経路の写し
+consistency: 料金のモジュールだけが書く。一行で書く。手配はこの値を依頼に写し（同じトランザクションで used にする）、依頼は見積もりの後の変化に左右されない。ELM-05 は持ち主のモジュールを通して書く（DEC-53。期限を過ぎたか使った見積もりの削除）
+retention: 期限を過ぎるか使った後に、毎日の処理が経路の写しとともに消す
+classification: personal
+drivers:
+- DRV-04
+- DRV-06
+- DRV-08
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 期限を過ぎたか使った見積もりの削除は ELM-05 が持ち主のモジュールを通して行うと書いた
+  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

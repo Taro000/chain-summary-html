@@ -1,0 +1,59 @@
+id: NFR-03
+title: 現在地の最新性の SLO
+status: draft
+version: 2
+basis: inferred
+basis_note: しきい値 30 秒と目標値 95% は提案。現在地を送る間隔は、設計で 10 秒以下にする（QR-06 との競合の解き方。提案）。受信の時刻で測り、ブラウザが裏にある時間は除く（推定。質問 5 は未回答）。SLI-03 は版 2 で、毎分 0 秒の時点を毎日の処理が受信と受付・状態の記録から確かめ直して数える形になった。文と目標値は変えない（2026-11-03 の回答、設計 2-8）。アラートはサーバーの毎分の確かめで出すので、毎日の値とずれうる（SLI-03 の見えないもの）
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-27
+kind: slo
+cuj: CUJ-02
+statement: 直近 28 日で、使用中の参加者の現在地を毎分確かめたうちの 95% で、最後に届いた現在地が 30 秒以内のものである。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: ドライバーの現在地（FR-10、FR-17、FR-34、FR-51）、迎車中の乗客の現在地（FR-24）
+slo:
+  sli: SLI-03
+  target: 95%
+  target_status: provisional
+  target_rationale: T_loc_fresh（30 秒）は、送る間隔の上限 10 秒の 3 倍にして、続けて 2 回届かなくても良いと数えるようにした。目標値は、携帯の回線と本物の移動を含むので保守的にした。KPI から導いていない
+  window: 28-day rolling
+  error_budget: 確かめたうちの 5% まで、現在地が 30 秒より古くてよい
+  error_budget_volume: 28 日に確かめた回数（使用中の参加者の数 × 分）× 0.05（件数は未定）
+  policy: EBP-01
+  alerts:
+  - notify: page
+    long_window: 1h
+    short_window: 5m
+    burn_rate: 14.4
+    budget_spent_at_alert: 2.1%
+    condition: 長いウィンドウに有効なイベントが N_alert_min（10）件以上あるときだけ
+  - notify: page
+    long_window: 6h
+    short_window: 30m
+    burn_rate: 6
+    budget_spent_at_alert: 5.4%
+    condition: 長いウィンドウに有効なイベントが N_alert_min（10）件以上あるときだけ
+  - notify: ticket
+    long_window: 3d
+    short_window: 6h
+    burn_rate: 1
+    budget_spent_at_alert: 10.7%
+    condition: 長いウィンドウに有効なイベントが N_alert_min（10）件以上あるときだけ
+gate: null
+audit: null
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。呼び出しのアラートの condition から「デモの回の外では呼び出しをチケットに変える」を外した（回の外にはサーバーがなく、出来事も起きない）。SLI-03 版 2（確かめ直しの形）を basis_note に書いた（文と目標値は変えない）
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。設計の連鎖が返した課題（SLI-03 の確かめられなかった分）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 2-8）

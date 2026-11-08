@@ -1,0 +1,28 @@
+id: FND-07
+title: 要求のタイムアウト 3,600 秒が同じサービスの短い要求にもかかり、Turso の呼び出しにも上限がない
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-01・03・12・22、SLI-01、DRV-01、NFR-24 と報告書の「待つもの」の表は入力。Turso が遅いときに起きることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-03
+- DEC-01
+- DEC-02
+severity: major
+evidence: DEC-01 は API と SSE を一つの Cloud Run のサービスに置き、DEC-03 は SSE を途中で切らないために Cloud Run の要求のタイムアウトを 3,600 秒にする。この値はサービスに一つで、手配の確定のような短い要求にも同じ上限がかかる。タイムアウトは Stripe（2.5 秒、DEC-12）と地図（2 秒、DEC-22）の呼び出しにだけあり、Turso への呼び出しと、SSE 以外の経路の全体には上限がない（報告書の「待つもの」の表）。Turso へは公開のインターネットをまたぐ（脅威のモデルの F14）。SLI-01 の OK は「5xx でも 429 でもなく、入口の待ち時間の上限を超えて切られなかった要求」で、DRV-01 の応答も「入口の待ち時間の上限で切られずに応える」。Turso が遅くなると、手配の確定は最大 60 分待たされ、60 分の内に答えれば SLI-01 は良いに数える。NFR-24 の知らせは 1 時間に 10 件以上の要求があるときだけで、参加者 2 人の規模ではほとんど届かない。乗客はその間待ち続ける。この引き換えは DEC-03 にも DRV-01 の通し確認にもなく、設計の観点の「分散」もタイムアウトを DEC-12 と DEC-22 にだけ置く
+suggestion: SSE 以外の経路に、サーバーの中で上限を置く（Hono のタイムアウトのミドルウェアで 5xx を返すなど。値は最も遅い正常な経路より上で、降車の確定を含めて 10 秒前後）。Turso への呼び出しにもタイムアウトを置く。または SSE を別の Cloud Run のサービスに分け、API のサービスの要求のタイムアウトを短くする（サービスが一つ増える）。選んだ方を DEC-03 の設計上の値と引き換えに書き、DRV-01 と DRV-11 の通し確認に加える
+resolution: 受け入れた。DEC-33 を新設し、SSE 以外の経路を T_route（10 秒）で切って 503 を返し、Turso の呼び出しを 1 回 T_db（2 秒）で切る（Hono のタイムアウトのミドルウェアと、libSQL のクライアントの fetch の中止のタイマー）。SSE を別のサービスに分ける案は、負荷分散がないので別の入口になり、クッキーの認証と同じ入口が崩れるので退けた。DEC-03（版 2）の引き換え、DRV-01・11 の通し確認、設計の観点の分散に加えた
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階のレビュー（活動 A1、A8）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
+  reason: 第 2 段階の再実行（2026-11-03）

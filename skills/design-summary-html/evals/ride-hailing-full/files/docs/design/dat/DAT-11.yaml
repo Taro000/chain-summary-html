@@ -1,0 +1,40 @@
+id: DAT-11
+title: 経路の写し
+status: draft
+version: 2
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: Google の経路の写し
+owner: ELM-04
+store: ELM-07
+key_attributes:
+- route_id
+- purpose（estimate、to_pickup、to_dropoff、destination_quote、request_detail）
+- ride_id か estimate_id
+- encoded_polyline、distance_m、duration_s
+- computed_at
+relations:
+- to: DAT-06
+  kind: many-to-one
+  note: 依頼
+- to: DAT-05
+  kind: one-to-one
+  note: 見積もり
+consistency: 地図のモジュールだけが書く。到着予定の取り直し（60 秒）で同じ区間の行を置き換える。ELM-05 は持ち主のモジュールを通して書く（DEC-53。見積もりの期限を過ぎた写しの削除）
+retention: 依頼のその区間が終わるか見積もりの期限で消す（DEC-22。Google の規約の確かめは未解決の点）
+classification: personal
+drivers:
+- DRV-06
+- DRV-26
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 見積もりの期限を過ぎた写しの削除は ELM-05 が持ち主のモジュールを通して行うと書いた
+  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

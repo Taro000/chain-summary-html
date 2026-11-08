@@ -1,0 +1,22 @@
+id: FND-56
+title: 結果が分からない返金があるあいだに新しい返金の要求を受けるかが第 2 段階で決まっていない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-12
+severity: minor
+evidence: DEC-12 のキーの表で、未払いの支払いには「確かめ中か成功の試みがあれば新しい試みを受けない」という守りがあるが、返金の行（キーは返金の要求ごと、返金できる残りの額の範囲で何度でも）にはない。FR-50 版 4 は失敗と分かった後のやり直しを新しい返金の要求にする。結果が分からない返金が実は成功していたとき、それを残りの額に数えずに新しい要求を受けると、二度返金しうる（NFR-07 が翌朝に見つける）。第 3 段階には「確かめ中の返金があるあいだは 409 REFUND_IN_PROGRESS」があるが、それを縛る第 2 段階の決めがない
+suggestion: DEC-12 に、確かめ中の返金があるあいだは同じ依頼の新しい返金の要求を受けない（または確かめ中の額を残りの額から引く）と書く
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A1（DRV-04）

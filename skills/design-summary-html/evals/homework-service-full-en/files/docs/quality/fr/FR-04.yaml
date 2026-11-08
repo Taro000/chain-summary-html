@@ -1,0 +1,21 @@
+id: FR-04
+title: Trace ID
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+statement: The system gives each submission request a trace ID and writes it to every log.
+origin: quality-in-use
+cuj: CUJ-03
+cuj_step: Trace the logs
+traces_to: [QIU-04]
+proposal: null
+existing: false
+extends: null
+interface: ['Screen: the student web app']
+acceptance_criteria: [The same trace ID appears in the logs of every component a submission request passes through.]
+quality_hints: []
+changelog:
+- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

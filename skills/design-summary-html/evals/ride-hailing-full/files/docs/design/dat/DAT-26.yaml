@@ -1,0 +1,41 @@
+id: DAT-26
+title: 配備の記録
+status: draft
+version: 2
+basis: inferred
+basis_note: 置き場所は第 2 段階の情報のビュー（入力）。持ち主を ELM-05（運用のジョブの record-deploy）にすることは第 2 段階の DEC-27 版 3・4 と DEC-34 版 2（手順はデータベースの資格情報を持たない）、記録するものは FR-41 版 3・4、期間を終えた記録は第 2 段階の DEC-37 版 4（入力）。属性の名前と整合の取り方はこの段の推定。保持期間は第 2 段階の DEC-36 から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: 配備と開け閉めの記録
+owner: ELM-05
+store: ELM-07
+key_attributes:
+- deploy_id
+- action（build、start_period、open、close、rollback、end_period、end_system、period_ended）
+- outcome（succeeded、failed）と失敗の時刻（閉じる操作が途中で失敗したときも残す。FR-41 AC4）
+- image_digest（サービスと二つのジョブ）
+- service_revision
+- at
+- changes（コミット、変更の種類（feature、fix、upgrade）、変更ごとの最初のコミットの時刻、main に入って CI が通った時刻。FR-41 AC2）
+- opened_at、closed_at（デモの回を開いた時刻と閉じた時刻。FR-41 AC4）
+- last_session（最後の回の印。close-demo が付ける）
+- period_ended_at（期間を終えた記録。毎日の処理が書く）
+- reason、forced
+relations: []
+consistency: 運用のジョブの record-deploy が、配備の仕組み（ELM-06）の渡す引数で、手順の段の終わりに一行書く（配備の仕組みはデータベースの資格情報を持たない。第 2 段階の DEC-27 版 3・4、DEC-34 版 2。FR-41 AC2・4、FR-42 AC1）。手順の実行と段の組で一行だけ（動かし直しで二度書かない）。期間を終えた記録は毎日の処理が書く（第 2 段階の DEC-37 版 4）。どちらも ELM-05 が持ち主として書く（DEC-53）。毎日の SLI-03 はデモの回を開いた時刻と閉じた時刻を読む（SLI-03 版 2）
+retention: システムを終えるとき
+classification: internal
+drivers:
+- DRV-16
+- DRV-18
+- DRV-27
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 持ち主を ELM-05（運用のジョブの record-deploy）にした。key_attributes に、変更ごとの最初のコミットの時刻と main に入って CI が通った時刻、変更の種類（feature、fix、upgrade）、デモの回を開いた時刻と閉じた時刻、閉じる操作の失敗と時刻、最後の回の印、期間を終えた記録（毎日の処理が書く）を足した。drivers に DRV-27 を足した
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-41 版 3・4、SLI-03 版 2）、第 2 段階の DEC-27 版 3・4、DEC-34 版 2、DEC-37 版 4'

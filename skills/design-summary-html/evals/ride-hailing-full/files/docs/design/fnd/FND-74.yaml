@@ -1,0 +1,24 @@
+id: FND-74
+title: 受け入れ基準のトレースに、書き手の IFC や流れを指さない行が残る
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-02
+- IFC-03
+- IFC-06
+severity: minor
+evidence: 活動 B1（サブエージェントのスクリプトと読み。主なものはこの会話で確かめた）。214 行はすべて基準の文と IFC の functions に一致するが、functions の欠けで次の基準が書き手の IFC を指さない。FR-30 AC3 は IFC-02 の unpaid-payments が担う（IFC-02 の operations と errors が FR-30 AC3 を引く）が、IFC-02 の functions に FR-30 がなく、表は IFC-10・13 だけ。FR-39 AC1・AC2 は IFC-03 の arrive、start、no-show、complete が位置か position_unavailable を書くが、表は IFC-07 と DRV-27 だけで、IFC-03 は FR-39 を持たない。FR-01 AC4・AC5 の流れの列は CUJ-14 と DRV-27 で、どちらにもログインがない。FR-44 AC1・2・4 の流れの列は CUJ-14 で、履歴（GET /api/v1/passenger/history）の流れはない。FR-53 AC1〜3 の流れの列は DRV-27 だが処理は DRV-04 の流れにある。FR-48 AC4 のメールアドレスの重なりは CUJ-14 と管理の画面の流れにない。FR-07 AC1 の乗客の取り消しの枝に driver.requests がない。FR-15 AC3 を外に出す IFC-06 が表にない
+suggestion: IFC-02 の functions に FR-30、IFC-03 に FR-39（と FR-08 AC5）を足し、トレースの表の流れの列を直す。表を functions から機械的に作るなら、基準ごとに担う操作を一つ書く列を足す
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: 出した
+  reason: 第 3 段階のレビュー（再実行分）

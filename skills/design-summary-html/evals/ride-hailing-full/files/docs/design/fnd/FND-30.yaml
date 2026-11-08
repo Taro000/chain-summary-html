@@ -1,0 +1,29 @@
+id: FND-30
+title: Stripe が押さえに 429 を返したときと届かなかったときの扱いが、IFC-02 と IFC-13・DEC-48・状態遷移図で食い違う
+status: accepted
+version: 2
+basis: inferred
+basis_note: IFC-02 と IFC-13 の errors、DEC-48 の選んだ案、報告書の CUJ-01-B の流れと二つの状態遷移図、passenger.openapi.yaml の 503 の説明は入力。どちらの項目に従ったときに起きることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-02
+- IFC-13
+- DEC-48
+- DEC-52
+severity: major
+evidence: IFC-02 は POST /api/v1/passenger/rides で「Stripe に要求が届かなかったと分かっている（接続できない、回数の上限）」を 503 PAYMENTS_UNAVAILABLE とし、呼ぶ側は「押さえていないと示し、少し後に同じ冪等キーで送れる」とする（IFC-02 の errors、passenger.openapi.yaml の 503 の説明、報告書のエラーの決まりと結果が分からないときの約束）。一方で IFC-13 は 429 を「Stripe は動いていない。要求の中では送らず確かめ中にし、見回りが同じキーで送る」とし、お金の操作の状態遷移図も processing から checking に入る理由に 429 を挙げる。配車依頼の状態遷移図には booking から 429 か接続できないときに出る道がなく、CUJ-01-B の流れにも 503 の枝がない。DEC-48 は、同じキーには最初の結果を返し、初めからやり直すのは一つ目のトランザクションを書けなかったときだけとする。この場合は一つ目のトランザクション（依頼を booking、押さえを processing、キーを processing）を書いた後なので、同じキーの送り直しは最初の結果の 503 か 409 OPERATION_IN_PROGRESS を受けるだけで、「少し後に同じ冪等キーで送れる」は手配にならない。IFC-13 と状態遷移図に従えば、乗客に「押さえていない」と示した後で、見回りが ride_R_hold_1 で押さえ、hold_checking から searching に進めうる。ACTIVE_RIDE_EXISTS が数える「進行中の依頼」に booking と hold_checking が入るかは書かれておらず、入らない作りでは、乗客が新しいキーで手配し直すと二つ目の依頼と押さえができる（DRV-30）
+suggestion: 429 と接続できないときの扱いを一つに決め、IFC-02、IFC-13、DEC-48、CUJ-01-B の流れ、配車依頼とお金の操作の状態遷移図、passenger.openapi.yaml をそろえる。一つの案は、起きていないと扱うこと。二つ目のトランザクションで依頼を not_booked、押さえを not_happened にして見回りは送らず、503 をキーの最初の結果にしない（同じキーで初めからやり直せるよう、DEC-48 の例外に足す）。もう一つの案は、タイムアウトと同じに扱うこと。202 HOLD_PENDING を返し、見回りが T_hold_wait の内に同じキーで送る（手配の 503 PAYMENTS_UNAVAILABLE をやめる）。どちらでも、ACTIVE_RIDE_EXISTS に数える依頼の状態を書く
+resolution: "受け入れた（第 3 段階の再実行、2026-11-04。一つ目の案）。Stripe が実行しなかったと答えた 429 と、送る前に接続できなかった要求は起きていないと扱い、二つ目のトランザクションで依頼を not_booked、押さえの操作を not_happened にして 503 PAYMENTS_UNAVAILABLE を返す。この 503 は操作キーの最初の結果にせず、同じキーの送り直しは初めからやり直す（DEC-48 版 2 の例外）。タイムアウト、送った後の切れ、5xx、T_op_stale は 202 HOLD_PENDING。ACTIVE_RIDE_EXISTS に数える状態は booking、hold_checking、searching、accepted、arrived、in_progress。DEC-52 版 2、IFC-02、IFC-13、CUJ-01-B の流れ、二つの状態遷移図、passenger.openapi.yaml をそろえた"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B3、B9）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

@@ -1,0 +1,41 @@
+id: QIU-14
+title: 走行中に端末を操作せずに依頼を受ける
+status: draft
+version: 1
+basis: inferred
+basis_note: 走行中の操作の危険を扱うことは質問 8 で確認済み。V_moving と測定量は推定
+needs_agreement: true
+approver_candidates:
+  - プロダクトオーナー
+  - 安全の責任者
+user: USR-02
+cuj: CUJ-06
+outcomes: []
+need: 配車受付までの手間を省きたい（運転を妨げずに依頼を受けたい）
+context_of_use:
+  device: スマートフォンのブラウザ（Web アプリ）
+  network: 指定なし
+  user_type: ドライバー
+  task: 依頼を選んで許諾する
+  environment: 車内
+  other: null
+characteristic: freedom from risk > health and safety risk mitigation
+statement: ドライバーは、走行中に端末を操作せずに、配車依頼を選んで許諾できる。
+failure_scenario: 依頼を他のドライバーより先に取ろうとして、ドライバーが走行中に一覧を操作し、事故を起こす。
+measure:
+  numerator: 走行中（速度が V_moving km/h 以上）に行われた依頼の選択・許諾の操作
+  denominator: 依頼の選択・許諾の操作
+  narrowed_to: スマートフォンのブラウザ。ブラウザの位置情報の利用を許可したドライバーに限る
+  denominator_needed_only: 依頼を選ぶ操作と許諾する操作だけ
+  contribution: 依頼の示し方（一覧から早い者勝ちで選ぶ仕組みかどうか）に直接つながる
+  observable: true
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

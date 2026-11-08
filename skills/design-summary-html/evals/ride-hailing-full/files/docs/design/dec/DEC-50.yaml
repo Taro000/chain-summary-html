@@ -1,0 +1,85 @@
+id: DEC-50
+title: タイムアウトの決め方
+status: draft
+version: 2
+basis: inferred
+basis_note: interfaces.md のタイムアウトの決まりと、DEC-12・22・33 の値は入力。ブラウザ、チャット、毎日の処理、手順の値は推定
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+stage: high-level-design
+question: 呼び出しごとのタイムアウトをどう決めるか
+addresses:
+- IFC-02
+- IFC-03
+- IFC-13
+- IFC-15
+- IFC-17
+- DEC-33
+- DRV-11
+options:
+- name: "呼び出しごとに相手の正常な遅い応答より上、呼ぶ側は待つもの全体（確かめを含む）より上。一覧: ブラウザ 15 秒（SSE を除く。乗車の終了と降車場所の変更の確定は 25 秒）→ サーバー T_route 10 秒（乗車の終了と降車場所の変更の確定は T_route_long 20 秒。第 2 段階の DEC-33）→ 中の Turso 1 回 2 秒（DEC-33）、地図 1 回 2 秒（DEC-22）、Stripe 1 回 2.5 秒（DEC-12）、チャット 1 回 5 秒。乗車の終了は要求の中で最悪 9.35 秒（Turso が遅いと 15.05 秒）、降車場所の変更の確定は 5.45 秒（13.05 秒）で、どちらも T_route_long の内。経路の上限で 503 を返しても処理は続き、結果は冪等キーと配信で受ける"
+  effect: 正常な呼び出しを切らず、呼ぶ側が動いている処理を見捨てない（interfaces.md）
+  cost: 相手の遅い応答を測るまで仮の値
+- name: 遅延の予算から決める
+  effect: 予算と同じ数
+  cost: 予算より遅い正常な応答を切り、お金の操作で結果が分からない状態を作る（pitfall）
+- name: ライブラリの既定のまま
+  effect: 決めない
+  cost: 決めないことが決まりになる
+chosen: '呼び出しごとに相手の正常な遅い応答より上、呼ぶ側は待つもの全体（確かめを含む）より上。一覧: ブラウザ 15 秒（SSE を除く。乗車の終了と降車場所の変更の確定は 25 秒）→ サーバー T_route 10 秒（乗車の終了と降車場所の変更の確定は T_route_long 20 秒。第 2 段階の DEC-33）→ 中の Turso 1 回 2 秒（DEC-33）、地図 1 回 2 秒（DEC-22）、Stripe 1 回 2.5 秒（DEC-12）、チャット 1 回 5 秒。乗車の終了は要求の中で最悪 9.35 秒（Turso が遅いと 15.05 秒）、降車場所の変更の確定は 5.45 秒（13.05 秒）で、どちらも T_route_long の内。経路の上限で 503 を返しても処理は続き、結果は冪等キーと配信で受ける'
+rationale: interfaces.md の「タイムアウトは予算ではない」。例外として、Stripe の 2.5 秒は DEC-12 が NFR-24 から決めた仮の値で、Stripe の正常な遅い応答から決めていない。この段では変えず、最初のデモの前の NFR-44 の確かめで測って見直す（結果が分からない状態は DEC-12 と DEC-52 が受ける）
+rejected:
+- option: 遅延の予算から決める
+  reason: 正常な呼び出しを切る
+- option: ライブラリの既定のまま
+  reason: 呼ぶ側と呼ばれる側の順が崩れる
+gains:
+- ブラウザ 15 秒 > サーバーの T_route 10 秒 > 中の呼び出し（地図 2 秒、Stripe 2.5 秒、Turso 2 秒）の順がそろう
+costs:
+- Stripe と地図の正常な遅い応答を最初のデモの前に測る
+sensitive_points:
+- Stripe の 2.5 秒（正常な遅い応答がこれを超えると確かめ中が増える）
+trade_offs:
+- with: DRV-11
+  note: タイムアウトが短いほど画面は待たないが、結果が分からない操作が増える
+assumptions: []
+depends_on:
+- DEC-12
+- DEC-22
+- DEC-33
+parameters:
+- name: ブラウザの要求のタイムアウト（乗車の終了と降車場所の変更の確定）
+  value: 25 秒
+  basis: T_route_long（20 秒）より 5 秒長く、サーバーが切るより先にブラウザが切らない
+- name: ブラウザの要求のタイムアウト（SSE のほか）
+  value: 15 秒
+  basis: T_route（10 秒）に携帯の回線の 5 秒を足した（計算）
+- name: 配信の無音の上限（ブラウザ）
+  value: 60 秒
+  basis: 生存確認 25 秒の 2 回分を少し超える
+- name: チャットの Webhook
+  value: 1 回 5 秒、3 回まで送り直す（1、2、4 秒）
+  basis: 提案。最悪 27 秒で NFR-33 の 5 分の内（計算）
+- name: 毎日の処理の Stripe の呼び出し
+  value: 1 回 10 秒、読むだけは 3 回まで送り直す
+  basis: 要求の外なので NFR-24 に縛られない
+- name: 毎日の処理の Cloud Logging の読み出し
+  value: 1 回 30 秒、3 回まで
+  basis: 提案
+- name: 配備と開け閉めの手順（IFC-11）
+  value: 手順ごとに 30 分（start-period は 60 分）
+  basis: ジョブの一回の上限 45 分を待つ start-period のほかは数分で終わる
+debt: null
+deferred: false
+revisit_when: NFR-44 の確かめで Stripe と地図の正常な遅い応答を測ったとき
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: "乗車の終了と降車場所の変更の確定の二つの経路を、サーバーは T_route_long（20 秒）、ブラウザは 25 秒にした。ほかは T_route（10 秒）とブラウザ 15 秒のまま。選んだ案と案の名前の書き方をそろえた"
+  reason: "第 3 段階の再実行（2026-11-04）。第 2 段階の DEC-33 版 3（FND-21、第 2 段階の質問 22）に追随した"

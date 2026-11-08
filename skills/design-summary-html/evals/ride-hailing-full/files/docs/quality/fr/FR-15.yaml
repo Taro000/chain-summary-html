@@ -1,0 +1,29 @@
+id: FR-15
+title: ドライバーの評価値の計算
+status: draft
+version: 1
+basis: inferred
+basis_note: 評価値が受けたすべての評価の平均であることは質問 9 で確認済み。ほかの受け入れ基準は推定。評価が実態を表すか（データの品質）は第 3 段階
+needs_agreement: false
+approver_candidates: []
+statement: システムは、乗客の評価からドライバーごとの評価値と評価の件数を計算し、評価が届くたびに更新する。
+origin: cuj-step
+cuj: CUJ-05
+cuj_step: 評価が一定以上のドライバーのみマッチするように閾値を設定する
+traces_to: [QIU-10, QIU-11]
+proposal: null
+existing: false
+extends: null
+interface:
+  - サーバーの処理（評価値の計算）
+acceptance_criteria:
+  - ドライバーの評価値は、そのドライバーが受けたすべての評価の平均とする。
+  - 評価が届くと、そのドライバーの評価値と評価の件数を更新し、次のしきい値の判定（FR-16）から使う。
+  - 評価がまだないドライバーは、評価値なし、件数 0 とする。
+quality_hints:
+  - 実用性 (QIU-10) - 評価値がドライバーの振る舞いと車の清潔さの実態を表す
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

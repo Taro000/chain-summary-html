@@ -1,0 +1,62 @@
+id: DEC-06
+title: デモの回ごとにサービスを作って消す
+status: draft
+version: 2
+basis: inferred
+basis_note: TC-07 は入力。作って消す形は提案（質問 9 は回答なし）。URL が作り直しで変わらないことは Cloud Run の文書で確かめた
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+stage: architecture
+question: デモの回の外で、公開した入口と費用をどう扱うか
+addresses:
+- DRV-18
+- DRV-26
+- DRV-29
+options:
+- name: デモの回と確かめの間の始めに配備の手順でサービスを作り、終わりに消す（終わっていない依頼と確かめ中がないと確かめてから。DEC-37）。イメージと設定はコードと Artifact Registry に残す
+  effect: デモの外は入口も費用もない
+  cost: 回ごとに作って消す手順を動かす。版の履歴は回をまたいで残らない
+- name: サービスを残し、デモの外は公開をやめてインスタンスを 0 にする
+  effect: 版の履歴が残り、開け閉めが速い
+  cost: 配備したまま残る（TC-07 の文と違う）
+- name: 公開したまま 0 まで縮める
+  effect: 手順が要らない
+  cost: デモの外もインターネットに開き、大量の要求が費用になる。TC-07・08 に反する
+chosen: デモの回と確かめの間の始めに配備の手順でサービスを作り、終わりに消す（終わっていない依頼と確かめ中がないと確かめてから。DEC-37）。イメージと設定はコードと Artifact Registry に残す
+rationale: TC-07（DRV-18、交渉できない）は「デモの回と確かめの間だけ配備する」。案 1 と案 2 は DRV-26・29 で同じなので、制約の文に合う案 1 を選ぶ。案 3 は TC-07 に反するので落とす。見回り（DEC-04）はサービスの中でしか動かないので、消す前に確かめる（FND-05）
+rejected:
+- option: サービスを残し、デモの外は公開をやめてインスタンスを 0 にする
+  reason: TC-07 の文と違い、DRV-26・29 では案 1 と同じ
+- option: 公開したまま 0 まで縮める
+  reason: TC-07・08 に反し、DRV-29 を満たさない
+gains:
+- デモの外は入口がなく、費用もない
+costs:
+- 回ごとに作って消す手順を動かす
+- 回をまたぐ戻しはイメージを配備し直す（DEC-27）
+- 消し忘れると最小 1 のインスタンスが動き続ける
+sensitive_points:
+- 消し忘れ（期間の毎日の処理、期間を終える手順、GCP の予算の知らせで気づく）
+- 消す前の確かめ（DEC-37）
+trade_offs:
+- with: DRV-16
+  note: Cloud Run の版の履歴が回をまたいで残らない。戻しは配備の記録とイメージで行う
+assumptions:
+- Cloud Run のサービスの決まった形の URL（https://SERVICE-PROJECT_NUMBER.REGION.run.app）は、名前、プロジェクトの番号、地域から決まり、作り直しても同じ（Cloud Run の文書。名前とプロジェクトの番号の部分が 63 文字以内のとき）。地図の鍵の参照元の制限と、パスキーの RP ID とクッキー（DEC-20）がこれに頼る
+depends_on:
+- DEC-02
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 消す前に終わっていない依頼と確かめ中を確かめること（DEC-37）を足し、URL の前提を文書で確かめて、頼るもの（パスキーとクッキー）を書いた
+  reason: FND-05、17（第 2 段階のレビュー）を受け入れた

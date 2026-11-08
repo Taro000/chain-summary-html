@@ -1,0 +1,51 @@
+id: DRV-03
+title: 現在地と受付の状態を新しく保つ
+status: draft
+version: 3
+basis: inferred
+basis_note: シナリオは QR-27・NFR-03・SLI-03（版 2）から（入力）。送る間隔 10 秒は第 4 段階の仮の値。対象のブラウザは質問 10、規模（PC-05）は質問 11 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: quality
+statement: 画面に示す現在地と、受付中として数えるドライバーを、実際の位置と状態から遅らせず、遅れているときはその古さを示す
+sources: [QR-27, NFR-03, SLI-03, FR-10, FR-11, FR-17, FR-24, FR-34, FR-41, FR-51, FR-52, TC-09, PC-05]
+concern_of: [USR-01, USR-02]
+scenario:
+  source: ドライバーと乗客の端末（本物の現在地）
+  stimulus: 参加者が動く。ドライバーのブラウザが裏に回るか画面が消える
+  artifact: 示す現在地（FR-10、FR-11、FR-24）、受付中として数えるドライバー（FR-51）、条件の距離（FR-34）
+  environment: デモの回。参加者 2 人（乗客 1 人とドライバー 1 人。PC-05）が iPhone を持って実際に動く。携帯の回線。裏に回ると止まる制約を受け入れている（TC-09）。サーバーは Cloud Run
+  response: 示す現在地と受付中の数が実際に追いつき、古いときはその古さを示す。裏に回ったドライバーは受付中に数えない
+  measure: 直近 28 日で、デモの回が開いていた間の毎分 0 秒の時点ごとに使用中の参加者を 1 件と数えたうちの 95% で、その時点より前に最後に受けた現在地が 30 秒（T_loc_fresh）以内（NFR-03、SLI-03 版 2）。値は毎日の処理が、現在地の受信の記録（FR-17）、受付と状態の記録、デモの回の開け閉めの記録（FR-41）から確かめ直して出し、サーバーが確かめられなかった間も数える。送る間隔は 10 秒以下（NFR-03 の根拠にある仮の値）
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-27 が重視（CUJ-02、05、07、09）
+  difficulty: high
+  difficulty_reason: 動く端末から携帯の回線で現在地を受け続ける。ブラウザは裏に回ると止まる。電池（DRV-12）と個人情報（DRV-21）と引き換えになる
+  rank: 4
+primary: true
+conflicts:
+  - with: DRV-12
+    note: 現在地を細かく送るほど、画面を点け続けるほど電池が減る（QR-27 と QR-06）。送る間隔は 10 秒を上限にし、最新性の求めより細かくしない
+  - with: DRV-21
+    note: 品質チェーンで解き済み。乗客の現在地は迎車中だけ、乗客が許可したときだけドライバーに見せる（FR-24）
+  - with: DRV-18
+    note: Cloud Run のインスタンスの増減の上で現在地を受け続ける（第 2 段階）
+  - with: DRV-18
+    note: 解いた。動き回る端末から届く HTTPS の入口は、デモの回の Cloud Run が持つ（質問 1・9）
+placeholders:
+  - name: T_loc_fresh
+    meaning: 最後に届いた現在地を新しいと数える上限（30 秒）
+    from: NFR-03
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - version: 2
+    date: 2026-11-03
+    change: 環境に規模（参加者 2 人）を書いた
+    reason: FND-03 を受け入れた（第 1 段階の再実行。質問 11）
+  - version: 3
+    date: 2026-11-03
+    change: 測定量を SLI-03 版 2 に合わせた（デモの回が開いていた間の毎分 0 秒の時点で数え、毎日の処理が受信と受付・状態の記録、回の開け閉めの記録から確かめ直す）
+    reason: 品質チェーンの再実行（回答の設計 2-8、FRP-11）に追随した（第 1 段階の再実行、3 回目）

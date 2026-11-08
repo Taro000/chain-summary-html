@@ -1,0 +1,272 @@
+id: IFC-02
+title: 乗客の API
+status: draft
+version: 2
+basis: inferred
+basis_note: FR の受け入れ基準、DEC-10〜12（押さえ、押さえ直し、三重の一度だけ）、DEC-16（URL に個人情報を入れない）、DEC-22（地図の呼び出し）、第 2 段階の DEC-33 版 2（降車場所の変更の確定は T_route_long）は入力。押さえの結果が分からないときの扱いは FR-05 版 3・FR-12 版 4 が述べ、三つの分け方と確かめは DEC-52 版 2（FND-30・31・33・38）。未払いの支払いのやり直しのキーは FR-30 版 4。経路、エラーの符号、取り消しの額の確かめ方（質問 4）は推定（質問 4・5 は回答なし）
+needs_agreement: true
+approver_candidates:
+- 開発の責任者
+- プロダクトオーナー
+kind: http
+name: 乗客の API
+provider: ELM-04
+consumers:
+- ELM-01
+functions:
+- FR-02
+- FR-03
+- FR-04
+- FR-05
+- FR-06
+- FR-07
+- FR-08
+- FR-09
+- FR-12
+- FR-13
+- FR-14
+- FR-15
+- FR-16
+- FR-29
+- FR-31
+- FR-43
+- FR-44
+- FR-51
+operations:
+- name: POST /api/v1/passenger/places/search
+  does: 住所や施設の名前で場所の候補を探す（語は本文で送る。DEC-16）。回数の上限はアカウントごとに 1 分に 30 回、1 日に 300 回（DEC-55）
+- name: POST /api/v1/passenger/places/resolve
+  does: 選んだ候補の位置と住所を得る。回数の上限はアカウントごとに 1 分に 30 回
+- name: POST /api/v1/passenger/estimates
+  does: 乗る場所と降りる場所から到着予定時刻、所要時間、料金を計算し、見積もりとして残す。回数の上限はアカウントごとに 1 分に 10 回、1 日に 100 回
+- name: POST /api/v1/passenger/nearby-drivers/count
+  does: 乗る場所から D_nearby_drivers 以内の受付中のドライバーの数と、しきい値を満たす数（評価値は FR-15 で計算したもの）。回数の上限はアカウントごとに 1 分に 20 回
+- name: POST /api/v1/passenger/rides
+  does: 見積もりで手配を確定し、確定した料金を押さえて依頼を作る（DEC-12、DEC-52）。押さえの結果で三つに分ける（定まった断りは 402、Stripe が実行しなかったか届かなかったと分かれば 503、分からなければ 202 で依頼を確かめ中にする）。冪等キーが要る。SLI-01 の操作。回数の上限はアカウントごとに 1 時間に 10 回
+- name: GET /api/v1/passenger/rides/active
+  does: 進行中の依頼（booking、hold_checking、searching、accepted、arrived、in_progress）と押さえ・支払いの状態（読み込み直しと、前面に戻ったとき。FR-06 AC3）。手配をやめたか取り消した依頼で押さえを確かめている（payment.state が hold_checking か release_checking）ものも返し、画面は解放か押さえがないと分かるまで「押さえが残っていれば解放します」を示し続ける
+- name: GET /api/v1/passenger/rides/{rideId}
+  does: 自分の依頼の状態（支払いの状態と請求した額 charge を含む。FND-45）
+- name: GET /api/v1/passenger/rides/{rideId}/cancellation-quote
+  does: 今取り消すとかかる額と理由
+- name: POST /api/v1/passenger/rides/{rideId}/cancel
+  does: 見積もった額を確かめたうえで取り消す（無料なら押さえを取り消し、キャンセル料なら押さえから 500 円だけを確定する。DEC-10）。押さえの確かめ中（hold_checking）の依頼は手配をやめて not_booked にし、202 HOLD_RELEASE_PENDING を返す（押さえの確かめは続く。DEC-52）。冪等キーが要る
+- name: POST /api/v1/passenger/rides/{rideId}/threshold
+  does: 探している間にしきい値を下げる。同じ依頼のまま、下げた値で示す相手を選び直す。冪等キーが要る
+- name: POST /api/v1/passenger/rides/{rideId}/destination-quotes
+  does: 新しい降車場所（今いる場所を含む）の料金と到着予定を計算する。回数の上限はアカウントごとに 1 分に 10 回
+- name: POST /api/v1/passenger/rides/{rideId}/destination-changes
+  does: 見積もった降車場所に変え、新しい額で押さえ直す（DEC-11）。押さえ直しの結果が分からなければ降車場所を変えず、202 DESTINATION_CHANGE_PENDING と destinationChangeId（dch_ と ULID。DEC-39）を返す（DEC-52）。経路の上限は T_route_long（20 秒。第 2 段階の DEC-33）。冪等キーが要る
+- name: POST /api/v1/passenger/rides/{rideId}/destination-changes/{destinationChangeId}/cancel
+  does: 確かめ中の降車場所の変更を取り消す（降車場所は変えず、新しい押さえが見つかれば取り消す）。新しい押さえがないと分かっていれば 200、分からなければ 202 HOLD_RELEASE_PENDING（FR-12 AC5、DEC-52）。冪等キーが要る
+- name: GET /api/v1/passenger/rides/{rideId}/driver-photo
+  does: 担当のドライバーの顔写真（許諾から乗車の終わりまで）
+- name: POST /api/v1/passenger/rides/{rideId}/rating
+  does: ドライバーの評価を送る。同じトランザクションでそのドライバーの評価値と件数を計算し直す（FR-15 AC2。一覧の絞り込みと近くの数で使う）。冪等キーが要る
+- name: POST /api/v1/passenger/rides/{rideId}/reports
+  does: 乗車について報告する（迎車中と乗車中の「手配した車と違う」を含む）。冪等キーが要る
+- name: POST /api/v1/passenger/rides/{rideId}/unpaid-payments
+  does: 未払いを別の支払い手段で払う（FR-31 AC2）。Stripe へのキーは依頼と「未払い」と何回目かで、前の試みが失敗と確定したときだけ何回目かを進める（FR-30 AC3、FND-29）。結果が分からない間は支払いの状態を unpaid_checking にする。冪等キーが要る
+- name: GET /api/v1/passenger/history
+  does: 乗車の履歴（日時、場所、ドライバーと車、示した料金、請求額、返金、未払い）
+- name: GET /api/v1/passenger/threshold
+  does: しきい値の今の値
+- name: PUT /api/v1/passenger/threshold
+  does: しきい値を設定する（null で解除）。次の手配から使う。冪等キーが要る
+- name: GET /api/v1/passenger/payment-methods
+  does: 登録した支払い手段（Stripe から読む）
+- name: POST /api/v1/passenger/payment-methods/setup-intents
+  does: 入力部品で登録するための SetupIntent を作る（顧客がなければ作る）。冪等キーが要る
+- name: POST /api/v1/passenger/payment-methods
+  does: 入力部品で登録した支払い手段を記録する（初めてなら既定にする）。冪等キーが要る
+- name: PUT /api/v1/passenger/payment-methods/default
+  does: 既定の支払い手段を変える。冪等キーが要る
+- name: DELETE /api/v1/passenger/payment-methods/{paymentMethodId}
+  does: 支払い手段を削除する。冪等キーが要る
+format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）。202 の本文は保留の符号（code）と資源で、呼ぶ側は配信か GET で結果を待つ（FND-42）
+protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
+auth: 乗客の役割のセッションのクッキー（DEC-43）。経路のまとまり /api/v1/passenger で役割を一度確かめる（DEC-20）。依頼はその乗客のものだけ（ほかは 404）。状態を変える要求は Origin を確かめる
+errors:
+- case: 'POST /api/v1/passenger/places/search: 地図のサービスが答えない、失敗、1 日の割り当てに達した（DEC-22）'
+  signal: 503 MAPS_UNAVAILABLE
+  caller_does: 候補を示せないことと、ピンで指定できることを示す。自動では送り直さない
+- case: 'POST /api/v1/passenger/places/resolve: 地図のサービスが答えない'
+  signal: 503 MAPS_UNAVAILABLE
+  caller_does: ピンで指定するよう示す
+- case: 'POST /api/v1/passenger/estimates: 乗る場所と降りる場所の間に経路がない（FR-02 AC6）'
+  signal: 422 NO_ROUTE
+  caller_does: 料金の確認に進めないことと理由を示す
+- case: 'POST /api/v1/passenger/estimates: 現在地の誤差が D_pickup_accuracy を超え、ピンで確かめていない（FR-02 AC3）'
+  signal: 422 PICKUP_NOT_CONFIRMED
+  caller_does: ピンで乗る場所を確かめさせる
+- case: 'POST /api/v1/passenger/estimates: 経路を得られない（FR-03 AC5）'
+  signal: 503 MAPS_UNAVAILABLE
+  caller_does: 値を示さず、手配に進めないことと理由を示す
+- case: 'POST /api/v1/passenger/rides: 支払い手段が登録されていない（FR-05 AC2）'
+  signal: 409 PAYMENT_METHOD_REQUIRED
+  caller_does: 支払い手段の画面へ
+- case: 'POST /api/v1/passenger/rides: 押さえられない（残高不足、カードの停止など。FR-05 AC3）。依頼は not_booked、押さえの操作は failed で、キーの最初の結果になる（DEC-52）'
+  signal: 402 CARD_DECLINED
+  caller_does: 理由と、別の支払い手段を選ぶ手段を示す。新しい冪等キーで送る
+- case: 'POST /api/v1/passenger/rides: 本人の確かめを求められた（DEC-11 の応答を左右する点と同じ扱い）。依頼は not_booked で、キーの最初の結果になる（DEC-52）'
+  signal: 402 CARD_AUTHENTICATION_REQUIRED
+  caller_does: 別の支払い手段を選ぶよう示す。新しい冪等キーで送る
+- case: 'POST /api/v1/passenger/rides: 進行中の依頼がある（FR-05 AC5）。数えるのは booking、hold_checking、searching、accepted、arrived、in_progress の依頼で、not_booked、ended、cancelled、no_show は数えない（手配をやめた依頼の押さえを確かめている間も手配できる。DEC-52）'
+  signal: 409 ACTIVE_RIDE_EXISTS
+  caller_does: 手配の状況の画面へ
+- case: 'POST /api/v1/passenger/rides: 未払いの乗車がある（FR-05 AC5、FR-31 AC3）'
+  signal: 409 UNPAID_RIDE_EXISTS
+  caller_does: 未払いの支払いの画面へ
+- case: 'POST /api/v1/passenger/rides: 見積もりの期限切れか使用済み'
+  signal: 409 ESTIMATE_EXPIRED
+  caller_does: 見積もり直す
+- case: 'POST /api/v1/passenger/rides: 押さえの結果が分からない（タイムアウト、送った後の接続の切れ、Stripe の 5xx、T_op_stale）。依頼は hold_checking（ドライバーに示さない）、押さえの操作は checking、キーの最初の結果は pending（DEC-52）'
+  signal: 202 HOLD_PENDING
+  caller_does: 「支払いを確かめています」と示し、取り消せるようにする。配信（IFC-08）と GET で待つ。新しい冪等キーで送り直さない（FR-05 AC4）
+- case: 'POST /api/v1/passenger/rides: Stripe が実行しなかったと答えた（429）か、要求が Stripe に届かなかったと分かる（送る前の接続の失敗）。起きていないと扱い、依頼は not_booked、押さえの操作は not_happened。この 503 はキーの最初の結果にしない（DEC-48 の例外、DEC-52）'
+  signal: 503 PAYMENTS_UNAVAILABLE と Retry-After
+  caller_does: 押さえていないと示し、Retry-After の後に同じ冪等キーで送れる（初めからやり直す）
+- case: 'GET /api/v1/passenger/rides/{rideId}/cancellation-quote: 乗車が始まっている（FR-07 AC6）'
+  signal: 409 RIDE_ALREADY_STARTED
+  caller_does: 降車場所の変更を案内する
+- case: 'GET /api/v1/passenger/rides/{rideId}/cancellation-quote: 終わっている、取り消し済み'
+  signal: 409 RIDE_ALREADY_ENDED
+  caller_does: 状態を読み直して示す
+- case: 'POST /api/v1/passenger/rides/{rideId}/cancel: 確かめた額と今の額が違う（その間に許諾、遅れの境目など）。今の額を添える'
+  signal: 409 CANCELLATION_FEE_CHANGED
+  caller_does: 新しい額を示して確かめ直し、新しい冪等キーで送る
+- case: 'POST /api/v1/passenger/rides/{rideId}/cancel: 乗車が始まっている（FR-07 AC6）'
+  signal: 409 RIDE_ALREADY_STARTED
+  caller_does: 降車場所の変更を案内する
+- case: 'POST /api/v1/passenger/rides/{rideId}/cancel: 終わっている、取り消し済み（T_request_max でのシステムの取り消しの後を含む。FR-08 AC5）'
+  signal: 409 RIDE_ALREADY_ENDED
+  caller_does: 状態を読み直して示す
+- case: 'POST /api/v1/passenger/rides/{rideId}/cancel: 押さえの確かめ中（hold_checking）の依頼。手配をやめて not_booked にし、押さえの確かめは続く（DEC-52）'
+  signal: 202 HOLD_RELEASE_PENDING
+  caller_does: 「手配をやめました。押さえが残っていれば解放します」と示し、配信の ride.updated（payment.state が released か none）か GET で確かめがつくのを待つ。新しい冪等キーで送り直さない（FR-05 AC4）
+- case: 'POST /api/v1/passenger/rides/{rideId}/threshold: 探している状態でない'
+  signal: 409 RIDE_NOT_SEARCHING
+  caller_does: 状態を読み直す
+- case: 'POST /api/v1/passenger/rides/{rideId}/threshold: 今の値より下でない（上げることは FR-08 にない）'
+  signal: 422 THRESHOLD_NOT_LOWER
+  caller_does: 下げる値を選ばせる
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-quotes: 乗車中でない'
+  signal: 409 RIDE_NOT_IN_PROGRESS
+  caller_does: 状態を読み直す
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-quotes: 経路がない'
+  signal: 422 NO_ROUTE
+  caller_does: 変えられないことを示す（FR-12 AC4）
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-quotes: 料金を計算できない（FR-12 AC4）'
+  signal: 503 MAPS_UNAVAILABLE
+  caller_does: 変えられないことと理由を示す
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes: 料金が上がる変更で、新しい額を押さえられない（FR-12 AC4）'
+  signal: 402 HOLD_FAILED
+  caller_does: 降車場所を変えず理由を示す
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes: 見積もりの期限切れ'
+  signal: 409 QUOTE_EXPIRED
+  caller_does: 見積もり直す
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes: ほかの変更を確かめている'
+  signal: 409 DESTINATION_CHANGE_IN_PROGRESS
+  caller_does: 配信で結果を待つか、確かめ中の変更を取り消す
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes: 乗車中でない'
+  signal: 409 RIDE_NOT_IN_PROGRESS
+  caller_does: 状態を読み直す
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes: 押さえ直しの結果が分からない（タイムアウト、送った後の接続の切れ、Stripe の 5xx）。降車場所は変えず、応答に destinationChangeId（DEC-52）'
+  signal: 202 DESTINATION_CHANGE_PENDING
+  caller_does: 「確かめています」と示し、変更を取り消せるようにする。配信で待ち、新しい冪等キーで送り直さない。T_hold_wait までに押さえたと分かれば変わり、分からないまま過ぎれば変えずに終わる（新しい押さえが残っていれば解放します、と示す。FR-12 AC5）
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes: T_route_long（20 秒）で切った。押さえ直しが動いていることがある（第 2 段階の DEC-33、DEC-50）'
+  signal: 503 ROUTE_TIMEOUT
+  caller_does: 同じ冪等キーで送り直すか、依頼を読み直す。配信で結果を待つ。新しいキーでは送らない
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes/{destinationChangeId}/cancel: 新しい押さえがあるかが分からない。降車場所は変えず、確かめが続く（DEC-52）'
+  signal: 202 HOLD_RELEASE_PENDING
+  caller_does: 「降車場所は変えません。新しい押さえが残っていれば解放します」と示し、配信で待つ（FR-12 AC5）
+- case: 'POST /api/v1/passenger/rides/{rideId}/destination-changes/{destinationChangeId}/cancel: その変更がもう当たっているか、取りやめになっている'
+  signal: 409 DESTINATION_CHANGE_NOT_PENDING
+  caller_does: 状態を読み直して今の降車場所を示す
+- case: 'GET /api/v1/passenger/rides/{rideId}/driver-photo: 担当のドライバーがいない、または終わった'
+  signal: 404 NOT_FOUND
+  caller_does: 写真を示さない
+- case: 'POST /api/v1/passenger/rides/{rideId}/rating: もう評価した（FR-13 AC3）'
+  signal: 409 ALREADY_RATED
+  caller_does: 受け付けなかった旨を示す
+- case: 'POST /api/v1/passenger/rides/{rideId}/rating: 乗車が終わっていない'
+  signal: 409 RIDE_NOT_ENDED
+  caller_does: 状態を読み直す
+- case: 'POST /api/v1/passenger/rides/{rideId}/reports: 種類が選ばれていない（FR-43 AC3）'
+  signal: 400 INVALID_REQUEST
+  caller_does: 種類を選ぶよう示す
+- case: 'POST /api/v1/passenger/rides/{rideId}/unpaid-payments: 未払いでない'
+  signal: 409 NOT_UNPAID
+  caller_does: 状態を読み直す
+- case: 'POST /api/v1/passenger/rides/{rideId}/unpaid-payments: ほかの支払いを確かめている'
+  signal: 409 PAYMENT_IN_PROGRESS
+  caller_does: 待って配信を見る
+- case: 'POST /api/v1/passenger/rides/{rideId}/unpaid-payments: 断られた。その試みは失敗と確定する（FR-30 AC3）'
+  signal: 402 CARD_DECLINED
+  caller_does: 理由を示し、別の支払い手段を選ばせる（新しい冪等キー。Stripe へのキーは何回目かを進める）
+- case: 'POST /api/v1/passenger/rides/{rideId}/unpaid-payments: 結果が分からない。支払いの状態は unpaid_checking（FR-30 AC2）'
+  signal: 202 PAYMENT_PENDING
+  caller_does: 「確かめています」と示し、配信と GET で待つ。新しい冪等キーで送り直さない
+- case: 'PUT /api/v1/passenger/threshold: N_rating_levels の範囲の外（FR-14 AC3）'
+  signal: 400 INVALID_REQUEST
+  caller_does: 範囲の中の値を選ばせる
+- case: 'GET /api/v1/passenger/payment-methods: Stripe が答えない'
+  signal: 503 PAYMENTS_UNAVAILABLE
+  caller_does: 今は示せないと示す
+- case: 'POST /api/v1/passenger/payment-methods/setup-intents: Stripe が答えない'
+  signal: 503 PAYMENTS_UNAVAILABLE
+  caller_does: 今は登録できないと示す
+- case: 'POST /api/v1/passenger/payment-methods: Stripe が受け付けなかった（期限切れ、番号の誤りなど。FR-04 AC2）'
+  signal: 402 PAYMENT_METHOD_REJECTED
+  caller_does: 理由を示す（ふつうは入力部品が先に示す）
+- case: 'DELETE /api/v1/passenger/payment-methods/{paymentMethodId}: 進行中の依頼で使っている（FR-04 AC3）'
+  signal: 409 PAYMENT_METHOD_IN_USE
+  caller_does: 削除しない旨を示す
+- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す。同じものを送り直さない
+- case: '共通: ログインしていないか、セッションが切れた'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
+- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
+  signal: 403 FORBIDDEN
+  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
+- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
+  signal: 404 NOT_FOUND
+  caller_does: 画面を読み直す
+- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
+  signal: 409 OPERATION_IN_PROGRESS
+  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
+- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
+  signal: 422 IDEMPOTENCY_KEY_REUSED
+  caller_does: 画面の誤り。新しい操作として新しいキーで始める
+- case: '共通: 回数の上限（DEC-55）'
+  signal: 429 RATE_LIMITED
+  caller_does: Retry-After まで待つ
+- case: '共通: 想定外の誤り'
+  signal: 500 INTERNAL_ERROR
+  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
+- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
+  signal: 503 ROUTE_TIMEOUT
+  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
+- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
+  signal: 503 DEPENDENCY_UNAVAILABLE
+  caller_does: ROUTE_TIMEOUT と同じ
+idempotency: 状態を変える POST、PUT、DELETE はすべて Idempotency-Key（UUID。ブラウザが操作ごとに作り、送り直しでも同じ。DEC-48）。お金を動かす手配、取り消し、降車場所の変更とその取り消し、未払いの支払いは DEC-12 の三つのトランザクションで、Stripe へのキーは DEC-12 の表（押さえは依頼と押さえの何番目かと試みの何回目か。DEC-52。未払いの支払いは依頼と何回目か。FR-30 AC3）。手配の 503 PAYMENTS_UNAVAILABLE はキーの最初の結果にしない（DEC-48 の例外）。場所の検索、候補の位置、見積もり、近くの数、降車場所の見積もりは読むだけの POST で鍵は要らない（見積もりは二度目が別の見積もりになるだけ）
+timing:
+  timeout: ブラウザ 15 秒（降車場所の変更の確定は 25 秒。DEC-50）。サーバーの中は T_route 10 秒（降車場所の変更の確定は T_route_long 20 秒。第 2 段階の DEC-33）、地図 2 秒で送り直さない（DEC-22）、Stripe 1 回 2.5 秒（DEC-12）、Turso 1 回 T_db 2 秒（DEC-50）
+  ordering: null
+  delivery: null
+versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
+observability: request.completed のログに route_id（仕様書の x-route-id と同じ名前。DEC-47）、状態の符号、時間、account_kind（DEC-44）。手配の確定（passenger.rides.create）は SLI-01 の六つの操作の一つで、DAT-21 にも 1 分ごとに数える（DEC-35）。NFR-24 は passenger.places.search、passenger.places.resolve、passenger.estimates.create、passenger.rides.create の入口の時間で数える（報告書の経路と route_id の表。FND-35）。場所の検索の語、位置、自由記述は書かない。お金の操作は money.op のログに操作の ID、種類、キー、結果
+spec: ifc/specs/passenger.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: 手配の押さえの結果を三つに分けた（定まった断りは 402 で最初の結果、Stripe が実行しなかったか届かなかったと分かれば 503 PAYMENTS_UNAVAILABLE でキーを放し同じキーでやり直せる、分からなければ 202 HOLD_PENDING）。ACTIVE_RIDE_EXISTS に数える状態を書いた。押さえの確かめ中の取り消しに 202 HOLD_RELEASE_PENDING を足した。降車場所の変更の保留（destinationChangeId）、変更の取り消しの操作とそのエラー、T_route_long の 503 ROUTE_TIMEOUT を足した。未払いの支払いのキーと unpaid_checking を書いた。システムの取り消しの後の取り消しを RIDE_ALREADY_ENDED に含めた。functions に FR-15 を足し、評価を送ったときの評価値の計算と近くの数での使い方を書いた。NFR-24 の四つの経路と 202 の本文を書いた。FR-05 の受け入れ基準の番号を版 3 に合わせた。進行中の依頼の取得が、押さえを確かめている手配をやめた依頼も返すことを書き、functions に FR-16 を足した
+  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-05 版 3、FR-08 版 2、FR-12 版 4、FR-30 版 4）、第 2 段階の DEC-33 版 2、FND-30・31・32・33・35・42・48'

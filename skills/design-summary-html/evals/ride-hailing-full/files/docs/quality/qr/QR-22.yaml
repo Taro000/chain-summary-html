@@ -1,0 +1,33 @@
+id: QR-22
+title: 管理の画面の操作を担当ごとにたどれる
+status: draft
+version: 2
+basis: inferred
+basis_note: 担当が一人ずつ別のアカウントを使うことは質問 8 で確認済み。セキュリティのリスク分析の分類（管理の操作の記録、質問 3・11）にも当たる。点と扱いは推定。参加者のアカウントの作成と符号の出し直しを対象に加えたのは FR-48 版 2（2026-11-03）への追随（推定）
+needs_agreement: true
+approver_candidates: [運営の責任者, プロダクトオーナー]
+model: product
+layer: external
+characteristic: security > accountability
+statement: システムは、管理の画面の操作（参加者のアカウントの作成と設定の符号の出し直し、ドライバーと車両の登録、配車の停止と再開、対処の記録、返金）を、操作した担当一人ひとりにたどれるように記録する。
+applies_to: [FR-01, FR-46, FR-47, FR-48, FR-50]
+traces_to: [QIU-23, QIU-26]
+entry_point: null
+stakeholders: [USR-04]
+failure_scenario: 管理の画面の操作の記録から担当を特定できず、誤った返金や停止を誰がしたか分からない。誰が設定の符号を出し直したかを特定できず、アカウントの乗っ取りの経路を追えない。
+score: {impact: 3, likelihood: 2}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: '2026-11-03'
+    change: 対象の操作に、参加者のアカウントの作成と設定の符号の出し直しを加えた
+    reason: 第 2 段階の再実行（2026-11-03）の FR-48 版 2 への追随（docs/quality-chain-answers.md の設計 2-9）

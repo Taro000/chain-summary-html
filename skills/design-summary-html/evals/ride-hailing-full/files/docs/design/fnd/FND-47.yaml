@@ -1,0 +1,30 @@
+id: FND-47
+title: 流れと画面に、項目の決まりから読めるだけで描かれていない知らせと表示が残る
+status: accepted
+version: 2
+basis: inferred
+basis_note: FR-11 AC2、FR-12 AC2、FR-23 AC3、FR-25 AC3、FR-29 AC4、FR-52 AC2、報告書の流れと画面の移り変わり、IFC-24・26・27 と driver.openapi.yaml の start の応答は入力（トレースはサブエージェント）
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-to-high-level-design
+targets:
+- IFC-24
+- IFC-26
+- IFC-27
+- IFC-03
+- IFC-08
+severity: minor
+evidence: 活動 B1 で一部だけ通った基準のうち、設計の決まり（記録に残った変化は必ず配る、など）からは読めるが、流れか画面の項目に書かれていないもの。FR-11 AC2（乗車中に現在地が届かなくなったら最後の位置と時刻を示す）は、ride.live の stale は届くが、IFC-24 の行と画面の移り変わりは迎車中だけ。FR-23 AC3（経路を得られないときはピンだけを示す）は、迎車中の routeToPickup が null になることはあるが、運転の開始で降車場所までの経路を得られないときの応答と、IFC-27 の乗車中の行がない。FR-25 AC3（位置を確かめられなかった到着も受け付けて乗客に知らせる）は、その枝に履歴の arrived と乗客への ride.updated がない。FR-12 AC2（変更をドライバーの画面と音で知らせる）は、押さえ直しが断られて料金が下がる枝に、履歴とドライバーへの配信がない。FR-29 AC4（確かめた結果を示す）は、確かめ中の枝が記録を書いて終わり、両方の画面への ride.updated がなく、翌朝に決まったときの示し方もない。FR-52 AC2（受付を終えたら画面の点灯をやめる）は、点灯の解放がどこにも書かれていない
+suggestion: それぞれの枝に、履歴の追記と ride.updated、画面の行（IFC-24 の乗車中の stale、IFC-27 の乗車中の経路なし、IFC-26 と IFC-27 の点灯の解放）を描き足し、運転の開始の応答で routeToDropoff が null になりうると仕様書に書く
+resolution: "受け入れた。流れの枝に履歴の追記と ride.updated を描き足し、画面の行（IFC-24 の乗車中の位置の古さ、IFC-27 の乗車中に経路がないとき、IFC-26 と IFC-27 の画面の点灯の解放）を足した。運転の開始の応答で routeToDropoff が null になりうると driver.openapi.yaml に書いた"
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（活動 B1）
+- version: 2
+  date: '2026-11-04'
+  change: 受け入れた
+  reason: 第 3 段階の再実行（2026-11-04）

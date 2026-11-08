@@ -1,0 +1,40 @@
+id: ELM-22
+title: 手元の保守の手順
+status: draft
+version: 2
+basis: inferred
+basis_note: 書き出しを手元に暗号化して置くことは質問 6、最後の期間を終えるときに消すことは質問 13 で確認済み。手順の分け方は提案
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: 手元の保守の手順
+responsibility: 開発者が手元で動かす、リポジトリの中の手順。デモの回の終わりのデータベースの書き出しと暗号化、書き出しの数の整理（最新の二つまで）、復元（NFR-38 の訓練を含む）、Turso の保管からの戻し、システムを終えるときのデータベースと書き出しの削除と、Stripe のデモと CI のサンドボックスを消す案内（消すのはダッシュボードで人の手）。開発者自身の Turso のログインで動き、製品のコードは読み込まない
+functions: []
+drivers:
+- DRV-13
+- DRV-18
+- DRV-21
+- DRV-29
+decisions:
+- DEC-08
+- DEC-26
+- DEC-27
+- DEC-28
+- DEC-34
+- DEC-36
+team: TEAM-01
+technology: リポジトリの中のスクリプト、Turso の CLI、改ざんも見分ける暗号化の道具（第 4 段階で決める）
+runs_on: ELM-21
+depends_on:
+- ELM-07
+- ELM-23
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: FND-09、10、17（第 2 段階のレビュー）を受け入れた（第 2 段階の再実行）
+- version: 2
+  date: '2026-11-03'
+  change: システムを終えるときに Stripe のサンドボックスを消す案内を足した
+  reason: FND-26 を受け入れた（第 2 段階の再実行、3 回目）

@@ -1,0 +1,37 @@
+id: DRV-06
+title: 到着予定時刻が実際から外れない
+status: draft
+version: 1
+basis: inferred
+basis_note: シナリオは QR-08・NFR-12 から（入力）。地図のサービスは質問 6 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: quality
+statement: 手配の前と許諾のときに示す到着予定時刻を、ドライバーが見つかるまでと迎車の時間を含めて、実際から外れないように計算する
+sources: [QR-08, NFR-12, FR-03, FR-10, FR-12, TC-11]
+concern_of: [USR-01]
+scenario:
+  source: 乗客（USR-01）
+  stimulus: 手配の前に到着予定時刻を見る。ドライバーが許諾し、迎車の到着予定が示される
+  artifact: 到着予定の計算（FR-03、FR-10、FR-12）
+  environment: デモの回。運用実績がなく、ドライバーが見つかるまでの時間を見込むもとがない。経路と渋滞は Google Maps Platform（TC-11）
+  response: 到着予定時刻は、ドライバーが見つかるまで・迎車・走行の見込みの和になる。許諾のときの迎車の到着予定は実際の到着から外れない。見込みとその内訳を依頼に残す
+  measure: デモの期間ごとに、T_late（5 分）を超えて遅れた乗車の誤差がどの要素から来たかと、迎車の遅れで無料になった取り消しの件数を報告する（NFR-12）
+negotiable: null
+derived_from: []
+priority:
+  business: high
+  business_reason: QR-08 が重視（CUJ-01）
+  difficulty: low
+  difficulty_reason: 見込みの計算を一つの部品に置き、見込みと実際を残せば足りる。難しいのは精度で、構造ではない
+  rank: 20
+primary: false
+conflicts:
+  - with: DRV-04
+    note: 品質チェーンで解き済み。キャンセル料の判定は許諾のときの迎車の到着予定で決まるので、その値を記録する（FR-10）
+placeholders:
+  - name: T_late
+    meaning: 到着予定時刻から何分までの遅れを許すか（5 分）
+    from: QIU-02
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}

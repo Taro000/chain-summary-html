@@ -1,0 +1,28 @@
+id: FRP-06
+title: 保存期間を過ぎた個人情報を消す
+status: accepted
+version: 2
+basis: inferred
+basis_note: QR-40 を残すことは質問 4 で確認済み。消し方は推定。FR-39 の「書き換えない」と両立させる扱いは第 2 段階で決める
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-40]
+changes: null
+reason: QR-40 は保存期間を過ぎた位置情報と個人情報を残さないことを求めるが、消す FR がない。FR-39 は状態の履歴を追記だけで残す。
+suggested_statement: システムは、位置情報と個人情報を含むログとデータを、記録してから T_pii_retention を過ぎると消すか、個人を特定できない形に変える。
+affects: [FR-53, FR-39, QR-40]
+placeholders:
+  - name: T_pii_retention
+    meaning: 位置情報と個人情報を含むログとデータを残す期間
+    from: QR-40
+resolution: FR-53 として受け入れた。記録は残し、操作した人と位置を消して個人を特定できない形に変える。FR-39 の「追記だけ」に FR-53 の例外を加えた（第 2 段階の質問 12）
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 提案
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 受け入れ
+    reason: 第 2 段階の再実行

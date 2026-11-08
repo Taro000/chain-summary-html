@@ -1,0 +1,30 @@
+id: FR-36
+title: 異常・エラーの通知
+status: draft
+version: 1
+basis: inferred
+basis_note: 手順は入力。通知に添える内容と通知した時刻の記録（QIU-19 の起点）は推定。何を通知の条件にするかは第 4 段階
+needs_agreement: false
+approver_candidates: []
+statement: システムは、サーバーのエラー、外部サービス（地図・決済）の呼び出しの失敗、ブラウザから届いたエラーを検知し、エンジニアに通知する。
+origin: cuj-step
+cuj: CUJ-10
+cuj_step: 異常・エラーの通知を受け取る
+traces_to: [QIU-18, QIU-19]
+proposal: null
+existing: false
+extends: null
+interface:
+  - サーバーの処理（エラーの検知）
+  - "通知: エンジニアへの通知先（種類のみ）"
+acceptance_criteria:
+  - 通知の条件を満たすエラー（サーバーのエラー、外部サービスの呼び出しの失敗、ブラウザから届いたエラー）が起きると、エラーの種類、発生の時刻、件数、トレース ID の例を添えてエンジニアに通知する。
+  - 通知した時刻と内容を記録する（QIU-19 の起点に使う）。
+  - 通知先に送れなかったとき、送れなかったことを記録し、送り直す。
+quality_hints:
+  - 効率性 (QIU-19) - 異常が起きてから、すぐに通知が届く
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

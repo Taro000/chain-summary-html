@@ -1,0 +1,18 @@
+id: KPI-01
+title: 提出完了率
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+outcome: OUT-01
+numerator: 提出が完了した課題
+denominator: 提出を始めた課題
+counted_over: すべての生徒と端末
+overlaps_with: [QIU-01]
+overlap_note: null
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

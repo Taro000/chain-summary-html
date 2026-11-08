@@ -1,0 +1,28 @@
+id: FND-09
+title: データベースの書き出しを開発者の手元に置く流れが、脅威のモデルとビューにない
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-25・28、脅威のモデルの表と図、情報のビューの内容は入力（スクリプトで確かめた）。書き出しの中身と危険は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-28
+- ELM-06
+- ELM-21
+severity: major
+evidence: DEC-28 は、デモの回の終わりごとにデータベースを書き出し、開発者の手元（ELM-21）に暗号化して置く。書き出しには位置、名前、連絡先など、参加者の個人情報がすべて入る（DRV-21）。脅威のモデルの流れ F1〜F14 に ELM-07（Turso Cloud）から ELM-21 への流れはなく、情報のビューと脅威のモデルの図にも ELM-21 がない。だれがどう書き出すか（ELM-06 の手順か、手で Turso の道具を使うか）、手元に置く Turso の資格情報の権限（読むだけか、書けるか）、暗号化の鍵の置き場所、手元に持つ期間、手元の機械をなくしたときの扱いが書かれていない。第 2 段階の終わりの条件「信頼の境界を越えるすべての流れを六つの脅威で確かめる」を満たさない。ほかに、ELM-14 から ELM-12 への知らせ（Webhook の URL を持つ）と、CI から Stripe の CI 用のサンドボックスへの呼び出し（公開のリポジトリの CI の秘密。DEC-25）も表にない
+suggestion: 書き出しの流れを情報のビューと脅威のモデルに加え、六つの脅威を確かめる。書き出す主体と資格情報（読むだけのトークンを使う間だけ発行するなど）、暗号化の鍵の置き場所、手元に持つ期間（次の書き出しまで、または T_pii_retention）を DEC-28 に書く。復元に要らない個人情報を書き出しから外せるかも比べる。ELM-14 → ELM-12 と CI → Stripe の流れも表に加える
+resolution: 受け入れた。DEC-28（版 2）に書き出しの流れを書いた（開発者が手元の手順 ELM-22 で自分の Turso のログインで書き出し、その場でパスフレーズで暗号化して ELM-23 に置く。最新の二つまで、システムを終えるときに消す）。資格情報の分け方は DEC-34 を新設した。情報と実行時の構成と配置のビュー、脅威のモデル（F15 書き出し、F16 ELM-14 → ELM-12、F17 CI → Stripe の CI のサンドボックス）に足した。手順が Cloud Storage に書き出す案は、質問 6 の答えを変え、CI に全員の個人情報を読めるトークンを渡すので退けた
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 2 段階のレビュー（活動 A5、A7、第 2 段階の終わりの条件）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
+  reason: 第 2 段階の再実行（2026-11-03）

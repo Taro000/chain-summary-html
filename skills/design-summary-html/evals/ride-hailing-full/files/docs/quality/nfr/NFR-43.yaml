@@ -1,0 +1,35 @@
+id: NFR-43
+title: 模擬の運賃表が模す運賃の定めに合うかの確かめ
+status: draft
+version: 2
+basis: inferred
+basis_note: QR-36 版 3（R_fare が模す運賃の定めに合う）から。時期は提案（第 4 段階の質問 7〜9（2026-11-01））。定めの中身は書かない。確かめる人は未定
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-36
+kind: audit
+cuj: null
+statement: 最初のデモの前に、道路運送法の運賃の定めの中身を確かめた人が、模擬の運賃表 R_fare（キャンセル料と不在の料金を含む）と料金の示し方が、模す定めに合うかを一度確かめる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit:
+  mechanism: 運賃の定めの中身を確かめた人による R_fare と画面の示し方の確かめ
+  criterion: 合わない点に、R_fare か示し方を直す作業を一件ずつ作る
+  cadence_or_deadline: 最初のデモの前に一度。R_fare を変えたときにもう一度
+monitor: null
+changelog:
+- version: 1
+  date: '2026-11-01'
+  change: 作成
+  reason: 第 4 段階の再実行（第 2 段階 7d0cb6d・08c3ee0、第 3 段階 156240c・9c28917）
+- version: 2
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

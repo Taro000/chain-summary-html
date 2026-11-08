@@ -1,0 +1,19 @@
+id: NFR-10
+title: 採点の二重確認
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+from: [QR-12]
+kind: gate
+cuj: CUJ-02
+statement: 採点の保存を変える変更は、リリース前に点の一致を確かめる。
+conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+slo: null
+gate: {where: release-check, check: 保存した点と入力した点の一致, threshold: 不一致 0 件}
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

@@ -1,0 +1,31 @@
+id: FRP-09
+title: 許諾のときに示した迎車の到着予定を記録する
+status: accepted
+version: 2
+basis: inferred
+basis_note: FR-07 版 2 から推定。提案することは質問 17〜19（2026-11-01）の前提の確認
+needs_agreement: false
+approver_candidates: []
+proposed_by: functional-requirements-to-product-quality
+origin:
+- QR-08
+- QR-09
+changes: FR-10
+reason: FR-07 は、許諾のときに示した乗車場所への到着予定時刻から T_cancel_grace を過ぎたかでキャンセル料をかけるかを決めるが、その値を記録する FR がない。FR-10 は到着予定を示すだけで、記録しない。記録がないと、取り消しの後に判定を確かめられず、苦情（FR-45）でも根拠を示せない。
+suggested_statement: システムは、依頼が許諾されたとき、乗客に最初に示した乗車場所への到着予定時刻を依頼に記録する。ドライバーが替わったときは、新しいドライバーの許諾のときの値を記録する。
+affects:
+- QR-08
+- QR-09
+- FR-07
+- NFR-12
+placeholders: []
+resolution: FR-10 版 2 として受け入れた。FR-07 版 3 はこの記録で無料かを決める。
+changelog:
+- version: 1
+  date: '2026-11-01'
+  change: 提案
+  reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）
+- version: 2
+  date: '2026-11-01'
+  change: 受け入れた
+  reason: 第 2 段階の質問 18・19（2026-11-01）

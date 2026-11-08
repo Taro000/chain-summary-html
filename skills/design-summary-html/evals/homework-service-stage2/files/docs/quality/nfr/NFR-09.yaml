@@ -1,0 +1,19 @@
+id: NFR-09
+title: トレース ID の完成の定義
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+from: [QR-10]
+kind: gate
+cuj: CUJ-03
+statement: 提出の経路の部品は、トレース ID をログに出すまで完成としない。
+conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+slo: null
+gate: {where: definition-of-done, check: ログにトレース ID が出ること, threshold: 全部品}
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

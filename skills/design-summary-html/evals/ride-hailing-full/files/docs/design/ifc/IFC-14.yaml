@@ -1,0 +1,54 @@
+id: IFC-14
+title: Stripe の入力部品
+status: draft
+version: 2
+basis: inferred
+basis_note: DEC-10（入力部品で登録、SetupIntent。版 2 で請求先の名前、メールアドレス、住所を集めない）、DEC-23（カードの入力は一つのモジュールだけ、読み込めるスクリプトを限る）は入力。Payment Element を使うことは推定
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: Stripe の入力部品（外部、ブラウザ）
+provider: ELM-10
+consumers:
+- ELM-01
+functions:
+- FR-04
+- FR-31
+operations:
+- name: Stripe.js の読み込み（js.stripe.com）
+  does: 公開の鍵で初期化する
+- name: Payment Element の表示
+  does: カードの入力欄を Stripe の枠（iframe）の中に出す。請求先の名前、メールアドレス、住所の欄は出さず、集めない（第 2 段階の DEC-10 版 2）。欄の設定と、確かめのときに渡す値は第 4 段階で確かめる
+- name: stripe.confirmSetup
+  does: サーバーが作った SetupIntent（IFC-02）で登録を確かめる。本人の確かめも枠の中で行う
+format: Stripe.js（ブラウザの JavaScript）
+protocol: ブラウザから Stripe へ直接（HTTPS）。カードの情報はサーバーを通らない（DRV-22、NFR-40）
+auth: Stripe の公開の鍵と、SetupIntent の client secret
+errors:
+- case: カードの番号、期限、拒否の誤り
+  signal: 入力部品のエラー
+  caller_does: 入力部品がその場で示す（FR-04 AC2）
+- case: Stripe.js を読み込めない
+  signal: 読み込みの失敗
+  caller_does: 「今は登録できません」と示し、ブラウザのエラーの記録に残す
+- case: 本人の確かめに失敗
+  signal: confirmSetup の失敗
+  caller_does: 理由を示し、もう一度か別のカードを選ばせる
+idempotency: confirmSetup は SetupIntent ごとに一度。二度目は Stripe が今の状態を返す
+timing:
+  timeout: Stripe の部品に任せる
+  ordering: null
+  delivery: null
+versioning: Stripe.js は js.stripe.com から読む（Stripe の版の決まりに従う）。読み込めるスクリプトに js.stripe.com を入れる（DEC-23）
+observability: 結果（成功、失敗の種類）だけをブラウザのエラーの記録（IFC-05）に。入力欄の値は記録しない
+spec: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
+- version: 2
+  date: '2026-11-04'
+  change: Payment Element で請求先の名前、メールアドレス、住所を集めないと書いた
+  reason: '第 3 段階の再実行（2026-11-04）: 第 2 段階の DEC-10 版 2（FND-26 の受け入れ）'

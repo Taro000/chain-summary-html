@@ -1,0 +1,39 @@
+id: QIU-23
+title: 苦情の乗車とドライバーを特定して対処を決める
+status: draft
+version: 1
+basis: inferred
+basis_note: 利用者と CUJ は質問 4・10 で確認済み（説明から下書き）。苦情の記録が今はないことは質問 9 で確認済み。測定量は推定
+needs_agreement: false
+approver_candidates: []
+user: USR-04
+cuj: CUJ-14
+outcomes: []
+need: 乗客の苦情に応え、問題のあるドライバーへの対処を決めたい
+context_of_use:
+  device: 指定なし
+  network: 指定なし
+  user_type: 運営・サポート担当
+  task: 乗車に関する苦情への対応
+  environment: null
+  other: null
+characteristic: effectiveness
+statement: 運営・サポート担当は、乗客から受けた苦情について、その乗車とドライバーを特定し、ドライバーへの対処（対処しないことを含む）を決められる。
+failure_scenario: 苦情の乗車やドライバーを特定できず、対処が決まらないまま、同じドライバーが配車され続ける。
+measure:
+  numerator: 乗車とドライバーを特定し、対処を決めた苦情
+  denominator: 受け付けた乗車に関する苦情
+  narrowed_to: ドライバーの振る舞い、車の清潔さ、運転についての苦情。重複といたずらを除く
+  denominator_needed_only: 乗車に関する苦情だけ。使い方の問い合わせは含めない
+  contribution: 乗車とドライバーの記録を引ける機能に直接つながる
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 質問 4 の回答から下書きし、質問 10 で残すと確認

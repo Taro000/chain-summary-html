@@ -1,0 +1,58 @@
+id: DEC-19
+title: 状態の履歴は管理の画面、ログは Logs Explorer で探す
+status: draft
+version: 1
+basis: confirmed
+basis_note: 質問 2 で確認済み
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+stage: architecture
+question: エンジニアがログと状態の履歴を探す画面をどう用意するか
+addresses:
+- DRV-28
+- DRV-25
+- DRV-26
+options:
+- name: 状態の履歴は管理とエンジニアの画面で、依頼、利用者、時間の範囲で探し、各変化のトレース ID から Logs Explorer を開く。ログは Logs Explorer で探す（使えるのは GCP の権限を持つ人だけ）
+  effect: ログの検索を作らずに済む
+  cost: 履歴とログが二つの画面に分かれ、FR-40 AC1 の一つの時刻順の表示は一部しか満たさない
+- name: サーバーが Cloud Logging の API でログを取り出し、履歴と一つの時刻順に並べる画面を作る
+  effect: FR-40 をそのまま満たす
+  cost: ログを読む権限をサーバーに与え、画面と取り出しを作る
+- name: ログを Turso にも写し、そこで探す
+  effect: 手元でも同じ
+  cost: 二重に持ち、個人情報の置き場所も増える
+chosen: 状態の履歴は管理とエンジニアの画面で、依頼、利用者、時間の範囲で探し、各変化のトレース ID から Logs Explorer を開く。ログは Logs Explorer で探す（使えるのは GCP の権限を持つ人だけ）
+rationale: 利用者が選んだ（質問 2）。CUJ-10 は今期重視しない（QR-23・24・34 は最低限守る線）ので、一人の手間（DRV-26）を主な要求に回す。Logs Explorer の利用は GCP の権限で限られ、DRV-25 を満たす
+rejected:
+- option: サーバーが Cloud Logging の API でログを取り出し、履歴と一つの時刻順に並べる画面を作る
+  reason: DRV-26 で負ける
+- option: ログを Turso にも写し、そこで探す
+  reason: DRV-21 と DRV-26 で負ける
+gains:
+- ログの検索を作らない
+costs:
+- 履歴とログを二つの画面で行き来する
+sensitive_points: []
+trade_offs:
+- with: DRV-28
+  note: 原因の特定（T_rca 30 分）で二つの画面を行き来する
+assumptions:
+- エンジニアの役割は GCP のプロジェクトの権限を持つ開発者本人だけ
+depends_on:
+- DEC-16
+- DEC-18
+parameters: []
+debt:
+  what: FR-40 AC1 の「履歴とログを時刻順に一つに示す」を二つの画面に分ける
+  why_accepted: CUJ-10 は今期重視しない。一人の手間を主な要求に回す（質問 2）
+  repay_when: CUJ-10 を重視に上げるとき、または二つの画面の行き来で原因の特定が遅れたとき
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

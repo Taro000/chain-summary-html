@@ -1,0 +1,14 @@
+id: EBP-02
+title: Error budget policy for the data SLO
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [Product owner]
+applies_to: [NFR-02]
+rules:
+- {when: 'The report missed 6:00', action: File tickets to fix the cause and to cancel that morning's reminders}
+- {when: Late twice in the same month, action: The next sprint puts a review of the nightly job first}
+changelog:
+- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

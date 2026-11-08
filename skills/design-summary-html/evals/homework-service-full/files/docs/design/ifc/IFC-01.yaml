@@ -1,0 +1,56 @@
+id: IFC-01
+title: 提出の API
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: http
+name: 提出の API
+provider: ELM-03
+consumers:
+- ELM-01
+functions:
+- FR-01
+- FR-02
+- FR-06
+operations:
+- name: POST /api/v1/uploads
+  does: 署名付き URL を返す
+- name: POST /api/v1/submissions
+  does: 提出を確定し、受領を返す
+- name: GET /api/v1/submissions/{id}
+  does: 提出と受領を返す
+- name: PUT /api/v1/drafts/{id}
+  does: 下書きを保存する
+format: JSON
+protocol: HTTPS
+auth: セッションのクッキー
+errors:
+- case: 'POST /api/v1/submissions: 締め切りを過ぎた'
+  signal: 409 DEADLINE_PASSED
+  caller_does: 締め切りを過ぎたと示す
+- case: 'POST /api/v1/submissions: ファイルがストレージにない'
+  signal: 422 FILE_MISSING
+  caller_does: もう一度ファイルを置く
+- case: '共通: ログインしていない'
+  signal: 401 UNAUTHENTICATED
+  caller_does: ログインの画面へ
+- case: '共通: 要求の形が違う'
+  signal: 400 INVALID_REQUEST
+  caller_does: 欄を直す
+idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+timing:
+  timeout: ブラウザ 10 秒
+  ordering: null
+  delivery: null
+versioning: 経路に v1
+observability: トレース ID をログに書く
+spec: ifc/specs/submissions.openapi.yaml
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: 作成
+  reason: 第 3 段階の下書き

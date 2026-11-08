@@ -1,0 +1,22 @@
+id: QIU-04
+title: Find the cause of a failure in 30 minutes
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+user: USR-03
+cuj: CUJ-03
+outcomes: []
+need: Developers can find the cause of a failed submission within 30 minutes of being notified.
+context_of_use: {device: Smartphone browser, network: null, user_type: null, task: Find the cause of a failure in 30 minutes, environment: null, other: null}
+characteristic: efficiency
+statement: Developers can find the cause of a failed submission within 30 minutes of being notified.
+failure_scenario: The logs do not connect, and finding the cause takes half a day.
+measure: {numerator: Failures whose cause was found within 30 minutes, denominator: Failures investigated, narrowed_to: Notifications of failures in production, denominator_needed_only: null, contribution: null, observable: true, compared_with: null, scale: ratio}
+kpi: null
+target: null
+target_status: undecided
+changelog:
+- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

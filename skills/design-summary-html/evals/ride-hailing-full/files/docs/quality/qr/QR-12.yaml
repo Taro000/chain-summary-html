@@ -1,0 +1,29 @@
+id: QR-12
+title: 受ける条件による絞り込みの正しさ
+status: draft
+version: 1
+basis: inferred
+basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、条件を設定したドライバーに、受取額の下限と乗車場所までの距離の上限に合う依頼を漏れなく示し、合わない依頼を示さない。
+applies_to: [FR-33, FR-34]
+traces_to: [QIU-17]
+entry_point: null
+stakeholders: [USR-02]
+failure_scenario: 距離を古い現在地や直線で測り、条件に合う依頼が漏れ、ドライバーの受けられる依頼が減る。
+score: {impact: 3, likelihood: 3}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

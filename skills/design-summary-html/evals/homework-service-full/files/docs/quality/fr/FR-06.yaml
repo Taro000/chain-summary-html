@@ -1,0 +1,21 @@
+id: FR-06
+title: 下書きの自動保存
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+statement: システムは、添付したファイルを提出の前に下書きとして保存する。
+origin: proposal
+cuj: CUJ-01
+cuj_step: ファイルを添付する
+traces_to: [QIU-01]
+proposal: FRP-01
+existing: false
+extends: null
+interface: ['画面: 生徒の Web アプリ']
+acceptance_criteria: [通信が切れても、添付したファイルが下書きに残る。]
+quality_hints: []
+changelog:
+- {version: 1, date: '2026-09-03', change: 作成, reason: 第 2 段階の下書き}

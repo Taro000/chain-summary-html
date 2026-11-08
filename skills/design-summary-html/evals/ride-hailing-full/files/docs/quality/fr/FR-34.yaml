@@ -1,0 +1,29 @@
+id: FR-34
+title: 条件に合う依頼だけを示す
+status: draft
+version: 1
+basis: inferred
+basis_note: 第 1 段階のヒント（条件に合う依頼だけを示す）から。金額を受取額で比べることは質問 10 で確認済み
+needs_agreement: false
+approver_candidates: []
+statement: システムは、条件を設定したドライバーの一覧に、受取額が下限以上で、現在地から乗車場所までの距離が上限以内の依頼だけを示す。
+origin: cuj-step
+cuj: CUJ-09
+cuj_step: 配車依頼を受ける条件を設定する（金額・現在地から乗車場所までの距離）
+traces_to: [QIU-12, QIU-17]
+proposal: null
+existing: false
+extends: null
+interface:
+  - "画面: ドライバーの Web アプリ（依頼の一覧）"
+acceptance_criteria:
+  - 条件を設定したドライバーの一覧には、受取額が下限以上で、現在地から乗車場所までの距離が上限以内の依頼だけを示す。
+  - ドライバーが移動して乗車場所までの距離が変わると、示す依頼を選び直す。
+  - 条件を設定していないドライバーには、しきい値（FR-16）で絞った依頼をすべて示す。
+quality_hints:
+  - 利用状況完全性 (QIU-17) - 条件に合う依頼が漏れなく示され、合わない依頼は示されない
+changelog:
+  - version: 1
+    date: 2026-10-28
+    change: 作成
+    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）

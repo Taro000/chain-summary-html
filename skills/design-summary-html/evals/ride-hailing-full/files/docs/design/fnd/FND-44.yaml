@@ -1,0 +1,27 @@
+id: FND-44
+title: URL を公開すると、メールアドレスを知る人が 5 回の失敗で参加者のアカウントを 15 分止められる
+status: accepted
+version: 2
+basis: inferred
+basis_note: DEC-20 の選んだ案と応答を左右する点、DEC-55 のログインの値、FND-23 と FND-27 の URL の公開、FR-01 AC2 とこの段の品質チェーンへの課題 1 は入力。止められることは推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-03-high-level-design.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-20
+- DEC-55
+severity: minor
+evidence: DEC-20 は同じアカウントで 5 回続けて失敗すると 15 分止め、第 3 段階の DEC-55 はそれを受けて、IP ごとのログインを 1 時間に 30 回とする。この上限では、一つの IP から 1 時間に 6 アカウントを止められる。デモの URL は公開され（FND-23、FND-27）、乗客の登録は同じメールアドレスのアカウントの有無を示す（FR-01 AC2。第 3 段階の品質チェーンへの課題 1）。デモの回の最中にドライバーか乗客のアカウントを止められると、その 15 分はその人の CUJ-01〜09 が進まない（DRV-01）。DEC-20 の応答を左右する点は失敗の上限と停止の長さを挙げるが、止めることを攻撃に使われる引き換えは書かれておらず、FND-23（流れの上限と地図の割り当て）もこれを含まない
+suggestion: FND-23 で DEC-21 を決め直すときに、この引き換えも DEC-20 に書く。止める単位をアカウントと IP の組にする、止める代わりに待ち時間を延ばす、デモの回の間は参加者のアカウントを止めない、などを比べる。決めた値は第 3 段階が DEC-55 に追随する
+resolution: 受け入れた。DEC-20（版 3）のログインの一時の停止を、アカウント全体ではなく、同じアカウントと同じ IP の組で数える形にした（5 回続けて失敗するとその組を 15 分止める）。アカウント全体を止める形（一つの IP から 1 時間に 6 アカウントを締め出せる）、待ち時間を延ばす形（本人も待つ）、デモの回の間は参加者を止めない形（参加者を見分ける手段がない）と比べた。多くの IP からの総当たり（100 の IP で 1 時間に 2,000 回）を残る危険（負債）にし、要合意にした。値は第 3 段階の DEC-55 が追随する
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 出した
+  reason: 第 3 段階のレビュー（DRV-29 の通し確認）
+- version: 2
+  date: '2026-11-03'
+  change: 受け入れた（DEC-20 を直した）
+  reason: architecture-drivers-to-architecture の再実行（第 2 段階の再実行、3 回目）

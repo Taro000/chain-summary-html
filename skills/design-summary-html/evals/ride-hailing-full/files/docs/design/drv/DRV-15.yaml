@@ -1,0 +1,51 @@
+id: DRV-15
+title: 変更を自動のテストで確かめてから出す
+status: draft
+version: 3
+basis: inferred
+basis_note: シナリオは QR-43 と NFR-08・27 ほかのゲートから（入力）。配備を止めるゲートにすることは品質チェーン第 4 段階の質問 2、道具を足してよいことは質問 3、CI の場所は質問 9 で確認済み。難しさと順位は推定で要合意
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 開発の責任者]
+kind: change
+statement: 手配から決済と返金までの主要な流れと外部の失敗の扱いを、本番に出す前に自動で確かめ、落ちたら配備を止める
+sources: [QR-43, NFR-08, NFR-27, NFR-10, NFR-11, NFR-13, NFR-16, NFR-22, NFR-30, NFR-31, NFR-35, NFR-37, NFR-39, NFR-40, NFR-42, FR-41, TC-13, TC-14]
+concern_of: [USR-03]
+scenario:
+  source: 開発者本人（TEAM-01）
+  stimulus: 配車、決済、画面のコードを変える
+  artifact: システム全体と CI（GitHub のホストされた CI。TC-14）
+  environment: 開発の間。毎回の配備の前
+  response: 地図と決済の代わり、与えた位置の列、実時間を待たずに時刻の規則（T_match_wait、T_request_max、T_hold_wait、T_noshow_wait、T_cancel_grace、毎日の処理）を確かめる手段で、主要な流れ（CUJ-01〜09）と外部の失敗の扱い（結果の分からない押さえを含む）を自動で確かめ、落ちたら配備を止める
+  measure: 配備を止めるゲート（NFR-08、NFR-27）と、ほかの CI のゲート（NFR-10、11、13、16、22、30、31、35、37、39、40、42）がすべて通る
+negotiable: null
+derived_from: []
+priority:
+  business: medium
+  business_reason: QR-43 は最低限守る線。配備を止めるゲートにすることは品質チェーン第 4 段階の質問 2 で確認済み
+  difficulty: medium
+  difficulty_reason: 外部のサービス、位置、時刻を差し替える口が構造全体に要る。画面のテストなどには道具を足す（TC-13）
+  rank: 23
+primary: false
+conflicts:
+  - with: DRV-26
+    note: CI のゲート 21 件を一人で作って回す。量は受け入れた（質問 13）
+placeholders:
+  - name: T_match_wait
+    meaning: 手配から何分許諾されなければ乗客に知らせるか
+    from: FR-08
+  - name: T_noshow_wait
+    meaning: 乗車場所に着いてから何分待てば不在として終えられるか
+    from: FR-27
+  - name: T_cancel_grace
+    meaning: 許諾のときに示した到着予定から、迎車が何分遅れたらキャンセル料をかけないか
+    from: FR-07
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - version: 2
+    date: 2026-11-03
+    change: DRV-26 との競合を、量を受け入れた（質問 13）と書いた
+    reason: 第 1 段階の再実行（質問 13 の回答）
+  - version: 3
+    date: 2026-11-03
+    change: 実時間を待たずに確かめる時刻の規則に T_request_max と T_hold_wait を、外部の失敗の扱いに結果の分からない押さえを足した
+    reason: 品質チェーンの再実行（FR-05・08・12、NFR-27）に追随した（第 1 段階の再実行、3 回目）

@@ -1,0 +1,31 @@
+id: DAT-28
+title: 入口の要求のログ
+status: draft
+version: 1
+basis: inferred
+basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
+needs_agreement: false
+approver_candidates: []
+entity: Cloud Run の入口の要求のログ
+owner: ELM-17
+store: ELM-08
+key_attributes:
+- timestamp
+- httpRequest（requestMethod、requestUrl、status、latency、remoteIp、userAgent）
+- trace、spanId
+relations:
+- to: DAT-27
+  kind: one-to-one
+  note: アプリのログ
+consistency: Cloud Run の入口が書く（アプリは書かない）。URL をそのまま残すので、URL に位置、連絡先、名前、検索の語を入れない（DEC-16、DEC-47）
+retention: 30 日（Cloud Logging の既定）
+classification: personal（IP アドレス）
+drivers:
+- DRV-27
+- DRV-01
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

@@ -1,0 +1,35 @@
+id: NFR-19
+title: 評価の分布を見直す
+status: draft
+version: 2
+basis: inferred
+basis_note: 見直しの時期は提案。「差が出ていない」とは、それらのドライバーの評価値が、しきい値の選択肢の一段の幅に収まること（推定）
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-31
+kind: audit
+cuj: CUJ-05
+statement: デモの期間ごとに、評価の件数が N_min_ratings 以上のドライバーの評価値の分布を見る。差が出ていなければ、評価値の計算を変える提案を出す。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit:
+  mechanism: 評価値と評価の件数（FR-15）の分布の見直し
+  criterion: 評価の件数が N_min_ratings 以上のドライバーの評価値が、しきい値の選択肢の一段の幅に収まるなら、評価値の計算を変える提案を第 2 段階に出す
+  cadence_or_deadline: デモの期間ごと
+monitor: null
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

@@ -1,0 +1,22 @@
+id: FND-61
+title: DEC-30 の引き換えが空で、確認コードが合わないときの道が第 2 段階にない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- DEC-30
+severity: minor
+evidence: 'DEC-30 は trade_offs: [] だが、失うものに「乗客の流れが切れていると、正しい車でも乗客の画面が変わらず、乗客が疑う」とあり、セキュリティの確かめが配信（DRV-02）に頼る。流れの上限で 429 になると画面は 15 秒ごとの取り直しになり、DEC-21 の残る危険（枠が埋まる）のときは変わらない。FR-26 版 2 の AC3「変わらなければ手配した車ではないと案内する」には待つ時間の目安がない。また第 3 段階は一つの割り当てで 10 回違ったら止め「乗客と確かめて、取り消すよう示す」が、この取り消し（料金がかかるか）が DEC-30 にも FR-26 にもない'
+suggestion: DEC-30 に DRV-02（と DRV-01）との引き換えを書く。乗客への案内に待つ時間の目安と取り直しを足す。コードが続けて合わないときの止め方と、その後の取り消しの扱いを DEC-30 の設計上の値か前提にする
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A4、A2（CUJ-07）

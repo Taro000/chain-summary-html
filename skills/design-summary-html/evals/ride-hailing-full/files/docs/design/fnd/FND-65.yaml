@@ -1,0 +1,25 @@
+id: FND-65
+title: 要素の decisions と情報のビューが、4 回目の再実行で変わった受け持ちを映していない
+status: open
+version: 1
+basis: inferred
+basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
+needs_agreement: false
+approver_candidates: []
+raised_by: design-review
+raised_in: reviews/2026-11-04-architecture.md
+to: architecture-drivers-to-architecture
+targets:
+- ELM-05
+- ELM-01
+- ELM-02
+- DEC-05
+severity: minor
+evidence: ELM-05（版 4）は毎日の処理で T_request_max を過ぎた依頼を配車のモジュールで取り消し、確かめ中の押さえと返金を片付け、DEC-35 のチケットと DEC-29 の印の一覧を作るが、decisions に DEC-09・10・29・35 がない。ELM-01（版 3）は設定の符号の画面を足したが decisions に DEC-20 がなく、ELM-02 の decisions には DEC-20 と DEC-30（確認コード）がない。情報のビューの「配車依頼と乗車の状態」の出どころは「ELM-01・02 の操作、時刻の見回り」で ELM-05 がなく、DEC-05 の節と情報のビューは毎日の処理が書くものを「支払いの状態、状態の履歴の匿名化」だけとする
+suggestion: ELM-05・01・02 の decisions を足し、情報のビューと DEC-05 の節に毎日の処理が依頼の状態と履歴を書くことを足す
+resolution: null
+changelog:
+- version: 1
+  date: '2026-11-04'
+  change: Raised
+  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A5、A6

@@ -1,0 +1,21 @@
+id: FR-02
+title: Receipt display
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+statement: When the system accepts a submission, it shows the student a receipt number and time.
+origin: quality-in-use
+cuj: CUJ-01
+cuj_step: Submit
+traces_to: [QIU-02]
+proposal: null
+existing: false
+extends: null
+interface: ['Screen: the student web app']
+acceptance_criteria: [The receipt number and time are shown right after submitting., Past receipts can be opened from the submission history.]
+quality_hints: []
+changelog:
+- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

@@ -1,0 +1,25 @@
+id: ELM-04
+title: データベース
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: data-store
+name: データベース
+responsibility: 課題、提出の記録、採点を持つ
+functions: []
+drivers:
+- DRV-03
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: 作成
+  reason: 第 2 段階の下書き

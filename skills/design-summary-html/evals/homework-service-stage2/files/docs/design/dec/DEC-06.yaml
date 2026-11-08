@@ -1,0 +1,39 @@
+id: DEC-06
+title: 保護者向けの画面の作り
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+stage: architecture
+question: 保護者向けの画面を、どの Web アプリにどう足すか
+addresses:
+- DRV-04
+options:
+- name: 三つ目の Web アプリ
+  effect: 今の Web アプリを変えない
+  cost: 配備するものが増える
+- name: 生徒の Web アプリに役割を足す
+  effect: 配備するものが増えない
+  cost: 生徒の画面の変更と重なる
+chosen: null
+rationale: 保護者の画面を作るかが、まだ決まっていない（CHG-01）。
+rejected: []
+gains: []
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on: []
+parameters: []
+debt: null
+deferred: true
+revisit_when: 保護者の画面を作ると決めたとき
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-25'
+  change: 作成
+  reason: 第 2 段階の再実行

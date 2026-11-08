@@ -1,0 +1,40 @@
+id: NFR-06
+title: 毎日の突き合わせと履歴の確かめの進み具合
+status: draft
+version: 3
+basis: inferred
+basis_note: 9:00 と 8:30 は提案。NFR-04・05 の締め切りの型の進み具合のアラート
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+- 開発の責任者
+from:
+- QR-32
+- QR-33
+kind: monitor
+cuj: CUJ-08
+statement: 前日分の突き合わせ（FR-55）と履歴の確かめが、毎朝 9:00 までに終わる。8:30 に終わっていなければエンジニアに知らせる。
+conditions:
+  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
+  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
+  transactions: null
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 突き合わせと履歴の確かめの処理の終了の記録
+  threshold: 8:30（日本時間）に前日分が終わっていない
+  notifies: エンジニア（チャット）。9:00 を過ぎたらチケット
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 作成
+  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+- version: 2
+  date: '2026-11-01'
+  change: 突き合わせを FR-55 にした
+  reason: 第 4 段階の再実行（第 2 段階 7d0cb6d・08c3ee0、第 3 段階 156240c・9c28917）
+- version: 3
+  date: '2026-11-03'
+  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
+  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

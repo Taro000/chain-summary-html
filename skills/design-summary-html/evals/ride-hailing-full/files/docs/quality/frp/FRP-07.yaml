@@ -1,0 +1,28 @@
+id: FRP-07
+title: 状態の変化を画面に示した時刻を記録する
+status: accepted
+version: 2
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+proposed_by: product-quality-to-slo
+origin:
+- QR-02
+changes: null
+reason: QR-02 は状態の変化が相手の画面にすぐ届くことを求めるが、相手の画面に示した時刻を記録する FR がない。サーバーの側からは、携帯の回線とブラウザの中の遅れが見えない。
+suggested_statement: システムは、依頼と状態の変化を相手の画面に示したとき、示した時刻を、状態の変化の ID と相手のアカウントとともにサーバーに送って記録する。
+affects:
+- NFR-02
+- SLI-02
+placeholders: []
+resolution: FR-54 として受け入れた（新しい FR）。
+changelog:
+- version: 1
+  date: '2026-10-31'
+  change: 提案
+  reason: 第 4 段階の下書き
+- version: 2
+  date: '2026-11-01'
+  change: 受け入れた（FR-54）
+  reason: 第 2 段階の質問 14〜17（2026-11-01）

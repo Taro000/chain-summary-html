@@ -1,0 +1,26 @@
+id: DAT-01
+title: Assignment
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+entity: Assignment
+owner: ELM-03
+store: ELM-04
+key_attributes: []
+relations:
+- to: DAT-02
+  kind: one-to-many
+  note: Submissions
+consistency: Written per request from teachers
+retention: Until the end of the school year
+classification: internal
+drivers: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-22'
+  change: Created
+  reason: Stage 3 draft

@@ -1,0 +1,29 @@
+id: QR-45
+title: 依頼の状態の変化を一か所で定める
+status: draft
+version: 1
+basis: inferred
+basis_note: 外部品質 QR-10、QR-11、QR-16 から導いた。点は持たない
+needs_agreement: true
+approver_candidates: [開発の責任者]
+model: product
+layer: internal
+characteristic: maintainability > modularity
+statement: 配車依頼の状態を変える処理は一つの部品にまとまり、許される状態の変化（割り当て、取り消し、停止、しきい値と条件の判定）が一か所で定められている。
+applies_to: [FR-16, FR-20, FR-22, FR-34, FR-47]
+traces_to: [QIU-01, QIU-10, QIU-11, QIU-13, QIU-23]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 割り当て、取り消し、停止の判定が経路ごとに別々に書かれ、一つを直しても別の経路に古い判定が残り、停止したドライバーやしきい値に満たないドライバーに割り当てられる。
+score: null
+handling: emphasized
+handling_reason: QR-10、QR-11、QR-16（重視）を支える内部品質で、その扱いを受け継ぐ
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

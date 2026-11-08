@@ -1,0 +1,32 @@
+id: DRV-06
+title: 2 人で、月 3 万円以内で作って動かす
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- プロダクトオーナー
+kind: constraint
+statement: 開発者 2 人が作って動かし、走る費用は月 3 万円以内
+sources:
+- PC-01
+- PC-03
+concern_of: []
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: 交渉できない制約
+  difficulty: low
+  difficulty_reason: 構成を小さく保てば満たせる
+  rank: 5
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: 作成
+  reason: 第 1 段階の下書き

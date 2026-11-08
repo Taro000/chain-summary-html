@@ -1,0 +1,42 @@
+id: QR-38
+title: 位置情報と乗車の記録を見られる人を限る
+status: draft
+version: 3
+basis: inferred
+basis_note: 分類は質問 4 で確認済み。法令の中身と点は推定。現在地の受信の記録（FR-17 版 2）を苦情の調べ（FR-45 版 2）で示すようになったので対象に加えた（推定）
+needs_agreement: true
+approver_candidates: [プロダクトオーナー, 法令を確かめる担当（推定）]
+model: product
+layer: external
+characteristic: security > confidentiality
+statement: システムは、乗客とドライバーの位置情報（現在地の受信の記録を含む）と乗車の記録を、見る必要のある人（迎車中の担当のドライバー、本人、役割に応じた運営・サポート担当とエンジニア）にだけ見せる。
+applies_to: [FR-17, FR-24, FR-40, FR-44, FR-45]
+traces_to: []
+entry_point:
+  type: law
+  source: 個人情報保護法（位置情報、乗車の記録）。context.yaml のヒント。参加者は実在の人で位置情報も本物なので法令として扱う（第 1 段階の質問 20・22）
+  brought_by: 利用者（第 1 段階の質問 7 の回答）
+stakeholders: [USR-01, USR-02, USR-03, USR-04]
+failure_scenario: 乗車が終わった後もドライバーが乗客の位置を見られる。運営・サポート担当やエンジニアが関係のない乗客の移動の記録を見られる。苦情と関係のない乗車の現在地の受信の記録（ドライバーの走行の跡）を、管理の画面で見られる。
+score: {impact: 4, likelihood: 2}
+handling: minimum-line
+handling_reason: 法令から来る要求なので点に関わらず残す。参加者の位置情報は本物（質問 10）だが、事業化しないデモなので最低限守る線
+implies_internal: []
+conflicts:
+  - with: QR-27
+    note: 乗客の現在地をドライバーに見せることと見る人を限ること。迎車中だけ、乗客が許可したときだけ見せる（FR-24）
+stated_numbers: []
+placeholders: []
+changelog:
+  - version: 1
+    date: 2026-10-30
+    change: 作成
+    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - version: 2
+    date: 2026-10-31
+    change: 法令として扱う根拠を記録した
+    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+  - version: 3
+    date: '2026-11-03'
+    change: 現在地の受信の記録を対象に加えた（FR-17 を対象に足した）
+    reason: 第 2 段階の再実行（2026-11-03）の FR-17 版 2・FR-45 版 2 への追随（docs/quality-chain-answers.md の設計 2-3）

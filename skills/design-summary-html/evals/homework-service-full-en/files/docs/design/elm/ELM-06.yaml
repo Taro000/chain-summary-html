@@ -1,0 +1,27 @@
+id: ELM-06
+title: Nightly batch
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: Nightly batch
+responsibility: Builds the submission report every night
+functions:
+- FR-05
+drivers:
+- DRV-06
+decisions: []
+team: TEAM-01
+technology: null
+runs_on: ELM-07
+depends_on:
+- ELM-04
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

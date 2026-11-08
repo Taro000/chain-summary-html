@@ -1,0 +1,47 @@
+id: DEC-03
+title: Write the record before showing the receipt
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: false
+approver_candidates: []
+stage: architecture
+question: How do receipts stay in line with the submission records?
+addresses:
+- DRV-03
+- DRV-09
+options:
+- name: Write the record in one transaction, then return the receipt
+  effect: Receipts never disagree with records
+  cost: Confirmation is a little slower
+- name: Return the receipt first and write the record later
+  effect: Fast confirmation
+  cost: A receipt can show without a record
+chosen: Write the record in one transaction, then return the receipt
+rationale: It follows principle DRV-09. The previous version showed the receipt first (FND-01).
+rejected:
+- option: Return the receipt first and write the record later
+  reason: Records can go missing (DRV-03 version 2)
+gains:
+- A receipt always has a record
+costs:
+- The write adds to the confirmation time (DRV-02)
+sensitive_points:
+- The time the write takes
+trade_offs:
+- with: DRV-02
+  note: Confirmation is slower by the write
+assumptions: []
+depends_on:
+- DEC-01
+parameters: []
+debt: null
+deferred: false
+revisit_when: null
+as_is: new
+changelog:
+- version: 1
+  date: '2026-09-18'
+  change: Created
+  reason: Stage 2 draft

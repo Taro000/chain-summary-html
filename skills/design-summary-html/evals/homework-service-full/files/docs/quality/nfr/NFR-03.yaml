@@ -1,0 +1,19 @@
+id: NFR-03
+title: 受領の表示の E2E テスト
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates: [プロダクトオーナー]
+from: [QR-03]
+kind: gate
+cuj: CUJ-01
+statement: 提出から受領の表示までを E2E テストで確かめ、失敗したら配備を止める。
+conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+slo: null
+gate: {where: CI, check: 提出から受領の表示までの E2E テスト, threshold: 失敗 0 件}
+audit: null
+monitor: null
+changelog:
+- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

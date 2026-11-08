@@ -1,0 +1,28 @@
+id: ELM-23
+title: 書き出しの置き場所（開発者の手元）
+status: draft
+version: 1
+basis: inferred
+basis_note: 書き出しを手元に暗号化して置くことは質問 6 で確認済み。残す数と消すときは提案
+needs_agreement: false
+approver_candidates: []
+kind: data-store
+name: 書き出しの置き場所（開発者の手元）
+responsibility: デモの回の終わりのデータベースの書き出し（全員の個人情報を含む）を、パスフレーズで暗号化したファイルとして持つ。最新の二つまで。システムを終えるときにすべて消す
+functions: []
+drivers:
+- DRV-13
+- DRV-21
+decisions:
+- DEC-28
+- DEC-36
+team: TEAM-01
+technology: 暗号化したファイル（開発者の手元のディスク）
+runs_on: ELM-21
+depends_on: []
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: FND-09（第 2 段階のレビュー）を受け入れた（第 2 段階の再実行）

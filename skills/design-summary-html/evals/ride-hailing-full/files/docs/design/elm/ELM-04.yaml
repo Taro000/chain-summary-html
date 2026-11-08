@@ -1,0 +1,148 @@
+id: ELM-04
+title: サーバー
+status: draft
+version: 5
+basis: inferred
+basis_note: 提案
+needs_agreement: false
+approver_candidates: []
+kind: component
+name: サーバー
+responsibility: API（認証と役割、配車の状態遷移、料金と到着予定、お金の操作、位置、評価、設定、苦情、管理）、SSE の配信（状態の履歴と受付の記録の追いかけ、相手の位置と到着予定の今の値。DEC-03）、時刻の見回り（T_request_max でのシステムの取り消し、T_hold_wait までの押さえの確かめを含む。DEC-04）、知らせ（送ってから記録を書く。DEC-17）、Web アプリの静的なファイルの配布、構造化ログ。SSE 以外の経路ごとの上限（乗車の終了と降車場所の変更の確定は 20 秒）と Turso の呼び出しの上限（DEC-33）、流れの本数の上限（DEC-21）、ログインと設定の符号の回数の制限とログインの停止（アカウントと IP の組。DEC-20、DEC-21）、座標の表を読む相手の確かめ（位置のモジュール。DEC-15）。SLO のアラートの毎分の評価（SLI-01 の 1 分ごとの数、SLI-03 の毎分の確かめ。後から届いた裏の記録で除き直す。DEC-35）
+functions:
+- FR-01
+- FR-02
+- FR-03
+- FR-04
+- FR-05
+- FR-06
+- FR-07
+- FR-08
+- FR-09
+- FR-10
+- FR-11
+- FR-12
+- FR-13
+- FR-14
+- FR-15
+- FR-16
+- FR-17
+- FR-18
+- FR-19
+- FR-20
+- FR-21
+- FR-22
+- FR-23
+- FR-24
+- FR-25
+- FR-26
+- FR-27
+- FR-28
+- FR-29
+- FR-30
+- FR-31
+- FR-32
+- FR-33
+- FR-34
+- FR-36
+- FR-37
+- FR-38
+- FR-39
+- FR-40
+- FR-43
+- FR-44
+- FR-45
+- FR-46
+- FR-47
+- FR-48
+- FR-49
+- FR-50
+- FR-51
+- FR-54
+drivers:
+- DRV-01
+- DRV-02
+- DRV-03
+- DRV-04
+- DRV-05
+- DRV-06
+- DRV-08
+- DRV-10
+- DRV-11
+- DRV-13
+- DRV-14
+- DRV-15
+- DRV-16
+- DRV-17
+- DRV-18
+- DRV-20
+- DRV-21
+- DRV-22
+- DRV-23
+- DRV-25
+- DRV-26
+- DRV-27
+- DRV-28
+- DRV-29
+- DRV-30
+- DRV-31
+- DRV-32
+- DRV-33
+decisions:
+- DEC-01
+- DEC-02
+- DEC-03
+- DEC-04
+- DEC-08
+- DEC-09
+- DEC-10
+- DEC-11
+- DEC-12
+- DEC-14
+- DEC-15
+- DEC-16
+- DEC-17
+- DEC-18
+- DEC-20
+- DEC-21
+- DEC-22
+- DEC-29
+- DEC-30
+- DEC-31
+- DEC-32
+- DEC-33
+- DEC-34
+- DEC-35
+- DEC-37
+team: TEAM-01
+technology: Node.js の上の Hono（TC-03、DEC-32）
+runs_on: ELM-17
+depends_on:
+- ELM-07
+- ELM-08
+- ELM-10
+- ELM-11
+- ELM-12
+- ELM-05
+as_is: new
+changelog:
+- version: 1
+  date: '2026-11-03'
+  change: 作成
+  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
+- version: 2
+  date: '2026-11-03'
+  change: 責務に経路と Turso の呼び出しの上限、流れの本数の上限、座標の表を読む相手の確かめを足し、DEC-33・34・37 を加えた
+  reason: FND-07、08、12、13、05（第 2 段階のレビュー）を受け入れた
+- version: 3
+  date: '2026-11-03'
+  change: 責務に SLO のアラートの毎分の評価を足し、DEC-35 を加えた
+  reason: DEC-35 の作り直し（第 1 段階の質問 13、第 2 段階の質問 18。第 2 段階の再実行、2 回目）
+- version: 4
+  date: '2026-11-03'
+  change: 責務に、配信の出どころ（受付の記録、相手の位置と到着予定の今の値）、知らせを送ってから記録を書くこと、経路ごとの上限、流れの優先、地図の取り置き、ログインの停止の単位、裏の記録での除き直しを足した。依存に ELM-05（突き合わせの結果を読む。第 3 段階の IFC-10、DEC-53）を足した
+  reason: FND-20、21、23、24、28、44 を受け入れた（第 2 段階の再実行、3 回目）。質問 22 の回答
+- version: 5
+  date: '2026-11-03'
+  change: 時刻の見回りに T_request_max でのシステムの取り消しと T_hold_wait までの押さえの確かめを書いた。流れの優先と地図の日ごとの数えと取り置きを外し、設定の符号の回数の制限を足した
+  reason: 品質チェーンの再実行（FR-05 版 3、FR-08 版 2、FR-12 版 4、FR-01 版 3）と DEC-04 版 3、DEC-21 版 5、DEC-22 版 3 に追随した（第 2 段階の再実行、4 回目）

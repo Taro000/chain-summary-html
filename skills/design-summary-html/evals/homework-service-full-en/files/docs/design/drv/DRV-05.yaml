@@ -1,0 +1,31 @@
+id: DRV-05
+title: Submitted files are kept in the external storage
+status: draft
+version: 1
+basis: inferred
+basis_note: null
+needs_agreement: true
+approver_candidates:
+- Product owner
+kind: constraint
+statement: Submitted files go to the external storage (ObjectStore), never to our servers
+sources:
+- TC-02
+concern_of: []
+scenario: null
+negotiable: false
+derived_from: []
+priority:
+  business: high
+  business_reason: A non-negotiable constraint
+  difficulty: medium
+  difficulty_reason: A storage outage can stop submissions
+  rank: 3
+primary: true
+conflicts: []
+placeholders: []
+changelog:
+- version: 1
+  date: '2026-09-15'
+  change: Created
+  reason: Stage 1 draft

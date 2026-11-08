@@ -1,0 +1,25 @@
+id: DRV-30
+title: お金の操作は繰り返しても一度だけ
+status: draft
+version: 2
+basis: inferred
+basis_note: QR-09・17・21 と FR-05・12・30・31・50 から導いた原則。失敗と分かった後のやり直しを新しい操作とすることは FR-30 版 4・FR-50 版 4（入力）
+needs_agreement: false
+approver_candidates: []
+kind: principle
+statement: お金を動かす操作（押さえ、請求、返金）は、何度繰り返しても一度しか動かない。結果が分からないときのやり直しは同じ操作として扱い（同じキー）、失敗と分かった後のやり直し（別の支払い手段での払い直し、返金のやり直し）は新しい操作として扱う（新しいキー）。額はサーバーが確定した料金と額だけから求め、ブラウザから送られた額は使わない
+sources: [QR-09, QR-17, QR-21, FR-05, FR-12, FR-30, FR-31, FR-50]
+concern_of: [USR-01, USR-02, USR-04]
+scenario: null
+negotiable: false
+derived_from: [DRV-04, DRV-29]
+priority: null
+primary: false
+conflicts: []
+placeholders: []
+changelog:
+  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - version: 2
+    date: 2026-11-03
+    change: 結果が分からないときのやり直しは同じ操作（同じキー）、失敗と分かった後のやり直しは新しい操作（新しいキー）として扱うと書いた
+    reason: 品質チェーンの再実行（FR-30 版 4、FR-50 版 4。回答の設計 3-2、品質チェーン第 2 段階の質問 21）に追随した（第 1 段階の再実行、3 回目）

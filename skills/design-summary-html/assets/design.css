@@ -1,0 +1,171 @@
+/* design-summary-html: additions to base.css (a copy of quality-summary-html's summary.css).
+   The layout is the same, and so is the amount of color: one accent hue, used only where quality-summary-html uses
+   its blue (links and IDs, the route, stage numbers, hover and focus, one filled mark per table for the state that
+   matters: a primary driver, the chosen option, and an outline for the highest level, as quality-summary-html
+   outlines the SLO type). Everything else is neutral: no decoration, no second hue, and
+   the diagrams are drawn in ink. The accent is orange instead of blue: the tokens of base.css are redefined here
+   from the skill's icon (#e2531b), with warm neutrals to match, and design.css and design.js add no token of their
+   own. --route is darkened from #e2531b so that white text on it keeps 4.5:1, and --route-ink keeps 4.5:1 on
+   --route-soft */
+:root{
+  --paper:#f7f4f1;
+  --surface:#ffffff;
+  --head:#faf7f4;
+  --ink:#2a1f18;
+  --ink-2:#574a42;
+  --ink-3:#7c6f66;
+  --rule:#e5ddd5;
+  --rule-soft:#f0eae4;
+  --route:#c9461a;
+  --route-ink:#a8320e;
+  --route-soft:#fdeee3;
+  --route-line:#f4c4a3;
+  --on-route:#ffffff;
+  --risk:#f9a330;
+  --pickup:#fde7a6;
+  --tip-bg:#2a1f18;
+  --tip-fg:#ffffff;
+}
+
+.tip{box-shadow:0 6px 18px rgba(42,31,24,.2)}
+
+/* IDs: links to the quality summary are dotted */
+a.id.ext{text-decoration-style:dotted}
+
+/* nested toggles (decision cards, flows, screens, states, views, latency budgets) */
+.tbl-body > .item:first-child,.tbl-body > .idx + .item{margin-top:0}
+.item{margin:0 16px;border:1px solid var(--rule-soft);border-radius:8px;background:var(--surface)}
+.item + .item{margin-top:8px}
+.tbl-body > .item:last-child{margin-bottom:16px}
+.item > summary{display:flex;align-items:baseline;gap:10px;padding:9px 12px;cursor:pointer;list-style:none;border-radius:8px}
+.item > summary::-webkit-details-marker{display:none}
+.item > summary:hover{background:var(--head)}
+.item > summary:focus-visible{outline:2px solid var(--route);outline-offset:-2px}
+.item[open] > summary{border-bottom:1px solid var(--rule-soft);border-radius:8px 8px 0 0}
+.item > summary .chev{align-self:center}
+.item[open] > summary .chev{transform:translateY(2px) rotate(-135deg)}
+.i-id{flex:none;font-family:var(--f-mono);font-size:12.5px;font-weight:500;color:var(--route-ink);white-space:nowrap}
+.i-title{font-weight:700;font-size:14px;line-height:1.5}
+.item-body{display:flex;flex-direction:column;gap:12px;padding:12px 0 14px}
+.item-body > .tbl-wrap{border-top:1px solid var(--rule-soft);border-bottom:1px solid var(--rule-soft)}
+.item-body > .tbl-wrap:first-child{border-top:0;margin-top:-12px}
+.item-body > .list-label{padding-inline:16px}
+.item-body > .mmd{margin:0 12px}
+.item.hit > summary{animation:hit 2.8s ease-out}
+
+/* index inside a toggle: links in neutral boxes (a filled or tinted chip marks a state, which an index has none of) */
+.idx{display:flex;flex-wrap:wrap;gap:5px;padding:0 16px}
+.idx a.chip{font-size:11.5px;background:var(--surface);border-color:var(--rule)}
+
+/* design concerns */
+.vp{margin:0;padding:4px 16px 16px;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 20px;font-size:13.5px;line-height:1.65}
+.vp dt{font-weight:700;white-space:nowrap}
+.vp dd{margin:0}
+@media (max-width:760px){.vp{grid-template-columns:minmax(0,1fr);gap:2px 0}.vp dd{margin-bottom:10px}}
+
+/* table details. Levels (priority, difficulty): the highest is outlined in the accent, as base.css outlines the SLO
+   type (.ntype.is-slo), so that a long ranking can be scanned for it; medium and low are told apart by the darkness
+   of the ink. Only the primary drivers are filled */
+.lvl{display:inline-block;min-width:1.9em;text-align:center;font-size:12px;font-weight:700;border-radius:3px;padding:0 5px;border:1px solid var(--rule);background:var(--surface)}
+.lvl-h{border-color:var(--route);color:var(--route-ink)}
+.lvl-m{color:var(--ink-2)}
+.lvl-l{color:var(--ink-3)}
+.rank td,.rank th{vertical-align:top}
+.more{display:inline-block;margin-top:4px;font-size:12px}
+.rk{color:var(--ink-3);font-size:12px;margin-left:2px}
+.mk{display:inline-block;margin-right:6px;font-size:11.5px;font-weight:700;line-height:1.45;padding:0 6px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.mk-ok{background:var(--route);color:var(--on-route);border-color:var(--route)}
+.mk-part{background:var(--surface);color:var(--ink-2);border:1px dashed var(--ink-3)}
+.mk-n{display:block;margin-top:4px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
+
+/* decision cards (dec/*.yaml): the question, the options, then the rest as a definition list */
+.opts td,.opts th{min-width:13em}
+.opts thead th:last-child,.opts td:last-child{min-width:11em}
+.opts tr.is-chosen > th{font-weight:700}
+.vp.dec{padding:0 16px}
+.item-body > .vp.dec:last-child{padding-bottom:2px}
+.vp.dec dd ul{margin:0;padding-left:1.2em}
+.vp.dec dd li + li{margin-top:3px}
+.nr .note{display:block;margin-top:2px;font-size:12px;line-height:1.5;color:var(--ink-2)}
+.nr{display:block}
+.nr + .nr{margin-top:6px}
+.nr .opt{display:block}
+.vs{margin-right:6px;font-size:12px;color:var(--ink-3)}
+.in-bul{margin:0;padding-left:1.2em}
+.in-bul li + li{margin-top:4px}
+
+/* group heading rows and merged cells */
+table tr.grp th{background:var(--paper);padding:8px 12px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);font-family:var(--f-display);font-weight:700;font-size:14px;color:var(--ink)}
+table tbody tr.grp:first-child th{border-top:0}
+.grouped th[rowspan]{background:var(--surface);border-right:1px solid var(--rule-soft)}
+.grouped tr.g-start > *{border-top:1px solid var(--rule)}
+.grouped tbody tr:first-child > *{border-top:0}
+.grouped td,.grouped th{border-bottom-color:var(--rule-soft)}
+.actrace td:nth-child(3),.actrace td:nth-child(2){font-size:12.5px}
+
+/* Mermaid diagrams */
+.mmd{margin:0 16px;border:1px solid var(--rule-soft);border-radius:8px;background:var(--surface);overflow:hidden}
+.tbl-body > .mmd:first-child{margin-top:0}
+.mmd-bar{display:flex;justify-content:flex-end;gap:6px;padding:6px 8px 0}
+.mmd-fit,.mmd-full{font:inherit;font-size:12px;line-height:1.4;padding:3px 9px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);border-radius:5px;cursor:pointer}
+.mmd-fit:hover,.mmd-full:hover{border-color:var(--route-line);color:var(--route-ink)}
+.mmd-overlay{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:var(--paper)}
+.mmd-ov-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid var(--rule);background:var(--surface)}
+.mmd-ov-title{font-weight:700;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mmd-ov-body{flex:1;overflow:auto;padding:16px}
+.mmd-ov-body svg{display:block;margin:0 auto;max-width:none!important;background:var(--surface);border:1px solid var(--rule-soft);border-radius:8px;padding:8px}
+.mmd-fit[aria-pressed="true"]{background:var(--route-soft);border-color:var(--route-line);color:var(--route-ink)}
+.mmd-out{overflow:auto;padding:6px 12px 14px;max-height:none}
+.mmd-out svg{display:block;margin:0 auto;height:auto}
+.mmd.fit .mmd-out svg{max-width:100%!important;width:100%}
+.mmd-wait{margin:8px 4px;font-size:12.5px;color:var(--ink-3)}
+.mmd-err{margin:6px 4px;font-size:12.5px;color:var(--route-ink)}
+.mmd-err + pre{margin:0;padding:10px;font-family:var(--f-mono);font-size:11.5px;line-height:1.5;white-space:pre-wrap;background:var(--head);border-radius:6px}
+.mmd .edgeLabel,.mmd .edgeLabel p{font-size:12px}
+
+/* latency budget charts: one series, in the accent (white labels on it: 4.8:1; every value is also in the tooltip
+   and the value table) */
+.bud{margin:0 16px;display:flex;flex-direction:column;gap:10px}
+.bud-legend{padding-inline:0}
+.sw{display:inline-block;width:14px;height:10px;border-radius:3px}
+.sw.k-hop,.seg.k-hop{background:var(--route)}
+.sw-track{background:var(--rule-soft)}
+.sw-th{width:2px;height:14px;border-radius:0;background:var(--ink)}
+.bud-rows{display:flex;flex-direction:column;gap:10px}
+.bud-row,.bud-axis{display:grid;grid-template-columns:minmax(9em,15em) minmax(0,1fr);gap:4px 14px;align-items:center}
+.bud-label{display:flex;flex-direction:column;gap:1px;min-width:0}
+.bud-name{font-size:13px;font-weight:700;line-height:1.45}
+.bud-name .tag{margin-left:6px;font-weight:400}
+.bud-sub{font-size:12px;line-height:1.45;color:var(--ink-2)}
+.bud-plot{position:relative;height:24px}
+.bud-track{position:absolute;left:0;top:0;bottom:0;background:var(--rule-soft);border-radius:4px}
+.seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;overflow:visible;box-shadow:inset -2px 0 0 var(--surface);cursor:default}
+.seg:first-of-type{border-radius:4px 0 0 4px}
+.seg:hover,.seg:focus-visible{filter:brightness(1.12);outline:none}
+.seg i{font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:500;color:var(--on-route);padding-left:5px;white-space:nowrap;pointer-events:none}
+.seg.nolab i{visibility:hidden}
+.bud-th{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink)}
+.bud-ticks{position:relative;height:18px;border-top:1px solid var(--rule)}
+.bud-ticks .tick{position:absolute;top:3px;transform:translateX(-50%);font-family:var(--f-mono);font-size:11px;color:var(--ink-3);white-space:nowrap}
+.bud-ticks .tick.th{top:-22px;color:var(--ink);font-weight:500;background:var(--surface);padding:0 3px}
+.bud-ticks .unit{position:absolute;right:0;top:3px;font-size:11px;color:var(--ink-3);background:var(--surface);padding-left:4px}
+.bud-num{font-size:12.5px}
+.bud-num > summary{cursor:pointer;color:var(--route-ink);width:max-content}
+.bud-num .tbl-wrap{margin-top:6px;border:1px solid var(--rule-soft);border-radius:6px}
+.bud-axis{margin-top:14px}
+@media (max-width:760px){
+  .bud-row,.bud-axis{grid-template-columns:minmax(0,1fr)}
+  .bud-axis .bud-label{display:none}
+}
+
+/* threat model: the flow numbers on the diagram's arrows link to the table's rows (design.js) */
+.mmd a.tm-f{color:var(--route-ink);font-weight:700;text-decoration:underline;text-decoration-color:var(--route-line);text-underline-offset:2px;border-radius:3px}
+.mmd a.tm-f:hover,.mmd a.tm-f.on{color:var(--on-route);background:var(--route);text-decoration:none}
+.mmd path.tm-on{stroke:var(--route)!important;stroke-width:3px!important}
+.threat td{min-width:13em;font-size:12.5px}
+.threat th:first-child{min-width:12em}
+
+@media print{
+  .toc,.tools,.mmd-bar{display:none}
+  .page{display:block}
+}
