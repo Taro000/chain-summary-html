@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="chain-summary-html logo" width="589">
+</p>
+
 # chain-summary-html
 
 [English](README.md) | 日本語
