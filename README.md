@@ -4,10 +4,10 @@ English | [日本語](README.ja.md)
 
 Two agent skills that each turn a skill chain's outputs into one HTML page, with the same layout:
 
-| Skill | Reads | Writes |
-|---|---|---|
-| [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo)'s `docs/quality/` | `docs/quality/summary.html` |
-| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design)'s `docs/design/` (stages 1 to 3) | `docs/design/summary.html` |
+| Skill | Reads | Writes | Demo |
+|---|---|---|---|
+| [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo)'s `docs/quality/` | `docs/quality/summary.html` | [ja](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/quality/summary.html) · [en](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/quality/summary.html) |
+| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design)'s `docs/design/` (stages 1 to 3) | `docs/design/summary.html` | [ja](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/design/summary.html) · [en](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/design/summary.html) |
 
 ## Install
 
@@ -75,6 +75,7 @@ skills/<skill>/
 ├── references/page-spec.md  page specification
 └── evals/                   four test cases
 scripts/check-chain.py       checks for drift from cuj-to-slo's glossary and artifacts.md
+scripts/build-pages.py       builds the demo site (.github/workflows/pages.yml publishes it on each push to main)
 tests/                       automated tests, fixture builders, eval graders
 ```
 
@@ -85,6 +86,9 @@ uv run --with pyyaml python3 skills/design-summary-html/scripts/build_design_sum
 
 # tests (including byte-identical output for identical input)
 uv run --with pyyaml python3 -m unittest discover -s tests -v
+
+# build the demo site into _site/ from two eval cases
+uv run --with pyyaml python3 scripts/build-pages.py
 
 # rebuild the fictional homework service's eval outputs
 uv run --with pyyaml python3 tests/make_homework_fixture.py
