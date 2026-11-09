@@ -8,10 +8,10 @@
 
 スキルの連鎖が書いた成果物を、それぞれ 1 枚の HTML のページにまとめる二つのエージェントスキルです。ページの形は同じです。
 
-| スキル | 読むもの | 書くもの |
-|---|---|---|
-| [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) の `docs/quality/` | `docs/quality/summary.html` |
-| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design) の `docs/design/`（第 1〜3 段階） | `docs/design/summary.html` |
+| スキル | 読むもの | 書くもの | 例 |
+|---|---|---|---|
+| [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) の `docs/quality/` | `docs/quality/summary.html` | [日本語](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/quality/summary.html) · [英語](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/quality/summary.html) |
+| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design) の `docs/design/`（第 1〜3 段階） | `docs/design/summary.html` | [日本語](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/design/summary.html) · [英語](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/design/summary.html) |
 
 ## インストール
 
@@ -79,6 +79,7 @@ skills/<skill>/
 ├── references/page-spec.md  ページの仕様
 └── evals/                   試験の 4 件
 scripts/check-chain.py       cuj-to-slo の用語集と artifacts.md との食い違いを確かめる
+scripts/build-pages.py       例のサイトを作る（main に push するたび .github/workflows/pages.yml が公開する）
 tests/                       自動テスト、試験用の成果物を作るスクリプト、eval の採点スクリプト
 ```
 
@@ -89,6 +90,9 @@ uv run --with pyyaml python3 skills/design-summary-html/scripts/build_design_sum
 
 # 自動テスト（同じ入力から同じバイト列のページができることも確かめる）
 uv run --with pyyaml python3 -m unittest discover -s tests -v
+
+# 二つの eval の成果物から、例のサイトを _site/ に作る
+uv run --with pyyaml python3 scripts/build-pages.py
 
 # 架空の課題提出サービスの eval の成果物を作り直す
 uv run --with pyyaml python3 tests/make_homework_fixture.py
