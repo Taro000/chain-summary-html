@@ -1,41 +1,32 @@
 id: QIU-29
-title: 修正を早く本番に出す
-status: draft
-version: 1
+title: 担当者が誤った額や二重の返金をしない
+status: active
 basis: inferred
-basis_note: 変更の速さを扱うことと式は質問 14 で確認済み。T_lead と変更の種類ごとの絞り込みは推定。記録が今はないことは質問 9 で確認済み
-needs_agreement: true
-approver_candidates:
-  - 開発の責任者
-  - プロダクトオーナー
-user: USR-03
-cuj: CUJ-12
+basis_note: CUJ は質問 2 の回答。返金が外部の決済サービスのテスト環境を通り、実際のお金は動かないことは第 2 段階の質問 1 で確認済み（CON-03）。ニーズ、測定量、利用状況は推定
+premises: [CON-03]
+user: USR-04
+cuj: CUJ-15
 outcomes: []
-need: 既存のシステムを壊さずに、早く変更を本番に出したい
+need: 返金で事業や乗客にお金の損を出したくない
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: エンジニア
-  task: 既存の機能を直す変更
-  environment: 本番環境
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 返金への対応
+  environment: null
   other: null
-characteristic: efficiency
-statement: エンジニアは、既存の機能を直す変更を、最初のコミットから T_lead 以内に本番に出せる。
-failure_scenario: 不具合の修正がなかなか本番に出ず、そのあいだ乗客やドライバーが不具合を抱えたまま使い続ける。
+characteristic: freedom from risk > economic risk mitigation
+statement: 返金に対応する運営・サポートの担当者は、返金を認めた乗車の乗客に、認めた額を一度だけ返金する。
+failure_scenario: 同じ乗車に二重に返金したり、別の乗客や違う額で返金したりして、事業がお金を失い、乗客との間で揉める。
 measure:
-  numerator: 最初のコミットから T_lead 以内に本番に出した変更
-  denominator: 本番に出した変更
-  narrowed_to: 既存の機能を直す変更
-  denominator_needed_only: 本番に出した変更だけ（途中でやめた変更は含めない）
-  contribution: テストと本番に出す仕組みに直接つながる。変更の大きさにも左右される
-  observable: false
+  numerator: 額や相手を誤った返金、または同じ乗車への二重の返金
+  denominator: 行った返金
+  narrowed_to: 乗客への返金
+  denominator_needed_only: 実際に行った返金だけを数える
+  contribution: 返金する相手と額をどう確かめるかにプロダクトが効く
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 9 の回答（変更の速さは扱わないという前提が誤り）と質問 14 の回答から追加

@@ -1,0 +1,12 @@
+id: QAS-47
+title: T_accept の最初の値
+status: open
+stage: 4
+kind: decision
+statement: T_accept を 30 秒とする。
+why_unsure: 入力に数値も基準となる値もない。30 秒は、止まっているドライバーが届いた依頼の内容を確かめて許諾するまでの控えめな最初の値で、最初のウィンドウの値から見直す。
+breadth: medium
+severity: low
+rating_note: QIU-16、FR-18、FR-20、FR-21 が依存する。変えるのは容易
+answer: null
+answered_in: null

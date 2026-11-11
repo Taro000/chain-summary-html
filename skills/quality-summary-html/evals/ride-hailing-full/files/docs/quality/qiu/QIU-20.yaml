@@ -1,40 +1,32 @@
 id: QIU-20
-title: 既存の機能を壊さずに新しい機能を出す
-status: draft
-version: 1
+title: ドライバーが設定した条件に合う依頼だけを受け取れる
+status: active
 basis: inferred
-basis_note: ニーズ（壊さない）は入力。記録が今はないことは質問 9 で確認済み。T_regression_window と測定量は推定
-needs_agreement: true
-approver_candidates:
-  - 開発の責任者
-user: USR-03
-cuj: CUJ-11
-outcomes: []
-need: 機能の追加・修正や技術のバージョンアップで既存のシステムを壊したくない
+basis_note: CUJ の手順と条件の中身（金額・現在地から乗車場所までの距離）は入力。測定量と利用状況は推定
+premises: [CON-05]
+user: USR-02
+cuj: CUJ-09
+outcomes: [OUT-01]
+need: 出来るだけ高い依頼を受けたい。配車受付までの手間を省きたい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: エンジニア
-  task: 新しい機能を加える変更
-  environment: 本番環境
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 依頼を受ける条件を設定した登録したドライバー
+  task: 条件を設定したうえでの配車依頼の受付
+  environment: 車内
   other: null
 characteristic: effectiveness
-statement: エンジニアは、既存の機能を壊さずに新しい機能を本番に出せる。
-failure_scenario: 新しい機能を出したあとに既存の配車や決済が動かなくなり、乗客とドライバーが使えなくなる。
+statement: 依頼を受ける条件を設定したドライバーは、金額と現在地から乗車場所までの距離が条件に合う依頼だけを受け取れる。
+failure_scenario: 条件より安い依頼や乗車場所の遠い依頼ばかり届き、ドライバーは一件ずつ断る手間を取られ、受けたい依頼を見落とす。
 measure:
-  numerator: 本番に出してから T_regression_window 日以内に既存の機能の障害・不具合を起こさなかった変更
-  denominator: 本番に出した変更
-  narrowed_to: 新しい機能を加える変更
-  denominator_needed_only: 本番に出した変更だけ
-  contribution: 変更とそのあとの障害を結び付ける記録があれば直接数えられる
-  observable: false
+  numerator: 金額と現在地から乗車場所までの距離がそのドライバーの条件に合っていた、そのドライバーに届いた依頼
+  denominator: 条件を設定したドライバーに届いた依頼
+  narrowed_to: 条件を設定した登録したドライバー。試験用のアカウントを除く
+  denominator_needed_only: 条件を設定したドライバーに届いた依頼だけを数える
+  contribution: 依頼を誰に届けるかというプロダクトの振る舞いそのもので、寄与を切り分けられる
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

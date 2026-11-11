@@ -1,15 +1,11 @@
 id: EBP-01
 title: 提出の SLO のエラーバジェット方針
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: confirmed
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: []
 applies_to: [NFR-01]
 rules:
 - {when: 残りのバジェットが 50% を下回った, action: 次のスプリントは信頼性の作業を先にする}
 - {when: バジェットを使い切った, action: ウィンドウの残りは修正だけを出す}
 - {when: 締め切り前の 24 時間, action: 提出に関わる配備をしない}
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

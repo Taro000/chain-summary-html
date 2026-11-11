@@ -1,43 +1,32 @@
 id: QIU-26
-title: 正しい額だけを返金する
-status: draft
-version: 2
-basis: inferred
-basis_note: 利用者と CUJ は質問 4・10 で、有効性として扱うことは質問 18 で確認済み（説明から下書き）。測定量は推定
-needs_agreement: false
-approver_candidates: []
-user: USR-04
-cuj: CUJ-16
+title: エンジニアが既存の機能を壊さずに利用技術のバージョンアップに対応できる
+status: active
+basis: assumed
+basis_note: CUJ とニーズ（既存のシステムを壊さない）は入力。測定量と利用状況は推定。測定量はプロダクトの外のエンジニアの記録で数える（第 2 段階の質問 5）。N_regression_days の値（14 日）は第 4 段階が提案した仮の値で、QAS-49 による仮定
+premises: [QAS-49]
+user: USR-03
+cuj: CUJ-13
 outcomes: []
-need: 誤った請求を正しく返金したい
+need: 技術のバージョンアップで既存のシステムを壊さない
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: 運営・サポート担当
-  task: 返金への対応
+  device: 問わない
+  network: 問わない
+  user_type: システムを保守するエンジニア
+  task: 利用技術のバージョンアップ
   environment: null
-  other: Web アプリ内の決済への返金（決済のサービスのテスト環境）
+  other: null
 characteristic: effectiveness
-statement: 運営・サポート担当は、誤った請求を確かめて、正しい額だけを返金できる（返金しすぎや二重の返金がない）。
-failure_scenario: 請求の誤りを確かめる記録が足りず、担当が額を誤って返金する、または同じ請求に二重に返金し、決済の記録と返金の額が合わなくなる。
+statement: 利用技術のバージョンアップに対応するエンジニアは、既存の機能を以前どおりに動かしたまま、バージョンアップを公開できる。
+failure_scenario: 利用技術のバージョンアップの後で到着の確認や決済が以前と違う動きをし、乗客とドライバーが乗降のたびに困る。
 measure:
-  numerator: 正しい額で、同じ請求に一度だけ行った返金
-  denominator: 行った返金
-  narrowed_to: Web アプリ内の決済への返金（テスト環境）
-  denominator_needed_only: 行った返金だけ
-  contribution: 請求と決済の記録、返金の処理に直接つながる
-  observable: true
+  numerator: 公開から N_regression_days（14 日）以内に、既存の機能が以前どおりに動かなくなる不具合を起こさなかったバージョンアップ
+  denominator: 公開したバージョンアップ
+  narrowed_to: 稼働中のシステムに公開したバージョンアップ
+  denominator_needed_only: 公開まで進んだバージョンアップだけを数える
+  contribution: 変更が既存の機能に及ぼす影響を確かめやすいかにプロダクトの作りが効く
+  observable: false
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 4 の回答から下書きし、質問 10 で残すと確認
-  - version: 2
-    date: 2026-10-31
-    change: 経済リスク緩和性から有効性に変えた。測定量を、正しく行えた返金を数える比にした
-    reason: 第 1 段階の再実行。運送も決済も模擬で、誰も実際のお金を失わない（質問 18）

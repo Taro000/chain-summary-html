@@ -30,11 +30,11 @@ Everything the page and the report say in their own words comes from `assets/lan
 
 Both files have the same keys and placeholders, and every key is used by the script; the tests check this.
 
-The parsers that read report text accept both languages whatever the page's language: lists split at 、, ， or commas (not inside numbers, with a leading "and" dropped), a first sentence ends at 。 or at a full stop followed by a space (not after e.g., i.e., etc.), a producer's role is in full- or half-width parentheses, and ID ranges use 〜, ～ or an en dash (「QR-36〜42」, "QR-36–42").
+The parsers that read report text accept both languages whatever the page's language: a first sentence ends at 。 or at a full stop followed by a space (not after e.g., i.e., etc.), and ID ranges use 〜, ～ or an en dash (「QR-36〜42」, "QR-36–42"). The detail of an external system's role is in full- or half-width parentheses.
 
 ## Page structure
 
-1. Header: an eyebrow with the repository name and the docs path, the title (「<system name>の品質」 or "<system name> quality"), and a meta line with the stages covered, the latest update date (the newest `changelog` date or report 「更新:」 / "Updated:" date) and the git commit of the docs, marked 「未コミットの変更あり」 (uncommitted changes) when the docs differ from it. Buttons open and close every toggle.
+1. Header: an eyebrow with the repository name and the docs path, the title (「<system name>の品質」 or "<system name> quality"), and a meta line with the stages covered, the latest update date (the newest report 「更新:」 / "Updated:" date; the items carry no dates, since git keeps their history) and the git commit of the docs, marked 「未コミットの変更あり」 (uncommitted changes) when the docs differ from it. Buttons open and close every toggle.
 2. A table of contents on the left (a horizontal strip below 1100 px), listing each stage's toggles.
 3. The traceability section (`#sec-trace`).
 4. One section per stage that has YAML items (`#sec-1` … `#sec-4`), titled with the report's H1 before the colon.
@@ -70,7 +70,7 @@ A CUJ with no QIU gets one row of dashes. QRs with an `entry_point` (laws, stand
 | 対象にしない (not targeted) | report-only (see below) |
 | 一つの式、二つの数え方 (one formula, two counts) | One row per live KPI (outcome, formula, the narrowed QIUs with their `narrowed_to`, the KPI); one row per QIU that has outcomes but no KPI; one row gathering the QIUs with neither. |
 
-Left out on purpose: the basis of every table except users and CUJs, and the overlap column.
+Left out on purpose: the basis of every table except users and CUJs, the overlap column, the shared facts of context.yaml (constraints, external systems, operational facts, design inputs) and the items' `premises` that cite them, and the assumptions in `qas/`. External systems that create data appear only among the data producers (stage 3).
 
 ## Stage 2 tables
 
@@ -85,7 +85,7 @@ Left out on purpose: 既存 (`existing`) and the basis.
 
 - 「QR の影響 × 起こりやすさ」 (QR impact × likelihood): a 5 × 5 grid of every QR with a `score`, colored by impact × likelihood, chips colored by handling.
 - 製品の品質 (product quality): a matrix of the 31 product sub-characteristics (glossary order) by CUJ. A cell lists the external QRs with that characteristic that trace to a QIU of that CUJ. Internal QRs are left out, as in the stage 3 coverage checklist; they appear in 「外部品質から導いた内部品質」. CUJ names are written vertically in the column heads. Before the CUJ columns, the column 「入口」 (entry point) lists the external QRs that come from an entry point (laws, standards, security risk analysis, policies). They have no CUJ, so without this column a row such as security can look empty. It comes before the CUJs because the matrix is often wider than the screen, and a last column stays hidden until the reader scrolls sideways. Its head links to 「利用者を経由しない要求」, and each chip's tooltip names the entry type. The column is left out when no such QR has that model.
-- データの品質 (data quality): the same matrix for the 15 data characteristics, with 「データの種類」 (kinds of data) above it (report-only) and 「データを作る人」 (data producers) below it (from the report line 「データを作る人:」 or "Data producers:", or else from users whose `data_role` is producer or both and `system.data_producers`).
+- データの品質 (data quality): the same matrix for the 15 data characteristics, with 「データを作る人」 (data producers) below it: the users whose `data_role` is producer or both, then the external systems with `creates_data: true` (`external_systems` in context.yaml), named by their role without its parenthesized detail and marked 「外部のシステム（EXT-01）」 (external system). Retired entries are left out.
 - 優先度の表 (priority table): QR (id and title), 特性, 失敗のシナリオ, 影響 (impact), 起こりやすさ (likelihood), 点 (score: impact × likelihood), 扱い (handling badge and the first sentence of `handling_reason`), CUJ (derived through `traces_to`). Sortable by QR and by 点.
 - CUJ ごとの扱い (handling by CUJ): per CUJ, the external QRs tracing to it, split into 重視 (emphasized) / 最低限守る線 (minimum line) / 今期は対象外 (excluded this cycle), and the count of emphasized ones.
 - 外部品質から導いた内部品質 (internal quality derived from external quality): one row per internal QR, with the external QRs whose `implies_internal` names it and 「どう支えるか」 (how it supports the external one) from the report. Without the report table, the third column is the internal QR's `statement`, headed 「内部の QR の要求」 (the internal QR's requirement).
@@ -96,15 +96,15 @@ Left out on purpose: the 「—」 reasons of the coverage checklist, the basis,
 
 ## Stage 4 tables and cards
 
-- SLO cards: target, its status (仮 provisional / 合意済み agreed), the SLI title, and NFR · CUJ · window. Each card links to its SLO row.
+- SLO cards: target, its status (仮 provisional / 確認済み confirmed), the SLI title, and NFR · CUJ · window. Each card links to its SLO row.
 - SLO: NFR, CUJ, SLI, 目標値（状態） (target and status), ウィンドウ (window; 「28-day rolling」 becomes 「直近 28 日」 on the Japanese page, and "rolling 30 days" becomes "30-day rolling" on the English one), エラーバジェット (error budget), 許容される失敗の件数 (budget volume, `error_budget_volume`), 方針 (`policy`).
-- SLI: SLI, 良いイベント ÷ 有効なイベント (good events ÷ valid events; the element definitions chosen by `function`, such as `OK ÷ VALID`), 測定方法 (`method`).
+- SLI: SLI, 良いイベント ÷ 有効なイベント (good events ÷ valid events; the element definitions chosen by `function`, such as `OK ÷ VALID`), 見る位置 (`vantage`: 利用者の側 user-side, システムの境界 system boundary, 模擬の利用 synthetic, データ data).
 - エラーバジェット方針 (error budget policy): one table per EBP (`rules`: when / action), captioned with its target NFRs when there is more than one.
 - バーンレートのアラート (burn-rate alerts): the `alerts` of each SLO; 使い切るまで (exhausted in) = window days ÷ burn rate.
 - 締め切りの SLO (deadline SLOs): SLOs with `bad_run_budget_share`, `progress_alert` or `after_miss`.
 - そのほかの非機能要件 (other non-functional requirements): NFR, 種類 (kind), 出どころ（扱い） (source and handling), 要件 (`statement`), 確かめる場所 (where it is checked; gate: where and check; audit: mechanism and cadence; monitor: signal and who is notified).
 
-Left out on purpose: measurement points, blind spots, and the rationale for the numbers.
+Left out on purpose: measurement points, blind spots, `existing_source`, and the rationale for the numbers.
 
 ## Report-only tables
 
@@ -114,11 +114,10 @@ These exist only in the Markdown reports. The script looks for the heading (any 
 |---|---|---|---|
 | 対象にしない | 1 | 対象にしない, Not targeted | CUJ, characteristic, reason |
 | 検討して加えなかった機能 | 2 | 検討して加えなかった機能, Functions considered and not added | candidate, for, reason |
-| 利用時の品質要求の対応 (checked, not shown) | 2 | 利用時の品質要求の対応, Quality-in-use coverage | QIU, the column named FR |
+| 利用時の品質要求の対応 (checked, not shown) | 2 | 利用時の品質要求の対応, Quality-in-use coverage | QIU, the column named FR; a QIU covered in several ways has a row for each, and a blank QIU cell repeats the QIU above |
 | CUJ の手順ごとの機能 (checked, not shown) | 2 | CUJ の手順ごとの機能, 手順ごとの機能, Functions by CUJ step | CUJ, the column named 手順 or Step, the column named FR |
 | 外部品質から導いた内部品質 | 3 | 外部品質から導いた内部品質, Internal quality derived from external quality | external, internal, how |
-| データの種類 / データを作る人 | 3 | lines starting 「主なデータ:」, 「データの種類:」, "Main data:" or "Kinds of data:", and 「データを作る人:」 or "Data producers:" | split on 「、」 or commas |
-| 割り当て (out-of-scope notes, checked) | 4 | 割り当て, Allocation | QR, the NFR column, the out-of-scope column |
+| 割り当て (out-of-scope notes, checked) | 4 | 割り当て, 配分, Allocation | QR, the NFR column, the out-of-scope column |
 
 A missing table that the page shows is left out of the page, listed in 「この版の注記」 (notes on this version), and printed in the report. A missing table that is only compared is printed in the report under 「報告書に見つからず突き合わせなかった表」 (report tables not found and not compared), so that no inconsistencies is not mistaken for a full check.
 
@@ -138,7 +137,7 @@ Light mode only, by the user's choice. Colors are tokens on `:root` in `assets/s
 - References between items: every ID a field names must exist and must not be retired (`kgis`, `users`, `outcomes`, `cuj`, `kpi`, `overlaps_with`, `traces_to`, `proposal`, `extends`, `applies_to`, `implies_internal`, `conflicts.with`, `from`, `slo.sli`, `slo.policy`, `refs`, `applies_to` of EBPs), and `cuj_step` must be one of the CUJ's steps.
 - Enum values: `handling` and `kind` must be known values; other unknown values are listed under 用語集にない値 (values not in the glossary).
 - Both sides of the KPI overlap: a QIU's `kpi` must list the QIU in that KPI's `overlaps_with`.
-- Report against YAML: the stage 2 coverage table's FRs per QIU, the stage 3 internal-quality pairs, and the stage 4 allocation's NFRs per QR. The report names the tables it compared and those it could not find.
+- Report against YAML: the stage 2 coverage table's FRs per QIU (the FR column only, merged over the QIU's rows), the stage 3 internal-quality pairs, and the stage 4 allocation's NFRs per QR. The report names the tables it compared and those it could not find.
 - The stage 2 functions-by-CUJ-step table against each FR's `cuj` and `cuj_step`: an FR must be listed at its step (or, without `cuj_step`, somewhere under its CUJ). A blank CUJ cell repeats the CUJ above; steps are compared ignoring spaces and full- or half-width forms. Not compared, because the table may say more than the YAML can: rows without a CUJ id (「どの CUJ にもない」 (in no CUJ), a stretch between steps), FRs without `cuj` (an FR shared by several CUJs), and extra places an FR is listed besides its own step. A step that is not one of the CUJ's steps is reported once for its row, and a retired FR in the table is reported.
 - IDs that appear in reports but not in the YAML are listed as notes (often removed CUJs that a report still mentions).
 - The page itself: no duplicate ids, and every `href="#…"` has a target.

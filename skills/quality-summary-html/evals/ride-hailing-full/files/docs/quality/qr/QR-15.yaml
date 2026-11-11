@@ -1,29 +1,23 @@
 id: QR-15
-title: ドライバーの受取額の計算
-status: draft
-version: 1
+title: 配車の経過の記録に欠けがない
+status: active
 basis: inferred
-basis_note: 決済はテスト環境（質問 1）なので影響を 3 から 2 に下げた。点と扱いは推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-model: product
-layer: external
-characteristic: functional suitability > functional correctness
-statement: システムは、乗車ごとのドライバーの受取額を、運賃から手数料を正しく引いて計算し、一覧（FR-18）と受取額の画面（FR-32）に同じ額を示す。
-applies_to: [FR-18, FR-19, FR-32]
-traces_to: [QIU-12, QIU-16]
+basis_note: 失敗のシナリオと点は推定。記録する段階は FR-45 の受け入れ基準。この記録は多くの QIU と KPI の測定量のデータになり（第 2 段階の報告）、担当者が乗車の記録を確かめるもとにもなる。苦情の確かめと障害の調査に使う記録が欠けないことは QR-41 で扱う。乗り終えた乗客への問い（FR-14）は第 4 段階の決めたこと 21 で要らなくなって廃止され、問いの回答の記録を外した。QIU-05 は、手配のときに示した到着予定時刻と到着を確認した時刻の記録（FR-45）で数える。相手の画面に示した時刻の記録（FR-53）は第 4 段階の SLI を数えるための記録で、その欠けは第 4 段階が SLI の見えないところとして扱う
+premises: []
+model: data
+layer: data-inherent
+characteristic: completeness
+statement: どの配車依頼についても、起きた段階（依頼とそのときに示した目的地への到着予定時刻、届けた先、許諾、迎車の到着、乗車の開始、降りる場所の変更、到着の確認、決済、評価、取り消しや不在で終えたこととそれを行った人）が、それぞれの時刻とともに欠けずに記録されている。
+applies_to: [FR-12, FR-22, FR-28, FR-38, FR-45]
+traces_to: [QIU-01, QIU-03, QIU-05, QIU-08, QIU-09, QIU-11, QIU-12, QIU-15, QIU-16, QIU-19, QIU-20, QIU-33]
 entry_point: null
-stakeholders: [USR-02]
-failure_scenario: 手数料の計算を誤り、一覧に示す受取額と実際の受取額が違う。
-score: {impact: 2, likelihood: 2}
+stakeholders: [USR-01, USR-02, USR-04]
+failure_scenario: 取り消された依頼で誰が取り消したかが記録されず、許諾後の取り消しや合流の失敗が数えられないまま、担当者も苦情に関わる乗車の経過を確かめられない。
+score: {impact: 3, likelihood: 3}
 handling: minimum-line
 handling_reason: null
 implies_internal: []
-conflicts: []
+conflicts:
+  - {with: QR-59, note: "記録が欠けないことは 3 年のうちの記録について成り立ち、3 年を過ぎた記録は状態の変化の種類と時刻だけが残る"}
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

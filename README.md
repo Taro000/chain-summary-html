@@ -48,7 +48,7 @@ Follow each CUJ to the requirements and SLOs that serve it (CUJ → QIU → FR �
 
 Only the traceability table is open; the rest sit in closed toggles. IDs link to their rows and show titles on hover. Stages not yet run are left out. Rationale, measurement points and blind spots stay in the YAML and the reports. The header shows the docs' git commit and marks uncommitted changes. When SLO targets are provisional, the skill says the page shows proposals.
 
-**Use:** run cuj-to-slo at least through stage 1 (`docs/quality/context.yaml` must exist), then ask "Summarize docs/quality as an HTML page" or, after a re-run, "Rebuild summary.html". Without `context.yaml`, the skill points you to `cuj-to-quality-in-use`.
+**Use:** run cuj-to-slo at least through stage 1 (`docs/quality/context.yaml` must exist), then ask "Summarize docs/quality as an HTML page" or, after a re-run, "Rebuild summary.html". Without `context.yaml`, the skill points you to `cuj-to-quality-in-use`. It reads the layout of cuj-to-slo 0.3.0; re-run the stages of older outputs first, as cuj-to-slo's release notes say.
 
 ## design-summary-html
 

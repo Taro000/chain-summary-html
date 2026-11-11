@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: ride-hailing-full
 expected_outcome: |
-  docs/quality/summary.html is built. The page starts with the traceability table by CUJ (CUJ, QIU, FR, QR, NFR / SLI), grouped by user, with one row for each of the 28 QIUs that are not retired. The tables of stages 1 to 4 are each in a closed toggle, and IDs in the tables link to their rows. The final report tells the user that FR-52 is missing from the stage 2 report's 「利用時の品質要求の対応」 (quality-in-use coverage) (QIU-04, 11, 15 and 17). It also says that, in 「CUJ の手順ごとの機能」 (functions by CUJ step), FR-52 is not listed under CUJ-06's step 「配車依頼を選ぶ」. The product quality matrix has a column for QRs that come from an entry point.
+  docs/quality/summary.html is built from the outputs of a replay of the demo with cuj-to-slo 0.3.0. The page starts with the traceability table by CUJ (CUJ, QIU, FR, QR, NFR / SLI), grouped by user, with one row for each of the 32 QIUs that are not retired. The tables of stages 1 to 4 are each in a closed toggle, and IDs in the tables link to their rows. The product quality matrix has a column for QRs that come from an entry point. Target statuses use the glossary's terms (確認済み, 仮), the data producers include EXT-01 and EXT-02, and no column of the SLI table is empty for every SLI. The final report reports no coverage disagreement for the QIUs that the stage 2 report covers in several rows (QIU-21, 22, 24, 25, 26, 31 and 32), and finds every report table, the stage 4 allocation table headed 「配分」 included.
 context:
   scaffold_script: place-files.sh

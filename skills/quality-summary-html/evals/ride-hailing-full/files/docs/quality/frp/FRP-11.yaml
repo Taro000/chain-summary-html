@@ -1,0 +1,14 @@
+id: FRP-11
+title: 依頼の状態の変化を相手の画面に示した時刻を記録する
+status: accepted
+basis: assumed
+basis_note: QR-06 が求める時間は相手の画面に示されるまでで、どの FR もその時刻を記録しない（推定）
+premises: [QAS-54]
+proposed_by: product-quality-to-slo
+origin: [QR-06]
+changes: null
+reason: QR-06 は、依頼、許諾、取り消し、迎車の到着が相手の画面と通知に示されるまでの時間を求める。FR-45 は配車の経過を記録するが、相手の画面に示した時刻は記録しないため、示されるまでの時間が分からない。
+suggested_statement: システムは、依頼、許諾、取り消し、迎車の到着を相手の画面に示した時刻を、その依頼と相手に結び付けて記録する。
+affects: [NFR-07, SLI-14]
+placeholders: []
+resolution: 受け入れ（暫定の決定、QAS-54）。FR-53 として今期作る。

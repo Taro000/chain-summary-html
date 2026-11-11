@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: homework-service-stage2
 expected_outcome: |
-  docs/quality/summary.html is built. It shows only the stage 1 and 2 tables and starts with the traceability table by CUJ (CUJ, QIU, FR). The page or the report says that stages 3 and 4 do not exist yet, and nothing fails. The final report tells the user that FR-08 is missing from the QIU-03 row.
+  docs/quality/summary.html is built from outputs in the layout of cuj-to-slo 0.3.0. It shows only the stage 1 and 2 tables and starts with the traceability table by CUJ (CUJ, QIU, FR). The page or the report says that stages 3 and 4 do not exist yet, and nothing fails. The final report tells the user that FR-08 is missing from the QIU-03 row, and reports no disagreement for QIU-01, 04 and 05, which the coverage table covers in several rows.
 context:
   scaffold_script: place-files.sh

@@ -1,33 +1,22 @@
 id: QR-46
-title: データベースの構造の変更を前の版と両立させる
-status: draft
-version: 2
-basis: inferred
-basis_note: 外部品質 QR-25 から導いた。点は持たない
-needs_agreement: true
-approver_candidates: [開発の責任者]
-model: product
-layer: internal
-characteristic: maintainability > modifiability
-statement: データベースの構造の変更は、一つ前の版のプログラムでも動く形で行う。
-applies_to: [FR-41, FR-42]
-traces_to: [QIU-20, QIU-21, QIU-22]
+title: アカウントの内容が、参加する本人と参加の仕方に一致する
+status: retired
+basis: confirmed
+basis_note: 決めたこと 15 で、アカウントの内容が本人と参加の仕方に一致することは品質要求にしないと決まったため廃止した（名前や連絡先を誤って入れても、担当者がアカウントの設定の符号を直接渡すため CUJ を損なわない。設計への申し送り DIN-07）
+premises: [QAS-12, QAS-17]
+model: data
+layer: data-inherent
+characteristic: accuracy
+statement: 参加者のアカウントの乗客かドライバーかの別、名前、連絡先は、参加する本人と、その人が参加する仕方に一致する。
+applies_to: [FR-25, FR-41]
+traces_to: [QIU-30, QIU-18]
 entry_point: null
-stakeholders: [USR-03]
-failure_scenario: 列の名前を変えた版を前の版に戻すと、前の版が列を見つけられず、戻した後も手配と決済が動かない。
-score: null
-handling: minimum-line
-handling_reason: QR-25（最低限守る線）を支える内部品質で、その扱いを受け継ぐ
+stakeholders: [USR-04, USR-01, USR-02]
+failure_scenario: 乗客として参加する人をドライバーとして作り、本人は配車を手配できないまま参加をやめる。乗客の名前を誤って登録し、迎えに来たドライバーは依頼主を見分けられない。
+score: {impact: 3, likelihood: 3}
+handling: emphasized
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: QR-25 に合わせて最低限守る線にした
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

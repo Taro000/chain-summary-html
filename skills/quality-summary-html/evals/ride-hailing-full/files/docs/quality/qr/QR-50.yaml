@@ -1,0 +1,22 @@
+id: QR-50
+title: 料金と返金の決まりを、EXT-01 を使わずに異常系まで自動で試せる
+status: active
+basis: inferred
+basis_note: QR-04、QR-29 を支える内部品質として推定（最低限守る線の QR-45 も支える）。どう試すかは設計で決める。依頼のときの押さえと押さえ直し（FR-54）も、QR-04 と QR-29 の対象に加わったため含めた
+premises: [EXT-01]
+model: product
+layer: internal
+characteristic: maintainability > testability
+statement: 確定額の決まりと更新、押さえと押さえ直し、一度だけの請求、返金の額の上限と一度だけの返金は、EXT-01 を使わずに、EXT-01 が受け付けない場合と答えない場合も含めて、変更のたびに自動で試験できる。
+applies_to: [FR-29, FR-30, FR-39, FR-40, FR-47, FR-54]
+traces_to: [QIU-04, QIU-19, QIU-28, QIU-29]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: EXT-01 が答えない場合を試す手立てがなく、やり直しで二重に請求する誤りが公開の後に初めて見つかる。
+score: null
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

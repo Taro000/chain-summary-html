@@ -1,0 +1,14 @@
+id: FRP-10
+title: 迎車中のドライバーに乗客の現在地を示す
+status: accepted
+basis: confirmed
+basis_note: "第 3 段階の #20 の回答（迎車中のドライバーには乗客の現在地を示す。その位置が古いと乗る場所で互いを見つけられない）。FR-24 はドライバーに乗客が決めた乗車場所を示すが、乗客の現在地は示さない。乗客の現在地を見られるのは許諾したドライバーが乗車を始めるまでに限る（QR-57）"
+premises: [CON-06]
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-19]
+changes: FR-24
+reason: QR-19 は迎車中のドライバーに示す乗客の現在地が遅れないことを求めるが、FR-24 はそれを示さない。
+suggested_statement: システムは、ドライバーが依頼を許諾してから乗車が始まるまで、乗客が決めた乗車場所に加えて、乗客の現在地をドライバーに示す。
+affects: [NFR-19, SLI-10]
+placeholders: []
+resolution: "受け入れ。FR-24（新規）をその場で変えた。第 3 段階の決めたこと #20 の回答に従う。乗客の現在地を見せるのは許諾したドライバーに乗車が始まるまでに限る（QR-57）。"

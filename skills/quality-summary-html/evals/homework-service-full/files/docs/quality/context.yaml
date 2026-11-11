@@ -1,10 +1,10 @@
-system:
-  name: 課題提出サービス（homework-portal）
-  boundary: 生徒と講師が使う Web アプリ（課題の配布、提出、採点、返却）、塾の事務が見る月次のレポート、それらを動かすサーバーとログ。保護者向けの画面と月謝の決済は除く。
-  purpose: 生徒が期限までに課題を出し、講師が早く返せるようにする
-  constraints: [提出したファイルは外部のストレージに置く]
-  data_producers: [外部のストレージ（提出したファイル）]
-  basis: stated
+system: {name: 課題提出サービス（homework-portal）, boundary: 生徒と講師が課題を配り、提出し、採点して返す仕組みと、塾の事務が見る月次のレポート。保護者向けの画面と月謝の決済は除く。, purpose: 生徒が期限までに課題を出し、講師が早く返せるようにする, basis: stated}
+constraints:
+- {id: CON-01, statement: 提出の期限は、講師が課題ごとに決める, source: 入力の要望書, basis: stated}
+external_systems:
+- {id: EXT-01, role: 外部のストレージ（提出したファイルを保管する）, creates_data: true, source: 入力の要望書, basis: stated}
+design_inputs:
+- {id: DIN-01, statement: 生徒と講師の画面は、ブラウザで動く Web アプリにする, source: 入力の要望書, basis: stated}
 kgis:
 - {id: KGI-01, name: 継続率, measure: 月末に在籍している生徒 ÷ 月初に在籍していた生徒, target: 95%, basis: stated}
 outcomes:
@@ -57,4 +57,5 @@ cujs:
 hints:
 - {statement: 生徒の個人情報を扱う, kind: law, source: 入力の要望書}
 operational_facts:
-- {fact: 提出は締め切り前の 24 時間に集まる, source: 入力の要望書}
+- {id: OPF-01, fact: 提出は締め切り前の 24 時間に集まる, source: 入力の要望書, basis: stated}
+- {id: OPF-02, fact: サーバーのアクセスログと夜間のジョブの記録がすでにある, source: 入力の要望書, basis: stated}

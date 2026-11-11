@@ -1,0 +1,12 @@
+id: QAS-54
+title: 状態の変化を相手の画面に示した時刻の記録（FRP-11）を今期作る
+status: open
+stage: 2
+kind: decision
+statement: FRP-11 を受け入れ、依頼、許諾、取り消し、迎車の到着を相手の画面に示した時刻を記録する機能（FR-53）を今期作る。
+why_unsure: FRP-11 は QR-06 を測るための機能で、QR-06 そのものはこの機能がなくても満たせる。デモの配車は全体で 2〜6 回（OPF-02）で、作る手間に見合うかは入力から決められない。
+breadth: medium
+severity: low
+rating_note: FR-53、FRP-11 と、第 4 段階の NFR-07、SLI-14 が依存する（第 3 段階の QR-06 はこの機能がなくても成り立つ）。違っていれば FR-53 を廃止し、第 4 段階は NFR-07 をシステムが相手に向けて送るまでの区間を数える SLI に戻す。利用者への害はない
+answer: null
+answered_in: null

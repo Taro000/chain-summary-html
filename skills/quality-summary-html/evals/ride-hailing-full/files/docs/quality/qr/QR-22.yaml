@@ -1,29 +1,22 @@
 id: QR-22
-title: 管理の画面の操作を担当ごとにたどれる
-status: draft
-version: 1
-basis: inferred
-basis_note: 担当が一人ずつ別のアカウントを使うことは質問 8 で確認済み。セキュリティのリスク分析の分類（管理の操作の記録、質問 3・11）にも当たる。点と扱いは推定
-needs_agreement: true
-approver_candidates: [運営の責任者, プロダクトオーナー]
+title: 画面が乗車中に変わるまで乗らないことが一目で分かる
+status: retired
+basis: confirmed
+basis_note: 第 4 段階の決めたこと 20 で、乗る前の画面の使いやすさは品質要求にしないと決まった（乗客が画面を確かめずに乗る危険は受け入れた。参加者は顔の分かる 2 人で、装う人はいない）ため廃止した
+premises: []
 model: product
 layer: external
-characteristic: security > accountability
-statement: システムは、管理の画面の操作（ドライバーと車両の登録、配車の停止と再開、対処の記録、返金）を、操作した担当一人ひとりにたどれるように記録する。
-applies_to: [FR-01, FR-46, FR-47, FR-48, FR-50]
-traces_to: [QIU-23, QIU-26]
+characteristic: usability > user error protection
+statement: 乗客の画面は、配車が確定してから乗車中に変わるまで、まだ乗ってはいけないことと、ドライバーに伝える確かめの手がかりを一目で分かるように示し、乗車中に変わったことも一目で分かるように示す。
+applies_to: [FR-12, FR-27]
+traces_to: [QIU-10]
 entry_point: null
-stakeholders: [USR-04]
-failure_scenario: 管理の画面の操作の記録から担当を特定できず、誤った返金や停止を誰がしたか分からない。
-score: {impact: 3, likelihood: 2}
+stakeholders: [USR-01]
+failure_scenario: 急いでいる乗客が、画面が乗車中に変わったかを確かめずに似た車に乗り込み、手配していない車で連れて行かれる。
+score: {impact: 5, likelihood: 3}
 handling: emphasized
 handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

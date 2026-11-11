@@ -24,19 +24,22 @@ The report labels below are given in both languages; match on the exact strings.
 
 ## Inputs
 
-The chain writes its outputs in the layout of its `artifacts.md`:
+The chain writes its outputs in the layout of its `artifacts.md` (cuj-to-slo 0.3.0):
 
 ```
 docs/quality/
-├── context.yaml            stage 1: system, KGIs, outcomes, users, CUJs   (required)
-├── qiu/ kpi/               stage 1                                         (required)
+├── context.yaml            stage 1: system, shared facts, KGIs, outcomes, users, CUJs   (required)
+├── qiu/ kpi/               stage 1                                                      (required)
 ├── fr/ frp/                stage 2
 ├── qr/                     stage 3
 ├── nfr/ sli/ ebp/          stage 4
+├── qas/                    every stage: assumptions made without asking (not shown)
 └── 1-quality-in-use.md … 4-nfr-slo.md   the four reports
 ```
 
-The YAML items are the source of truth (artifacts.md says so), and the script builds every table from them. It reads the Markdown reports only for each stage's title and for the few tables that exist only there: not targeted, functions considered and not added, how each internal QR supports the external ones, the kinds of data and their producers, and out-of-scope notes. It also compares four report tables with the YAML to catch stale reports: the quality-in-use coverage and the functions by CUJ step (stage 2), the internal-quality pairs (stage 3) and the allocation (stage 4). The report headings are written in the working language by whichever model ran the stage, so the script matches them loosely; when it cannot find a table, it leaves the table out of the page or skips the comparison, and says so.
+Outputs of cuj-to-slo 0.2.0 still carry `changelog`, the statuses `draft` and `agreed`, `system.data_producers` and SLI methods. The page then shows raw values and empty cells; cuj-to-slo's release notes say to re-run the stages in order to bring such outputs to 0.3.0. Tell the user so instead of working around it.
+
+The YAML items are the source of truth (artifacts.md says so), and the script builds every table from them. It reads the Markdown reports only for each stage's title and for the few tables that exist only there: not targeted, functions considered and not added, how each internal QR supports the external ones, and out-of-scope notes. It also compares four report tables with the YAML to catch stale reports: the quality-in-use coverage and the functions by CUJ step (stage 2), the internal-quality pairs (stage 3) and the allocation (stage 4). The report headings are written in the working language by whichever model ran the stage, so the script matches them loosely; when it cannot find a table, it leaves the table out of the page or skips the comparison, and says so.
 
 Stages 2 to 4 are optional. If the chain has only reached stage 2, the page covers stages 1 and 2 and says the rest is missing. If the project keeps the outputs somewhere other than `docs/quality`, which artifacts.md allows, use that directory.
 
@@ -62,7 +65,7 @@ Stages 2 to 4 are optional. If the chain has only reached stage 2, the page cove
 
 4. **Check the page.** If a browser is available, open the file or take a headless screenshot and look at the top (the route diagram and the traceability table) and one opened table. The script checks ids and links itself; the visual check is for layout surprises with unusual data, such as very long titles or many CUJs.
 
-5. **Report to the user.** Give the path, the language, the stages and item counts, every inconsistency, and every table left out. Then say what the page hides, because the page is meant to be quick to read and so drops columns: the basis of most items (most are `inferred`), the overlap column, the rationale for SLO numbers, measurement points and blind spots. If SLO targets are `provisional` or quality requirements are still `draft`, say that the page presents proposals, not agreed commitments, so nobody mistakes the cards for operating targets.
+5. **Report to the user.** Give the path, the language, the stages and item counts, every inconsistency, and every table left out. Then say what the page hides, because the page is meant to be quick to read and so drops columns: the basis of most items (most are `inferred` or `assumed`), the overlap column, the rationale for SLO numbers, measurement points, blind spots, and the open assumptions in `qas/` with the items that rest on them. If SLO targets are `provisional`, or items rest on open assumptions (`basis: assumed`), say that the page presents proposals, not confirmed commitments, so nobody mistakes the cards for operating targets.
 
 ## Rules
 

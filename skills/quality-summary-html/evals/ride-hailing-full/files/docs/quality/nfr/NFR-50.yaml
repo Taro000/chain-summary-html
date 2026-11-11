@@ -1,0 +1,21 @@
+id: NFR-50
+title: 画面のアクセシビリティの人による確かめ
+status: active
+basis: inferred
+basis_note: WCAG 2.2 のレベル AA には人でなければ確かめられない達成基準があるため、自動の検査（NFR-49）に加えて監査にした（推定）
+premises: [CON-05]
+from: [QR-64]
+kind: audit
+cuj: null
+statement: 乗客とドライバーの画面を変えるリリースのたびに、変えた画面を WCAG 2.2 のレベル AA の達成基準のうち人が確かめるものに照らして確かめ、満たさない達成基準を残したまま公開しない。
+conditions:
+  workload: null
+  users: 乗客、ドライバー（CON-05 のスマートフォンのブラウザ）
+  transactions: 変えた画面
+slo: null
+gate: null
+audit:
+  mechanism: アクセシビリティの確かめ（スマートフォンの読み上げと拡大の機能を使った確かめを含む）
+  criterion: 変えた画面に、満たさないレベル AA の達成基準が残っていないこと
+  cadence_or_deadline: 乗客とドライバーの画面を変えるリリースのたび
+monitor: null

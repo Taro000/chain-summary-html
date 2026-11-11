@@ -1,0 +1,12 @@
+id: QAS-50
+title: T_no_accept の最初の値
+status: overturned
+stage: 4
+kind: decision
+statement: T_no_accept を 5 分とする。
+why_unsure: 入力に数値はなく、ドライバーの数は分からない。5 分は、乗客がドライバーが見つからないまま待たされず、閾値を変えて依頼し直せる長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: FR-04、FR-05、FR-23 が依存する。第 2 段階が次の実行で書く値で、変えるのは容易
+answer: 誤り。許諾のない依頼をシステムが取り消すまでは、仮に 30 分。それより前の時点（値はまだ決まっていない）で乗客に知らせ、待ち続けるか取り消すかを選べるようにする（FRP-13）
+answered_in: "第 4 段階、決めたこと #19"

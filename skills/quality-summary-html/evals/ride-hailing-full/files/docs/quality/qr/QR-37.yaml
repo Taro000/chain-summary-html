@@ -1,36 +1,23 @@
 id: QR-37
-title: 審査を通ったものとして登録されたドライバーだけが受付できる
-status: draft
-version: 2
+title: 障害を調べるのに要る記録が、調べる間は取り出せる
+status: active
 basis: inferred
-basis_note: 方針は入力。開発方針であることは第 1 段階の質問 22、残すことは質問 15 で確認済み。免許の期限の記録（FRP-05）は受け入れられなかった（第 2 段階の質問 11）ので要求から外した。点は推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 運営の責任者, 法令を確かめる担当（推定）]
+basis_note: 失敗のシナリオと点は推定。N_trace_retention_days の値（28 日）は第 4 段階の決めたこと 18（QAS-38 への訂正。デモは 1 回が 1〜2 日で、苦情はデモの期間の中で扱う）。端末で起きたエラーの記録（FR-52、FRP-09 を第 2 段階が受け入れたもの）も、依頼の経過とともにたどる記録に加えた
+premises: [QAS-38]
 model: data
-layer: data-inherent
-characteristic: credibility
-statement: 受付できるドライバーと車両は、運営・サポート担当が審査を通ったものとして登録したもの（FR-48）だけである。
-applies_to: [FR-48]
-traces_to: []
-entry_point:
-  type: policy
-  source: 本物らしく作るため道路運送法（ドライバーの要件）に従うものとして設計する開発方針（第 1 段階の質問 22）、審査を通ったドライバーだけを登録すること（第 1 段階の質問 12）
-  brought_by: 利用者（第 1 段階の質問 7・12 の回答）
-stakeholders: [USR-04, USR-06（審査担当、考慮しない利用者）]
-failure_scenario: 登録の手順を通らずに作られたアカウントや、登録を取り消したドライバーが受付を続ける。
-score: {impact: 2, likelihood: 2}
+layer: data-system-dependent
+characteristic: availability
+statement: 依頼の経過をたどるのに要る記録（FR-34、FR-52）は、その依頼から N_trace_retention_days（28 日）の間、エンジニアが取り出せる。
+applies_to: [FR-34, FR-52]
+traces_to: [QIU-21]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 週明けに先週末の決済の失敗を調べようとすると、その依頼の記録がもう取り出せず、原因が分からない。
+score: {impact: 4, likelihood: 2}
 handling: minimum-line
-handling_reason: 開発方針から来る要求なので点に関わらず残す。運送の業務の手続きは模擬（第 2 段階の質問 11）なので最低限守る線（質問 15）
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 免許の期限を外し、審査を通ったものとして登録されたドライバーだけが受付できる、に絞った。入口の種類を開発方針に変えた
-    reason: FRP-05 が受け入れられなかった（第 2 段階の質問 11）。質問 15
+placeholders:
+  - {name: N_trace_retention_days, meaning: "依頼の経過をたどる記録を、その依頼から取り出せる日数", from: QR-37}

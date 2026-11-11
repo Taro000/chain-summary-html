@@ -1,38 +1,22 @@
 id: QR-38
-title: 位置情報と乗車の記録を見られる人を限る
-status: draft
-version: 2
+title: 追加、修正、版上げを公開しても、変えなかった機能は以前どおりに動く
+status: active
 basis: inferred
-basis_note: 分類は質問 4 で確認済み。法令の中身と点は推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 法令を確かめる担当（推定）]
+basis_note: 失敗のシナリオと点は推定。新しく作るシステムで変更が多く、公開が既存の機能を壊す場面は数か月に一度程度とみた。どの変更が壊したかはプロダクトの外のエンジニアの記録で数える（第 2 段階の質問 5）。公開した後の稼働中の振る舞いとして確かめるため外部品質に置いた。扱い（最低限守る線）は決めたこと 13 で確認済み（機能の追加・修正・版上げの CUJ の重視は 0 件）
+premises: [QAS-16]
 model: product
 layer: external
-characteristic: security > confidentiality
-statement: システムは、乗客とドライバーの位置情報と乗車の記録を、見る必要のある人（迎車中の担当のドライバー、本人、役割に応じた運営・サポート担当とエンジニア）にだけ見せる。
-applies_to: [FR-24, FR-40, FR-44, FR-45]
-traces_to: []
-entry_point:
-  type: law
-  source: 個人情報保護法（位置情報、乗車の記録）。context.yaml のヒント。参加者は実在の人で位置情報も本物なので法令として扱う（第 1 段階の質問 20・22）
-  brought_by: 利用者（第 1 段階の質問 7 の回答）
-stakeholders: [USR-01, USR-02, USR-03, USR-04]
-failure_scenario: 乗車が終わった後もドライバーが乗客の位置を見られる。運営・サポート担当やエンジニアが関係のない乗客の移動の記録を見られる。
-score: {impact: 4, likelihood: 2}
+characteristic: maintainability > modifiability
+statement: エンジニアが機能の追加、既存の機能の修正、利用技術のバージョンアップを公開しても、変えなかった機能は公開の前と同じように振る舞う。
+applies_to: [FR-01, FR-03, FR-04, FR-12, FR-15, FR-21, FR-27, FR-28, FR-29, FR-30, FR-36, FR-39, FR-40]
+traces_to: [QIU-24, QIU-25, QIU-26]
+entry_point: null
+stakeholders: [USR-03, USR-01, USR-02, USR-04]
+failure_scenario: 評価の機能を直して公開したら決済の額の求め方が変わり、到着を確認しても決済が通らなくなり、乗客とドライバーは乗降のたびに困る。
+score: {impact: 5, likelihood: 3}
 handling: minimum-line
-handling_reason: 法令から来る要求なので点に関わらず残す。参加者の位置情報は本物（質問 10）だが、事業化しないデモなので最低限守る線
-implies_internal: []
-conflicts:
-  - with: QR-27
-    note: 乗客の現在地をドライバーに見せることと見る人を限ること。迎車中だけ、乗客が許可したときだけ見せる（FR-24）
+handling_reason: null
+implies_internal: [QR-52]
+conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 法令として扱う根拠を記録した
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

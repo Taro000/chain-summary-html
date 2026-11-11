@@ -1,31 +1,31 @@
 id: NFR-26
-title: ドライバーの端末の電池の確認
-status: draft
-version: 1
-basis: inferred
-basis_note: N_session_hours（デモ 1 回の長さ）は未定（推定。質問 6 は未回答）
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-06
-kind: audit
-cuj: CUJ-06
-statement: デモの期間の前に、対象のブラウザと端末で、満充電から N_session_hours の間、受付中で前面に開き画面を点けたまま（FR-52）、電池が切れずに受付を続けられることを確かめる。
+title: 押さえと請求の記録と決済サービスの処理の一致の SLO
+status: active
+basis: assumed
+basis_note: 目標値 99.5% と、結果を返さない処理を翌日の終わりに突き合わせることは暫定の決定（QAS-32）。押さえとその解除、キャンセル料と不在の料金の請求を含めたのは QR-30 による。SLO として置くことと方針は質問 9 の回答。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03, EXT-01, CON-03, CON-08, QAS-32]
+from: [QR-30, QR-29]
+kind: slo
+cuj: CUJ-08
+statement: 直近 28 日で、押さえ、押さえの解除、請求（確定額の決済、キャンセル料、不在の料金）の 99.5% で、システムが記録した額と結果が EXT-01 が実際に処理した額と結果に等しい。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
-slo: null
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録した乗客とドライバー。試験用のアカウントを除く
+  transactions: 依頼のときの押さえとその解除、乗車の決済、キャンセル料と不在の料金の請求。EXT-01 が受け付けなかったものと答えなかったものを含む
+slo:
+  sli: SLI-12
+  target: 99.5%
+  target_status: provisional
+  target_rationale: 入力の数値も基準となる値もなく、機能はまだない。記録の食い違いは返金や苦情の対応を誤らせるため可用性より高くしたが、実際のお金は動かず（CON-03）、最初のウィンドウで数えることを優先して 99.9% より緩めた（QAS-32）。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 押さえ、解除、請求の 0.5% まで、記録と EXT-01 の処理が食い違ってよい
+  error_budget_volume: 許される食い違いは、ウィンドウの押さえ、解除、請求の数 × 0.5% 件。乗車ごとに押さえと請求（残りがあれば解除）で、28 日に入る乗車 2〜6 回（OPF-01、OPF-02）なら 4〜18 件、その 0.5% で 0.02〜0.09 件。取り消しと不在の依頼を加えても 200 件に届かない限り 1 件で予算を使い切る
+  policy: EBP-01
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
 gate: null
-audit:
-  mechanism: 実機での電池の試験
-  criterion: N_session_hours の間、電池が切れない
-  cadence_or_deadline: デモの期間の前と、現在地の送り方を変えたとき
+audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

@@ -1,0 +1,22 @@
+id: QR-64
+title: 乗客とドライバーの画面は WCAG 2.2 のレベル AA に従う
+status: active
+basis: confirmed
+basis_note: 乗客とドライバーの画面が WCAG 2.2 のレベル AA に従うことは質問 1 で確認済み。指針の個々の中身はこの段階で書き写さない。持ち込んだ役割はプロダクトの責任者と推定した。重視とすることは決めたこと 10 で確認済み（QAS-24 への訂正）。対象の機能は、乗客とドライバーの画面を持つ FR
+premises: [QAS-24]
+model: product
+layer: external
+characteristic: usability > accessibility
+statement: 乗客とドライバーが使うどの画面も、WCAG 2.2 のレベル AA に従う。
+applies_to: [FR-01, FR-02, FR-03, FR-04, FR-06, FR-07, FR-08, FR-09, FR-11, FR-12, FR-13, FR-15, FR-16, FR-17, FR-18, FR-20, FR-21, FR-22, FR-23, FR-24, FR-25, FR-26, FR-27, FR-28, FR-29, FR-31, FR-32, FR-37, FR-46, FR-47, FR-48, FR-54]
+traces_to: []
+entry_point: {type: standard, source: WCAG 2.2 レベル AA, brought_by: プロダクトの責任者}
+stakeholders: [USR-01, USR-02]
+failure_scenario: 確かめの手がかりが色だけで示され、色の見分けにくい乗客は画面が乗車中に変わったかを見分けられない。
+score: {impact: 3, likelihood: 3}
+handling: emphasized
+handling_reason: 標準から来るため対象から外さない
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

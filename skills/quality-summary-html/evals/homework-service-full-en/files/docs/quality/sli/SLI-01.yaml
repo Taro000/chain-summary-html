@@ -1,24 +1,22 @@
 id: SLI-01
 title: Submission availability
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Head of development]
+premises: [OPF-02]
 function: OK ÷ VALID
 refs: [QR-01, NFR-01]
 reshaped: null
-target_entity: Production servers
+target_entity: The submission as the system handles it, from receiving it to answering
 purpose: Submission availability
-unit_event: Request
-method: Access log method
+unit_event: One submission a student sends
+vantage: system-boundary
+vantage_reason: Whether it failed can be counted where it is received; failures on the student's device are a separate SLI
+existing_source: OPF-02
 elements:
-  VALID: {definition: Submission requests from signed-in students, inputs: Access logs, unit: requests, counting_rule: Summed per minute}
-  OK: {definition: Requests in VALID whose status is not 5xx, inputs: Same as VALID, unit: requests, counting_rule: Same as VALID}
+  VALID: {definition: Submissions sent by signed-in students, exclusions: Test accounts, unit: submissions, counting_rule: A submission sent again counts once}
+  OK: {definition: Submissions in VALID that the system did not fail, unit: submissions, counting_rule: Same as VALID}
 scale: ratio
 applicability: Production
 lifecycle: Measured in production
-blind_spots: Failures inside the browser are not visible
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}
+blind_spots: Submissions that never reach the system are not visible

@@ -48,7 +48,7 @@ Python 3.9 以降と PyYAML が要ります（`uv run --with pyyaml` でも動�
 
 開いているのはトレーサビリティの表だけで、ほかは閉じたトグルに入っています。ID は行へのリンクで、マウスを重ねると表題が出ます。まだ実行していない段階は省きます。根拠、測定点、見えないものは YAML と報告書で読みます。見出しには docs の git のコミットを出し、コミットしていない変更があればそう示します。SLO の目標値が仮なら、ページが示すのは提案だとスキルが伝えます。
 
-**使い方:** cuj-to-slo を少なくとも第 1 段階まで実行し（`docs/quality/context.yaml` が要る）、「docs/quality の成果物を HTML にまとめてください」と頼みます。再実行したあとは「summary.html を作り直してください」。`context.yaml` がなければ、スキルは `cuj-to-quality-in-use` を案内します。
+**使い方:** cuj-to-slo を少なくとも第 1 段階まで実行し（`docs/quality/context.yaml` が要る）、「docs/quality の成果物を HTML にまとめてください」と頼みます。再実行したあとは「summary.html を作り直してください」。`context.yaml` がなければ、スキルは `cuj-to-quality-in-use` を案内します。読むのは cuj-to-slo 0.3.0 の形式です。それより前の成果物は、cuj-to-slo のリリースノートのとおり、先に各段階を再実行してください。
 
 ## design-summary-html
 

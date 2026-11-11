@@ -1,0 +1,12 @@
+id: QAS-34
+title: 到着を確認した位置のずれの監視の線
+status: retired
+stage: 4
+kind: decision
+statement: 到着を確認した位置が降りる場所から D_place_position_gap 以上離れた乗車が、1 日を通して 5% を超えればエンジニアに知らせる。
+why_unsure: 入力に数値も基準となる値もない。ずれにはドライバーが止まった場所も混ざるため、一件ごとではなく割合で見る線にした。
+breadth: low
+severity: low
+rating_note: NFR-30 を一件ごとのチケットに変え、D_place_position_gap は質問 3 で決まり、この線に依存する項目がなくなったため廃止した
+answer: null
+answered_in: null

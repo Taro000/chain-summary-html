@@ -1,0 +1,12 @@
+id: QAS-27
+title: 手配の操作への応えの速さのしきい値
+status: open
+stage: 4
+kind: decision
+statement: T_quote_response を 3 秒とし、3 秒を超えた応えを一件ごとにエンジニアに知らせる。
+why_unsure: 入力に数値も基準となる値もない。3 秒は、候補や移動時間と料金を EXT-02 から得る時間を含めても乗客が待たされたと感じにくい長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QR-07 と NFR-17 が依存する。最低限守る線の監視で、変えるのは容易
+answer: null
+answered_in: null

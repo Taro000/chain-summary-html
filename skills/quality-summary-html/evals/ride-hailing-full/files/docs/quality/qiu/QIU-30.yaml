@@ -1,41 +1,32 @@
 id: QIU-30
-title: 利用技術の版上げを早く本番に出す
-status: draft
-version: 1
+title: 担当者が参加者のアカウントを誤りなく作成できる
+status: active
 basis: inferred
-basis_note: 変更の速さを扱うことと式は質問 14 で確認済み。T_lead と変更の種類ごとの絞り込みは推定。記録が今はないことは質問 9 で確認済み
-needs_agreement: true
-approver_candidates:
-  - 開発の責任者
-  - プロダクトオーナー
-user: USR-03
-cuj: CUJ-13
+basis_note: CUJ は質問 2 の回答。参加者を乗客とドライバーと読むこと、ニーズ、測定量、利用状況は推定
+premises: []
+user: USR-04
+cuj: CUJ-16
 outcomes: []
-need: 既存のシステムを壊さずに、早く変更を本番に出したい
+need: 参加者がすぐに使い始められるアカウントを作りたい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: エンジニア
-  task: 利用技術の版を上げる変更
-  environment: 本番環境
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 参加者のアカウントの作成
+  environment: null
   other: null
-characteristic: efficiency
-statement: エンジニアは、利用技術の版を上げる変更を、最初のコミットから T_lead 以内に本番に出せる。
-failure_scenario: 版上げの作業が長引き、古い版の弱点（セキュリティの修正の遅れなど）を抱えたまま運用が続く。
+characteristic: effectiveness
+statement: 参加者のアカウントを作成する運営・サポートの担当者は、作り直しや訂正の要らないアカウントを作成できる。
+failure_scenario: 乗客として参加する人をドライバーとして作るなど、アカウントを誤って作成し、参加者が使い始められないまま参加をやめる。
 measure:
-  numerator: 最初のコミットから T_lead 以内に本番に出した変更
-  denominator: 本番に出した変更
-  narrowed_to: 利用技術の版を上げる変更
-  denominator_needed_only: 本番に出した変更だけ（途中でやめた変更は含めない）
-  contribution: テストと本番に出す仕組みに直接つながる。変更の大きさにも左右される
-  observable: false
+  numerator: 作り直しや訂正の要らなかったアカウント
+  denominator: 作成したアカウント
+  narrowed_to: 乗客とドライバーのアカウント
+  denominator_needed_only: 作成したアカウントだけを数える
+  contribution: 作成の手順と内容の確かめ方にプロダクトが効く
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 9 の回答（変更の速さは扱わないという前提が誤り）と質問 14 の回答から追加

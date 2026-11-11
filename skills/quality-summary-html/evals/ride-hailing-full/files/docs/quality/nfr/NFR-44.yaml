@@ -1,0 +1,21 @@
+id: NFR-44
+title: 担当者の機能の失敗の監視
+status: active
+basis: inferred
+basis_note: 担当者の操作は件数が少ないため、割合ではなく一件ごとにチケットにする監視にした（推定）
+premises: []
+from: [QR-43]
+kind: monitor
+cuj: CUJ-14
+statement: 苦情の受け付けと記録、乗車の照会、返金、アカウントの作成と訂正、ドライバーと車両の登録と訂正、ドライバーの停止の操作にシステムが失敗するたびに、エンジニアにチケットで知らせる。
+conditions:
+  workload: null
+  users: 運営・サポートの担当者
+  transactions: QR-43 が挙げる担当者の機能
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 担当者の操作のうち、システムが応えなかったか、システム自身の誤りを返したもの
+  threshold: 一件でもあればチケットにする
+  notifies: エンジニア

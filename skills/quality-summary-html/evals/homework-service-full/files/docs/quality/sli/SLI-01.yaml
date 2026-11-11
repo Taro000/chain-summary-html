@@ -1,24 +1,22 @@
 id: SLI-01
 title: 提出の可用性
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [開発の責任者]
+premises: [OPF-02]
 function: OK ÷ VALID
 refs: [QR-01, NFR-01]
 reshaped: null
-target_entity: 本番のサーバー
+target_entity: 提出を受け付けてから結果を返すまでのシステムの扱い
 purpose: 提出の可用性
-unit_event: 要求
-method: アクセスログ法
+unit_event: 生徒が送った提出 1 件
+vantage: system-boundary
+vantage_reason: 失敗したかどうかは受け付けた側で数えられる。生徒の端末の中の失敗は別の SLI にする
+existing_source: OPF-02
 elements:
-  VALID: {definition: ログインした生徒からの提出の要求, inputs: アクセスログ, unit: requests, counting_rule: 1 分ごとに合計}
-  OK: {definition: VALID のうち、status が 5xx でない要求, inputs: VALID と同じ, unit: requests, counting_rule: VALID と同じ}
+  VALID: {definition: ログインした生徒が送った提出, exclusions: 試験用のアカウント, unit: 提出, counting_rule: 送り直した提出は 1 件と数える}
+  OK: {definition: VALID のうち、システムが失敗を返さなかった提出, unit: 提出, counting_rule: VALID と同じ}
 scale: ratio
 applicability: 本番
 lifecycle: 本番で測る
-blind_spots: ブラウザの中の失敗は見えない
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}
+blind_spots: システムに届かなかった提出は見えない
