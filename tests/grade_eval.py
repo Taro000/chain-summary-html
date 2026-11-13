@@ -79,6 +79,17 @@ def body_rows(table):
     return [n for n in table.walk() if n.tag == 'tr' and not any(a.tag == 'thead' for a in n.ancestors())]
 
 
+def visible(n):
+    """The text a reader sees: scripts and styles left out"""
+    if n.tag in ('script', 'style'):
+        return ''
+    return ''.join(k if isinstance(k, str) else visible(k) for k in n.kids)
+
+
+def cells_of(row):
+    return [c for c in row.kids if isinstance(c, Node) and c.tag in ('td', 'th')]
+
+
 def live_ids(docs, kind):
     out = []
     for p in sorted((docs / kind).glob('*.yaml')):
@@ -173,10 +184,6 @@ class Run:
 
     def english_page(self):
         # Text a reader sees (scripts and styles left out) has no Japanese, and the page says it is English
-        def visible(n):
-            if n.tag in ('script', 'style'):
-                return ''
-            return ''.join(k if isinstance(k, str) else visible(k) for k in n.kids)
         text = visible(self.tree)
         ja = re.findall(r'[　-ヿ㐀-鿿＀-￯]', text)
         html_ = next((n for n in self.tree.walk() if n.tag == 'html'), None)
@@ -222,21 +229,103 @@ class Run:
                 miss.append(d['id'])
         return not miss, '載っていない EBP（ID か最初の条件）: %s' % (miss or 'なし')
 
-    def reports_fr52(self):
-        qs = set(bs.ids_in(self.report, 'QIU')) & {'QIU-04', 'QIU-11', 'QIU-15', 'QIU-17'}
-        ok = 'FR-52' in self.report and len(qs) >= 3
-        return ok, '報告に FR-52: %s、挙げた QIU: %s' % ('FR-52' in self.report, sorted(qs) or 'なし')
+    # ---------- Checks for the shapes cuj-to-slo 0.3.0 brought ----------
+    # The glossary's terms for target statuses. English terms are capitalized as the page writes its other terms, so a raw
+    # YAML value (lower case) does not pass for the term
+    STATUS_TERMS = {'ja': {'confirmed': '確認済み', 'provisional': '仮', 'undecided': '未定'},
+                    'en': {'confirmed': 'Confirmed', 'provisional': 'Provisional', 'undecided': 'Undecided'}}
 
-    def reports_fr52_step(self):
-        # FR-52, the step table (手順 or "step", since the report may be in English), and CUJ-06 or 「配車依頼を選ぶ」
-        # appear close together (that line and the next two)
-        lines = self.report.splitlines()
+    def slo_status_terms(self):
+        # Each SLO's row (with its ID and target) carries the term for its target status, and a Japanese page shows no raw value
+        terms = self.STATUS_TERMS[self.lang]
+        rows = [r.text() for t in self.tables for r in body_rows(t)]
+        miss = []
+        for p in sorted((self.docs / 'nfr').glob('*.yaml')):
+            d = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            if d.get('kind') == 'slo' and d.get('status') != 'retired':
+                slo = d.get('slo') or {}
+                st, target = str(slo.get('target_status')), str(slo.get('target'))
+                term = terms.get(st, st)
+                if not any(d['id'] in r and target in r and term in r for r in rows):
+                    miss.append('%s（%s → %s）' % (d['id'], st, term))
+        raw = []
+        if self.lang == 'ja':
+            text = visible(self.tree)
+            raw = [w for w in terms if re.search(r'(?<![A-Za-z_-])%s(?![A-Za-z_-])' % w, text)]
+        return not miss and not raw, '目標値の状態の語が行にない SLO: %s。ページに出ている YAML の値: %s' % (miss[:10] or 'なし', raw or 'なし')
 
-        def near(i):
-            w = ' '.join(lines[i:i + 3])
-            return ('手順' in w or re.search(r'\bsteps?\b', w, re.I)) and ('CUJ-06' in w or '配車依頼を選ぶ' in w)
-        hit = next((ln for i, ln in enumerate(lines) if 'FR-52' in ln and near(i)), None)
-        return hit is not None, '手順の表の FR-52 に触れた行: %s' % (hit.strip()[:120] if hit else 'なし')
+    def data_producers(self):
+        # The list that follows the label 「データを作る人」 / "Data producers" names every external system with creates_data: true
+        ctx = yaml.safe_load((self.docs / 'context.yaml').read_text(encoding='utf-8')) or {}
+        exts = [e for e in ctx.get('external_systems') or [] if isinstance(e, dict) and e.get('creates_data') and e.get('status') != 'retired']
+        lists = []
+        for n in self.tree.walk():
+            own = ''.join(k for k in n.kids if isinstance(k, str)).strip().rstrip(':：').lower()
+            if own in ('データを作る人', 'data producers') and n.parent is not None:
+                sib = [k for k in n.parent.kids if isinstance(k, Node)]
+                i = sib.index(n)
+                if i + 1 < len(sib):
+                    lists.append(sib[i + 1].text())
+        if not lists:
+            return False, '「データを作る人」の一覧がない'
+        txt = ' '.join(lists)
+        miss = [str(e.get('id')) for e in exts
+                if str(e.get('id')) not in txt and re.split(r'[（(]', str(e.get('role')))[0].strip() not in txt]
+        return not miss, '一覧: %s。載っていない外部のシステム: %s' % (re.sub(r'\s+', ' ', txt)[:150], miss or 'なし')
+
+    def sli_no_empty_column(self):
+        # The SLI table is the one whose first column holds every live SLI; no column of it is empty in every row
+        want, empty_words = set(live_ids(self.docs, 'sli')), {'', '—', '–', '-', 'なし', 'none', 'n/a'}
+        for t in self.tables:
+            rows = [cells_of(r) for r in body_rows(t)]
+            firsts = [bs.ids_in(cs[0].text(), 'SLI')[:1] if cs else [] for cs in rows]
+            if not rows or not all(firsts) or {f[0] for f in firsts} != want:
+                continue
+            heads = [c.text().strip() for c in header_cells(t)]
+            width = max(len(cs) for cs in rows)
+            empty = [heads[j] if j < len(heads) else str(j) for j in range(1, width)
+                     if all(j >= len(cs) or cs[j].text().strip().lower() in empty_words for cs in rows)]
+            return not empty, 'SLI の表の見出し: %s。すべての行が空の列: %s' % (heads, empty or 'なし')
+        return False, 'SLI の表（1 列目にすべての SLI がある表）がない'
+
+    def no_false_coverage(self):
+        # QIUs that the stage 2 report covers in more than one row, whose rows together list the FRs the YAML traces to them.
+        # A check that compares row by row reports them falsely. No line of the final report names one of them as a
+        # disagreement, even as a false alarm: the statement is about the skill's check, which the report relays
+        sec = bs.section((self.docs / '2-functional-requirements.md').read_text(encoding='utf-8'), bs.EXTRA['coverage'][1])
+        got = next(((h, rs) for h, rs in bs.md_tables(sec or '') if len(h) >= 3), None)
+        if got is None:
+            return False, '第 2 段階の報告書に利用時の品質要求の対応の表がない（ケースの入力を確かめる）'
+        head, rows = got
+        fc = bs.col(head, ('fr', 'frs', '機能要件', 'functional requirements'), 2)
+        union, count = {}, {}
+        for r in rows:
+            for q in bs.ids_in(r[0], 'QIU'):
+                union.setdefault(q, set()).update(bs.ids_in(r[fc], 'FR'))
+                count[q] = count.get(q, 0) + 1
+        traced = {}
+        for p in sorted((self.docs / 'fr').glob('*.yaml')):
+            d = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+            if d.get('status') != 'retired':
+                for t in d.get('traces_to') or []:
+                    traced.setdefault(str(t), set()).add(str(d['id']))
+        safe = sorted((q for q in union if count[q] > 1 and union[q] == traced.get(q, set())), key=bs.id_key)
+        # A line relays the check when it names the stage 2 table, calls the line a false alarm, or counts repeated lines
+        # (「QIU-01 ×2」), which only a row-by-row comparison produces. Other mentions of these QIUs (an assumption, the
+        # stage 3 coverage checklist) do not count
+        words = re.compile(r'(利用時の品質要求の対応|quality-in-use coverage|false (?:alarm|positive)|誤検知|誤報|\bfalse\b\s*[:：]|×\s*\d)', re.I)
+        bad = [ln.strip()[:100] for ln in self.report.splitlines() if words.search(ln) and set(bs.ids_in(ln, 'QIU')) & set(safe)]
+        return not bad, '複数の行で対応する QIU: %s。それを食い違いとして挙げた行: %s' % (safe or 'なし', bad[:3] or 'なし')
+
+    def tables_found(self):
+        # No line of the final report says a report table was not found or not compared, unless it says there was none.
+        # The list of the kinds of data (「主なデータ」 / "Main data") is not in the 0.3.0 templates, so any mention of it
+        # means the skill still looked for it
+        nf = re.compile(r'(見つから|not found|突き合わせ(?:なかった|られなかった|ていない)|not compared|could not (?:be )?(?:found|compared))', re.I)
+        nothing = re.compile(r'(なし|ありません|0\s*件|\bnone\b|\bno tables?\b)', re.I)
+        kinds = re.compile(r'(データの種類|主なデータ|kinds of data|main data)', re.I)
+        bad = [ln.strip()[:120] for ln in self.report.splitlines() if (nf.search(ln) and not nothing.search(ln)) or kinds.search(ln)]
+        return not bad, '表が見つからない、突き合わせなかった、0.3.0 にない表を求めると言う行: %s' % (bad[:3] or 'なし')
 
     def entry_column(self):
         # In the product quality matrix (the table with a 副特性 / sub-characteristic column), each entry-point QR

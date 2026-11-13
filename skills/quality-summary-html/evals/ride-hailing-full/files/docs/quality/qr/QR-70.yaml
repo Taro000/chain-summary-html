@@ -1,0 +1,23 @@
+id: QR-70
+title: 降りる場所と到着を確認した場所の位置が、実際の場所を表す
+status: active
+basis: inferred
+basis_note: 乗る場所の位置（QR-05）と分けた（決めたこと 16）。到着の記録の正確さを最低限守る線とすることは決めたこと 16 で確認済み（QAS-12 への訂正）。降りる場所の位置は EXT-02 が作り、到着を確認した場所はドライバーの端末の位置から得る。失敗のシナリオと点は推定。乗る場所の許容は D_pickup_position_gap として QR-05 に分かれ、この QR の D_place_position_gap の値（30 m）は第 4 段階の決めたこと 3
+premises: [EXT-02]
+model: data
+layer: data-inherent
+characteristic: accuracy
+statement: 配車依頼に降りる場所として入る位置と、到着を確認した場所として記録する位置は、それが表す実際の場所（乗客が決めた建物の入口、車が実際に止まった場所）から D_place_position_gap（30 m）以上離れない。
+applies_to: [FR-01, FR-28, FR-47]
+traces_to: [QIU-11]
+entry_point: null
+stakeholders: [USR-01, USR-02, EXT-02]
+failure_scenario: 到着を確認した場所が実際に止まった場所から離れて記録され、乗客が「違う場所で降ろされた」と苦情を寄せても、記録からはどこで降りたか分からない。
+score: {impact: 3, likelihood: 3}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders:
+  - {name: D_place_position_gap, meaning: "依頼に入る降りる場所の位置と、到着を確認した場所として記録する位置が、それが表す実際の場所（建物の入口、車が実際に止まった場所）からずれる距離の許容", from: QR-70}

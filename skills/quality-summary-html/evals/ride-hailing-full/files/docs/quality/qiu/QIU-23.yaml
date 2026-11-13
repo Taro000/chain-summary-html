@@ -1,39 +1,32 @@
 id: QIU-23
-title: 苦情の乗車とドライバーを特定して対処を決める
-status: draft
-version: 1
+title: エンジニアが個人の情報を必要以上に見ずに原因を特定できる
+status: active
 basis: inferred
-basis_note: 利用者と CUJ は質問 4・10 で確認済み（説明から下書き）。苦情の記録が今はないことは質問 9 で確認済み。測定量は推定
-needs_agreement: false
-approver_candidates: []
-user: USR-04
-cuj: CUJ-14
+basis_note: ニーズ（ログ・データの確認、原因の特定）は入力。乗客やドライバーの個人の情報を必要以上に見ないことは推定。参加者が実在の人で位置情報も本物であることと、個人の情報の扱いに関する法令に従うことは第 3 段階の質問 1 で確認済み（CON-06）。必要以上に見たかは、誰がどの依頼の個人の情報をどんな理由で見たかの記録（第 2 段階の FR-35）から判断する（推定）
+premises: [CON-06]
+user: USR-03
+cuj: CUJ-10
 outcomes: []
-need: 乗客の苦情に応え、問題のあるドライバーへの対処を決めたい
+need: システムのログ・データを確認して、障害の原因を特定したい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: 運営・サポート担当
-  task: 乗車に関する苦情への対応
+  device: 問わない
+  network: 問わない
+  user_type: システムを保守するエンジニア
+  task: 稼働中のシステムで通知を受けた異常・エラーの原因の特定
   environment: null
   other: null
-characteristic: effectiveness
-statement: 運営・サポート担当は、乗客から受けた苦情について、その乗車とドライバーを特定し、ドライバーへの対処（対処しないことを含む）を決められる。
-failure_scenario: 苦情の乗車やドライバーを特定できず、対処が決まらないまま、同じドライバーが配車され続ける。
+characteristic: freedom from risk > economic risk mitigation
+statement: 障害を調べるエンジニアは、原因の特定に要らない乗客やドライバーの個人の情報を見ずに、ログやデータを確かめられる。
+failure_scenario: 調査のためにエンジニアが乗客の移動の記録（自宅や勤務先が分かる乗る場所・降りる場所）を必要以上に見て、それが漏れる、または悪用され、乗客が離れて事業の信用を失う。
 measure:
-  numerator: 乗車とドライバーを特定し、対処を決めた苦情
-  denominator: 受け付けた乗車に関する苦情
-  narrowed_to: ドライバーの振る舞い、車の清潔さ、運転についての苦情。重複といたずらを除く
-  denominator_needed_only: 乗車に関する苦情だけ。使い方の問い合わせは含めない
-  contribution: 乗車とドライバーの記録を引ける機能に直接つながる
-  observable: false
+  numerator: 原因の特定に要らない乗客やドライバーの個人の情報が見られた調査
+  denominator: 障害の調査
+  narrowed_to: 稼働中のシステムで起きた障害の調査
+  denominator_needed_only: 実際に行われた調査だけを数える
+  contribution: 調査でどの情報が見えるかにプロダクトが効く
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 4 の回答から下書きし、質問 10 で残すと確認

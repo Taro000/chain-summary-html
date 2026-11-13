@@ -1,0 +1,21 @@
+id: NFR-45
+title: ログの中の伏せていない個人の情報の監視
+status: active
+basis: inferred
+basis_note: 伏せていない個人の情報は本番のログで見つけられるため、監視にした（推定）
+premises: [CON-06]
+from: [QR-58]
+kind: monitor
+cuj: null
+statement: システムのログと端末で起きたエラーの記録（FR-52）に、乗客とドライバーの名前、連絡先、位置情報が伏せていない形で記録されたものを、見つけるたびにエンジニアに知らせる。
+conditions:
+  workload: null
+  users: null
+  transactions: システムのすべてのログと、端末で起きたエラーの記録
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 新しく記録されたログのうち、伏せていない名前、連絡先、位置情報を含むもの
+  threshold: 一件でもあれば知らせる
+  notifies: エンジニア

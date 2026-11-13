@@ -1,31 +1,21 @@
 id: NFR-29
-title: 走行中に見える許諾
-status: draft
-version: 1
-basis: inferred
-basis_note: V_moving の 10 km/h は提案（歩く速さより上）。参加者の動き方（第 1 段階の質問 19）が決まれば見直す。第 3 段階の競合（速度が分からないときに操作できる）を見るためのもの
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-13
+title: 決済の結果を示すまでの速さの監視
+status: active
+basis: assumed
+basis_note: しきい値 T_payment_response（10 秒）は暫定の決定（QAS-33）。決済はデモ 1 回に数件（OPF-02）のため、割合ではなく一件ごとに知らせる
+premises: [OPF-01, OPF-02, OPF-03, EXT-01, QAS-33]
+from: [QR-24]
 kind: monitor
-cuj: CUJ-06
-statement: 許諾の時刻の前後に届いた現在地から求めた速度が V_moving（10 km/h）以上だった許諾を毎週数え、1 件でもあればプロダクトオーナーに知らせる。
+cuj: CUJ-08
+statement: ドライバーが決済を行ってから、済んだか、済まなかったか、済んだかどうか分からないことを応えるまでが T_payment_response（10 秒）を超えたものを、一件ごとにエンジニアに知らせる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録したドライバーと乗客。試験用のアカウントを除く
+  transactions: 乗車の決済
 slo: null
 gate: null
 audit: null
 monitor:
-  signal: 許諾の時刻（FR-39）と、その前後に届いた現在地から求めた速度
-  threshold: V_moving 以上の許諾が 1 件でも
-  notifies: プロダクトオーナー（毎週）
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+  signal: システムの境界で、ドライバーの決済の操作を受けてから結果を応えるまでの時間が 10 秒を超えたもの
+  threshold: 一件でもあれば知らせる
+  notifies: エンジニア

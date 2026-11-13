@@ -1,39 +1,32 @@
 id: QIU-27
-title: 決済の記録と合う額で締める
-status: retired
-version: 1
-basis: confirmed
-basis_note: 質問 10 で CUJ-17 を外し、質問 11 で経理を考慮しないことにしたため廃止
-needs_agreement: false
-approver_candidates: []
-user: USR-05
-cuj: CUJ-17
+title: 担当者が苦情への対応を終えられる
+status: active
+basis: inferred
+basis_note: CUJ は質問 2 の回答。苦情をシステムの中で受け付け、担当者が対応を終えるまでをシステムに記録すること（observable）と、苦情を寄せるのは自分の乗車についての乗客だけであることは質問 7 で確認済み（QAS-06）。ニーズ、測定量、利用状況は推定
+premises: [QAS-06]
+user: USR-04
+cuj: CUJ-14
 outcomes: []
-need: ドライバーへの支払額と売上を、決済の記録と合わせて締めたい
+need: 寄せられた苦情に、事実を確かめて対応したい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: 経理
-  task: 月の締め
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 苦情への対応
   environment: null
   other: null
-characteristic: freedom from risk > economic risk mitigation
-statement: 経理は、決済の記録と合うドライバーへの支払額と売上で、月の締めを終えられる。
-failure_scenario: 支払額や売上が決済の記録と合わず、経理が一件ずつ照らし合わせ直す。
+characteristic: effectiveness
+statement: 苦情を受けた運営・サポートの担当者は、苦情に関わる乗車の記録を確かめて、対応を終えられる。
+failure_scenario: 乗客から「違う場所で降ろされた」と苦情が来ても、担当者がその乗車の記録を確かめられずに対応が止まり、乗客はサービスを使わなくなる。
 measure:
-  numerator: 決済の記録と食い違いのあったドライバーへの支払い
-  denominator: ドライバーへの支払い
-  narrowed_to: 月の締め
-  denominator_needed_only: その月に行ったドライバーへの支払いだけ
-  contribution: 支払額と売上を出す処理につながる
-  observable: false
+  numerator: 対応を終えた苦情
+  denominator: 受けた苦情
+  narrowed_to: 乗客が自分の乗車について寄せた苦情
+  denominator_needed_only: 対応が要る苦情だけを数え、同じ苦情の重複は一件として数える
+  contribution: 乗車の記録を確かめられるかにプロダクトが効くが、対応の中身は担当者の判断にも左右される
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成し、同日に廃止
-    reason: 質問 4 の回答から下書きしたが、質問 10 で CUJ-17 を外し、質問 11 で経理を考慮しないことにしたため。番号は再利用しない

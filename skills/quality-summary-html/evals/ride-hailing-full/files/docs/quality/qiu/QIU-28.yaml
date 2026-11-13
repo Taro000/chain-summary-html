@@ -1,41 +1,32 @@
 id: QIU-28
-title: 新しい機能を早く本番に出す
-status: draft
-version: 1
+title: 担当者が認めた返金を終えられる
+status: active
 basis: inferred
-basis_note: 変更の速さを扱うことと式は質問 14 で確認済み。T_lead と変更の種類ごとの絞り込みは推定。記録が今はないことは質問 9 で確認済み
-needs_agreement: true
-approver_candidates:
-  - 開発の責任者
-  - プロダクトオーナー
-user: USR-03
-cuj: CUJ-11
+basis_note: CUJ は質問 2 の回答。返金が外部の決済サービスのテスト環境を通り、実際のお金は動かないことは第 2 段階の質問 1 で確認済み（CON-03）。ニーズ、測定量、利用状況は推定
+premises: [CON-03]
+user: USR-04
+cuj: CUJ-15
 outcomes: []
-need: 既存のシステムを壊さずに、早く変更を本番に出したい
+need: 返金を認めた乗客に、確実に返金したい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: エンジニア
-  task: 新しい機能を加える変更
-  environment: 本番環境
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 返金への対応
+  environment: null
   other: null
-characteristic: efficiency
-statement: エンジニアは、新しい機能の変更を、最初のコミットから T_lead 以内に本番に出せる。
-failure_scenario: テストや確認に手間がかかって新しい機能がなかなか本番に出ず、乗客やドライバーの困りごとが長く残る。
+characteristic: effectiveness
+statement: 返金を認めた運営・サポートの担当者は、その乗車の乗客への返金を終えられる。
+failure_scenario: 担当者が返金を認めても返金が通らず、乗客は何度も問い合わせることになり、サービスへの信用を失う。
 measure:
-  numerator: 最初のコミットから T_lead 以内に本番に出した変更
-  denominator: 本番に出した変更
-  narrowed_to: 新しい機能を加える変更
-  denominator_needed_only: 本番に出した変更だけ（途中でやめた変更は含めない）
-  contribution: テストと本番に出す仕組みに直接つながる。変更の大きさにも左右される
-  observable: false
+  numerator: 返金を終えた乗車
+  denominator: 担当者が返金を認めた乗車
+  narrowed_to: 乗客からの返金の求めを担当者が認めたもの
+  denominator_needed_only: 担当者が返金を認めたものだけを数え、認めなかった求めは含めない
+  contribution: 返金の手順と決済の取り消しはプロダクトの振る舞いで決まる
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 9 の回答（変更の速さは扱わないという前提が誤り）と質問 14 の回答から追加

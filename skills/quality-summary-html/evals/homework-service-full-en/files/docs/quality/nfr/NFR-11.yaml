@@ -1,19 +1,15 @@
 id: NFR-11
 title: Restore drill
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: []
 from: [QR-13]
 kind: audit
 cuj: null
 statement: Once a year, rehearse restoring a deleted submission.
-conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+conditions: {workload: Up to the rush in the 24 hours before a deadline (OPF-01), users: 'Students and teachers, test accounts excluded', transactions: Submissions}
 slo: null
 gate: null
 audit: {mechanism: Restore drill, criterion: Restored within an hour, cadence_or_deadline: Every March}
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

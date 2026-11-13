@@ -1,0 +1,12 @@
+id: QAS-32
+title: 決済の記録と決済サービスの処理の一致の最初の目標値と突き合わせの時点
+status: open
+stage: 4
+kind: decision
+statement: 決済の 99.5% で、システムの記録が EXT-01 の処理と額も結果も等しいことを最初の目標値とする。EXT-01 が最終の結果を返さない決済は、決済を行った日の翌日の終わりに突き合わせる。
+why_unsure: 入力に数値も基準となる値もない。EXT-01 が結果を返すまでの時間は入力になく、翌日の終わりは結果が遅れて届く場合を待つ長さとして置いた。
+breadth: medium
+severity: medium
+rating_note: SLI-12 と NFR-26 が依存する。食い違いは返金や苦情の対応を誤らせるが、実際のお金は動かない（CON-03）
+answer: null
+answered_in: null

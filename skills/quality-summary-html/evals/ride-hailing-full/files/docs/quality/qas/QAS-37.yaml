@@ -1,0 +1,12 @@
+id: QAS-37
+title: 異常をエンジニアに知らせるまでの時間
+status: open
+stage: 4
+kind: decision
+statement: T_alert_delay を 5 分とする。
+why_unsure: 入力に数値はない。5 分は、知らせを受けたエンジニアが、デモの間に進んでいる依頼に間に合うよう調べ始められる長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QR-33 と NFR-38 が依存する。最低限守る線で、変えるのは容易
+answer: null
+answered_in: null

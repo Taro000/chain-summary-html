@@ -1,31 +1,21 @@
 id: NFR-28
-title: 外部サービスの呼び出しの失敗
-status: draft
-version: 1
+title: 脆弱性の修正期限と侵入試験
+status: active
 basis: inferred
-basis_note: 5% は提案。1 件ごとの通知は FR-36 が行う
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-07
-kind: monitor
-cuj: CUJ-01
-statement: 地図と決済のサービスの呼び出しのうち失敗と無応答が、1 時間に 5% を超えると、エンジニアに知らせる。
+basis_note: セキュリティは本番のイベントの割合で表せないため監査にした（推定）。修正の期限と侵入試験の頻度は質問 5 の回答（従う決まりはなく、下書きのとおり）。セキュリティのリスク分析の中身は確かめていない（第 3 段階の質問 1）
+premises: [CON-04, CON-06]
+from: [QR-10, QR-13, QR-36, QR-57, QR-58, QR-60]
+kind: audit
+cuj: null
+statement: 重大な脆弱性は見つけてから 7 日以内に、それ以外の脆弱性は 30 日以内に直し、参加者が使い始める前と、その後は 1 年に一度、本人の確かめ、権限、記録の中の個人の情報、カードの情報の扱いを対象に侵入試験を行う。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: null
+  transactions: 本人の確かめ、利用者の種類ごとの機能、位置情報と乗車の記録、ログ、支払い方法の登録
 slo: null
 gate: null
-audit: null
-monitor:
-  signal: 外部サービスの呼び出しの記録（FR-37 のトレース）
-  threshold: 1 時間に 10 件以上の呼び出しがあり、失敗と無応答が 5% を超える
-  notifies: エンジニア（デモの回の間は呼び出し、外はチケット）
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+audit:
+  mechanism: 脆弱性の管理（見つけた脆弱性の修正の期限）と侵入試験（写された記録が許された人のほかに読めないことの確かめを含む）
+  criterion: 期限を過ぎて開いたままの脆弱性がないこと。侵入試験の指摘で、担当と期限のないものがないこと
+  cadence_or_deadline: 重大な脆弱性は 7 日以内、それ以外は 30 日以内に修正。侵入試験は参加者が使い始める前と、その後 1 年に一度
+monitor: null

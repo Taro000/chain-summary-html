@@ -1,34 +1,21 @@
 id: NFR-31
-title: 書き換えと権限のテスト
-status: draft
-version: 1
+title: ドライバーに示す場所と乗客が決めた場所の一致の受け入れの試験
+status: active
 basis: inferred
-basis_note: 推定
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-- 個人情報の扱いを確かめる担当（推定）
-from:
-- QR-21
-- QR-38
-- QR-47
+basis_note: 最低限守る線で、公開の前に確かめられるためゲートにした（推定）
+premises: []
+from: [QR-23]
 kind: gate
-cuj: null
-statement: ブラウザから送った額が使われないこと、ほかの人の依頼と乗車と位置情報を見たり操作したりできないこと、管理とエンジニアの画面が役割のアカウントだけに使えることを、自動テストで確かめる。
+cuj: CUJ-07
+statement: リリースの前に、ドライバーに示す乗車場所と降りる場所が乗客が決めた場所と同じであり、乗車中に乗客が新しい降りる場所を承認すると承認した場所になることを、受け入れの試験で確かめる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: 乗客、ドライバー
+  transactions: 依頼、乗車中の降りる場所の変更
 slo: null
 gate:
-  where: CI
-  check: 額を書き換えた要求、ほかの人の依頼の ID を使った要求、迎車中でないドライバーからの乗客の位置の要求、役割のないアカウントからの管理とエンジニアの画面への要求
-  threshold: すべて拒まれるか、サーバーの値が使われる
+  where: release-check
+  check: 乗客が決めた場所と承認した場所を、ドライバーの迎車と乗車中の画面と突き合わせる受け入れの試験
+  threshold: すべての試験が通ること
 audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

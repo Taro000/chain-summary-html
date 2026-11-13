@@ -75,9 +75,9 @@
     "data_role": {"producer": "データを作る人", "consumer": "データを使う人", "both": "両方", "none": "なし"},
     "considered": {"true": "考慮する", "false": "考慮しない"},
     "verb": {"maintain": "保つ", "eliminate": "なくす", "decrease": "減らす", "increase": "増やす", "create": "生み出す"},
-    "basis": {"stated": "入力", "inferred": "推定", "confirmed": "確認済み"},
+    "basis": {"stated": "入力", "inferred": "推定", "assumed": "仮定", "confirmed": "確認済み"},
     "status": {
-      "draft": "下書き", "agreed": "合意済み", "retired": "廃止",
+      "active": "有効", "retired": "廃止",
       "proposed": "提案中", "accepted": "受け入れ", "rejected": "受け入れない"
     },
     "origin": {"cuj-step": "CUJ の手順", "quality-in-use": "利用時の品質要求", "proposal": "機能の提案"},
@@ -86,7 +86,8 @@
     "handling": {"emphasized": "重視", "minimum-line": "最低限守る線", "excluded": "今期は対象外"},
     "kind": {"slo": "SLO", "gate": "ゲート", "audit": "監査", "monitor": "監視"},
     "entry_type": {"law": "法令", "standard": "標準・指針", "security-risk": "セキュリティのリスク分析", "policy": "開発方針・制約"},
-    "target_status": {"undecided": "未定", "provisional": "仮", "agreed": "合意済み"},
+    "target_status": {"undecided": "未定", "provisional": "仮", "confirmed": "確認済み"},
+    "vantage": {"user-side": "利用者の側", "system-boundary": "システムの境界", "synthetic": "模擬の利用", "data": "データ"},
     "notify": {"page": "呼び出し", "ticket": "チケット"},
     "gate_where": {"CI": "CI", "release-check": "リリース前の確認", "definition-of-done": "完成の定義"}
   },
@@ -142,6 +143,7 @@
     "risk_label": "優先度の表の QR を、影響と起こりやすさで並べた図",
     "risk_tip": "影響 {imp} × 起こりやすさ {lik} = {score}",
     "user_role": "利用者（{role}）",
+    "ext_role": "外部のシステム（{id}）",
     "formula_rest": "各 QIU の式（失敗のシナリオと測定量の表）",
     "ebp_caption": "{id} {title} · 対象: {targets}",
 
@@ -156,7 +158,6 @@
     "not_added": "検討して加えなかった機能",
     "product_quality": "製品の品質",
     "data_quality": "データの品質",
-    "data_kinds": "データの種類",
     "data_producers": "データを作る人",
     "priority": "優先度の表",
     "handling_by_cuj": "CUJ ごとの扱い",
@@ -233,7 +234,7 @@
     "col_budget_volume": "許容される失敗の件数",
     "col_policy": "方針",
     "col_good_valid": "良いイベント ÷ 有効なイベント",
-    "col_method": "測定方法",
+    "col_vantage": "見る位置",
     "col_condition": "条件",
     "col_action": "あらかじめ決めておく行動",
     "col_notify": "知らせ方",

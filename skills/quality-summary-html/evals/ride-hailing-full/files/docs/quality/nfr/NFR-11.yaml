@@ -1,31 +1,21 @@
 id: NFR-11
-title: 依頼の状態を変える部品の依存の規則
-status: draft
-version: 1
+title: 通信の途切れと操作の重なりを再現する試験のゲート
+status: active
 basis: inferred
-basis_note: 推定
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-45
+basis_note: 試験の場面は QR-51、QR-02、QR-03 からの推定
+premises: []
+from: [QR-51, QR-02, QR-03]
 kind: gate
-cuj: CUJ-06
-statement: 配車依頼の状態は一つの部品だけが変え、許される状態の変化の表のすべての組（許されるものと許されないもの）をテストで確かめる。
+cuj: CUJ-01
+statement: リリースの前に、依頼、許諾、取り消し、乗車の開始、到着の確認の途中で端末との通信が途切れてつながり直す場面と、許諾と取り消しがほぼ同時に起きる場面を試験で再現し、操作が失われも二重にもならず、つながり直した乗客とドライバーの画面が今の状態を示し、依頼に割り当てたドライバーが一人に定まることを確かめる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: null
+  transactions: 依頼、許諾、乗客とドライバーの取り消し、乗車の開始、到着の確認
 slo: null
 gate:
-  where: CI
-  check: 静的な依存の確かめで、状態を変える部品のほかから依頼の状態を書く処理がないこと。状態の変化の表のすべての組のテスト
-  threshold: 違反 0 件。表の組をすべて通る
+  where: release-check
+  check: 通信の途切れとつながり直し、許諾と取り消しの重なりを、操作ごとに何度でも同じように再現する試験
+  threshold: すべての場面で、操作の消失と二重がなく、画面が今の状態を示し、割り当てが一人に定まること
 audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

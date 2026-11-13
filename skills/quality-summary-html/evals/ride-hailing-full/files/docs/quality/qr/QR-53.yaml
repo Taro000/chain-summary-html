@@ -1,0 +1,22 @@
+id: QR-53
+title: システムのどの部分も、一件の依頼について行ったことをその依頼と結び付けて残す
+status: active
+basis: inferred
+basis_note: QR-33 を支える内部品質として推定。何をどう残すかは設計で決める
+premises: []
+model: product
+layer: internal
+characteristic: maintainability > analysability
+statement: 依頼を扱うシステムのどの部分も、一件の依頼について行ったことと結果（EXT-01 とのやり取りを含む）を、その依頼と結び付けて残し、新しい部分を加えるときも同じように残す。
+applies_to: [FR-33, FR-34]
+traces_to: [QIU-21, QIU-22]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 後から加えた乗車中に降りる場所を変える部分だけが依頼と結び付けて残しておらず、料金の更新で起きた異常をたどれない。
+score: null
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

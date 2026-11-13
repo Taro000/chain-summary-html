@@ -1,42 +1,24 @@
 id: QR-04
-title: 降車時の請求の速さ
-status: draft
-version: 2
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。QR-09・QR-32 との競合の解き方は質問 9 で確認済み
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 押さえる額、請求する額と示す額が確定額や決まりの料金と一致し、一度だけ請求する
+status: active
+basis: assumed
+basis_note: 確定額の決まりは CON-01、決済が EXT-01 のテスト環境を通ることは CON-03。依頼のときに確定額を押さえ、決済ではその押さえから請求すること、許諾の後の乗客の取り消しと乗客の不在ではキャンセル料と不在の料金（CON-08）を請求することは第 2 段階の質問 8（FR-54）。キャンセル料と不在の料金の正しさをこの QR に含めて重視とすることは質問 21 と質問 23 で確認済み。失敗のシナリオと点は推定。乗車中の料金の更新と押さえ直し（FR-47、FR-54）、EXT-01 が答えないときのやり直し（FR-29, FR-30）、許諾の前と後の境目（ドライバーが取り消して届け直している間の乗客の取り消しは無料、FR-54）が誤りの起きやすい場面とみた。扱い（重視）は決めたこと 18、23 で確認済み（CUJ-03 の組。CUJ-08 の組でもある、決めたこと 21）。競合の T_payment_response の値（10 秒）は第 4 段階が提案した仮の値で、QAS-33 による仮定
+premises: [CON-01, CON-03, CON-08, EXT-01, QAS-33]
 model: product
 layer: external
-characteristic: performance efficiency > time behaviour
-statement: システムは、乗車の終了から請求の結果を両方の画面に示すまでを、乗客が T_alight 秒以内に降りるのを妨げない速さで終える。
-applies_to: [FR-28, FR-29]
-traces_to: [QIU-07]
+characteristic: functional suitability > functional correctness
+statement: システムは、一つの乗車について、確定額（CON-01）を乗客に一度だけ請求し、依頼のときに押さえる額、乗客に示す料金、ドライバーに示す金額、請求する額、乗客に示す支払った額をどれも確定額と一致させる。乗車中に乗客が新しい料金を承認したときは、承認した料金で同じことが成り立つ。キャンセル料と不在の料金（CON-08）は、ドライバーが許諾した後に乗客が取り消した依頼と乗客の不在で終わった依頼にだけ、CON-08 の額で一つの依頼に一度だけ請求し、どのドライバーも許諾していない間に取り消された依頼と許諾のないまま終わった依頼には何も請求しない。どの場合も、請求の後に押さえの残りを解き、乗客に示す請求した額とその種類は請求した額と一致する。
+applies_to: [FR-03, FR-07, FR-20, FR-23, FR-26, FR-29, FR-30, FR-31, FR-47, FR-54]
+traces_to: [QIU-04, QIU-19]
 entry_point: null
-stakeholders: [USR-01, USR-02, 決済の外部サービス]
-failure_scenario: 降車時の請求の応答が遅く、乗客が車内で結果を待つ。
-score: {impact: 3, likelihood: 2}
-handling: minimum-line
+stakeholders: [USR-01, USR-02, EXT-01]
+failure_scenario: 乗車中に降りる場所を変えて承認した料金が押さえ直されず決済に使われずに元の料金で請求される、または EXT-01 が答えなかった決済をドライバーがやり直して二重に請求される。ドライバーが取り消して届け直している間に乗客が取り消したのに、許諾の後の取り消しとしてキャンセル料が請求される。乗客は確認していない額を請求される。
+score: {impact: 5, likelihood: 3}
+handling: emphasized
 handling_reason: null
-implies_internal: []
+implies_internal: [QR-50]
 conflicts:
-  - with: QR-07
-    note: 外部サービスの呼び出しを待つ時間とやり直しが降車の待ち時間に加わる。待つ時間の上限を降車の待ち時間の中に収める
-  - with: QR-09
-    note: 結果の分からない請求を確かめ終えるまで結果が出ない（FR-29 版 2）。乗客は待たずに降りられ、画面に「請求を確かめています」と示す（質問 9 で確認済み）
-  - with: QR-32
-    note: QR-09 と同じ。確かめ終えるのを待たずに降りられる
+  - {with: QR-24, note: "EXT-01 が答えないときに一度だけ請求することを確かめる間も、T_payment_response（10 秒）のうちに済んだかどうか分からないことを示し、乗客を待たせない。結果が分かってから示し直す（FR-29）"}
 stated_numbers: []
 placeholders:
-  - name: T_alight
-    meaning: 降車場所に着いてから決済を終えるまでの秒数
-    from: QIU-07
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: FRP-02 が FR-29 版 2 として受け入れられたことを競合の記述に反映した
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+  - {name: T_payment_response, meaning: "ドライバーが決済を行ってから、結果（済んだ、済まなかった、分からない）がドライバーと乗客に示されるまでの時間", from: QR-24}

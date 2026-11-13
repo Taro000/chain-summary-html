@@ -1,0 +1,14 @@
+id: FRP-12
+title: 閾値を設定した乗客の依頼は、評価の件数が下限に満たないドライバーにも届けない（FR-05 の変更）
+status: accepted
+basis: confirmed
+basis_note: 第 4 段階の質問 7 の回答（評価がまだないドライバーに加えて、評価の件数が下限に満たないドライバーにも届けない。下限の値はまだ決まっていない）。下限の値 2 件（N_rating_count_min）は質問 10 の回答
+premises: []
+proposed_by: product-quality-to-slo
+origin: [QR-16]
+changes: FR-05
+reason: 利用者は、閾値を設定した乗客の依頼を、評価の件数が下限に満たないドライバーにも届けないと答えた。FR-05 は評価が閾値以上のドライバーに届け、評価がまだないドライバーには届けない（QAS-05）が、評価の件数の下限を持たない。
+suggested_statement: システムは、評価の閾値を設定した乗客の依頼を、評価の件数が N_rating_count_min 以上で、評価が閾値以上のドライバーにだけ届ける。
+affects: [NFR-35, NFR-36]
+placeholders: [{name: N_rating_count_min, meaning: 閾値を設定した乗客の依頼を届けるのに要る、ドライバーの評価の件数の下限}]
+resolution: "受け入れ。FR-05（新規）をその場で変えた。第 4 段階の質問 7 と決めたこと #10（N_rating_count_min は 2 件）に従う。"

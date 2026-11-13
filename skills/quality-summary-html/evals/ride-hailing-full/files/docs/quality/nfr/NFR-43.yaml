@@ -1,0 +1,21 @@
+id: NFR-43
+title: 担当者の操作の記録の欠けの監視
+status: active
+basis: inferred
+basis_note: 担当者の操作の結果（返金、登録、停止など）と操作の記録を突き合わせられるため、完成の定義（NFR-32）に加えて監視を置いた（推定）。担当者の操作を記録する機能は FR-50（FRP-03 の受け入れ）
+premises: []
+from: [QR-44]
+kind: monitor
+cuj: CUJ-14
+statement: 返金、アカウントの作成と訂正、試験用の区別の変更、ドライバーと車両の登録と訂正、ドライバーの停止と再開、苦情の対応の記録のうち、行った担当者と時刻が記録されていないものを、見つけるたびにエンジニアに知らせる。
+conditions:
+  workload: null
+  users: 運営・サポートの担当者
+  transactions: QR-44 が挙げる担当者の操作
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 担当者の操作による変化ごとの、行った担当者と時刻の記録の有無
+  threshold: 一件でもあれば知らせる
+  notifies: エンジニア

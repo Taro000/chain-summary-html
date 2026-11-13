@@ -1,0 +1,17 @@
+id: FR-09
+title: Leave test submissions out of the counts
+status: active
+basis: inferred
+basis_note: null
+premises: []
+statement: The system leaves submissions from test accounts out of the submission counts and the monthly counts.
+origin: quality-in-use
+cuj: null
+cuj_step: null
+traces_to: [QIU-01, QIU-05, KPI-01]
+proposal: null
+existing: false
+extends: null
+interface: ['report: cram school office']
+acceptance_criteria: [A submission from a test account does not change the counts in the monthly report.]
+quality_hints: []

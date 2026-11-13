@@ -1,0 +1,21 @@
+id: NFR-48
+title: 模擬の運賃表と模す運賃の定めの照合
+status: active
+basis: inferred
+basis_note: 運賃表が定めに合うかは人が定めを読んで確かめるしかないため、監査にした（推定）。定めの中身と、照合する役割はまだ決まっていない（第 3 段階の未解決の点）
+premises: []
+from: [QR-62]
+kind: audit
+cuj: null
+statement: 模擬の運賃表を作るときと変えるたびに、システムに入れる前に、運賃表を模す運賃の定めと照らし合わせ、すべての区分の額が定めに合うことを確かめる。
+conditions:
+  workload: null
+  users: null
+  transactions: 模擬の運賃表
+slo: null
+gate: null
+audit:
+  mechanism: 運賃表と模す運賃の定めの照合
+  criterion: 運賃表のすべての区分の額が定めに合うこと。合わない区分を残したまま入れないこと
+  cadence_or_deadline: 運賃表を作るときと変えるたび、システムに入れる前
+monitor: null

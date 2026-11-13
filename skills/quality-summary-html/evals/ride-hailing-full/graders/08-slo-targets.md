@@ -4,4 +4,4 @@ focus: trace
 weight: 1
 ---
 
-For each of the 5 SLOs, the target (slo.target in the NFR's YAML) is on the same row as that NFR.
+For each of the 13 SLOs, the target (slo.target in the NFR's YAML) is on the same row as that NFR.

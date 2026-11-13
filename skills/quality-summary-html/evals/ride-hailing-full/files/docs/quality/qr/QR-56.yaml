@@ -1,0 +1,22 @@
+id: QR-56
+title: 誰に何を見せるかと個人の情報を隠すことは一か所で決まり、機能や記録を加えても漏れが生じない
+status: active
+basis: inferred
+basis_note: QR-34 と QR-57 を支える内部品質として推定。どこで隠すかは設計で決める。利用者の種類ごとに使える機能を分けること（FR-49）と端末で起きたエラーの記録（FR-52）も対象の機能に加えた
+premises: []
+model: product
+layer: internal
+characteristic: maintainability > modularity
+statement: 位置情報と乗車の記録を誰に見せるかの決まりと、エンジニアに見せる画面、記録、知らせから乗客とドライバーの個人の情報を隠す決まりは、それぞれ一か所にまとまり、新しい機能、記録、知らせを加えても、その決まりを通らずに見せるものは作れない。
+applies_to: [FR-08, FR-13, FR-31, FR-33, FR-34, FR-35, FR-38, FR-49, FR-52]
+traces_to: [QIU-23]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 後から加えた異常の知らせが隠す決まりを通らずに作られ、乗客の降りる場所がそのままエンジニアに届く。
+score: null
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

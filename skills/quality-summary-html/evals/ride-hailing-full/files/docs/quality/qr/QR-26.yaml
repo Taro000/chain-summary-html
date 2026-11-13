@@ -1,32 +1,23 @@
 id: QR-26
-title: 配備を自動の手順で終える
-status: draft
-version: 1
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [開発の責任者]
-model: product
-layer: external
-characteristic: portability > installability
-statement: システムは、配備を毎回同じ自動の手順で、手作業なしに終える。
-applies_to: [FR-41]
-traces_to: [QIU-28, QIU-29, QIU-30]
+title: ドライバーの評価が新しい評価をすぐ反映する
+status: retired
+basis: confirmed
+basis_note: 決めたこと 14 で、新しい評価を評価の値に反映することは閾値による絞り込みの正しさ（QR-16）に含めると決まったため、QR-16 にまとめて廃止した（QAS-10 への訂正）
+premises: [QAS-10]
+model: data
+layer: data-inherent
+characteristic: currentness
+statement: 閾値によるマッチ（FR-05）に使うドライバーの評価は、乗客が評価を付けてから T_rating_reflect 以内に、その評価を反映した値になる。
+applies_to: [FR-05, FR-15]
+traces_to: [QIU-13, QIU-14]
 entry_point: null
-stakeholders: [USR-03]
-failure_scenario: 配備の手順に手作業が残り、版ごとに手順を間違え、本番に出すまでが延びる。
+stakeholders: [USR-01, USR-02]
+failure_scenario: 低い評価が続いて閾値を下回ったドライバーの評価が古いまま使われ、閾値を設定した乗客の依頼がそのドライバーに届いて許諾される。
 score: {impact: 3, likelihood: 2}
-handling: minimum-line
+handling: emphasized
 handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders:
-  - name: T_lead
-    meaning: 最初のコミットから本番に出すまでの時間（第 4 段階で使う）
-    from: QIU-28〜30
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - {name: T_rating_reflect, meaning: "乗客が評価を付けてから、閾値によるマッチに使うドライバーの評価がそれを反映するまでの時間", from: QR-26}

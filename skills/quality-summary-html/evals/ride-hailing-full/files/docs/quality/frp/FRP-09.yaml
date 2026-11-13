@@ -1,0 +1,14 @@
+id: FRP-09
+title: 乗客とドライバーの端末で起きたエラーを、その依頼と結び付けて記録する
+status: accepted
+basis: inferred
+basis_note: "QR-41 からの推定。端末で起きたエラーの記録が欠けないことは #12 の回答。FR-34 はシステムが行ったことをたどるが、乗客とドライバーの端末で起きたエラーを記録する機能はない"
+premises: []
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-41]
+changes: null
+reason: 障害の原因の特定と苦情の確かめに、乗客とドライバーの端末で起きたエラーの記録が要るが、それを記録する機能がどの FR にもない。
+suggested_statement: システムは、乗客とドライバーの端末で起きたエラーを、どの依頼のどの画面で起きたかとともに記録し、エンジニアが依頼の経過と合わせてたどれるようにする。
+affects: [NFR-37]
+placeholders: []
+resolution: "受け入れ。FR-52 として今期作る。端末で起きたエラーの記録（QR-41）は第 3 段階の決めたこと #12 で重視に決まっている。"

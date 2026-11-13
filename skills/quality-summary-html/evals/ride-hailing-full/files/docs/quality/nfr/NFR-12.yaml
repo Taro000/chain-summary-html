@@ -1,31 +1,31 @@
 id: NFR-12
-title: 到着予定時刻の誤差を要素ごとに見直す
-status: draft
-version: 1
+title: 乗る場所の位置の正確さの SLO
+status: active
 basis: inferred
-basis_note: 自然な SLI は QIU-02 の測定量と同じイベントを数えるので、SLO にしなかった（推定。質問 5 は未回答）。T_late は利用時の品質のしきい値なので、ここでは値を付けない
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-08
-kind: audit
+basis_note: 目標値 95% としきい値 D_pickup_position_gap（50 m）は質問 3 の回答。乗車を始めたときの車の位置で乗客が待っていた場所を表すのは推定。SLO として置くことと方針は質問 9 の回答。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03, EXT-02]
+from: [QR-05]
+kind: slo
 cuj: CUJ-01
-statement: デモの期間ごとに、完了した乗車について、到着予定時刻の三つの要素（ドライバーが見つかるまで、迎車、走行）の見込みと実際を比べ、T_late を超えて遅れた乗車の誤差がどの要素から来たかを報告する。
+statement: 直近 28 日で、乗車を始めた依頼の 95% で、乗車を始めたときの車の位置が依頼に入った乗る場所から D_pickup_position_gap（50 m）未満である。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
-slo: null
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録した乗客とドライバー。試験用のアカウントを除く
+  transactions: 現在地で決めた乗る場所と、場所の名前・住所で決めた乗る場所
+slo:
+  sli: SLI-09
+  target: 95%
+  target_status: confirmed
+  target_rationale: 入力の数値も基準となる値もない。乗車の位置には車を止められる場所や乗客の歩きが混ざるため、控えめな値にした。目標値と 50 m は質問 3 で確認した。50 m は迎車が乗る場所に着いたとみなす範囲と同じ値。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 乗車を始めた依頼の 5% まで、50 m 以上ずれてよい
+  error_budget_volume: 許されるずれは、28 日に入る乗車 2〜6 回（OPF-01、OPF-02）の 5% で 0.1〜0.3 件。1 件で予算を使い切る
+  policy: EBP-01
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
 gate: null
-audit:
-  mechanism: 示した到着予定時刻と要素ごとの見込み（FR-03 で依頼に記録）と、状態の履歴（FR-39）の時刻の比較
-  criterion: 誤差が最も大きい要素に、見込み方を直す作業を一件作る
-  cadence_or_deadline: デモの期間ごと
+audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

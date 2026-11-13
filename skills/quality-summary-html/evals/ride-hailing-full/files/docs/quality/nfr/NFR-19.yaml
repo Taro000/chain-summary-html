@@ -1,31 +1,31 @@
 id: NFR-19
-title: 評価の分布を見直す
-status: draft
-version: 1
+title: 車と乗客の現在地の新しさの SLO
+status: active
 basis: inferred
-basis_note: 見直しの時期は提案。「差が出ていない」とは、それらのドライバーの評価値が、しきい値の選択肢の一段の幅に収まること（推定）
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-31
-kind: audit
-cuj: CUJ-05
-statement: デモの期間ごとに、評価の件数が N_min_ratings 以上のドライバーの評価値の分布を見る。差が出ていなければ、評価値の計算を変える提案を出す。
+basis_note: しきい値 T_vehicle_location_lag（30 秒）、目標値 95%、1 分ごとの確かめは決めたこと 17 の訂正で、しきい値と目標値はどちらも利用者が仮とした。SLO として置くことと方針は質問 9 の回答。迎車中のドライバーに示す乗客の現在地（FR-24、FRP-10 の受け入れ）を含めた。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03, QAS-29]
+from: [QR-19]
+kind: slo
+cuj: CUJ-02
+statement: 直近 28 日で、受付をしている、迎車中、乗車中のドライバーと迎車を待つ乗客についての確かめの 95% で、システムが持つ位置が端末で測ってから T_vehicle_location_lag（30 秒）以内である。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
-slo: null
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録したドライバーと、その依頼の乗客。試験用のアカウントを除く
+  transactions: 受付、迎車、乗車。CUJ-06、CUJ-07、CUJ-09 で使う現在地と、迎車中のドライバーに示す乗客の現在地も含む
+slo:
+  sli: SLI-10
+  target: 95%
+  target_status: provisional
+  target_rationale: 入力の数値も基準となる値もなく、機能はまだない。30 秒と 95% は利用者が訂正で示した仮の値（決めたこと 17）で、最初のデモの値から見直す。端末の通信の途切れが混ざるため、目標は控えめにした。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 確かめの 5% まで、位置が T_vehicle_location_lag（30 秒）より古くてよい
+  error_budget_volume: 許される古い確かめは、ウィンドウの確かめの数 × 5% 件。確かめは使う時間 3〜12 時間（OPF-01）のうちドライバー（OPF-03）が受付、迎車、乗車をしている分で、最大 180〜720 回で、その 5% は 9〜36 回。迎車を待つ乗客の確かめが、迎車の分数 × 乗車 2〜6 回（OPF-02）だけ加わり、その 5% も許される
+  policy: EBP-01
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
 gate: null
-audit:
-  mechanism: 評価値と評価の件数（FR-15）の分布の見直し
-  criterion: 評価の件数が N_min_ratings 以上のドライバーの評価値が、しきい値の選択肢の一段の幅に収まるなら、評価値の計算を変える提案を第 2 段階に出す
-  cadence_or_deadline: デモの期間ごと
+audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

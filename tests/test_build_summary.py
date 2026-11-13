@@ -97,7 +97,6 @@ class Markdown(unittest.TestCase):
 | A \\| B | QIU-01 | なし |
 
 ## 次へ
-主なデータ: 記録、ファイル（添付）、レポート。
 '''
 
     def test_section_and_table(self):
@@ -107,16 +106,11 @@ class Markdown(unittest.TestCase):
         self.assertEqual(rows, [['A | B', 'QIU-01', 'なし']])
         self.assertIsNone(bs.section(self.TEXT, ('対象にしない',)))
 
-    def test_line_value(self):
-        line = bs.line_value(self.TEXT, ('主なデータ',))
-        self.assertEqual(bs.split_top(bs.first_sentence(line)), ['記録', 'ファイル（添付）', 'レポート'])
-
-    def test_english_lists_and_sentences(self):
-        self.assertEqual(bs.split_top('records, files (PDF, images), 1,000 reports, and logs'),
-                         ['records', 'files (PDF, images)', '1,000 reports', 'logs'])
+    def test_english_sentences(self):
         self.assertEqual(bs.first_sentence('Comes from a law, e.g. the APPI. So it stays.'), 'Comes from a law, e.g. the APPI')
         self.assertEqual(bs.first_sentence('Keeps 99.5% (see v1.2). Next.'), 'Keeps 99.5% (see v1.2)')
-        self.assertEqual(bs.split_who('the external storage (stored files)'), ('the external storage', 'stored files'))
+        self.assertEqual(bs.split_who('External storage (keeps the submitted files)'), ('External storage', 'keeps the submitted files'))
+        self.assertEqual(bs.split_who('外部の決済サービス（支払いと返金を処理する）'), ('外部の決済サービス', '支払いと返金を処理する'))
         self.assertEqual(bs.ids_in('CUJ-01–03 and QR-07–QR-09'), ['CUJ-01', 'CUJ-02', 'CUJ-03', 'QR-07', 'QR-08', 'QR-09'])
 
     def test_window(self):
@@ -199,11 +193,24 @@ class Page(unittest.TestCase):
         self.assertEqual(re.findall(r'<link rel="stylesheet" href="([^"]+)"', self.page)[0][:31], 'https://fonts.googleapis.com/cs')
 
     def test_reports_the_planted_inconsistency(self):
-        self.assertIn('QIU-03', self.run1.stdout)
-        self.assertRegex(self.run1.stdout, r'YAML だけ: FR-08')
+        self.assertIn('食い違い: 1 件', self.run1.stdout)
+        self.assertRegex(self.run1.stdout, r'QIU-03: .*YAML だけ: FR-08')
+        # QIU-01, 04 and 05 are covered in two rows each, which together list the FRs the YAML traces to them
+        issues = [ln for ln in self.run1.stdout.splitlines() if '「利用時の品質要求の対応」' in ln]
+        self.assertEqual([bs.ids_in(ln, 'QIU') for ln in issues], [['QIU-03']])
 
-    def test_reports_tables_it_could_not_compare(self):
-        self.assertIn('報告書に見つからず突き合わせなかった表: CUJ の手順ごとの機能（2-functional-requirements.md）', self.run1.stdout)
+    def test_compares_every_report_table(self):
+        self.assertIn('YAML と突き合わせた報告書の表: 利用時の品質要求の対応、CUJ の手順ごとの機能、外部品質から導いた内部品質、割り当て',
+                      self.run1.stdout)
+        self.assertIn('報告書に見つからず省いたもの: なし', self.run1.stdout)
+        self.assertIn('報告書に見つからず突き合わせなかった表: なし', self.run1.stdout)
+        self.assertNotIn('用語集にない値', self.run1.stdout)
+
+    def test_data_producers(self):
+        # Users who produce data, and the external systems with creates_data: true, named by their role
+        dq = toggle(self.page, 't-dq')
+        self.assertEqual(re.findall(r'<span class="who">([^<]+)</span>', dq), ['生徒', '講師', '外部のストレージ'])
+        self.assertIn('外部のシステム（EXT-01）', dq)
 
     def test_entry_column_before_cujs(self):
         pq = toggle(self.page, 't-pq')
@@ -218,7 +225,13 @@ class Page(unittest.TestCase):
         self.assertIn('id="EBP-02"', self.page)
         self.assertIn('1.9 日', toggle(self.page, 't-burn'))
         self.assertIn('NFR-02', toggle(self.page, 't-dl'))
-        self.assertIn('99.5%', self.page)
+        self.assertIn('99.5%（確認済み）', toggle(self.page, 't-slo'))
+        self.assertIn('99%（仮）', toggle(self.page, 't-slo'))
+        self.assertEqual(re.findall(r'<span class="slo-state">([^<]+)</span>', self.page), ['確認済み', '仮'])
+        sli = toggle(self.page, 't-sli')
+        self.assertEqual(heads(sli), ['SLI', '良いイベント ÷ 有効なイベント', '見る位置'])
+        self.assertIn('システムの境界', sli)
+        self.assertIn('データ', sli)
 
 
 class PartialChain(unittest.TestCase):
@@ -259,6 +272,32 @@ class MissingInputs(unittest.TestCase):
         self.assertIn('報告書に見つからず省いたもの: 対象にしない', r.stdout)
         self.assertIn('この版の注記', page)
 
+    def test_compared_table_missing(self):
+        # A table that is only compared is not on the page, so its absence goes to the report, not to the notes
+        with tempfile.TemporaryDirectory() as d:
+            docs = pathlib.Path(d) / 'docs' / 'quality'
+            shutil.copytree(docs_of('homework-service-full'), docs)
+            r2 = docs / '2-functional-requirements.md'
+            r2.write_text(r2.read_text(encoding='utf-8').replace('## CUJ の手順ごとの機能', '## 手順の一覧'), encoding='utf-8')
+            r = build(docs, docs / 'summary.html')
+            page = (docs / 'summary.html').read_text(encoding='utf-8')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('報告書に見つからず突き合わせなかった表: CUJ の手順ごとの機能（2-functional-requirements.md）', r.stdout)
+        self.assertNotIn('この版の注記', page)
+
+    def test_allocation_heading_variants(self):
+        # The stage 4 template's "Allocation" is written 「割り当て」 or 「配分」
+        with tempfile.TemporaryDirectory() as d:
+            docs = pathlib.Path(d) / 'docs' / 'quality'
+            shutil.copytree(docs_of('homework-service-full'), docs)
+            r4 = docs / '4-nfr-slo.md'
+            r4.write_text(r4.read_text(encoding='utf-8').replace('## 割り当て', '## 配分'), encoding='utf-8')
+            r = build(docs, docs / 'summary.html')
+            page = (docs / 'summary.html').read_text(encoding='utf-8')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('報告書に見つからず突き合わせなかった表: なし', r.stdout)
+        self.assertIn('ストレージの事業者の障害そのもの', toggle(page, 't-trace'))
+
 
 class StepTable(unittest.TestCase):
     """Compares stage 2's 「CUJ の手順ごとの機能」 (functions by CUJ step) with each FR's cuj and cuj_step"""
@@ -282,7 +321,11 @@ class StepTable(unittest.TestCase):
             docs = pathlib.Path(d) / 'docs' / 'quality'
             shutil.copytree(docs_of('homework-service-full'), docs)
             r2 = docs / '2-functional-requirements.md'
-            r2.write_text(r2.read_text(encoding='utf-8') + self.TABLE, encoding='utf-8')
+            text = r2.read_text(encoding='utf-8')
+            # Replace the project's own table (up to the next heading) with this one
+            text, n = re.subn(r'## CUJ の手順ごとの機能\n.*?(?=\n## )', self.TABLE.strip() + '\n', text, flags=re.S)
+            self.assertEqual(n, 1)
+            r2.write_text(text, encoding='utf-8')
             r = build(docs, docs / 'summary.html')
         self.assertEqual(r.returncode, 0, r.stderr)
         got = [ln for ln in r.stdout.splitlines() if '「CUJ の手順ごとの機能」' in ln]
@@ -346,14 +389,14 @@ class EnglishPage(unittest.TestCase):
         self.assertIn('Language: en (detected from the outputs)', out)
         self.assertIn('Inconsistencies: 1', out)
         self.assertRegex(out, r'QIU-03: .*YAML only: FR-08')
-        self.assertIn('Not found in the reports, not compared: Functions by CUJ step (2-functional-requirements.md)', out)
+        self.assertIn('Not found in the reports, not compared: none', out)
 
     def test_reads_the_english_reports(self):
         # In 「CUJ-01–03」 (an en dash), 03 is read as CUJ-03, as in 「CUJ-01〜03」
         self.assertEqual(re.findall(r'href="#(CUJ-\d+)"', toggle(self.page, 't-excl')), ['CUJ-01', 'CUJ-03', 'CUJ-04'])
         dq = toggle(self.page, 't-dq')
-        self.assertIn('<li>scores and comments</li>', dq)
-        self.assertEqual(re.findall(r'<span class="who">([^<]+)</span>', dq), ['students', 'teachers', 'the external storage'])
+        self.assertEqual(re.findall(r'<span class="who">([^<]+)</span>', dq), ['Student', 'Teacher', 'External storage'])
+        self.assertIn('External system (EXT-01)', dq)
         # The first sentence of an entry point's source, and a handling reason without its leading handling name
         self.assertIn('<span class="ent-src">Act on the Protection of Personal Information</span>', self.page)
         self.assertIn('<span class="note">teachers write the notification text themselves</span>', toggle(self.page, 't-prio'))
@@ -364,8 +407,11 @@ class EnglishPage(unittest.TestCase):
 
     def test_stage4_parts(self):
         self.assertIn('1.9 days', toggle(self.page, 't-burn'))
-        self.assertIn('99.5% (Provisional)', toggle(self.page, 't-slo'))
+        self.assertIn('99.5% (Confirmed)', toggle(self.page, 't-slo'))
+        self.assertIn('99% (Provisional)', toggle(self.page, 't-slo'))
         self.assertIn('28-day rolling', toggle(self.page, 't-slo'))
+        self.assertEqual(heads(toggle(self.page, 't-sli'))[-1], 'Vantage')
+        self.assertIn('System boundary', toggle(self.page, 't-sli'))
 
 
 class LanguageChoice(unittest.TestCase):
@@ -428,19 +474,25 @@ class RideHailing(unittest.TestCase):
             r = build(docs_of('ride-hailing-full'), pathlib.Path(d) / 'p.html')
             page = (pathlib.Path(d) / 'p.html').read_text(encoding='utf-8')
         self.assertEqual(r.returncode, 0, r.stderr)
-        self.assertIn('トレーサビリティ: QIU の行 28、入口 9', r.stdout)
-        self.assertEqual(len(re.findall(r'YAML だけ: FR-52', r.stdout)), 4)
-        # In the step table only FR-52 disagrees. The pickup row, the CUJ-11 to 13 rows and FRs without a CUJ are not reported
-        steps = [ln for ln in r.stdout.splitlines() if '「CUJ の手順ごとの機能」' in ln]
-        self.assertEqual(len(steps), 1, '\n'.join(steps))
-        self.assertIn('FR-52: ', steps[0])
-        self.assertIn('（報告書: 載っていない、YAML: CUJ-06「配車依頼を選ぶ」）', steps[0])
+        self.assertIn('トレーサビリティ: QIU の行 32、入口 8', r.stdout)
+        # The outputs of a replay with cuj-to-slo 0.3.0. The stage 2 report names FR-42 under the coverage table and FR-45
+        # and FR-53 in its notes, not in the FR column, so those QIUs disagree. The QIUs covered in several rows do not
+        coverage = [bs.ids_in(ln, 'QIU')[0] for ln in r.stdout.splitlines() if '「利用時の品質要求の対応」' in ln]
+        self.assertEqual(coverage, ['QIU-%02d' % i for i in list(range(1, 7)) + list(range(8, 21)) + [33]])
+        self.assertNotIn('「CUJ の手順ごとの機能」', r.stdout)
+        # The stage 4 allocation table is headed 「配分」, and its out-of-scope notes reach the traceability table
         self.assertIn('報告書に見つからず突き合わせなかった表: なし', r.stdout)
-        self.assertEqual(entry_cell(page, 't-pq', '機密性'), ['QR-38', 'QR-41'])
-        self.assertEqual(entry_cell(page, 't-pq', 'インテグリティ'), ['QR-47'])
-        self.assertEqual(entry_cell(page, 't-dq', '機密性'), ['QR-39'])
+        self.assertNotIn('用語集にない値', r.stdout)
+        self.assertEqual(set(re.findall(r'<span class="nfr-item none" data-tip="([^"]+)">範囲外</span>', toggle(page, 't-trace'))),
+                         {'登録した内容が実際と一致すること', '定めの中身を読んで確かめること'})  # QR-20 and QR-62
+        self.assertEqual(entry_cell(page, 't-pq', '機密性'), ['QR-57', 'QR-60'])
+        self.assertEqual(entry_cell(page, 't-pq', '機能正確性'), ['QR-61', 'QR-63'])
+        self.assertEqual(entry_cell(page, 't-dq', '標準適合性'), ['QR-59', 'QR-62'])
+        dq = toggle(page, 't-dq')
+        self.assertIn('<span class="who">外部の決済サービス</span>', dq)
+        self.assertIn('<span class="who">外部の地図のサービス</span>', dq)
         self.assertEqual(bs.self_check(page), [])
-        self.assertIn('<title>配車アプリの品質</title>', page)
+        self.assertIn('<title>配車サービスの品質</title>', page)
 
 
 @unittest.skipUnless((CHAIN / 'shared' / 'glossary.md').is_file(), 'cuj-to-slo がない: %s（環境変数 CUJ_TO_SLO で場所を渡せる）' % CHAIN)

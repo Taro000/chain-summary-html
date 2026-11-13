@@ -1,0 +1,22 @@
+id: QR-49
+title: 停止した時から、そのドライバーはまだ許諾していない依頼を受けられない
+status: active
+basis: inferred
+basis_note: 停止しても迎車中と乗車中の依頼は続け、停止中は受付を始めさせず新しい依頼を示さないことは第 2 段階の質問 6 で確認済み（FR-44）。ドライバーの振る舞いは苦情への対処で扱い（決めたこと 19）、停止は苦情への対応の結果として QIU-27 にもたどる。停止の前に一覧に届いていた依頼も示さず許諾させないことは、FRP-04 を第 2 段階が受け入れて FR-44 に加わった。失敗のシナリオと点は推定。扱い（重視）は決めたこと 15 で確認済み（CUJ-14 の組）。CUJ-18 の組でもある（質問 22）
+premises: [QAS-08]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、担当者がドライバーを停止した時から、そのドライバーにまだ許諾していない依頼を一件も示さず許諾させない。停止の前に一覧に届いていた依頼も同じで、許諾していた迎車中と乗車中の依頼だけを続けさせる。
+applies_to: [FR-17, FR-18, FR-21, FR-44]
+traces_to: [QIU-33, QIU-27]
+entry_point: null
+stakeholders: [USR-04, USR-02, USR-01]
+failure_scenario: 運転についての苦情を受けて担当者がドライバーを停止したが、停止の直前に一覧に届いていた依頼をそのドライバーが許諾でき、また乗客を乗せる。
+score: {impact: 5, likelihood: 2}
+handling: emphasized
+handling_reason: null
+implies_internal: [QR-54]
+conflicts: []
+stated_numbers: []
+placeholders: []

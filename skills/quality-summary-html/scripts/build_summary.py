@@ -8,10 +8,10 @@ The page and the report are written in the language of the outputs: Japanese whe
 Japanese, English otherwise. --lang overrides that. --title defaults to the language's title pattern
 (「<name>の品質」 or "<name> quality") with system.name from context.yaml.
 
-Tables are built from the YAML items (artifacts.md). The Markdown reports are used only for each stage's title
-and for the tables that exist only in the reports (not targeted, functions considered and not added, the explanation
-of internal quality derived from external quality, kinds of data, out of scope); a table that is not found is left
-out and reported. The report tables compared with the YAML (quality-in-use coverage, functions by CUJ step,
+Tables are built from the YAML items, in the layout of cuj-to-slo 0.3.0's artifacts.md. The Markdown reports are used
+only for each stage's title and for the tables that exist only in the reports (not targeted, functions considered and
+not added, the explanation of internal quality derived from external quality, out of scope); a table that is not found
+is left out and reported. The report tables compared with the YAML (quality-in-use coverage, functions by CUJ step,
 internal quality derived from external quality, allocation) are reported as not compared when they are not found.
 Labels, terms and report messages are in assets/lang/<lang>.json.
 The same input always produces the same HTML.
@@ -34,7 +34,6 @@ LANGS = ('ja', 'en')
 REPORTS = {1: '1-quality-in-use.md', 2: '2-functional-requirements.md',
            3: '3-product-quality.md', 4: '4-nfr-slo.md'}
 KINDS = ('qiu', 'kpi', 'fr', 'frp', 'qr', 'nfr', 'sli', 'ebp')
-STAGE_KINDS = {1: ('qiu', 'kpi'), 2: ('fr', 'frp'), 3: ('qr',), 4: ('nfr', 'sli', 'ebp')}
 HANDLINGS = ('emphasized', 'minimum-line', 'excluded')
 HCLS = {'emphasized': 'qr-emph', 'minimum-line': 'qr-base', 'excluded': 'qr-out'}
 NFR_KINDS = ('slo', 'gate', 'audit', 'monitor')
@@ -46,10 +45,8 @@ EXTRA = {
     'steps': (2, ('CUJ の手順ごとの機能', '手順ごとの機能', 'Functions by CUJ step'), 3),
     'notadd': (2, ('検討して加えなかった機能', 'Functions considered and not added'), 3),
     'derived': (3, ('外部品質から導いた内部品質', 'Internal quality derived from external quality'), 3),
-    'alloc': (4, ('割り当て', 'Allocation'), 6),
+    'alloc': (4, ('割り当て', '配分', 'Allocation'), 6),
 }
-DATA_KINDS = ('主なデータ', 'データの種類', 'Main data', 'Kinds of data')
-DATA_WHO = ('データを作る人', 'Data producers')
 NONE_WORDS = ('—', '–', '-', 'なし', 'none', 'n/a')
 # The quality models in the glossary's order: product characteristics with their sub-characteristics, and data characteristics
 PRODUCT_MODEL = [
@@ -234,20 +231,6 @@ def sli_parts(x):
 ABBR = re.compile(r'(?:\b(?:e\.g|i\.e|etc|vs|cf|approx|incl)|(?<![A-Za-z])[A-Za-z])$', re.I)
 
 
-def split_top(t):
-    """Splits a list at its top-level separators: 、，or a comma that is not inside a number. A leading "and" is dropped"""
-    out, cur, depth = [], '', 0
-    for i, ch in enumerate(t):
-        depth += ch in '（(「'
-        depth -= ch in '）)」'
-        if depth == 0 and (ch in '、，' or (ch == ',' and not (t[i - 1:i].isdigit() and t[i + 1:i + 2].isdigit()))):
-            out.append(cur)
-            cur = ''
-        else:
-            cur += ch
-    return [re.sub(r'^(?:and|or)\s+', '', x.strip()) for x in out + [cur] if x.strip()]
-
-
 def first_sentence(t):
     """The text up to the first 。 or full stop outside brackets, without the stop"""
     depth = 0
@@ -375,16 +358,6 @@ def col(head, names, default):
     return next((j for j, h in enumerate(head) if norm(h) in names), default)
 
 
-def line_value(text, labels):
-    """Value of a 「label: value」 line. None if there is none"""
-    al = {norm(x) for x in labels}
-    for ln in (text or '').splitlines():
-        m = re.match(r'^\s*(?:[-*]\s+)?(?:\*\*)?([^:：*|#]+?)(?:\*\*)?\s*[:：]\s*(.+)$', ln)
-        if m and norm(m.group(1)) in al:
-            return m.group(2).strip()
-    return None
-
-
 # ---------- HTML parts ----------
 def esc(v):
     return html.escape(s(v), quote=False)
@@ -493,6 +466,7 @@ class Build:
             return out
         self.system = ctx.get('system') if isinstance(ctx.get('system'), dict) else {}
         self.kgis, self.outs, self.users, self.cujs = entries('kgis'), entries('outcomes'), entries('users'), entries('cujs')
+        self.exts = entries('external_systems')
         self.items = {}
         for kind in KINDS:
             got, d = {}, self.docs / kind
@@ -678,15 +652,22 @@ class Build:
             return got
         cov = compared('coverage', T('tbl_coverage'), self.has[2])
         if cov:
+            # A QIU covered in more than one way has a row for each, so the FRs of its rows are merged before comparing.
+            # A row with an empty QIU cell belongs to the QIU above
             head, rows = cov
             fc = col(head, ('fr', 'frs', '機能要件', 'functional requirements'), 2)
+            listed, cur = defaultdict(set), []
             for r in rows:
-                for qi in ids_in(r[0], 'QIU'):
-                    if qi in self.qiu_by:
-                        listed, derived = set(ids_in(r[fc], 'FR')), set(self.fr_of_qiu.get(qi, []))
-                        if listed != derived:
-                            self.issues.append(T('issue_coverage', qiu=qi, file=REPORTS[2], table=quote(T('tbl_coverage')),
-                                                 report=fmt(listed - derived), yaml=fmt(derived - listed)))
+                if r[0].strip():
+                    cur = ids_in(r[0], 'QIU')
+                for qi in cur:
+                    listed[qi] |= set(ids_in(r[fc], 'FR'))
+            for qi in sorted(listed, key=id_key):
+                if qi in self.qiu_by:
+                    derived = set(self.fr_of_qiu.get(qi, []))
+                    if listed[qi] != derived:
+                        self.issues.append(T('issue_coverage', qiu=qi, file=REPORTS[2], table=quote(T('tbl_coverage')),
+                                             report=fmt(listed[qi] - derived), yaml=fmt(derived - listed[qi])))
         st = compared('steps', T('tbl_steps'), self.has[2])
         if st:
             self.check_steps(*st)
@@ -764,12 +745,8 @@ class Build:
         return T('stage_title_%d' % n)
 
     def stage_date(self, n):
+        """The report's 「更新:」 / "Updated:" date. The items carry no dates: git keeps their history"""
         ds = re.findall(r'(?:更新|Updated)\s*[:：]\s*(\d{4}-\d{2}-\d{2})', self.md[n])
-        for kind in STAGE_KINDS[n]:
-            for v in self.items[kind].values():
-                for c in v.get('changelog') or []:
-                    if isinstance(c, dict) and re.match(r'\d{4}-\d{2}-\d{2}', s(c.get('date'))):
-                        ds.append(s(c.get('date'))[:10])
         return max(ds) if ds else ''
 
     # ---------- Links and tooltips ----------
@@ -1105,27 +1082,18 @@ class Build:
             body.append('<tr>%s%s</tr>' % (lead_, tds))
         return '<table class="mx"><thead><tr>%s</tr></thead><tbody>%s</tbody></table>' % (th, ''.join(body)), len(rows_def), len(ents)
 
-    def data_lists(self):
-        top = bottom = ''
-        line = line_value(self.md[3], DATA_KINDS)
-        if line:
-            self.used.append(T('data_kinds'))
-            top = '<p class="list-label">%s</p><ul class="dq-list">%s</ul>' % (esc(T('data_kinds')), ''.join(
-                '<li>%s</li>' % self.cell(k) for k in split_top(first_sentence(line).rstrip('。.'))))
-        else:
-            self.skipped.append(T('data_kinds') + paren(REPORTS[3]))
-        line = line_value(self.md[3], DATA_WHO)
-        if line:
-            self.used.append(T('data_producers'))
-            who = [split_who(x) for x in split_top(first_sentence(line))]
-        else:
-            who = [(s(u.get('name')), T('user_role', role=term('data_role', u.get('data_role'))))
-                   for u in self.users if s(u.get('data_role')) in ('producer', 'both')]
-            who += [split_who(x) for x in L(self.system.get('data_producers'))]
-        if who:
-            bottom = '<p class="list-label">%s</p><ul class="dq-list who-list">%s</ul>' % (esc(T('data_producers')), ''.join(
-                '<li><span class="who">%s</span>%s</li>' % (esc(w), self.cell(d)) if d else '<li>%s</li>' % self.cell(w) for w, d in who))
-        return top, bottom
+    def producers(self):
+        """Who creates the data the users rely on, from context.yaml: users whose data_role is producer or both, and the
+        external systems with creates_data: true, named by their role without its parenthesized detail"""
+        def live(xs):
+            return [x for x in xs if s(x.get('status')) != 'retired']
+        who = [(s(u.get('name')), T('user_role', role=term('data_role', u.get('data_role'))))
+               for u in live(self.users) if s(u.get('data_role')) in ('producer', 'both')]
+        who += [(split_who(s(e.get('role')))[0], T('ext_role', id=e['id'])) for e in live(self.exts) if e.get('creates_data') is True]
+        if not who:
+            return ''
+        return '<p class="list-label">%s</p><ul class="dq-list who-list">%s</ul>' % (esc(T('data_producers')), ''.join(
+            '<li><span class="who">%s</span>%s</li>' % (esc(w), self.cell(d)) for w, d in who))
 
     # ---------- Tables by stage ----------
     def stage1(self):
@@ -1217,9 +1185,8 @@ class Build:
         P.append(self.tog(3, 't-pq', T('product_quality'), T('count_pq', n=n_pq, c=len(self.cujs)) + (T('count_entry', n=e_pq) if e_pq else ''),
                           legend() + wrap(pq)))
         dq, n_dq, e_dq = self.matrix('data')
-        top, bottom = self.data_lists()
         P.append(self.tog(3, 't-dq', T('data_quality'), T('count_dq', n=n_dq, c=len(self.cujs)) + (T('count_entry', n=e_dq) if e_dq else ''),
-                          top + legend() + wrap(dq) + bottom))
+                          legend() + wrap(dq) + self.producers()))
         if scored:
             P.append(self.tog(3, 't-prio', T('priority'), T('count', n=len(scored)), wrap(self.prio_table(scored))))
         P.append(self.tog(3, 't-cujh', T('handling_by_cuj'), T('count', n=len(self.cujs)), wrap(self.cujh_table())))
@@ -1312,9 +1279,10 @@ class Build:
                 [('NFR', 'w-m'), ('CUJ', 'w-s'), ('SLI', 'w-m'), (T('col_target_status'), 'w-id'), (T('col_window'), 'w-id'),
                  (T('col_budget'), 'w-l'), (T('col_budget_volume'), 'w-xl'), (T('col_policy'), 'w-id')], rows))))
         if self.slis:
-            rows = [(x['id'], [self.defid(x['id'], x.get('title')), self.frac(*sli_parts(x)), self.cell(x.get('method'))]) for x in self.slis]
+            rows = [(x['id'], [self.defid(x['id'], x.get('title')), self.frac(*sli_parts(x)), esc(term('vantage', x.get('vantage')))])
+                    for x in self.slis]
             P.append(self.tog(4, 't-sli', T('slis'), T('count', n=len(rows)), wrap(tbl(
-                [('SLI', 'w-m'), (T('col_good_valid'), 'w-xl'), (T('col_method'), 'w-l')], rows))))
+                [('SLI', 'w-m'), (T('col_good_valid'), 'w-xl'), (T('col_vantage'), 'w-s')], rows))))
         if self.ebps:
             body, n_rules = [], 0
             for e in self.ebps:

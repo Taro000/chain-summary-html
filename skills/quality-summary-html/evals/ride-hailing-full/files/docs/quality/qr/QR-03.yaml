@@ -1,40 +1,22 @@
 id: QR-03
-title: 手配の画面の応答
-status: draft
-version: 2
+title: 一つの依頼の状態と割り当てたドライバーは一つに定まる
+status: active
 basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-model: product
-layer: external
-characteristic: performance efficiency > time behaviour
-statement: システムは、手配の画面の操作（場所の検索、所要時間・到着予定時刻・料金の計算、手配の確定）に、乗客が T_book 秒以内に手配を終えるのを妨げない速さで応える。
-applies_to: [FR-02, FR-03, FR-05]
-traces_to: [QIU-03]
+basis_note: 失敗のシナリオと点は推定。許諾と取り消しが重なる場面は FR-07、FR-21、FR-23 の受け入れ基準にあり、乗客 1 人とドライバー 1 人で配車は全体で数回のデモ（CON-02、OPF-02、OPF-03）では、重なりはまれとみた。ドライバーが 1 人のため二人のドライバーが同じ依頼を許諾する重なりはデモでは起きず、乗客の取り消しとドライバーの許諾の重なりが残る。扱い（重視）は質問 2 で確認済み（CUJ-01 の組）
+premises: [CON-02, OPF-02, OPF-03]
+model: data
+layer: data-inherent
+characteristic: consistency
+statement: 一つの配車依頼の状態（ドライバーを探している、許諾された、取り消された、乗車中、終わった）と割り当てたドライバーは、許諾や取り消しの操作が重なっても一つに定まり、乗客とドライバーに示すものと食い違わない。
+applies_to: [FR-04, FR-07, FR-18, FR-21, FR-23, FR-26, FR-27]
+traces_to: [QIU-01, QIU-15]
 entry_point: null
-stakeholders: [USR-01, 地図・経路・渋滞の情報の外部サービス]
-failure_scenario: 場所の検索と料金の計算で外部サービスを続けて呼び、手配の画面が止まり、急ぐ乗客が手配を諦める。
-score: {impact: 3, likelihood: 3}
-handling: minimum-line
+stakeholders: [USR-01, USR-02]
+failure_scenario: 乗客が取り消すのとほぼ同時にドライバーが許諾し、依頼は取り消されたのに許諾したドライバーの画面では迎車中のままになり、ドライバーは取り消された乗車場所へ向かい続ける。
+score: {impact: 4, likelihood: 2}
+handling: emphasized
 handling_reason: null
-implies_internal: []
-conflicts:
-  - with: QR-07
-    note: 外部サービスの呼び出しを待つ時間とやり直しが手配の待ち時間に加わる。待つ時間の上限を手配の待ち時間の中に収め、配分は第 4 段階で決める
-  - with: QR-28
-    note: 誤差が大きいときにピンで確かめさせると（FR-02 版 2）手配の手間が増える。誤差が D_pickup_accuracy を超えるときだけ確かめさせる
+implies_internal: [QR-51]
+conflicts: []
 stated_numbers: []
-placeholders:
-  - name: T_book
-    meaning: 手配の画面を開いてから手配を確定するまでの秒数
-    from: QIU-03
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: FRP-03 が FR-02 版 2 として受け入れられたことを競合の記述に反映した
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+placeholders: []

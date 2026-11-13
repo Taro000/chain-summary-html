@@ -1,32 +1,22 @@
 id: QR-47
-title: 管理とエンジニアの画面は役割のアカウントだけが使える
-status: draft
-version: 1
+title: 試験用のアカウントとその依頼や乗車は、漏れなく試験用として記録される
+status: active
 basis: inferred
-basis_note: リスク分析があることは質問 3、加える分類がないことは質問 11 で確認済み。分類の中身と点は推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-model: product
-layer: external
-characteristic: security > integrity
-statement: システムは、管理の画面（登録、停止と再開、対処、返金）とエンジニアの画面（ログと履歴の検索）の操作を、その役割のアカウントにだけ許す。
-applies_to: [FR-40, FR-45, FR-46, FR-47, FR-48, FR-49, FR-50]
-traces_to: []
-entry_point:
-  type: security-risk
-  source: セキュリティのリスク分析（中身は未確認。第 2 段階の未解決の点が挙げた分類「役割ごとの権限」）
-  brought_by: 利用者（質問 3 の回答）
-stakeholders: [USR-03, USR-04]
-failure_scenario: 乗客やドライバーのアカウントで管理の画面の操作が通り、返金や配車の停止をされる。
+basis_note: 失敗のシナリオと点は推定。QIU-01〜QIU-20 の測定量はどれも試験用のアカウントを除く（第 2 段階の報告）
+premises: []
+model: data
+layer: data-inherent
+characteristic: completeness
+statement: 試験用として作成したアカウントと、そのアカウントによる依頼、乗車、評価、決済、苦情は、どれも試験用であることが記録されている。
+applies_to: [FR-42]
+traces_to: [QIU-01, QIU-02, QIU-03, QIU-04, QIU-05, QIU-06, QIU-08, QIU-09, QIU-10, QIU-11, QIU-12, QIU-13, QIU-14, QIU-15, QIU-16, QIU-17, QIU-18, QIU-19, QIU-20]
+entry_point: null
+stakeholders: [USR-04]
+failure_scenario: 担当者が試験用の印を付け忘れたアカウントで繰り返し配車を試し、その依頼が配車の成立率に混ざって、事業は実際より高い成立率を見て判断する。
 score: {impact: 3, likelihood: 2}
 handling: minimum-line
-handling_reason: セキュリティのリスク分析から来る要求なので点に関わらず残す。返金はテスト環境（質問 1）なので最低限守る線
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

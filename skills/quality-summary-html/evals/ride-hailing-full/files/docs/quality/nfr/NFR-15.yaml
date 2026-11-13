@@ -1,31 +1,21 @@
 id: NFR-15
-title: 評価を送る操作の数
-status: draft
-version: 1
+title: スマートフォンとブラウザの更新に合わせた試験のゲート
+status: active
 basis: inferred
-basis_note: 2 回は提案（段階を選ぶ、送る）。T_rate は利用時の品質のしきい値なので、ここでは値を付けない
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-19
+basis_note: 最低限守る線のため、もっとも軽いゲートにした（推定）
+premises: [CON-05]
+from: [QR-14]
 kind: gate
-cuj: CUJ-04
-statement: 評価の画面は、段階を選ぶ操作と送る操作の 2 回で評価を送れる。
+cuj: CUJ-01
+statement: 対応するスマートフォンとブラウザ（CON-05）の更新が出るたびと、各リリースの前に、配車の手配から決済までの受け入れの試験を、更新後の版で行う。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: 乗客とドライバー
+  transactions: 配車の手配から決済まで
 slo: null
 gate:
-  where: definition-of-done
-  check: 画面の自動テストで、評価の画面を開いてから送るまでの操作を数える
-  threshold: 2 回以下
+  where: release-check
+  check: 更新後のスマートフォンとブラウザでの、配車の手配から決済までの受け入れの試験
+  threshold: すべての試験が通ること。通らなければ、利用者が更新する前に直す
 audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）

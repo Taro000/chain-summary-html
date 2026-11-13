@@ -75,9 +75,9 @@
     "data_role": {"producer": "Data producer", "consumer": "Data consumer", "both": "Both", "none": "None"},
     "considered": {"true": "Considered", "false": "Excluded"},
     "verb": {"maintain": "Maintain", "eliminate": "Eliminate", "decrease": "Decrease", "increase": "Increase", "create": "Create"},
-    "basis": {"stated": "Stated", "inferred": "Inferred", "confirmed": "Confirmed"},
+    "basis": {"stated": "Stated", "inferred": "Inferred", "assumed": "Assumed", "confirmed": "Confirmed"},
     "status": {
-      "draft": "Draft", "agreed": "Agreed", "retired": "Retired",
+      "active": "Active", "retired": "Retired",
       "proposed": "Proposed", "accepted": "Accepted", "rejected": "Rejected"
     },
     "origin": {"cuj-step": "CUJ step", "quality-in-use": "Quality-in-use requirement", "proposal": "Function proposal"},
@@ -86,7 +86,8 @@
     "handling": {"emphasized": "Emphasized", "minimum-line": "Minimum line", "excluded": "Excluded (this cycle)"},
     "kind": {"slo": "SLO", "gate": "Gate", "audit": "Audit", "monitor": "Monitor"},
     "entry_type": {"law": "Laws", "standard": "Standards and guidelines", "security-risk": "Security risk analysis", "policy": "Development policies"},
-    "target_status": {"undecided": "Undecided", "provisional": "Provisional", "agreed": "Agreed"},
+    "target_status": {"undecided": "Undecided", "provisional": "Provisional", "confirmed": "Confirmed"},
+    "vantage": {"user-side": "User-side", "system-boundary": "System boundary", "synthetic": "Synthetic", "data": "Data"},
     "notify": {"page": "Page", "ticket": "Ticket"},
     "gate_where": {"CI": "CI", "release-check": "Release check", "definition-of-done": "Definition of Done"}
   },
@@ -142,6 +143,7 @@
     "risk_label": "The QRs of the priority table, placed by impact and likelihood",
     "risk_tip": "Impact {imp} × likelihood {lik} = {score}",
     "user_role": "User ({role})",
+    "ext_role": "External system ({id})",
     "formula_rest": "Each QIU's own formula (in Failure scenarios and measures)",
     "ebp_caption": "{id} {title} · applies to {targets}",
 
@@ -156,7 +158,6 @@
     "not_added": "Functions considered and not added",
     "product_quality": "Product quality",
     "data_quality": "Data quality",
-    "data_kinds": "Kinds of data",
     "data_producers": "Data producers",
     "priority": "Priority table",
     "handling_by_cuj": "Handling by CUJ",
@@ -233,7 +234,7 @@
     "col_budget_volume": "Budget volume",
     "col_policy": "Policy",
     "col_good_valid": "Good events ÷ valid events",
-    "col_method": "Method",
+    "col_vantage": "Vantage",
     "col_condition": "Condition",
     "col_action": "Action",
     "col_notify": "Notify",

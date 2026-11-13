@@ -23,15 +23,15 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 LANG = ROOT / 'skills' / 'quality-summary-html' / 'assets' / 'lang'
 # Keys build_summary.py reads. When the script reads a new key, add it here too
-KEYS = '''system name data_producers kgis measure target outcomes statement verb users category data_role considered
-exclusion_reason basis basis_note cujs user_goal steps id title status changelog date user cuj context_of_use characteristic
+KEYS = '''system name external_systems role creates_data kgis measure target outcomes statement verb users category data_role
+considered exclusion_reason basis basis_note cujs user_goal steps id title status user cuj context_of_use characteristic
 failure_scenario numerator denominator narrowed_to observable kpi outcome overlaps_with origin cuj_step traces_to proposal
 extends acceptance_criteria model layer applies_to entry_point type source score impact likelihood handling handling_reason
 implies_internal conflicts with from kind slo sli target_status window error_budget error_budget_volume policy alerts notify
 long_window short_window burn_rate budget_spent_at_alert bad_run_budget_share progress_alert after_miss gate where check audit
-mechanism cadence_or_deadline monitor signal notifies function refs method elements definition applies_to rules when action'''.split()
+mechanism cadence_or_deadline monitor signal notifies function refs vantage elements definition applies_to rules when action'''.split()
 # English terms the glossary has no entry for. They are checked against artifacts.md instead
-ARTIFACTS_ONLY = {('target_status', 'undecided')}
+ARTIFACTS_ONLY = set()
 
 
 def find(base):

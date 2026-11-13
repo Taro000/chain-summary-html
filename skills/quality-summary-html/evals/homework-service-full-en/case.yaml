@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: homework-service-full-en
 expected_outcome: |
-  docs/quality/summary.html is built in English, the language the outputs are written in: its headings, table labels and terms are English, with no Japanese. The page starts with the traceability table by CUJ, which lists the 5 QIUs that are not retired and leaves out the retired QIU-06. The final report tells the user that, in the stage 2 report's "Quality-in-use coverage", FR-08 is missing from the QIU-03 row. The product quality matrix has a column for QRs that come from an entry point.
+  docs/quality/summary.html is built in English, the language the outputs are written in: its headings, table labels and terms are English, with no Japanese. The outputs are in the layout of cuj-to-slo 0.3.0. The page starts with the traceability table by CUJ, which lists the 5 QIUs that are not retired and leaves out the retired QIU-06. The final report tells the user that, in the stage 2 report's "Quality-in-use coverage", FR-08 is missing from the QIU-03 row, and reports no disagreement for QIU-01, 04 and 05, which that table covers in several rows. The product quality matrix has a column for QRs that come from an entry point. The data producers include EXT-01, no column of the SLI table is empty for every SLI, and every report table is found.
 context:
   scaffold_script: place-files.sh

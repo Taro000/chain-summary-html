@@ -1,16 +1,14 @@
 id: QIU-05
 title: Monthly numbers match the submissions
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 user: USR-04
 cuj: CUJ-04
 outcomes: [OUT-01]
 need: The cram school office can trust that the counts in the monthly report match the actual submission records.
-context_of_use: {device: Smartphone browser, network: null, user_type: null, task: Monthly numbers match the submissions, environment: null, other: null}
+context_of_use: {device: Smartphone, network: null, user_type: null, task: Monthly numbers match the submissions, environment: null, other: null}
 characteristic: freedom from risk > economic risk mitigation
 statement: The cram school office can trust that the counts in the monthly report match the actual submission records.
 failure_scenario: The office mixes up who has not submitted, and chases students who did.
@@ -18,5 +16,3 @@ measure: {numerator: Monthly counts that match the submission records, denominat
 kpi: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

@@ -1,33 +1,21 @@
 id: NFR-30
-title: 確認コード、受取額、受付の資格のテスト
-status: draft
-version: 1
+title: 到着を確認した位置と降りる場所のずれの監視
+status: active
 basis: inferred
-basis_note: 推定
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-14
-- QR-15
-- QR-37
-kind: gate
-cuj: CUJ-07
-statement: 確認コード、ドライバーの受取額、受付できるドライバーの規則を自動テストで確かめる。
+basis_note: D_place_position_gap の 30 m は質問 3 の回答。乗車はデモ 1 回に数件（OPF-02）のため、割合ではなく一件ごとにチケットにする（推定）。ずれは位置の不正確さと、ドライバーが止まった場所の両方で起きる
+premises: [OPF-02, EXT-02]
+from: [QR-70]
+kind: monitor
+cuj: CUJ-03
+statement: 到着を確認した乗車のうち、到着を確認した位置が降りる場所の位置から D_place_position_gap（30 m）以上離れたものを、一件ごとにエンジニアにチケットで知らせる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。常時稼働し、使うのはデモの回だけ（質問 1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: 登録した乗客とドライバー。試験用のアカウントを除く
+  transactions: 到着を確認した乗車。降りる場所を変えた乗車は変えた後の場所と比べる
 slo: null
-gate:
-  where: CI
-  check: コードが依頼ごとに作られドライバーが替われば変わること、違うコードで運転が始まらないこと。受取額が運賃から手数料を引いた額で、一覧と受取額の画面で同じこと。FR-48 で登録されていないドライバーが受付を始められないこと
-  threshold: すべて通る
+gate: null
 audit: null
-monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
+monitor:
+  signal: 乗車ごとの、到着を確認した位置と降りる場所の位置の距離
+  threshold: 30 m 以上離れた乗車が一件でもあればチケットにする
+  notifies: エンジニア（チケット）

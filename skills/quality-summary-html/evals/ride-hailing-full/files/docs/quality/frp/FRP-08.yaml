@@ -1,30 +1,14 @@
 id: FRP-08
-title: 決済のサービスの記録と毎日突き合わせる
-status: proposed
-version: 1
-basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
-proposed_by: product-quality-to-slo
-origin:
-- QR-32
-- QR-09
-- QR-17
-- QR-35
-changes: null
-reason: QR-32 は請求と返金の記録が決済のサービスの記録と一致することを求めるが、突き合わせる FR がない。FR-44 と FR-49 は自分の記録を示すだけ。
-suggested_statement: システムは、毎日、前日の乗車の押さえ・請求・返金の記録を決済のサービスの記録と突き合わせ、一致しない乗車の一覧を記録して、エンジニアと運営・サポート担当に知らせる。
-affects:
-- NFR-04
-- NFR-06
-- NFR-07
-- NFR-38
-- SLI-04
+title: 依頼の前に、ドライバーが見つかるまでと迎車の時間を含めた目的地への到着予定時刻を示す
+status: accepted
+basis: confirmed
+basis_note: 第 3 段階の質問 8 の回答（手配のときに示す目的地への到着予定時刻は、ドライバーが見つかるまでの時間と迎車の時間を含めて計算する）。FR-03 は二つの場所の間の移動時間の見込みだけを示し、目的地への到着予定時刻を示さない
+premises: []
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-08]
+changes: FR-03
+reason: QR-08 は手配のときに示す目的地への到着予定時刻どおりに着くことを求めるが、FR-03 はその時刻を示さない。
+suggested_statement: システムは、乗る場所と降りる場所が決まると、依頼する前に、ドライバーが見つかるまでの時間と迎車の時間を含めた目的地への到着予定時刻と、乗客が支払う料金を示す。
+affects: [NFR-09]
 placeholders: []
-resolution: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 提案
-  reason: 第 4 段階の下書き
+resolution: 受け入れ。FR-03（新規）をその場で変えた。第 3 段階の質問 8 の回答に従う。手配時に示した到着予定時刻は FR-45 が記録する。

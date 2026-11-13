@@ -1,0 +1,22 @@
+id: QR-63
+title: 受付できるのは、審査を通ったものとして登録されたドライバーだけ
+status: active
+basis: inferred
+basis_note: 審査を通ったものとして登録されたドライバーだけが受付できることと、免許の期限を記録しないことは質問 1 で確認済み（旅客運送の法令を模す開発方針）。登録が済むまで依頼を届けないことは FR-43 の受け入れ基準。審査の結果（審査の日付と記録を探す手がかりを含む）は記録しない（質問 5、CON-07）。審査を通ったことは、担当者が登録することそのもので表す。持ち込んだ役割は開発の責任者と推定した。最低限守る線とすることは第 4 段階の質問 8 で確認済み（QAS-23）
+premises: [CON-07, QAS-23]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、審査を通ったものとして登録されたドライバーだけに受付を始めさせ、登録されていないドライバーには依頼を届けない。
+applies_to: [FR-17, FR-43]
+traces_to: []
+entry_point: {type: policy, source: 旅客運送の法令（道路運送法）を模す開発方針, brought_by: 開発の責任者}
+stakeholders: [USR-02, USR-04]
+failure_scenario: アカウントを作っただけでまだ登録されていないドライバーが受付を始められ、依頼を受けて乗客を乗せる。
+score: {impact: 5, likelihood: 1}
+handling: minimum-line
+handling_reason: 開発方針から来るため対象から外さない
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []
