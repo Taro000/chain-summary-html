@@ -1,24 +1,19 @@
 id: ELM-07
 title: Cloud runtime
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- TC-03
 kind: node
 name: Cloud runtime
 responsibility: Runs the API server and the nightly batch
 functions: []
 drivers: []
-decisions: []
+decisions:
+- DEC-01
 team: TEAM-01
-technology: null
+technology: The school cloud's container runtime (TC-03)
 runs_on: null
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

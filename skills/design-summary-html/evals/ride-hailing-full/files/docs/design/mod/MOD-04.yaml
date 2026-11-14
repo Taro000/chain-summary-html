@@ -1,0 +1,40 @@
+id: MOD-04
+title: 起動の値と版
+status: active
+basis: inferred
+basis_note: Web アプリが環境ごとの値をビルドに入れず起動のときに ELM-03 の一つの操作から読み、設定の部品が確かめて、欠けているか形が違えば画面を始めずにそのことを示すことは DEC-34 と POL-04（入力）。その操作が GET /v1/client-config であることは IFC-01（入力）。起動のときと流れをつなぎ直すときに buildId を自身の版と比べ、違えば読み直すことは DEC-41（入力）。ELM-02 が使う値を Web Push の公開の鍵とブラウザの側の偽物を使うかに絞ることは推定
+premises: []
+component: ELM-02
+name: 起動の値と版
+depth: bounds
+depth_reason: null
+responsibility: ELM-03 から起動の値を読んで確かめ、ELM-03 の版が変わったら Web アプリを読み直す
+visibility: internal
+interface:
+  - operation: "load() -> ClientConfig"
+    pre: null
+    post: GET /v1/client-config（IFC-01）を MOD-01 で読み、形を確かめて、Web Push の公開の鍵、ブラウザの側の偽物を使うか、ELM-03 の buildId を返す
+    errors:
+      - "ConfigInvalid: 値が欠けているか形が違う。画面を始めずにそのことを示す（POL-04）"
+      - "NoAnswer: 答えがない。始められないことを示し、読み直させる"
+  - operation: "checkBuild() -> none"
+    pre: null
+    post: GET /v1/client-config の buildId が自身のビルドの版と違えば、画面を読み直す（DEC-41）。同じなら何もしない
+    errors: []
+invariants: []
+depends_on: [MOD-01]
+functions: []
+realizes:
+  - IFC-01 GET /v1/client-config
+drivers: [DRV-12]
+decisions: [DEC-34, DEC-41]
+behaviour: null
+verification:
+  - checks: 値が欠けているか形が違えば画面を始めない（POL-04 の設定の規則の、Web アプリの設定の部品の検査）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物が起動の値を返す
+  - checks: buildId が違えば読み直し、同じなら何もしない
+    how: 単体の層
+  - checks: 偽物の設定の値でブラウザの側の偽物を選ぶ
+    how: 端から端の層（試験の環境の偽物の設定、DEC-34）
+parameters: []
+as_is: new

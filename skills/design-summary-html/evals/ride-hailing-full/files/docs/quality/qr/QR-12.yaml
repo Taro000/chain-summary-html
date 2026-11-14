@@ -1,29 +1,22 @@
 id: QR-12
-title: 受ける条件による絞り込みの正しさ
-status: draft
-version: 1
+title: 料金を確かめて依頼、承認、取り消ししたことと、不在として終えたことを後から示せる
+status: active
 basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+basis_note: 失敗のシナリオと点は推定。依頼したときの料金と承認した料金を記録することは FR-45 の受け入れ基準。キャンセル料と不在の料金（CON-08）は第 2 段階の質問 8 の回答で加わり、取り消す前に料金を確かめさせること（FR-07）と乗客の不在として終えること（FR-26）も、後から否定されて困る操作として加えた
+premises: [CON-01, CON-08]
 model: product
 layer: external
-characteristic: functional suitability > functional correctness
-statement: システムは、条件を設定したドライバーに、受取額の下限と乗車場所までの距離の上限に合う依頼を漏れなく示し、合わない依頼を示さない。
-applies_to: [FR-33, FR-34]
-traces_to: [QIU-17]
+characteristic: security > non-repudiation
+statement: システムは、乗客がある料金を確かめて依頼したこと、乗車中に新しい降りる場所と料金を承認したこと、許諾の後にキャンセル料がかかることを確かめて取り消したこと、ドライバーが乗客の不在として依頼を終えたこと、ドライバーが到着を確認したことを、誰がいつ行ったかとともに、後から否定できない形で示せる。
+applies_to: [FR-04, FR-07, FR-26, FR-28, FR-45, FR-47]
+traces_to: [QIU-04, QIU-27]
 entry_point: null
-stakeholders: [USR-02]
-failure_scenario: 距離を古い現在地や直線で測り、条件に合う依頼が漏れ、ドライバーの受けられる依頼が減る。
-score: {impact: 3, likelihood: 3}
-handling: emphasized
+stakeholders: [USR-01, USR-02, USR-04]
+failure_scenario: 乗客が「新しい料金を承認していない」と苦情を寄せ、担当者は乗客が承認したことを示せず、乗客とドライバーのどちらの言い分が正しいか決められない。乗客が「乗る場所で待っていた」と不在の料金に苦情を寄せ、ドライバーが不在として終えた時刻と場所を示せない。
+score: {impact: 3, likelihood: 2}
+handling: minimum-line
 handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

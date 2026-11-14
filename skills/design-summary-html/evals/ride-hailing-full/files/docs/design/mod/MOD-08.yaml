@@ -1,0 +1,45 @@
+id: MOD-08
+title: 文言と書式
+status: active
+basis: inferred
+basis_note: 人に見せる文を ELM-02 の一つの日本語の文言のファイルに置き、画面は鍵を持ち、日時、数、額を一つの書式の部品（ja-JP、Asia/Tokyo、円）で示すことは POL-04（入力）。画面の文を誤りの符号から引き、知らない符号を状態の組で扱うことは DEC-35 と DEC-41（入力）。時刻と額の表し方は DEC-37 と DEC-38（入力）
+premises: []
+component: ELM-02
+name: 文言と書式
+depth: bounds
+depth_reason: null
+responsibility: 画面に示す文を文言のファイルから引き、日時と額を一つの書式で示す
+visibility: internal
+interface:
+  - operation: "text(key: TextKey, values: TextValues) -> string"
+    pre: null
+    post: ELM-02 の一つの日本語の文言のファイルから引いて値を入れる（POL-04）
+    errors: []
+  - operation: "errorText(error: ApiError) -> string"
+    pre: null
+    post: 誤りの符号の文を引き、知らない符号は状態の組の文を返す（DEC-35、DEC-41）。ELM-03 の message は示さない
+    errors: []
+  - operation: "formatInstant(at: Instant) -> string"
+    pre: null
+    post: ja-JP と Asia/Tokyo で示す（DEC-37）
+    errors: []
+  - operation: "formatMoney(money: Money) -> string"
+    pre: null
+    post: 円の整数として示す（DEC-38）
+    errors: []
+invariants: []
+depends_on: []
+functions: []
+realizes: []
+drivers: []
+decisions: [DEC-35, DEC-37, DEC-38, DEC-41]
+behaviour: null
+verification:
+  - checks: ELM-02 の画面が受けるどの誤りの符号（IFC-01、IFC-10、IFC-12、IFC-13、IFC-14 と DEC-35、DEC-42 の符号）にも文がある
+    how: 単体の層（Vitest の Browser Mode、Chromium）。符号の一覧と文言のファイルを照らす
+  - checks: 日時と額の書式
+    how: 単体の層
+  - checks: 画面に文字をじかに書かない
+    how: Oxlint の react/jsx-no-literals を検査の手順で（POL-04）
+parameters: []
+as_is: new

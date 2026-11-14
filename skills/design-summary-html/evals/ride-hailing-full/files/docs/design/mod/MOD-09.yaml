@@ -1,0 +1,72 @@
+id: MOD-09
+title: 使い始め
+status: active
+basis: inferred
+basis_note: 本人であることを確かめてから使わせ、確かめられないときと使い終えた後は使わせないことは FR-48（入力）。担当者とエンジニアも、渡された設定の符号でパスワードを決め、サインインの ID とパスワードとサーバーのセッションで使い始めることは DEC-14（入力、設計の第 2 段階の質問 3 で確認済み）。サインイン、パスワードを決める操作、使い終える操作、本人の種類と使える機能と止めた機能を読む操作とそれぞれの符号は IFC-01、セッションの印をクッキーで受け渡し、使い終えるとその場で消すことは DEC-40、止めた機能を流れで伝えることは IFC-11 と DEC-26（入力）。NOT_SIGNED_IN で使い始めに移り、確かめ直した後に操作を新しく行わせることは IFC-01（入力）。使い始めで知らせの許しを求めることは IFC-24 と IFC-25（入力）。使い終える操作を ELM-03 が答えるまで送ること、ほかのアカウントがサインインしたら前のアカウントのものを残さないことは推定。サインインとパスワードを決める操作を MOD-01 のサインインの前の操作として送り、画面を離れたら捨てることは FND-43 を、ほかのタブのサインインと使い終えることと、送る前とタブが前に出たときの確かめで MOD-01 が知らせたアカウントの変化を受けて、このタブも切り替えることは FND-44 を受けた（推定）。使える機能を me で読んで MOD-10 に渡すことで FR-49 の 1 を担うことは FND-48 を受けて報告の割り当てに書いた
+premises: []
+component: ELM-02
+name: 使い始め
+depth: bounds
+depth_reason: null
+responsibility: 担当者とエンジニアが本人であることを確かめて使い始め、使い終えるまでのアカウントを保つ
+visibility: public
+interface:
+  - operation: "SignIn() -> サインインの画面"
+    pre: null
+    post: サインインの ID とパスワードで POST /v1/sessions（IFC-01）を MOD-01 の beginSignedOut と send で送り、確かめられたら GET /v1/me を読み、MOD-01 の useAccount にアカウントを渡し、MOD-05 の refresh を呼んで、許しをまだ求めていなければ知らせを受ける許しを求める操作を示し、使える機能のある始めの画面に移る（セッションが切れて移ってきたときに同じアカウントで確かめ直したら、移る前の画面に戻す）。答えがないか失敗の答えなら、同じ操作として送り直させる。画面を離れたら、定まっていない操作を MOD-01 の discard で捨て、サインインの ID とパスワードを持たない
+    errors:
+      - "AUTH_FAILED（401）: 確かめられなかったことを示し、どちらが違うかを示さず、サインインの画面のまま入れ直させる（FR-48 の 2）"
+      - "ACCOUNT_LOCKED: 止めていることと待つ時間を示す"
+      - "ACCOUNT_RETIRED: このアカウントは使えないことを示す（FR-51 の 4）"
+      - "答えがない、5xx、429: 確かめられたかどうか分からないことを示し、もう一度送らせる"
+  - operation: "SetPassword() -> パスワードを決める画面"
+    pre: null
+    post: サインインの ID、設定の符号、新しいパスワードで POST /v1/account-setups（冪等キー）を MOD-01 の beginSignedOut と send で送り、決まったらサインインの画面に移る。答えがないか失敗の答えなら、同じ操作として送り直させる。符号とパスワードを、決まった後と画面を離れた後に持たない（画面を離れたら、定まっていない操作を MOD-01 の discard で捨てる）
+    errors:
+      - "SETUP_CODE_INVALID: 符号を出し直してもらうよう示す（DEC-14）"
+      - "VALIDATION_FAILED: パスワードの長さの決まりを示す"
+      - "答えがない、5xx、429: 決まったかどうか分からないことを示し、同じ操作として送り直させる"
+  - operation: "signOut() -> none"
+    pre: null
+    post: DELETE /v1/sessions/current（IFC-01）を、ELM-03 が答えるまで（401 NOT_SIGNED_IN を含む）MOD-01 で送り、答えたら MOD-01 の useAccount に none を渡し、アカウントが変わったことを MOD-10 に知らせて、サインインの画面を示す。その後、確かめ直すまでどの機能の画面も示さない（FR-48 の 4）
+    errors:
+      - "答えがない: 使い終えられていないことを示し、もう一度送らせる"
+  - operation: "me() -> Me"
+    pre: null
+    post: GET /v1/me の種類、名前、使える機能、止めた機能を返し、switch.changed（IFC-11）を受けたら読み直して聞き手に知らせる（FR-36 の 3）
+    errors: []
+  - operation: "onAccountChanged(listener: (accountId: AccountId or none) -> none) -> Unsubscribe"
+    pre: null
+    post: このタブのサインインと使い終えるたびと、MOD-01 の onAccount が自身の知るものと違うアカウントを知らせたとき（ほかのタブのサインインと使い終えること、送る前、タブが前に出たとき、422 IDEMPOTENCY_KEY_REUSED を受けたときの確かめ）に、me を読み直して、サインインしているアカウントを知らせる（アカウントがなければ使い始めを示す）。MOD-01 の onNotSignedIn と MOD-03 の notSignedIn を受けたら使い始めに移り、同じアカウントで確かめ直した後は移る前の画面に戻すが、使い始めた操作は担当者が新しく行う（IFC-01、FR-48 の 3）
+    errors: []
+invariants: []
+depends_on: [MOD-01, MOD-03, MOD-05, MOD-08]
+functions: [FR-36, FR-48, FR-49]
+realizes:
+  - IFC-24 使い始め
+  - IFC-25 使い始め
+  - IFC-01 POST /v1/account-setups
+  - IFC-01 POST /v1/sessions
+  - IFC-01 DELETE /v1/sessions/current
+  - IFC-01 GET /v1/me
+  - IFC-11 switch.changed
+drivers: [DRV-19, DRV-28]
+decisions: [DEC-14, DEC-15, DEC-26, DEC-40]
+behaviour: null
+verification:
+  - checks: AUTH_FAILED、ACCOUNT_LOCKED、ACCOUNT_RETIRED、SETUP_CODE_INVALID、VALIDATION_FAILED の示し方（FR-48 の 2）と、サインインとパスワードを決める操作をサインインの前の操作として始め、画面を離れると捨てること
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: 合わないパスワードで AUTH_FAILED を示してサインインの画面のまま入れ直させ、正しいパスワードでサインインでき、設定の符号でパスワードを決められる（FR-48 の 1、2）
+    how: 端から端の層（試験の環境の偽物の設定。MOD-01 を通して ELM-03 に送る）
+  - checks: 使い終えると ELM-03 が答えるまで送り、MOD-01 の操作と読んだものの記憶が消え、確かめ直すまでどの画面も示さない（FR-48 の 4）
+    how: 単体の層と端から端の層
+  - checks: セッションが消えた後の操作で使い始めに移り、確かめ直した後に操作を新しく行わせる（FR-48 の 3）
+    how: 端から端の層（試験の環境で、そのアカウントのセッションを消してから操作する）
+  - checks: ほかのアカウントでサインインすると、前のアカウントの操作と読んだものが残らない。MOD-01 の onAccount が違うアカウントを知らせると me を読み直して知らせる
+    how: 単体の層（MOD-01 の偽物）
+  - checks: ほかのタブで使い終えるかほかのアカウントでサインインすると、このタブも使い始めか新しいアカウントの始めの画面に移り、前のアカウントの画面と読んだもの（理由を示して見た情報を含む）を示さない（FR-48 の 4、FR-49 の 4）
+    how: 端から端の層。報告書の「確かめ方」の二つのタブでアカウントを替える場面
+  - checks: switch.changed で me を読み直して知らせる（FR-36 の 3）
+    how: 単体の層（MOD-03 の偽物、流れの部品の偽物）
+parameters: []
+as_is: new

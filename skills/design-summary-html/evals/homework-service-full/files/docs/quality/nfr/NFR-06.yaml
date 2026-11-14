@@ -1,19 +1,15 @@
 id: NFR-06
 title: 提出の応答の遅さの監視
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: []
 from: [QR-02]
 kind: monitor
 cuj: CUJ-01
 statement: 提出の確定の 95 パーセンタイルが 3 秒を超えたら知らせる。
-conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+conditions: {workload: 締め切り前の 24 時間の集中まで（OPF-01）, users: 生徒と講師。試験用のアカウントを除く, transactions: 提出}
 slo: null
 gate: null
 audit: null
-monitor: {signal: 提出の確定の応答時間, threshold: 95 パーセンタイルが 3 秒を超えて 1 時間続く, notifies: 開発者（チケット）}
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}
+monitor: {signal: 提出の確定にかかった時間, threshold: 95 パーセンタイルが 3 秒を超えて 1 時間続く, notifies: 開発者（チケット）}

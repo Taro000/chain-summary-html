@@ -1,17 +1,15 @@
 id: DRV-10
 title: Use the old storage
 status: retired
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 kind: constraint
 statement: Keep files in the old storage
 sources:
 - TC-02
-concern_of: []
+concern_of:
+- STK-01
 scenario: null
 negotiable: true
 derived_from: []
@@ -24,8 +22,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

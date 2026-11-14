@@ -1,0 +1,34 @@
+id: MOD-16
+title: 操作の記録の検索
+status: active
+basis: inferred
+basis_note: 担当者、期間、操作の種類、対象の乗車やアカウントで操作の記録を探して示し、ないときは見つからないことを示し、済まなかった操作も記録されていることは FR-50（入力）。探す操作は IFC-12 の POST /v1/console/audit-records/search、条件を本文で送ることは DEC-39 と DEC-44（入力）。記録を書くのは ELM-03（DEC-19）。条件を画面の URL と端末の保存に置かないことは推定（MOD-10）
+premises: []
+component: ELM-02
+name: 操作の記録の検索
+depth: bounds
+depth_reason: null
+responsibility: 担当者の操作の記録を探して示す
+visibility: public
+interface:
+  - operation: "AuditSearch() -> 操作の記録の画面"
+    pre: null
+    post: 担当者、期間、操作の種類、対象の乗車かアカウントの条件を本文で POST /v1/console/audit-records/search（IFC-12）に送り（DEC-39）、当てはまる記録を、済まなかった操作も済まなかったこととともに示し（FR-50 の 2、3）、空の items なら見つからないことを示す。条件を画面の URL と端末の保存に置かない
+    errors:
+      - "VALIDATION_FAILED: どの条件の誤りかを示す"
+invariants: []
+depends_on: [MOD-01, MOD-08]
+functions: [FR-50]
+realizes:
+  - IFC-24 操作の記録
+  - IFC-12 POST /v1/console/audit-records/search
+drivers: [DRV-30]
+decisions: [DEC-19, DEC-39, DEC-44]
+behaviour: null
+verification:
+  - checks: 条件ごとの検索、済まなかった操作の示し方、空の items（FR-50 の 2、3）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: 返金、アカウントの作成と訂正、登録、停止の後に、その記録を担当者と操作の種類で探せる（FR-50 の 1、2）
+    how: 端から端の層（試験の環境の偽物の設定）
+parameters: []
+as_is: new

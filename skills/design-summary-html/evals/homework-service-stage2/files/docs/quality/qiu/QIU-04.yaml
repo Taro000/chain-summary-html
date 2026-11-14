@@ -1,22 +1,18 @@
 id: QIU-04
 title: 失敗の原因を 30 分で特定する
-status: draft
-version: 1
-basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+status: active
+basis: assumed
+basis_note: 知らせに応じる時間帯は QAS-01 の仮定
+premises: [QAS-01]
 user: USR-03
 cuj: CUJ-03
 outcomes: []
 need: 開発者は、提出の失敗の原因を知らせから 30 分以内に特定できる。
-context_of_use: {device: スマートフォンのブラウザ, network: null, user_type: null, task: 失敗の原因を 30 分で特定する, environment: null, other: null}
+context_of_use: {device: スマートフォン, network: null, user_type: null, task: 失敗の原因を 30 分で特定する, environment: null, other: null}
 characteristic: efficiency
 statement: 開発者は、提出の失敗の原因を知らせから 30 分以内に特定できる。
-failure_scenario: ログがつながらず、原因の特定に半日かかる。
+failure_scenario: 失敗した提出の経路がたどれず、原因の特定に半日かかる。
 measure: {numerator: 30 分以内に原因を特定した失敗, denominator: 調査した失敗, narrowed_to: 本番の失敗の知らせ, denominator_needed_only: null, contribution: null, observable: true, compared_with: null, scale: ratio}
 kpi: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

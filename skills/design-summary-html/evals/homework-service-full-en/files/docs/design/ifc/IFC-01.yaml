@@ -1,11 +1,9 @@
 id: IFC-01
 title: Submission API
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: http
 name: Submission API
 provider: ELM-03
@@ -14,6 +12,7 @@ consumers:
 functions:
 - FR-01
 - FR-02
+- FR-04
 - FR-06
 operations:
 - name: POST /api/v1/uploads
@@ -40,17 +39,20 @@ errors:
 - case: 'Common: the request is malformed'
   signal: 400 INVALID_REQUEST
   caller_does: Fix the fields
-idempotency: State-changing requests carry an Idempotency-Key (DEC-08)
+idempotency: State-changing requests carry an Idempotency-Key (DEC-10)
 timing:
   timeout: Browser 10 s
   ordering: null
   delivery: null
 versioning: v1 in the path
 observability: Trace IDs in the logs
-spec: ifc/specs/submissions.openapi.yaml
+sli_bindings:
+- sli: SLI-01
+  events: Each POST /api/v1/submissions request that ELM-03 receives
+  fields:
+  - route
+  - status
+  - trace_id
+  method: ELM-03's request log
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

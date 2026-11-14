@@ -1,29 +1,14 @@
 id: FND-48
-title: 受け入れ基準のトレースの表と IFC の functions がずれ、FR-15 を運ぶ IFC がない
+title: 報告の割り当てと MOD-01、MOD-09 の functions が、FR-49 で食い違う
 status: accepted
-version: 2
 basis: inferred
-basis_note: 報告書の受け入れ基準のトレースの表、IFC と ELM の functions は入力（突き合わせはサブエージェントのスクリプト、FR-15 と FR-37 はこの会話で確かめた）
-needs_agreement: false
-approver_candidates: []
+basis_note: null
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-02
-- IFC-06
-- IFC-09
-- IFC-20
+raised_in: reviews/4-detailed-design-ELM-02.md
+to: high-level-design-to-detailed-design
+targets: [MOD-01, MOD-09]
 severity: minor
-evidence: FR-15（評価値）は ELM-04 に割り当てられているが、どの IFC の functions にもない。トレースの表は FR-15 の行に IFC-02 を挙げるが、IFC-02 は評価を送るだけで評価値を運ばない（評価値は管理の API の rating.average と、一覧の絞り込みの中で使われる）。FR-37（トレース ID）は ELM-01〜05 に割り当てられているが、functions に持つ IFC は IFC-09 だけで、表が挙げる IFC-01・02・03・13・15 にはない（中身は 70 件の操作の見出しと Problem の traceId で運ばれている）。IFC-20 の functions の FR-36 は、IFC-20 が SLI-01 のためにログを読むだけで、FR-36 の基準を通さない。表と functions の食い違いは全部で 38 組（表にあって functions にない 20 組、その逆 18 組）。表の流れの欄が、基準を通す流れと違う行もある（FR-01 AC4、FR-04 AC3、FR-53 の三つなど 11 か所）
-suggestion: IFC の functions とトレースの表の片方からもう片方を作り直し、スクリプトで突き合わせる。FR-15 を運ぶ IFC（IFC-03 の一覧の絞り込み、IFC-06 の rating）を functions に足すか、IFC を通らないサーバーの中の処理だと表に書く
-resolution: "受け入れた。FR-15 は評価を送ったとき（IFC-02 の rating）にサーバーの中で計算し、IFC-03 の依頼の一覧の絞り込みと IFC-02 の近くのドライバーの数で使うので、IFC-02 と IFC-03 の functions に足した。トレースの表と IFC の functions をスクリプトで突き合わせてそろえた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B1）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: 報告の「割り当て」は FR-49 の 1 を MOD-10 と MOD-01（403 NOT_ALLOWED を refused で返す）に割り当てるが、MOD-01 の functions に FR-49 はない。MOD-09 の functions は FR-49 を持つが、「割り当て」は FR-49 のどの基準も MOD-09 に割り当てない
+suggestion: どちらかに合わせる。MOD-01 の行を外して MOD-09（使える機能を読む me）を FR-49 の 1 に挙げるか、MOD-01 の functions に FR-49 を加えて MOD-09 から外す
+resolution: 受け入れ。報告の割り当ての FR-49 の 1 から MOD-01 を外し、MOD-09（使える機能と止めた機能を me で読み、MOD-10 に渡す）と MOD-10 を挙げた。MOD-01 は 403 NOT_ALLOWED を refused として渡すだけで FR-49 を担わず、functions に FR-49 を持たないままにした

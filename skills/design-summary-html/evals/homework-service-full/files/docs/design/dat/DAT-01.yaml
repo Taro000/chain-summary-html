@@ -1,11 +1,9 @@
 id: DAT-01
 title: 課題
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 entity: 課題
 owner: ELM-03
 store: ELM-04
@@ -18,9 +16,5 @@ consistency: 講師の要求ごとに書く
 retention: 学年の終わりまで
 classification: internal
 drivers: []
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

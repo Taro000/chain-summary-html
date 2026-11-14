@@ -1,54 +1,56 @@
 id: IFC-14
-title: Stripe の入力部品
-status: draft
-version: 2
+title: エンジニアの調査と振る舞いの切り替え
+status: active
 basis: inferred
-basis_note: DEC-10（入力部品で登録、SetupIntent。版 2 で請求先の名前、メールアドレス、住所を集めない）、DEC-23（カードの入力は一つのモジュールだけ、読み込めるスクリプトを限る）は入力。Payment Element を使うことは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: 異常を見つけて記録し一覧に示し、同じ異常が続くときはまとめることは DEC-20 と FR-33（入力）。一件の依頼の経過を端末のエラーと外部とのやり取りまで依頼に結び付けてたどることは DEC-19、FR-34、FR-52（入力）。個人の情報を隠して鍵を使った仮の名で示し、理由を示したときだけその依頼の分を示して記録することは DEC-15、FR-35（入力）。切り替えをデータベースに置いてエンジニアの画面から変え、その時から効かせ、Web アプリに流れで伝えることは DEC-26、FR-36（入力）。個人を特定できない形に変えた記録を誰も見られないことは FR-51 の 2（入力）。操作と誤りの符号は DEC-35、DEC-39、DEC-42 による推定。たどる記録を探す操作を DEC-39 と DEC-44 の資源の下の search にそろえたことは FND-31 を受けた
+premises: []
 kind: http
-name: Stripe の入力部品（外部、ブラウザ）
-provider: ELM-10
-consumers:
-- ELM-01
-functions:
-- FR-04
-- FR-31
+name: エンジニアの調査と振る舞いの切り替え
+provider: ELM-03
+consumers: [ELM-02]
+functions: [FR-33, FR-34, FR-35, FR-36, FR-45, FR-51, FR-52]
 operations:
-- name: Stripe.js の読み込み（js.stripe.com）
-  does: 公開の鍵で初期化する
-- name: Payment Element の表示
-  does: カードの入力欄を Stripe の枠（iframe）の中に出す。請求先の名前、メールアドレス、住所の欄は出さず、集めない（第 2 段階の DEC-10 版 2）。欄の設定と、確かめのときに渡す値は第 4 段階で確かめる
-- name: stripe.confirmSetup
-  does: サーバーが作った SetupIntent（IFC-02）で登録を確かめる。本人の確かめも枠の中で行う
-format: Stripe.js（ブラウザの JavaScript）
-protocol: ブラウザから Stripe へ直接（HTTPS）。カードの情報はサーバーを通らない（DRV-22、NFR-40）
-auth: Stripe の公開の鍵と、SetupIntent の client secret
+  - name: GET /v1/console/anomalies
+    does: 異常の一覧（どの機能で、いつ、何が起きたか、関わる依頼。続いている異常はまとめ、件数と最初と最後の時刻）を新しい順に返す（FR-33）
+  - name: POST /v1/console/traces/search
+    does: 期間、異常、依頼の ID で依頼を探し、乗客とドライバーを仮の名で返す（FR-34 の 1、FR-35 の 2）
+  - name: GET /v1/console/rides/{rideId}/trace
+    does: その依頼でシステムが行ったこととそれぞれの結果を、端末で起きたエラーと EXT-01、EXT-02、ELM-07 とのやり取りを含めて時刻の順に返す。どの部分で起きたかを示し、名前、連絡先、乗る場所と降りる場所は隠し、同じ人は同じ仮の名で示す（FR-34、FR-35 の 1、2、FR-52 の 2、5）
+  - name: POST /v1/console/rides/{rideId}/disclosures
+    does: エンジニアが理由を示して、その依頼の隠した情報を見る。誰が、いつ、どの依頼の、どの情報を、どの理由で見たかを操作の記録に残す（FR-35 の 3、4）
+  - name: GET /v1/console/switches
+    does: 振る舞いの切り替えの一覧と、それぞれが動いているか止めているかを返す（FR-36）
+  - name: PUT /v1/console/switches/{switchName}
+    does: 切り替えを止めるか有効にする。その時から効き、流れ（IFC-11 の switch.changed）で Web アプリに伝える（FR-36 の 1〜3）
+format: JSON（UTF-8）。時刻は DEC-37、一覧は DEC-39
+protocol: HTTPS の要求と応答
+auth: エンジニアのセッション（DEC-40）。エンジニアのほかは 403 NOT_ALLOWED（DEC-15、FR-49 の 4）。隠した情報は disclosures の答えでだけ示す
 errors:
-- case: カードの番号、期限、拒否の誤り
-  signal: 入力部品のエラー
-  caller_does: 入力部品がその場で示す（FR-04 AC2）
-- case: Stripe.js を読み込めない
-  signal: 読み込みの失敗
-  caller_does: 「今は登録できません」と示し、ブラウザのエラーの記録に残す
-- case: 本人の確かめに失敗
-  signal: confirmSetup の失敗
-  caller_does: 理由を示し、もう一度か別のカードを選ばせる
-idempotency: confirmSetup は SetupIntent ごとに一度。二度目は Stripe が今の状態を返す
+  - case: どの操作にも共通する誤りと、冪等キーの誤り
+    signal: DEC-35 と DEC-42 の符号
+    caller_does: DEC-35 と DEC-42 のとおり
+  - case: 存在しない依頼を探した
+    signal: 404 with code NOT_FOUND
+    caller_does: 見つからないことを示す（FR-34 の 4）
+  - case: 理由を示さずに隠した情報を見ようとした
+    signal: 400 with code VALIDATION_FAILED (details reason REQUIRED)
+    caller_does: 隠した情報を示さない（FR-35 の 4）
+  - case: 依頼の経過をたどる記録が保持期間を過ぎて消えている
+    signal: 200 で traceRetained が偽の答え
+    caller_does: 残っている記録だけを示し、たどる記録が保持期間を過ぎたことを示す
+  - case: 個人を特定できない形に変えた記録の隠した情報を見ようとした
+    signal: 409 with code RECORD_ANONYMIZED
+    caller_does: 見られないことを示す（FR-51 の 2）
+  - case: 知らない切り替えを変えようとした
+    signal: 404 with code NOT_FOUND
+    caller_does: 一覧を読み直す
+idempotency: GET と search は読むだけで繰り返してよい（DEC-42）。disclosures は冪等キーを付け、送り直しても見た記録は一つ。切り替えは値を置くだけで自然に冪等だが、冪等キーを付ける
 timing:
-  timeout: Stripe の部品に任せる
+  timeout: 枠だけを決める。ELM-03 の答えの期限は自身の取引と読み解きの最悪より長く、ELM-02 のタイムアウトはその期限に通信の余裕を足したものより長い（DEC-46 の決め方）。調査と切り替えは時間のしきい値の SLO とお金の道になく、値は第 4 段階が決める（ELM-02 は HND-18、ELM-03 の期限は HND-19）
   ordering: null
   delivery: null
-versioning: Stripe.js は js.stripe.com から読む（Stripe の版の決まりに従う）。読み込めるスクリプトに js.stripe.com を入れる（DEC-23）
-observability: 結果（成功、失敗の種類）だけをブラウザのエラーの記録（IFC-05）に。入力欄の値は記録しない
+versioning: DEC-41
+observability: 隠した情報を見た操作と切り替えを変えた操作を、誰が、いつ、何を、どの理由で行ったかとともに操作の記録（DAT-17）に残す（FR-35 の 3、QR-35）。境界の出来事（DAT-19）にも残す
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: Payment Element で請求先の名前、メールアドレス、住所を集めないと書いた
-  reason: '第 3 段階の再実行（2026-11-04）: 第 2 段階の DEC-10 版 2（FND-26 の受け入れ）'

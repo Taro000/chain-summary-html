@@ -1,0 +1,82 @@
+id: MOD-36
+title: 本人の確かめとセッション
+status: active
+basis: assumed
+basis_note: 担当者が渡す一度だけ使える設定の符号で本人がパスワードを決め、以後はサインインの ID とパスワードで使い始め、サーバーがセッションを持つことは DEC-14、認証のライブラリを使わずパスワードを scrypt で持つことは DEC-30、セッションの ID を 128 ビット以上の乱数にして __Host- のクッキーで渡し、ハッシュだけを持ち、使い終えるとその場で消し、アカウントを止めたとき、設定の符号を出し直したとき、個人を特定できない形に変わったときにすべてのセッションを消すことは DEC-40、符号を使うときにパスワードを置き、符号を使ったことにし、ほかのセッションを消すことを一つの取引で行うことは DAT-02、答えと符号は IFC-01（どれも入力）。設定の符号を、アカウントの ID と出した回の番号から目的の鍵で作る（DAT-02 のハッシュだけを持つ決まりのまま、冪等キーの送り直しに同じ符号を答えられる、MOD-26）ことは推定。止める回数と時間、セッションの長さ、設定の符号の有効期間と形、パスワードの長さは HND-12 を決めたもので、DAS-22 による暫定の決定
+premises: [DAS-22]
+component: ELM-03
+name: 本人の確かめとセッション
+depth: full
+depth_reason: 本人の確かめ、続けて失敗したアカウントを止めること、セッションと設定の符号の有効期間を決め、誤るとほかの人がアカウントを使える（重大さが高）。同じアカウントへの重なったサインインの失敗の数を書き込みの取引の中で数え（同時に動く仕事と状態を分ける）、アカウントの状態、止めている時刻、合うかの組で答えが決まる、いくつもの条件の規則
+responsibility: 本人であることを確かめてセッションを渡し、セッションから利用者を決める
+visibility: public
+interface:
+  - operation: "signIn(loginId: LoginId, password: string) -> SessionCookie"
+    pre: null
+    post: 判断表 A で答える。合えば、セッションの ID（MOD-21 の 128 ビットの乱数）を作ってハッシュと期限を書き、続けた失敗の数を 0 に戻し、クッキーの値を返す。合わなければ同じ書き込みの取引で失敗の数を足し、決まった数に達したら止める時刻を書く
+    errors: ["AUTH_FAILED: 401。サインインの ID かパスワードが合わない（どちらかは明かさない。ない ID も同じ答え）", "ACCOUNT_LOCKED: 423 と retryAfterSeconds", "ACCOUNT_RETIRED: 409"]
+  - operation: "setPassword(loginId: LoginId, setupCode: string, newPassword: string, key: IdempotencyKey) -> none"
+    pre: null
+    post: 判断表 B で、符号が今の出した回のもので、使っておらず、期限のうちなら、パスワードのハッシュを置き、符号を使ったことにし、そのアカウントのすべてのセッションを消し、冪等キーの答え（MOD-26）を一つの取引で書く
+    errors: ["SETUP_CODE_INVALID: 422。合わないか、使ったか、期限が過ぎた（どれかは明かさない）", "VALIDATION_FAILED: 400（password TOO_SHORT か TOO_LONG）", "ACCOUNT_RETIRED: 409"]
+  - operation: "signOut(sessionCookie: SessionCookie) -> none"
+    pre: null
+    post: そのセッションと、その端末の知らせの宛先（MOD-35）を一つの取引で消す。ないセッションでも同じ答え
+    errors: []
+  - operation: "resolve(sessionCookie: SessionCookie or none, now: Instant) -> Actor | notSignedIn"
+    pre: null
+    post: ハッシュでセッションを探し、期限のうちでアカウントが使えるなら利用者（アカウントの ID、種類、試験用か、セッションの ID）を返し、最後に使った時刻を延ばす（1 時間に一度まで）
+    errors: ["KeyStoreUnavailable: 秘密の置き場所が答えない（MOD-20 が 503）"]
+  - operation: "issueSetupCode(tx: Tx, accountId: AccountId) -> SetupCode"
+    pre: MOD-37 だけが、アカウントを作る取引と符号を出し直す取引の中で呼ぶ
+    post: 出した回の番号を一つ進め、アカウントの ID とその番号から目的の鍵（MOD-23 の keyedCode、setup_code）で符号を作り、ハッシュと期限を書き、それまでの符号を使えなくし、出し直しのときはそのアカウントのすべてのセッションを消す
+    errors: []
+  - operation: "setupCodeOf(accountId: AccountId, issueNumber: integer) -> SetupCode"
+    pre: MOD-37 だけが、冪等キーの送り直しの答えを作り直すときに呼ぶ（MOD-26 の rebuild）
+    post: その回の符号を作り直す（書かない）
+    errors: []
+  - operation: "revokeAll(tx: Tx, accountId: AccountId) -> none"
+    pre: null
+    post: そのアカウントのすべてのセッションを消す（MOD-37 の個人を特定できない形への変換、MOD-68）
+    errors: []
+  - operation: "forget(tx: Tx, accountId: AccountId) -> none"
+    pre: 呼ぶのは MOD-68 だけ（アカウントを個人を特定できない形に変えるとき）
+    post: そのアカウントのパスワードのハッシュ、設定の符号、すべてのセッションを消す
+    errors: []
+invariants:
+  - セッションの ID と設定の符号は、ハッシュだけが ELM-04 にある（符号は作り直せるが、書かない）
+  - 設定の符号は一度だけ使え、使うとそのアカウントのほかのセッションが消える
+  - 止めている間は、合うパスワードでもセッションを渡さない
+  - 使えなくなったアカウントにはセッションがない
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-26, MOD-28, MOD-35]
+functions: [FR-42, FR-48, FR-51]
+realizes:
+  - IFC-01 POST /v1/account-setups
+  - IFC-01 POST /v1/sessions
+  - IFC-01 DELETE /v1/sessions/current
+drivers: [DRV-19, DRV-28]
+decisions: [DEC-14, DEC-30, DEC-40]
+behaviour: "報告書の節: MOD-36 本人の確かめとセッション"
+verification:
+  - checks: 判断表 A と B の行ごと（止める回数のちょうど前と後、止める時間の前と後、使えなくなったアカウント、期限の前と後の符号、使った符号、出し直した前の符号）
+    how: 単体の層（時計の偽物、ID と乱数の偽物）
+  - checks: 重なったサインインの失敗が数え漏れず、止める回数で止まる
+    how: 結合の層
+  - checks: 符号でパスワードを決めるとほかのセッションが消え、同じキーの送り直しが同じ答えを受ける
+    how: 結合の層
+  - checks: 本人の確かめの印がクッキーだけで、使い終えた後とセッションが切れた後は使えない（FR-48 の 3、4、NFR-27）
+    how: 結合の層と端から端の層
+parameters:
+  - name: 続けて失敗して止めるまでの回数と止める時間
+    value: 5 回で 15 分
+    basis: HND-12。推し量りの試みを抑え、入れ間違いの続く本人を長く待たせない暫定の値（DAS-22）。MOD-20 の入口の回数の限りと合わせて抑える
+  - name: セッションの長さ
+    value: 最後に使ってから 14 日（延ばす書き込みは 1 時間に一度まで）、作ってから 30 日まで
+    basis: HND-12。デモの回（1〜2 日、OPF-01）の間とその前の準備でサインインし直させない長さを選んだ暫定の値（DAS-22）
+  - name: 設定の符号の形と有効期間
+    value: Crockford の Base32 の 12 文字（60 ビット）、出してから 72 時間
+    basis: HND-12。担当者が直接渡す（TC-16）までの日数を見込んだ暫定の値（DAS-22）
+  - name: パスワードの長さ
+    value: 12 文字から 128 文字まで
+    basis: IFC-01 の TOO_SHORT と TOO_LONG の境目。今の指針の最低の長さを満たす暫定の値（DAS-22）
+as_is: new

@@ -1,0 +1,12 @@
+id: DAS-07
+title: 開発者は技術方針の主なライブラリを使いこなすか、学ぶ時間を取れる
+status: open
+stage: 2b
+kind: judgment
+statement: 開発者（PC-03）は、TypeScript、React、Hono（DAS-01）に加えて、技術方針の主なライブラリ（Vite、React Router、TanStack Query、React Aria Components、openapi-fetch、Zod と @hono/zod-openapi、Drizzle ORM、pino）を使いこなすか、納期がない（PC-02）ため学ぶ時間を取れる
+why_unsure: 設計の与件は、開発者が選んだ技術（TC-01〜TC-06）を挙げ、それ以外のライブラリを知っているかを述べていない
+breadth: medium
+severity: low
+rating_note: POL-01、DEC-28、DEC-29、DEC-33 が依存する。違っていれば学ぶ時間が延びるが、納期はなく（PC-02）、どのライブラリを替えても、コンポーネントの種類ごとの組み合わせ、コードの分け方と依存の規則（POL-02）、テストの層（POL-03）は変わらない
+answer: null
+answered_in: null

@@ -1,0 +1,12 @@
+id: DAS-02
+title: Node.js の Active LTS の版を使う
+status: confirmed
+stage: 2b
+kind: decision
+statement: API サーバーと夜間のバッチは Node.js の Active LTS の版で動かす
+why_unsure: 版の決まりは入力にない
+breadth: low
+severity: low
+rating_note: POL-01 だけが頼る
+answer: そのとおり
+answered_in: 第 2b 段階の質問 1

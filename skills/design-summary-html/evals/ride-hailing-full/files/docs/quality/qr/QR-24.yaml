@@ -1,36 +1,24 @@
 id: QR-24
-title: 異常からエンジニアへの通知の速さ
-status: draft
-version: 2
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [開発の責任者]
+title: 到着を確認してから決済の結果を示すまで、乗客を待たせない
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。決済の処理は EXT-01 が行う（CON-03）。EXT-01 のテスト環境の応答の速さは入力になく、設計が確かめる。乗客の作業の時間 T_alighting は QIU-12 に残す。T_payment_response の値（10 秒）は第 4 段階が提案した仮の値で、QAS-33 による仮定
+premises: [CON-03, EXT-01, QAS-33]
 model: product
 layer: external
 characteristic: performance efficiency > time behaviour
-statement: システムは、通知の条件を満たす異常・エラーが起きてから、遅れずにエンジニアへ通知を送る。
-applies_to: [FR-36]
-traces_to: [QIU-19]
+statement: システムは、ドライバーが到着を確認して決済を行ってから、済んだか済まなかったか、または済んだかどうか分からないことを、T_payment_response（10 秒）以内にドライバーと乗客に示す。
+applies_to: [FR-28, FR-29, FR-31]
+traces_to: [QIU-12, QIU-19]
 entry_point: null
-stakeholders: [USR-03]
-failure_scenario: 通知の送信が遅れ、エンジニアが障害に気づくのが遅れる。
+stakeholders: [USR-01, USR-02, EXT-01]
+failure_scenario: 着いてからドライバーが決済を行っても結果がなかなか示されず、乗客は降りてよいか分からずに車内で待ち、ドライバーは次の依頼を受けられない。
 score: {impact: 3, likelihood: 3}
 handling: minimum-line
-handling_reason: CUJ-10〜13（エンジニア）だけをたどる QR は、今期は重視を 0 件にするという事業の決め（2026-10-31）で最低限守る線にした。点は変えていない
+handling_reason: null
 implies_internal: []
-conflicts: []
+conflicts:
+  - {with: QR-04, note: "EXT-01 が答えないときに一度だけ請求することを確かめる間も、T_payment_response（10 秒）のうちに済んだかどうか分からないことを示し、乗客を待たせない。結果が分かってから示し直す（FR-29）"}
 stated_numbers: []
 placeholders:
-  - name: T_rca
-    meaning: 通知から原因を特定するまでの分数（第 4 段階で使う）
-    from: QIU-19
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 扱いを重視から最低限守る線にした（事業の決め）
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+  - {name: T_payment_response, meaning: "ドライバーが決済を行ってから、結果（済んだ、済まなかった、分からない）がドライバーと乗客に示されるまでの時間", from: QR-24}

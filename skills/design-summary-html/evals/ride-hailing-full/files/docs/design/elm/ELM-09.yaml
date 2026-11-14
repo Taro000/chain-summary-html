@@ -1,32 +1,17 @@
 id: ELM-09
-title: イメージの置き場所（Artifact Registry）
-status: draft
-version: 2
+title: 想定の本番のデータベースの基盤（Turso、東京）
+status: active
 basis: inferred
-basis_note: 提案
-needs_agreement: false
-approver_candidates: []
-kind: data-store
-name: イメージの置き場所（Artifact Registry）
-responsibility: ゲートを通ったコンテナイメージ。回ごとの配備と戻しに使う。配備の記録が指すイメージ（今と一つ前）は消さない（DEC-27）
+basis_note: 本番のデータベースを Turso として設計し、実際には配備しないことは TC-07、TC-09（入力）。東京に置くことは DEC-05 による
+premises: [TC-07]
+kind: node
+name: 想定の本番のデータベースの基盤（Turso、東京）
+responsibility: 想定の本番で ELM-04 を持ち、データの複製と時点を指定した戻しを受け持つ。実際には配備しない
 functions: []
-drivers:
-- DRV-16
-- DRV-18
-decisions:
-- DEC-06
-- DEC-27
+drivers: [DRV-01, DRV-15]
+decisions: [DEC-05, DEC-17]
 team: TEAM-01
-technology: Artifact Registry
-runs_on: ELM-19
+technology: Turso のマネージドのサービス（東京）
+runs_on: null
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: 配備の記録が指すイメージを消さないことを責務に書いた
-  reason: FND-14、06（第 2 段階のレビュー）を受け入れた

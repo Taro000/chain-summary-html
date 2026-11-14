@@ -1,39 +1,32 @@
 id: QIU-15
-title: 依頼主を乗せて運転を始める
-status: draft
-version: 1
+title: ドライバーが許諾した依頼で取り消しにならずに乗車場所に着ける
+status: active
 basis: inferred
-basis_note: CUJ の手順は入力。KPI との重なりは質問 3 で確認済み。測定量は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: CUJ の手順とニーズは入力。中間成果は質問 5、式は事業が全体で数える式（質問 6）。式を利用状況に絞り込むことと利用状況は推定
+premises: [CON-05]
 user: USR-02
-cuj: CUJ-07
+cuj: CUJ-06
 outcomes: [OUT-02]
-need: できるだけ多く依頼を受けたい（迎車を無駄にしたくない）
+need: 出来るだけ多く・高い依頼を受けたい
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: ドライバー
-  task: 依頼主を確かめて乗せる
-  environment: 乗車場所（路上）
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録したドライバー
+  task: 配車依頼の受付
+  environment: 車内
   other: null
 characteristic: effectiveness
-statement: ドライバーは、乗車場所で依頼主を確かめて乗せ、運転を始められる。
-failure_scenario: 乗客が現れない、互いを見つけられない、または依頼主でない人を乗せてしまい、ドライバーは迎車の時間を失うか、依頼主を置き去りにする。
+statement: 配車依頼を許諾したドライバーは、途中で取り消しにならずに、その依頼の乗車場所に着ける。
+failure_scenario: 許諾して乗車場所へ向かう途中で乗客に取り消され、向かった時間と距離がむだになり、ドライバーが受けられる依頼が減る。
 measure:
-  numerator: 乗車が始まった依頼
-  denominator: 迎車が乗車場所に到着した依頼
-  narrowed_to: スマートフォンのブラウザ。テスト用アカウントを除く
-  denominator_needed_only: 迎車が乗車場所に到着した依頼だけ
-  contribution: 合流の手助け（位置の共有、車と乗客の表示）につながる。乗客の遅れや無断の不在も含まれる
+  numerator: 迎車が乗車場所に到着した依頼
+  denominator: ドライバーが許諾した依頼
+  narrowed_to: 登録したドライバー。試験用のアカウントを除く
+  denominator_needed_only: ドライバーが許諾した依頼だけを数え、許諾されなかった依頼は含めない
+  contribution: 迎えまでの待ち時間や依頼の条件の合い方にプロダクトが効くが、乗客やドライバーの都合にも左右される
   observable: true
   compared_with: null
   scale: ratio
 kpi: KPI-03
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

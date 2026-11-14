@@ -1,39 +1,19 @@
 id: DAT-17
-title: 苦情と対処
-status: draft
-version: 2
+title: 操作の記録
+status: active
 basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: 苦情（乗客の報告）と対処
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- complaint_id、ride_id、driver_id、passenger_id
-- type、text（自由記述）
-- reported_at、status（open、handled）
-- '対処: action_id、action、reason、operator_id、at'
+basis_note: 担当者とエンジニアの特別な操作と料金にかかわる操作を、足すだけで直しも消しもしない記録に残し、一つ前の記録のハッシュを含めて書き換えれば分かるようにすることは DEC-19（入力）。記録する操作は FR-35 の 3、FR-41 の 4、FR-42 の 3、FR-43 の 4、FR-50、QR-12（入力）。操作した人を記録した日の鍵で暗号にし、保存期間を過ぎた日の鍵を捨てることは DEC-16（入力）。ハッシュを暗号にした値から求めて、鍵を捨てても鎖が保たれるようにすることは推定
+premises: [CON-06]
+entity: 操作の記録（担当者とエンジニアの特別な操作と、料金にかかわる操作）
+owner: ELM-03
+store: ELM-04
+key_attributes: [auditId, sequence, actorAccountId, actorKind, occurredAt, operationKind, target, content, result, reason, previousHash, hash]
 relations:
-- to: DAT-06
-  kind: many-to-one
-  note: 依頼
-- to: DAT-18
-  kind: one-to-one
-  note: 管理の操作の記録
-consistency: 苦情のモジュールだけが書く。対処は追記だけ（FR-46 AC3）で、対処、苦情の状態、管理の操作の記録を一つのトランザクションで書く（DEC-31）。停止を伴う対処は、配車のモジュールの停止の操作を同じトランザクションで呼ぶ。ELM-05 は持ち主のモジュールを通して書く（DEC-53。保存期間の匿名化）
-retention: T_pii_retention
+  - {to: DAT-01, kind: many-to-one, note: 操作した人}
+  - {to: DAT-07, kind: many-to-one, note: 対象の乗車か依頼（あるとき）}
+consistency: 足すだけで直しも消しもせず、前の記録のハッシュを含めて書き換えれば分かるようにする（DEC-19）。記録する操作と一つの取引で書き、済まなかった操作は結果とともに書く（FR-50 の 3）。操作した人と内容の個人の情報は記録した日の鍵で暗号にし、ハッシュは暗号にした値から求める
+retention: 消さない。記録してから 3 年を過ぎたものは、その日の鍵を捨てて操作した人と個人の情報を読めなくする（DEC-16、QR-59、FR-51）。ハッシュの鎖は暗号にした値のまま保たれる
 classification: personal
-drivers:
-- DRV-29
-- DRV-27
+drivers: [DRV-30, DRV-24, DRV-21]
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 保存期間の匿名化は ELM-05 が持ち主のモジュールを通して行うと書いた
-  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

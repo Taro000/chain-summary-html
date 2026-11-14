@@ -1,39 +1,30 @@
 id: DRV-21
-title: 個人情報保護法に従う
-status: draft
-version: 2
+title: 個人の情報の扱いに関する法令に従う
+status: active
 basis: inferred
-basis_note: 要求は QR-38〜40 と context.yaml のヒント（入力。法令として扱うことは品質チェーン第 1 段階の質問 20・22 で確認済み）。法令の中身は誰も確かめていない。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+basis_note: 個人の情報の扱いに関する法令から来た QR-57、QR-58、QR-59（入力）。法令は交渉できない。エンジニアの調査で隠すことと、写しを読めなくすることは DRV-29 が受け持つ。品質チェーンが QR-59 と QR-37、QR-15、QR-17 の競合に書いた扱い（保存期間のうちで取り出せる日数と記録の欠けのなさが成り立ち、保存期間を過ぎた記録には状態の変化の種類と時刻だけが残る）を引き継ぐ。順位は質問 6 で確認済み
+premises: [CON-06]
 kind: constraint
-statement: 位置情報（現在地の受信の記録を含む）と乗車の記録は見る必要のある人にだけ見せる（QR-38）。ログ、状態の履歴、現在地の受信の記録の個人情報は伏せるか権限のある人だけが読める形にする（QR-39）。位置情報と個人情報は T_pii_retention（3 年）を過ぎると残さない（QR-40、FR-53）
-sources: [QR-38, QR-39, QR-40, NFR-31, NFR-40, NFR-41, FR-17, FR-24, FR-45, FR-53]
-concern_of: [USR-01, USR-02, USR-03]
+statement: 乗客とドライバーの位置情報と乗車の記録は、見ることを許された人だけが見られる。ログの中の個人の情報は伏せてある。記録してから QR-59 の保存期間を過ぎた記録とデータは、状態の変化の種類と時刻を残し、操作した人と位置を消して、個人を特定できない形になっている
+sources: [QR-57, QR-58, QR-59, NFR-27, NFR-28, NFR-45, NFR-46, FR-49, FR-51]
+concern_of: [USR-01, USR-02, STK-02]
 scenario: null
 negotiable: false
 derived_from: []
 priority:
   business: high
-  business_reason: 交渉できない制約。入口（法令）から来た要求
-  difficulty: medium
-  difficulty_reason: 追記だけの履歴とログから、期限を過ぎた個人情報を消す。伏せることと調べやすさの引き換え（DRV-28）
-  rank: 13
-primary: true
+  business_reason: 法令から来た、入口のある要求
+  difficulty: low
+  difficulty_reason: 見せる決まりと伏せる決まりを一か所に置けば（DRV-34）、どの妥当な作りでも満たせる。保存期間を過ぎた記録は、誰がとどこでを消せばよい
+  rank: 18
+primary: false
 conflicts:
-  - with: DRV-03
-    note: 品質チェーンで解き済み。乗客の現在地は迎車中だけ、乗客が許可したときだけドライバーに見せる（FR-24）
-  - with: DRV-28
-    note: 品質チェーンで解き済み。ID は残し、位置と連絡先は伏せる（DRV-32）。T_log_retention と T_pii_retention を合わせて決める（要合意）
+  - with: DRV-02
+    note: 止まった後に戻すために残すものにも、保存期間を過ぎた個人の情報は残さない（品質チェーンが QR-17 と QR-59 に書いた扱い）
+  - with: DRV-07
+    note: 止まった後に戻すために残す決済と返金の結果にも、保存期間を過ぎた個人の情報は残さない（品質チェーンが QR-17 と QR-59 に書いた扱い）
+  - with: DRV-24
+    note: 依頼の経過をたどる記録を取り出せる日数は、保存期間を超えない（品質チェーンが QR-37 と QR-59 に書いた扱い）
   - with: DRV-27
-    note: 品質チェーンで解き済み。期限を過ぎた履歴からは操作した人と位置だけを消し、変化の種類と時刻は残す（FR-53）
-placeholders:
-  - name: T_pii_retention
-    meaning: 位置情報と個人情報を含むログとデータを残す期間（3 年。根拠はまだ書かれていない）
-    from: QR-40、context.yaml のヒント
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
-  - version: 2
-    date: 2026-11-03
-    change: 現在地の受信の記録（FR-17。苦情の調べ FR-45 で示す）を、見る人を限る記録と、個人情報を伏せるか権限のある人だけが読める形にする記録に含めた
-    reason: 品質チェーンの再実行（FR-17 版 2、FR-45 版 2、QR-38〜40 版 3）に追随した（第 1 段階の再実行、3 回目）
+    note: 配車の経過の記録が欠けないことは保存期間のうちの記録について成り立ち、過ぎた記録には状態の変化の種類と時刻だけが残る（品質チェーンが QR-15 と QR-59 に書いた扱い）
+placeholders: []

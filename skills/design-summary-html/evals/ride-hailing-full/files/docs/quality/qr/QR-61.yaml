@@ -1,0 +1,22 @@
+id: QR-61
+title: 料金は模擬の運賃表に従って求める
+status: active
+basis: inferred
+basis_note: 料金が模擬の運賃表に従うことは質問 1 で確認済み（旅客運送の法令を模す開発方針）。運賃表はエンジニアが開発の作業としてシステムに入れ、変える機能は要らない（質問 6）。持ち込んだ役割は開発の責任者と推定した。最低限守る線とすることは第 4 段階の質問 8 で確認済み（QAS-23）
+premises: [CON-01, QAS-23]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムが依頼の前に示す料金と、乗車中に降りる場所を変えるときに示す料金は、模擬の運賃表に従って求めた額である。
+applies_to: [FR-03, FR-47]
+traces_to: []
+entry_point: {type: policy, source: 旅客運送の法令（道路運送法）を模す開発方針, brought_by: 開発の責任者}
+stakeholders: [USR-01, USR-02, USR-03]
+failure_scenario: 降りる場所を変えたときの料金が運賃表の区分を一つ飛ばして求められ、模擬の運賃表と違う料金が確定額になる。
+score: {impact: 4, likelihood: 2}
+handling: minimum-line
+handling_reason: 開発方針から来るため対象から外さない
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

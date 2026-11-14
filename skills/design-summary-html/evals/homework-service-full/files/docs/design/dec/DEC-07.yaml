@@ -1,41 +1,35 @@
 id: DEC-07
-title: エラーを問題の詳細の形で返す
-status: draft
-version: 1
+title: すべてのコンポーネントを一つのリポジトリに置く
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
-stage: high-level-design
-question: すべての API で、エラーをどの形で返すか
+premises:
+- PC-03
+stage: technical-policy
+question: リポジトリをいくつに分けるか
 addresses:
-- IFC-01
-- IFC-02
+- DRV-06
 options:
-- name: 問題の詳細（RFC 9457）に code と traceId を足す
-  effect: 標準の形で、道具が使える
-  cost: 欄が少し増える
-- name: 独自の {code, message}
-  effect: 作りが単純
-  cost: 道具の助けを失う
-chosen: 問題の詳細（RFC 9457）に code と traceId を足す
-rationale: 標準の形にすると、画面と道具が同じ読み方をできる。
+- name: 一つのリポジトリ
+  effect: 型と決まりを一か所で共有できる
+  cost: リポジトリが大きくなる
+- name: コンポーネントごとのリポジトリ
+  effect: それぞれ別に出せる
+  cost: 2 人では揃えきれない
+chosen: 一つのリポジトリ
+rationale: 2 人で型と決まりを揃えるには、一か所にまとめるのが安い（DRV-06）。
 rejected:
-- option: 独自の {code, message}
-  reason: 道具の助けを失う
-gains: []
-costs: []
+- option: コンポーネントごとのリポジトリ
+  reason: 2 人では揃えきれない（DRV-06）
+gains:
+- 型を一か所で共有できる
+costs:
+- リポジトリが大きくなる
 sensitive_points: []
 trade_offs: []
 assumptions: []
-depends_on: []
+depends_on:
+- DEC-01
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

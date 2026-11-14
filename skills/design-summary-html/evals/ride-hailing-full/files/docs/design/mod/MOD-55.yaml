@@ -1,0 +1,39 @@
+id: MOD-55
+title: ドライバーの停止
+status: active
+basis: inferred
+basis_note: 停止したその時から受付と許諾をさせず、まだ許諾していない依頼を一覧から除き、ドライバーに知らせ、迎車中か乗車中の依頼があればそれを返し、すでに停止していれば知らせ、再開で受付を始められるようにすることは FR-44、IFC-12、IFC-11（driver.suspended、driver.resumed、offer.removed）、停止と再開を今の状態を条件に書き、操作の記録と一つの取引で書くことは IFC-12 と DAT-03（どれも入力）。停止で受付もやめさせる（再開の後は改めて受付を始める、FR-44 の 7）ことは推定
+premises: []
+component: ELM-03
+name: ドライバーの停止
+depth: bounds
+depth_reason: null
+responsibility: 担当者の操作でドライバーを停止し、再開する
+visibility: public
+interface:
+  - operation: "suspend(actor: Actor, driver: AccountId, key: IdempotencyKey) -> SuspendAnswer"
+    pre: null
+    post: POST /v1/console/drivers/{accountId}/suspension で、一つの書き込みの取引の中で、停止を今の状態を条件に置き（MOD-37 の setSuspended）、受付をやめさせ、届いている依頼の offer.removed（MOD-52 の withdrawAllFor）、driver.suspended、操作の記録、冪等キーの答えを書き、迎車中か乗車中の依頼（activeRides）を返す。それらの依頼は外さない
+    errors: ["DRIVER_ALREADY_SUSPENDED: 409", "NOT_FOUND: 404"]
+  - operation: "resume(actor: Actor, driver: AccountId, key: IdempotencyKey) -> none"
+    pre: null
+    post: DELETE /v1/console/drivers/{accountId}/suspension で、停止を解き、driver.resumed、操作の記録、冪等キーの答えを一つの取引で書く。解いた後、ドライバーは受付を始められる
+    errors: ["NOT_FOUND: 404"]
+invariants: []
+depends_on: [MOD-25, MOD-26, MOD-29, MOD-33, MOD-37, MOD-45, MOD-52]
+functions: [FR-44, FR-50]
+realizes:
+  - IFC-12 POST /v1/console/drivers/{accountId}/suspension
+  - IFC-12 DELETE /v1/console/drivers/{accountId}/suspension
+  - IFC-11 driver.suspended
+  - IFC-11 driver.resumed
+drivers: [DRV-08, DRV-30]
+decisions: [DEC-19, DEC-24]
+behaviour: null
+verification:
+  - checks: 停止の後の一覧と内容と許諾と受付（FR-44 の 1〜3、QR-49）、届いた後に停止したドライバー（NFR-36）、activeRides と続く依頼（FR-44 の 4、5）、DRIVER_ALREADY_SUSPENDED、再開（FR-44 の 6、7）、操作の記録（NFR-32）
+    how: 結合の層
+  - checks: 停止したドライバーに依頼が届かない（CUJ-18）
+    how: 端から端の層
+parameters: []
+as_is: new

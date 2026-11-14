@@ -1,22 +1,14 @@
 id: FND-56
-title: 結果が分からない返金があるあいだに新しい返金の要求を受けるかが第 2 段階で決まっていない
-status: open
-version: 1
+title: 迎車の到着を位置で決める前（assigned）に確認コードが合っても、DAT-07 の状態遷移と IFC-03 には乗車を始める道がない
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
-raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-12
-severity: minor
-evidence: DEC-12 のキーの表で、未払いの支払いには「確かめ中か成功の試みがあれば新しい試みを受けない」という守りがあるが、返金の行（キーは返金の要求ごと、返金できる残りの額の範囲で何度でも）にはない。FR-50 版 4 は失敗と分かった後のやり直しを新しい返金の要求にする。結果が分からない返金が実は成功していたとき、それを残りの額に数えずに新しい要求を受けると、二度返金しうる（NFR-07 が翌朝に見つける）。第 3 段階には「確かめ中の返金があるあいだは 409 REFUND_IN_PROGRESS」があるが、それを縛る第 2 段階の決めがない
-suggestion: DEC-12 に、確かめ中の返金があるあいだは同じ依頼の新しい返金の要求を受けない（または確かめ中の額を残りの額から引く）と書く
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A1（DRV-04）
+basis_note: FR-27、FR-10、FR-12、IFC-03、IFC-05、DAT-07 と第 3 段階の報告の「要素をまたぐ状態」と CUJ-07 の流れは入力。端末の位置の確からしさで迎車の到着が決まらないことがあるのは、MOD-47 の判断表をこの段階が書いて分かった
+premises: []
+raised_by: high-level-design-to-detailed-design
+raised_in: 4-detailed-design/ELM-03.md
+to: architecture-to-high-level-design
+targets: [IFC-03, DAT-07]
+severity: major
+evidence: FR-27 の 1 は、ドライバーが入れた確かめの手がかりがその依頼のものと一致すると乗車を始めることを求め、迎車の到着を条件にしない。第 3 段階の DAT-07 の状態遷移は riding への矢印を pickup_arrived からだけ持ち、迎車の到着は、迎車の位置が乗る場所から D_pickup_position_gap のうちに入ったときだけ決まる（IFC-05）。IFC-03 の POST …/boarding の誤りの表も、迎車の到着の前の乗車の開始を挙げない。そのため、乗客がすでに車にいてコードを伝えても、ドライバーの端末の位置が D_pickup_position_gap に入らないとき（街中の確からしさの悪い位置、乗る場所から少し離れて止めたとき、位置が届かないとき）は乗車を始められず、CUJ-07 の乗車が進まない（FR-27 の 1 が一部しか満たされない）。迎車の到着を決められないと乗客の不在（FR-26）も使えず、ドライバーは取り消すしかない。MOD-45 は今、assigned の乗車の開始を 409 PICKUP_NOT_ARRIVED（IFC-03 の不在の符号）で受け付けない
+suggestion: DAT-07 の状態遷移に assigned から riding への矢印（確認コードが合う）を加え、そのときは迎車の到着の時刻を持たず（ride.pickup_arrived を送らず、SLI-14 の迎車の到着の組を作らない）、乗車を始めた時刻と位置を残すと決め、IFC-03 の POST …/boarding の does にそれを書く。迎車の到着を条件にしたままにするなら、assigned の乗車の開始の誤り（符号と利用側のすること）を IFC-03 の誤りの表に加える
+resolution: 受け入れ。DAT-07 の状態遷移に assigned から riding（確認コードが合う）を加え、迎車の到着を位置で決める前に乗車を始めた依頼は pickupArrivedAt を持たず、迎車の到着の段階（DAT-09）、ride.pickup_arrived、SLI-14 の迎車の到着の組を作らず、乗車を始めた時刻と位置は書くとし、IFC-03 の POST …/boarding の does に書いた（FR-27 の 1、FR-12 の 2）。迎車の到着の段階がないことは起きていない段階で、記録の欠け（NFR-14）に数えない（DAT-09）。乗客の不在（FR-26）は迎車の到着を条件にしたまま。その依頼を利用時の品質と KPI の測定量でどう数えるかは QCR-10（影響は低）で品質チェーンに確かめる

@@ -1,0 +1,36 @@
+id: MOD-19
+title: 振る舞いの切り替え
+status: active
+basis: inferred
+basis_note: エンジニアが変えた振る舞いを動かしたまま止め、また有効にし、止めると変える前の振る舞いに戻ることは FR-36（入力）。切り替えをデータベースに置いてエンジニアの画面から変え、Web アプリに流れで伝えることは DEC-26（入力）。一覧と変える操作と NOT_FOUND は IFC-14、switch.changed は IFC-11（入力）。変える前の振る舞いに戻すのは ELM-03 で、止めた機能を示さないのは ELM-01 と ELM-02 の画面の枠（MOD-10）。ほかのエンジニアの変更を switch.changed で読み直すことは推定
+premises: []
+component: ELM-02
+name: 振る舞いの切り替え
+depth: bounds
+depth_reason: null
+responsibility: 振る舞いの切り替えを示し、止めるか有効にするかを送る
+visibility: public
+interface:
+  - operation: "Switches() -> 切り替えの画面"
+    pre: null
+    post: GET /v1/console/switches（IFC-14）の切り替えと、それぞれが動いているか止めているかを示し、止めるか有効にするかを PUT /v1/console/switches/{switchName} で MOD-01 で送り、答えの後と switch.changed（IFC-11）を受けたときに読み直す（FR-36 の 1〜3）
+    errors:
+      - "NOT_FOUND: 一覧を読み直す"
+      - "答えがない、5xx: 変えたかどうか分からないことを示し、同じ操作として送り直させる（MOD-01）"
+invariants: []
+depends_on: [MOD-01, MOD-03, MOD-08]
+functions: [FR-36]
+realizes:
+  - IFC-25 振る舞いの切り替え
+  - IFC-14 GET /v1/console/switches
+  - IFC-14 PUT /v1/console/switches/{switchName}
+drivers: [DRV-12]
+decisions: [DEC-26]
+behaviour: null
+verification:
+  - checks: 一覧と、止める、有効にする、NOT_FOUND の示し方
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 と MOD-03 の偽物
+  - checks: 止めると乗客とドライバーの ELM-01 がその機能を示さなくなり、進んでいる依頼は続き、有効にすると戻る（CUJ-11、CUJ-12、FR-36 の 1〜3）
+    how: 端から端の層（試験の環境の偽物の設定）
+parameters: []
+as_is: new

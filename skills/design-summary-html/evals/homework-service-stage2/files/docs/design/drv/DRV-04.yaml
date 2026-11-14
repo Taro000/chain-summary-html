@@ -1,17 +1,16 @@
 id: DRV-04
 title: 保護者向けの画面を足せる
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises:
+- CHG-01
 kind: change
 statement: 保護者向けの画面を、今の画面と API を変えずに足せる
 sources:
 - CHG-01
-concern_of: []
+concern_of:
+- STK-01
 scenario:
   source: 開発チーム
   stimulus: 保護者の画面を足す
@@ -30,8 +29,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

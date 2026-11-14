@@ -1,0 +1,14 @@
+id: HND-11
+title: 期限の来た処理を拾う間隔
+status: decided
+basis: inferred
+basis_note: DEC-18 の応答を左右する点。拾う処理に結果が分からないお金の操作の確かめを含み、お金の道にあるため、第 3 段階に送る（FND-04 を受けて第 4 段階から宛て直し、bounds に結果が分からない操作を確かめに行く間隔と DEC-10 を加えた）
+premises: []
+from: architecture-drivers-to-architecture
+to: architecture-to-high-level-design
+component: null
+origin: [DEC-18]
+what: サーバーの中の繰り返しが、期限の来た処理（許諾のない依頼の知らせと終わり、結果が分からないお金の操作の確かめ）を拾う間隔の値
+bounds: FR-04 と FR-23（T_wait_prompt、T_no_accept）、DEC-18（期限はデータベースに書き、一度だけ行う）、DEC-10（結果が分からないお金の操作は分かるまで同じキーで確かめる）、HND-05（結果が分からない操作を確かめに行く間隔。拾う間隔はそれを守る）
+trigger: 第 3 段階の次の実行
+resolution: DEC-46 で決めた。期限の来た処理は 5 秒ごとに拾い、結果が分からない試みを確かめる最も短い間隔（30 秒、IFC-17）より短い（値は DAS-12）

@@ -1,26 +1,14 @@
 id: FND-75
-title: 仕様書のエラーの説明の受け入れ基準の番号が、品質チェーンの新しい版より古い
-status: open
-version: 1
+title: 押さえ直しの期限の後の答えが、遅れた結果の取引で依頼の押さえになった押さえにも settleRehold で found_late の解除を作り、依頼の今の押さえを解く
+status: accepted
 basis: inferred
-basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-42、DEC-45、IFC-03 の idempotency と REHOLD_UNCONFIRMED、MOD-26 の check と answerOverdue と finishExternal の post と並行性の節、MOD-20 の判断表 A の 10 行目、MOD-56 の settleRehold と overdueAnswer の post と判断表 A、B、C、MOD-59 の applyResult と overdueAnswer の post と報告の判断表 A の下の段落、MOD-42 の判断表 B、IFC-03 の答えの期限 8.8 秒は入力。check の後に遅れた結果の取引が確定し、その後に answerOverdue が走る順は、このレビューがそれらを順にたどった推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-01
-- IFC-02
-- IFC-03
-- IFC-06
-- IFC-07
-severity: minor
-evidence: 活動 B10。IFC と報告書は新しい番号だが、仕様書は古い。auth の login の 401（IFC は FR-01 AC5、仕様書は AC4）、engineer の PATCH accounts（AC6 と AC5）、passenger の rides の ACTIVE_RIDE_EXISTS と UNPAID_RIDE_EXISTS（FR-05 AC5 と AC4。passenger.openapi.yaml 1014・1015・1040 行）、driver の reception/start（FR-17 AC4 と AC3、AC3 と AC2）、admin の POST drivers（FR-48 AC3 と AC2、AC5 と AC3）、PATCH drivers（FR-48 AC7 と AC4）。報告書の CUJ-14 の流れ（1175 行）もナンバーの重なりを「FR-48 AC2・3」と古い番号で書く
-suggestion: 仕様書の説明と例の番号を IFC の errors から作り直し、CUJ-14 の番号を FR-48 版 2 に合わせる
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: 出した
-  reason: 第 3 段階のレビュー（再実行分）
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-56, MOD-59]
+severity: major
+evidence: DEC-45 は、押さえ直しに期限の後で答えるとき、試みの結果が降りる場所の変更か支払い方法の変更に書かれていなければしなかったことにし、押さえが済んでいたと分かれば解くとする（書かれていれば解かない）。MOD-56 の判断表 C も、found_late の解除を作るのを「依頼の押さえでない押さえ」の試みに限る。ところが FND-61 を受けて加えた MOD-56 の settleRehold は、apply なし（期限の後の答えと確かめで分かった結果）で試みが succeeded なら、依頼の今の押さえがその試みかを見ずに、その押さえの解除の試み（found_late）を作る（作らないのは解除がすでにあるときだけ）。MOD-56 の overdueAnswer は支払い方法の変更の期限の後の答えでいつも settleRehold を apply なしで呼び、MOD-59 の報告も、結果の取引と期限の後の答えはどれも settleRehold を通すとする。一方 MOD-20 は、MOD-26 の check（読むだけ）が overdue を返してから answerOverdue を呼び、answerOverdue は持ち主の overdueAnswer で答えを決めてから、キーがまだ in_progress のときだけ書く（MOD-26 の answerOverdue の post と並行性の節）。そのため、受けたインスタンスの結果の取引が答えの期限（8.8 秒。待ちは期限の 0.1 秒前まで、結果の取引の予算は 0.1 秒）を過ぎて遅れ、同じキーの送り直しの check がその前に overdue を読み、その後に結果の取引が確定すると、次の順になる。結果の取引は、印がこの試みで依頼の今の押さえ H1 が替える押さえなので、依頼の押さえを新しい押さえ H2 に替え、H1 の解除（replaced）を作り、キーに 200 を書く（判断表 B の済んだの行、finishExternal）。続く answerOverdue の中の overdueAnswer は、依頼の押さえが H2 に替わっているので 200 を決めるが、settleRehold（apply なし、試みは succeeded、H2 の解除はまだない）が H2 の解除の試み（found_late）を作る。キーの書き込みだけが先の答えで退けられ、作った解除は残る。期限の処理がその解除を送って依頼の今の押さえ H2 を取り消し、到着の後のドライバーの決済は取り消された取引の確定として退けられ（MOD-42 の判断表 B の確定の state_mismatch の読み出しで canceled）、依頼は payment_declined になる。乗客は支払い方法の変更（降りる場所の変更なら承認）に 200 を受けたのに押さえはなく、乗客がもう一度押さえ直すまで確定額を請求できない（DRV-07、FR-54 の 5、FR-46 の 5、FR-47 の 2）。お金が二度動くことはないが、主な設計を動かす要求の DRV-07 がこの道で一部しか満たされず、MOD-56 の settleRehold が DEC-45 と自身の判断表 C の found_late の行と食い違う。起きるのは結果の取引が答えの期限を過ぎて遅れ、その間に同じキーの送り直しが届いたときで、DEC-42 と MOD-26 が「遅れたインスタンス」として扱う場合。MOD-56 と MOD-59 の確かめ方は、遅れた結果の取引を期限の後の答えより前に通す順だけを持たない
+suggestion: settleRehold の apply なしの道で found_late の解除を作るのを、依頼の今の押さえがその試みの押さえでないとき（DEC-45 の「結果が書かれていなければ」、判断表 C の「依頼の押さえでない押さえ」）に限り、MOD-59 の期限の後の答えも同じ読みで決める。あわせて、または代わりに、MOD-26 の answerOverdue がその取引の中でキーがまだ in_progress かを先に読み、答えが書かれていれば持ち主を呼ばずにその答えを返すようにする。どちらにしても、送り直しの check の後、answerOverdue の前に遅れた結果の取引を差し込み、依頼の押さえが残り、それを解く試みが作られないことを、支払い方法の変更と降りる場所の変更の承認の結合の層の確かめに加える
+resolution: 受け入れ。MOD-56 の settleRehold は、apply なし（期限の後の答えと確かめで分かった結果）で found_late の解除を作るのを、同じ取引で MOD-45 の moneyFacts で読んだ依頼の今の押さえがその押さえ直しの試みでないときに限る（DEC-45 の「結果が書かれていなければ解く」、MOD-56 の判断表 C の行）。MOD-56 の overdueAnswer（支払い方法の変更）と MOD-59 の期限の後の答えは、押さえ直しの試みと依頼（と変更）を一つの書き込みの取引で読んでから読んだ状態を条件に書き、受けたインスタンスの遅れた結果の取引が同じキーの送り直しの check と answerOverdue の間に依頼の押さえを替えていれば（変更が applied なら）、何も書かずに 200 と決めてその押さえを解かない。キーにはその取引の 200 が残り、MOD-26 はそれを返す。MOD-26 の registerRoute の事前条件に、持ち主の期限の後の答え方は書くものがあれば一つの書き込みの取引で読んでから読んだ状態を条件に書き、遅れた結果の取引が書いたものを覆さないことを加え、同じ道を持つ MOD-58 の押さえの期限の後の答えも、依頼をすでに受け付けていれば何も書かずに 201 で答えて押さえを解かないと書いた。MOD-56 の不変条件と報告の「データ」の rides に、受け付けた依頼の今の押さえを解く試みは終わった依頼の後の処理（ended）と後で効きうる確定を決めるとき（decide）にだけ作られることを加え、MOD-56 の「期限の後の答えと遅れた結果の取引の順」に二つの順を書いた。案のもう一つ（answerOverdue の一つの取引の中でキーを先に読み、答えが書かれていれば持ち主を呼ばない）は採らなかった。登録を始める操作の期限の後の答え（MOD-43）は EXT-01 に同じキーで送り直すので、その取引の中で持ち主を呼ぶと呼び出しをまたぐ取引を作らない決まり（DEC-10、DAT-11）に反し、上の直し方でどちらの順でもキーの答えと依頼が合うため。確かめ方は、MOD-26、MOD-56、MOD-58、MOD-59 と報告の「確かめ方」の「遅れた結果の取引と期限の後の答え」に、遅れた結果の取引を送り直しの check の後、answerOverdue の前に確定させる順とその逆の順を、結合の層（依頼の状態を書くポートの差し込み、EXT-01 と時計の偽物）で加えた

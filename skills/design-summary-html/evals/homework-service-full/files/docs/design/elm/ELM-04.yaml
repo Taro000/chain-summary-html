@@ -1,25 +1,20 @@
 id: ELM-04
 title: データベース
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- TC-03
 kind: data-store
 name: データベース
 responsibility: 課題、提出の記録、採点を持つ
 functions: []
 drivers:
 - DRV-03
-decisions: []
+decisions:
+- DEC-03
 team: TEAM-01
-technology: null
+technology: マネージドの PostgreSQL（TC-03）
 runs_on: ELM-07
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

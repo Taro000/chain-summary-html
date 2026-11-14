@@ -1,0 +1,14 @@
+id: HND-21
+title: 鍵の置き場所の名前と、写しの置き方
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: high-level-design-to-detailed-design
+to: implementation
+component: ELM-03
+origin: [MOD-23]
+what: MOD-23 の鍵の置き場所のポートが使う、記録した日ごとの鍵と目的ごとの鍵（確認コード、設定の符号、仮の名）の名前と版の付け方、想定の本番の Secret Manager の秘密の名前、ローカルの鍵のディレクトリと写しのディレクトリのファイルの名前と置き方、鍵を作るときの一時のファイルの名前と、止まった作り手が残した一時のファイルの片付け方
+bounds: POL-04（想定の本番では日ごとに Secret Manager の一つの秘密で、捨てるときはそのすべての版を捨てる。ローカルでは鍵のディレクトリの一つのファイルと写しのディレクトリの一つのファイル）、DEC-16、DEC-17、MOD-23 の判断表 A と不変条件（一つの日の鍵は中身とともに一度に現れて置き換わらず、名前だけで中身のない鍵はないものとして扱い、捨てた鍵は写しにも残らない。一時のファイルはその日の鍵の名前と同じディレクトリに置き、ほかの作り手が結ぶ前のものを消さない）
+trigger: MOD-23（鍵と暗号）を実装するとき
+resolution: null

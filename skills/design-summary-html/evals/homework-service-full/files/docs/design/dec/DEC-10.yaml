@@ -1,0 +1,36 @@
+id: DEC-10
+title: 状態を変える要求に冪等キーを求める
+status: active
+basis: inferred
+basis_note: null
+premises: []
+stage: high-level-design
+question: どの要求を冪等にするか
+addresses:
+- IFC-01
+- IFC-02
+- DRV-03
+options:
+- name: 状態を変える要求すべてに冪等キー
+  effect: 送り直しても二重にならない
+  cost: キーを 24 時間持つ
+- name: 提出だけに冪等キー
+  effect: 持つものが少ない
+  cost: 返却の送り直しで通知が二重になる
+chosen: 状態を変える要求すべてに冪等キー
+rationale: 提出も返却も、送り直しで二重にしない（DRV-03）。
+rejected:
+- option: 提出だけに冪等キー
+  reason: 返却が二重になる
+gains: []
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on: []
+parameters:
+- name: 冪等キーの保持
+  value: 24 時間
+  basis: 仮
+debt: null
+as_is: new

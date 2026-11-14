@@ -1,41 +1,24 @@
 id: QR-33
-title: 状態の履歴とエラーと報告の記録が欠けない
-status: draft
-version: 3
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意。位置を求めるのはドライバーが場所で行う四つの操作だけで、得られなかったときは印を記録することは 2026-11-03 の回答（設計 2-5、FR-39 版 3）。点は変えない
-needs_agreement: true
-approver_candidates: [開発の責任者, 運営の責任者]
-model: data
-layer: data-inherent
-characteristic: completeness
-statement: 配車依頼と乗車の状態の履歴、ブラウザのエラーの記録、乗客の報告は、起きた出来事を欠かさず、乗車とドライバーに結び付いている。ドライバーが場所で行う四つの操作（迎車の到着、乗車の開始、不在、乗車の終了）の記録には、位置か、得られなかった印がある。
-applies_to: [FR-38, FR-39, FR-43]
-traces_to: [QIU-18, QIU-23]
+title: 異常が漏れなくすぐ知らされ、その依頼の経過を欠けなくたどれる
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。新しく作るシステムで、知らせ漏れや記録の欠けで原因が分からない場面は数か月に一度程度とみた。何を異常とみなし、どう見つけ、どの段階をどう記録するかは設計と第 4 段階で決める（FR-33, FR-34）。稼働中のシステムの振る舞いとして確かめるため外部品質に置いた。扱い（最低限守る線）は決めたこと 12 で確認済み（エンジニアの CUJ だけにたどる QR は今期は重視にしない）。T_alert_delay の値（5 分）は第 4 段階が提案した仮の値で、QAS-37 による仮定
+premises: [QAS-15, QAS-37]
+model: product
+layer: external
+characteristic: maintainability > analysability
+statement: システムは、機能に異常やエラーが起きると、起きてから T_alert_delay（5 分）以内に、どの機能で、いつ、何が起きたかを漏れなくエンジニアに知らせ、知らされた異常からその依頼でシステムが行ったことを、依頼から決済まで欠けた段階なく、システムのどの部分で起きたかが分かるようにたどらせる。
+applies_to: [FR-33, FR-34]
+traces_to: [QIU-21, QIU-22]
 entry_point: null
-stakeholders: [USR-03, USR-04, USR-01, USR-02]
-failure_scenario: ブラウザのエラーが送られずに消え、状態の履歴に出来事が欠け、障害の原因や苦情の乗車をたどれない。到着や乗車の終了の記録に位置も得られなかった印もなく、苦情の乗車で、ドライバーがどこで乗車を終えたかを確かめられない。
+stakeholders: [USR-03, USR-01, USR-02]
+failure_scenario: 決済の失敗が続いてもエンジニアに知らされず、乗客の問い合わせで気づいて調べても、その依頼の EXT-01 とのやり取りの段階が記録されておらず、原因が分からないまま同じ失敗が繰り返される。
 score: {impact: 4, likelihood: 3}
-handling: emphasized
+handling: minimum-line
 handling_reason: null
-implies_internal: []
+implies_internal: [QR-53]
 conflicts:
-  - with: QR-40
-    note: 保存期間を過ぎると操作した人と位置が消える（FR-53）。苦情の乗車とドライバーを結び付けられるのは T_pii_retention の間だけ
-  - with: QR-41
-    note: ブラウザのエラーの記録に入力の内容が入るとカード番号が残る。エラーの記録に入力欄の値を入れない
+  - {with: QR-34, note: "個人の情報を隠しても、同じ乗客や同じドライバーの依頼であることは分かり（FR-35）、経過をたどることは妨げない"}
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: QR-40（FR-53）との競合を記録した
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
-  - version: 3
-    date: '2026-11-03'
-    change: 場所で行う四つの操作の記録に、位置か得られなかった印があることを要求に加えた（ほかの変化には位置を求めない）
-    reason: 第 2 段階の再実行（2026-11-03）の FR-39 版 3 への追随（docs/quality-chain-answers.md の設計 2-5）
+placeholders:
+  - {name: T_alert_delay, meaning: "機能に異常やエラーが起きてから、エンジニアに知らせるまでの時間", from: QR-33}

@@ -1,0 +1,22 @@
+id: QR-51
+title: 通信の途切れと操作の重なりを、試験で繰り返し再現できる
+status: active
+basis: inferred
+basis_note: QR-02、QR-03、QR-06 を支える内部品質として推定。どう再現するかは設計で決める
+premises: []
+model: product
+layer: internal
+characteristic: maintainability > testability
+statement: 乗客やドライバーの端末との通信の途切れ、つながり直し、許諾と取り消しのほぼ同時の操作は、試験で何度でも同じように再現でき、そのときの依頼の状態と相手に示すまでの時間を確かめられる。
+applies_to: [FR-04, FR-07, FR-21, FR-23, FR-27, FR-28]
+traces_to: [QIU-01, QIU-15, QIU-16, QIU-18]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 許諾の操作が途中で途切れる場合を試験で再現できず、二台が同じ乗車場所に向かう誤りが利用者の報告で初めて分かる。
+score: null
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

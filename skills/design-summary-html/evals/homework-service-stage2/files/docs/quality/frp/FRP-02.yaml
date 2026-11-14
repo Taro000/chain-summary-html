@@ -1,11 +1,9 @@
 id: FRP-02
 title: 提出の自動の再送
 status: rejected
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 proposed_by: functional-requirements-to-product-quality
 origin: [QR-01]
 changes: null
@@ -14,5 +12,3 @@ suggested_statement: 失敗した提出を自動で送り直す
 affects: []
 placeholders: []
 resolution: FR-06 の下書きで足りるため受け入れない
-changelog:
-- {version: 1, date: '2026-09-08', change: 提案, reason: 第 3 段階}

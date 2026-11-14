@@ -1,0 +1,12 @@
+id: QAS-22
+title: カードの情報の開発方針の QR-60 は最低限守る線
+status: open
+stage: 3
+kind: decision
+statement: カードの情報がシステムを通らず残らないこと（QR-60）を最低限守る線とする。
+why_unsure: 点から決めた。実際のお金は動かず（CON-03）、事業がこの開発方針をどれほど重く見るかは入力にない。
+breadth: medium
+severity: low
+rating_note: QR-60 と、それをたどる第 4 段階の NFR-47 と NFR-28 が依存する。最低限守る線でもリリース前の確認と侵入試験は残り、後から重視に上げるのは容易
+answer: null
+answered_in: null

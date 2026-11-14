@@ -1,0 +1,15 @@
+id: HND-02
+title: The layout of the parents' screens
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: architecture-drivers-to-architecture
+to: high-level-design-to-detailed-design
+component: ELM-01
+origin:
+- DEC-06
+what: The layout of the parents' screens, and how they are kept apart from the students'
+bounds: DEC-06, DRV-04
+trigger: When the parents' screens are decided on
+resolution: null

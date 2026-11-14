@@ -1,11 +1,9 @@
 id: DEC-03
 title: Write the record before showing the receipt
-status: draft
-version: 1
+status: active
 basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+basis_note: Changed after FND-01 from showing the receipt first
+premises: []
 stage: architecture
 question: How do receipts stay in line with the submission records?
 addresses:
@@ -19,10 +17,10 @@ options:
   effect: Fast confirmation
   cost: A receipt can show without a record
 chosen: Write the record in one transaction, then return the receipt
-rationale: It follows principle DRV-09. The previous version showed the receipt first (FND-01).
+rationale: It follows principle DRV-09 (changed after FND-01). Showing the receipt first lets a receipt show without a record.
 rejected:
 - option: Return the receipt first and write the record later
-  reason: Records can go missing (DRV-03 version 2)
+  reason: Records can go missing (DRV-03)
 gains:
 - A receipt always has a record
 costs:
@@ -37,11 +35,4 @@ depends_on:
 - DEC-01
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

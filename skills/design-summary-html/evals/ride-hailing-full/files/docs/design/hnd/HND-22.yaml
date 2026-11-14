@@ -1,0 +1,14 @@
+id: HND-22
+title: 模擬の運賃表の決まりの形と入れ方
+status: open
+basis: inferred
+basis_note: null
+premises: [QCR-09]
+from: high-level-design-to-detailed-design
+to: implementation
+component: ELM-03
+origin: [MOD-39]
+what: 模擬の運賃表（DAT-24）の版ごとの rules の持ち方（表の列か JSON か）と、版を入れるマイグレーションか種の台本の書き方
+bounds: MOD-39 の判断表 A（決まりの形。第 4 段階の ELM-03 の決めたこと 1）、DAT-24（版をつけて入れ、利用者の操作では変わらず、どの版も消さない）、NFR-48（入れる前の照合）、POL-01（表の形の変更は drizzle-kit のマイグレーション）
+trigger: MOD-39（料金の求め方）を実装するとき
+resolution: null

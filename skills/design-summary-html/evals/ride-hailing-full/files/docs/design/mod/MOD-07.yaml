@@ -1,0 +1,35 @@
+id: MOD-07
+title: 時計と ID
+status: active
+basis: inferred
+basis_note: 時刻、乱数、ID のもとを ELM-02 では src/platform/ だけが使い、ほかのコードは渡された時計と ID の作り手を使うことと、テストが決めて進める時計と種を決めた作り手に差し替えることは POL-02 と POL-03（入力）。端末が作る ID が UUID v4 であることは DEC-36、端末の時刻をエポックミリ秒で表すことは DEC-37（入力）
+premises: []
+component: ELM-02
+name: 時計と ID
+depth: bounds
+depth_reason: null
+responsibility: 端末の時刻と、冪等キー、たどる ID、報告の ID のもとを一か所で作る
+visibility: internal
+interface:
+  - operation: "now() -> DeviceTimeMs"
+    pre: null
+    post: 端末の時計の今をエポックミリ秒で返す
+    errors: []
+  - operation: "newUuid() -> Uuid"
+    pre: null
+    post: UUID v4 を返す（DEC-36）
+    errors: []
+invariants: []
+depends_on: []
+functions: []
+realizes: []
+drivers: [DRV-12]
+decisions: [DEC-36, DEC-37]
+behaviour: null
+verification:
+  - checks: テストが決めて進める時計と種を決めた作り手を、ほかのモジュールの単体の層に渡せる
+    how: 単体の層（Vitest の Browser Mode、Chromium）
+  - checks: Date、crypto.randomUUID、crypto.getRandomValues、performance を src/platform/ のほかで使わない
+    how: Oxlint の no-restricted-globals と no-restricted-properties を検査の手順で（POL-02）
+parameters: []
+as_is: new

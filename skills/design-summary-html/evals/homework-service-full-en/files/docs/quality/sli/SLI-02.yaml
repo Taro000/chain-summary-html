@@ -1,24 +1,22 @@
 id: SLI-02
 title: Nightly report deadline
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Head of development]
+premises: [OPF-02]
 function: ON_TIME ÷ RUNS
 refs: [QR-08, NFR-02]
 reshaped: null
-target_entity: Production servers
+target_entity: The nightly report of the submissions up to the previous day
 purpose: Nightly report deadline
-unit_event: Request
-method: Job record method
+unit_event: One scheduled run of the nightly report
+vantage: data
+vantage_reason: The office reads the report itself, so it is counted by when the report was complete
+existing_source: OPF-02
 elements:
-  RUNS: {definition: Scheduled runs of the nightly report, inputs: Job records, unit: runs, counting_rule: One per night}
-  ON_TIME: {definition: 'Runs in RUNS that finished by 6:00', inputs: Same as RUNS, unit: runs, counting_rule: Same as RUNS}
+  RUNS: {definition: Scheduled runs of the nightly report, unit: runs, counting_rule: One per night}
+  ON_TIME: {definition: 'Runs in RUNS whose report was complete by 6:00', unit: runs, counting_rule: Same as RUNS}
 scale: ratio
 applicability: Production
 lifecycle: Measured in production
-blind_spots: Failures inside the browser are not visible
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}
+blind_spots: Errors inside the report are not visible (the QR-07 monitor watches them)

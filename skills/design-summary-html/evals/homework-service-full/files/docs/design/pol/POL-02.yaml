@@ -1,0 +1,26 @@
+id: POL-02
+title: 一つのリポジトリと、その依存の規則
+status: active
+basis: inferred
+basis_note: null
+premises:
+- PC-03
+scope: repository
+addresses:
+- DRV-06
+decisions:
+- DEC-07
+rules:
+- rule: アプリのディレクトリは機能ごとに分ける
+  check: プルリクエストのレビュー
+repositories:
+- name: homework-service（docs と apps/ を持つ一つのリポジトリ）
+  holds:
+  - ELM-01
+  - ELM-02
+  - ELM-03
+  - ELM-06
+dependency_rules:
+- rule: apps/ の下のアプリは互いに import しない
+  check: リンターの no-restricted-imports を検査の手順で
+as_is: new

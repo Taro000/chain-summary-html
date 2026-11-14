@@ -1,0 +1,53 @@
+id: POL-02
+title: 一つのリポジトリをコンポーネントごとに分け、その中を業務の機能ごとに分け、境を Oxlint で守る
+status: active
+basis: inferred
+basis_note: リポジトリを一つにすることは、すべてのコンポーネントを一つのチームの開発者 1 人が作り（TEAM-01）、一緒に配備すること（DEC-05 の配置）による。分け方は DEC-31、依存の規則の検査に Oxlint を使うことは TC-04（入力）による。infra/gcp/ をどこにも当てないことは TC-09（入力。FND-18 を受けて前提に挙げた）。ELM-03 で外へ HTTP を呼ぶものを外部のシステムを持つ機能の adapters/ に限ること、application/ にデータベースの部品と src/platform/db/ を使わせないこと、ELM-01 と ELM-02 で EXT-01 の入力部品、地図を描く部品、大域の fetch を src/platform/ に限ることは、POL-03 の差し替え口と、DEC-08 の依頼の状態を書くポートと DEC-10 のお金の操作の試みの記録を迂回させないよう、FND-14 を受けて加えた。ELM-03 の機能のディレクトリの名前は、第 4 段階の ELM-03 のモジュールが決まるまでの例（報告の「リポジトリとディレクトリ」）
+premises: [TEAM-01, TC-04, TC-09]
+scope: repository
+addresses: [DRV-12, DRV-33, DRV-35, DRV-34, DRV-31, DRV-16]
+decisions: [DEC-01, DEC-05, DEC-08, DEC-10, DEC-15, DEC-17, DEC-24, DEC-31, DEC-33, DEC-34]
+rules:
+  - rule: 一つのリポジトリに、apps/server（ELM-03）、apps/rider（ELM-01）、apps/console（ELM-02）を pnpm の workspace のパッケージとして置く。packages/ には二つ以上のコンポーネントが使うものだけを置き、今は api-client（ELM-03 の仕様書から生成した型と呼び出し、DEC-33）と config（TypeScript、Oxlint、Oxfmt の共有の設定）だけにする。packages/ の各パッケージの README に、持ち主（TEAM-01）と共有する理由を書く
+    check: packages/ にパッケージを加える変更を、開発者が main に入れる前に見るレビュー
+  - rule: ELM-03 の src/ は、業務の機能ごとのディレクトリ（src/<機能>/）、どの機能も使う土台（src/platform/。時計、ID と乱数、設定、秘密の値と鍵、暗号、ログ、データベースのつなぎ（src/platform/db/））、HTTP の組み立て（src/http/。Hono のアプリ、境界のエラーの変換、仕様書の生成）に分ける。機能のディレクトリは第 4 段階の ELM-03 のモジュールに沿って名付け、中を domain/（業務の規則。フレームワークにも外部にもよらない）、application/（操作の流れと、外へのポートの定め）、adapters/（HTTP の経路、表の読み書き、外部のシステムのつなぎ口。ポートを実装する）に分け、外へ見せるものは index.ts からだけ出す
+    check: 下の依存の規則
+  - rule: ELM-01 と ELM-02 の src/ は、画面の業務の機能ごとのディレクトリ（src/<機能>/）と、土台（src/platform/。ELM-03 の呼び出しと流れ、ELM-03 から読む環境ごとの値（DEC-34）、時計と ID、位置、画面を消さない仕組み、Web Push の登録とサービスワーカー、EXT-01 の入力部品と地図を描く部品の包み、それらの偽物（POL-03）、文言と書式）に分ける。業務の規則は置かず、額、評価、依頼の状態、使えるかどうかは ELM-03 が送ったものを示す（DRV-31）
+    check: 開発者が変更を main に入れる前に見るレビュー
+  - rule: 依頼を届ける相手の規則と評価のまとめ方（DEC-24、DRV-35）は、ELM-03 の一つの機能のディレクトリに置き、届けるとき、示すとき、許諾を受けるときのどれもそこを呼ぶ。使える機能、見せる範囲、個人の情報を隠す決まり（DEC-15、DRV-34）も一つの機能のディレクトリ（access）に置き、応答、流れの出来事、知らせ、ログ、たどる記録、写しを外へ出すどのつなぎ口も、そこを通したものだけを出す
+    check: NFR-27 のテスト（POL-03）と、経路、流れの出来事、知らせ、ログの記録の種類の登録ごとに access の決まりがあるかを確かめる結合の層のテスト（決まりのない種類を加えると失敗する）
+  - rule: 表を読み書きするのは、その表を持つ機能の adapters/ だけにする。表の定義（Drizzle の表）は index.ts から出さず、ほかの機能の表の名前を SQL の文に書かない（ELM-04 を書くのは ELM-03 だけ、DEC-17）
+    check: 表の定義を出さないことは、依存の規則の「機能の間は index.ts からだけ」が守る。SQL の文でほかの機能の表を読み書きすることは、開発者が変更を main に入れる前に見るレビューが見る
+  - rule: 単体の層のテストは確かめるコードの隣に、ELM-03 の結合と契約の層のテストは apps/server/test/ に、端から端と運用の予行の層のテストは根の tests/ に置く。生成したファイル（apps/server/generated/openapi.json、packages/api-client/generated/、apps/server/migrations/）はコミットし、ビルドの出力はコミットしない
+    check: 生成し直して違いがあれば失敗する検査の手順（POL-01、POL-05）と、開発者が変更を main に入れる前に見るレビュー
+  - rule: 基盤の定義は infra/ に置く。infra/local/ には試験の環境とローカルの本番の Compose のファイル（環境ごとの設定のうち秘密の値でないもの）とローカルの定期の呼び出しを、infra/gcp/ には想定の本番の定義（Cloud Run のサービスとマイグレーションの一度だけの処理、Cloud Scheduler、Secret Manager の秘密の名前、Cloud Monitoring の生存確認とアラート）を置く。秘密の値そのものは置かず、ローカルでは環境ごとのリポジトリの外のディレクトリに置く（POL-04）。infra/gcp/ はどこにも当てない（TC-09）
+    check: 検査の手順の秘密の値の調べ（POL-04）と、開発者が変更を main に入れる前に見るレビュー
+repositories:
+  - name: ride-hailing-app-demo（docs/design と docs/quality を持つ今のリポジトリ）
+    holds: [ELM-01, ELM-02, ELM-03]
+dependency_rules:
+  - rule: apps/ の下のコンポーネントは互いに import しない。ELM-01 と ELM-02 は、ELM-03 を packages/api-client の生成した型と呼び出しからだけ呼ぶ
+    check: Oxlint の no-restricted-imports（apps ごとの overrides）を、検査の手順で
+  - rule: packages/ の下のパッケージは apps/ を import しない
+    check: Oxlint の no-restricted-imports（packages の overrides）を、検査の手順で
+  - rule: ディレクトリを上がる相対の import（../）は使わず、ディレクトリをまたぐ import は、各アプリの package.json の imports の別名（#server/<機能> など）で書く
+    check: Oxlint の import/no-relative-parent-imports を、検査の手順で
+  - rule: 一つのコンポーネントの中で、業務の機能のディレクトリは、別の機能をその index.ts（#server/<機能> などの別名）からだけ使う
+    check: Oxlint の no-restricted-imports（機能ごとの overrides で、別の機能の index.ts のほかへの道を禁じる）を、検査の手順で
+  - rule: domain/ の下のコードは、フレームワーク（hono、react、react-router）、データベースの部品（drizzle-orm、@libsql/client）、外部のシステムの部品、自身の機能の application/ と adapters/、src/platform/ を import しない。時刻と ID は引数で受ける
+    check: Oxlint の no-restricted-imports（domain/ の下に当てる overrides）を、検査の手順で
+  - rule: application/ の下のコードは、adapters/、データベースの部品（drizzle-orm、@libsql/client）、src/platform/db/ を import しない。外へのポート（表、外部のシステム）は自身の機能の application/ か domain/ で定め、時計、ID の作り手、ログは src/platform/ のポートを使う。adapters/ はそのポートを実装し、依頼の状態（DEC-08）とお金の操作の試みの記録（DEC-10）は、そのポートを通してだけ書く
+    check: Oxlint の no-restricted-imports（application/ の下に当てる overrides）を、検査の手順で
+  - rule: EXT-01 のクライアントの部品（HND-14 で第 4 段階が決める）は ELM-03 の payments の機能の adapters/ だけが、EXT-02 を呼ぶ部品は places の機能の adapters/ だけが、Web Push の部品は notifications の機能の adapters/ だけが import する。ELM-03 の src/ で外へ HTTP を呼ぶもの（大域の fetch、node:http と node:https の request と get、undici）も、この三つの adapters/ だけが使う
+    check: Oxlint の no-restricted-imports と no-restricted-globals（根で禁じ、それぞれの adapters/ の overrides で許す）を、検査の手順で
+  - rule: 時刻、乱数、ID のもと（Date、Math.random、crypto.randomUUID、crypto.getRandomValues、performance）は、ELM-03 では src/platform/ の時計と ID の作り手だけが、ELM-01 と ELM-02 では src/platform/ だけが使い、ほかのコードは渡された時計と ID の作り手を使う（POL-03 の差し替え口）
+    check: Oxlint の no-restricted-globals と no-restricted-properties（src/platform/ のほかに当てる overrides）を、検査の手順で
+  - rule: node:crypto は、ELM-03 の src/platform/（鍵、項目の暗号、パスワード、ID と乱数）だけが import する
+    check: Oxlint の no-restricted-imports を、検査の手順で
+  - rule: ブラウザの位置、画面を消さない仕組み、Web Push の登録、知らせの許し、流れのつながり、外への呼び出し（navigator.geolocation、navigator.wakeLock、PushManager、Notification、EventSource、fetch、XMLHttpRequest）は、ELM-01 と ELM-02 の src/platform/ だけが使う
+    check: Oxlint の no-restricted-globals と no-restricted-properties（src/platform/ のほかに当てる overrides）を、検査の手順で
+  - rule: ELM-01 と ELM-02 では、EXT-01 の入力部品（Stripe.js とその React の部品）と地図を描く部品（Google Maps Platform の JavaScript の部品）は src/platform/ だけが import し、それらが置く大域の名前（Stripe、google）も src/platform/ だけが使う。POL-03 の偽物は、その src/platform/ の部品に差し込む
+    check: Oxlint の no-restricted-imports と no-restricted-globals（src/platform/ のほかに当てる overrides）を、検査の手順で
+  - rule: ディレクトリとモジュールの間の import に循環を作らない
+    check: Oxlint の import/no-cycle を、検査の手順で
+as_is: new

@@ -1,0 +1,22 @@
+id: QR-52
+title: 一つの機能の変更はその機能の部分にとどまり、ほかの機能の振る舞いを公開の前に自動で確かめられる
+status: active
+basis: inferred
+basis_note: QR-38、QR-39、QR-01 を支える内部品質として推定。部分の分け方は設計で決める
+premises: []
+model: product
+layer: internal
+characteristic: maintainability > modularity
+statement: 一つの機能の追加や修正、利用技術のバージョンアップに伴う変更は、その機能や利用技術を受け持つ部分にとどまり、変えなかった機能が以前どおりに振る舞うことを、公開の前に自動の試験で確かめられる。
+applies_to: [FR-01, FR-04, FR-12, FR-15, FR-21, FR-27, FR-28, FR-29, FR-36]
+traces_to: [QIU-24, QIU-25, QIU-26]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 評価の機能の修正が決済の部分のコードにも及び、変えなかった決済の振る舞いを確かめる試験もなく、公開の後に決済が通らなくなる。
+score: null
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

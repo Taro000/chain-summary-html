@@ -1,11 +1,9 @@
 id: DAT-04
 title: Grade
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 entity: Grade
 owner: ELM-03
 store: ELM-04
@@ -15,9 +13,5 @@ consistency: Written per grading
 retention: One year after graduation
 classification: personal
 drivers: []
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

@@ -1,46 +1,23 @@
 id: QR-26
-title: 配備を自動の手順で終える
-status: draft
-version: 3
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意。QIU-28〜30 が版 3 で main に入って CI が通るまでを測るようになり、配備の手順の誤りは主に QIU-20〜22（既存の機能を壊さない）を損なうので、たどる先に QIU-20〜22 を足した（第 3 段階の質問 21 で確認済み）。CUJ-11〜13 だけをたどるので最低限守る線のまま（事業の決め）
-needs_agreement: true
-approver_candidates: [開発の責任者]
-model: product
-layer: external
-characteristic: portability > installability
-statement: システムは、配備を毎回同じ自動の手順で、手作業なしに終える。
-applies_to: [FR-41]
-traces_to: [QIU-20, QIU-21, QIU-22, QIU-28, QIU-29, QIU-30]
+title: ドライバーの評価が新しい評価をすぐ反映する
+status: retired
+basis: confirmed
+basis_note: 決めたこと 14 で、新しい評価を評価の値に反映することは閾値による絞り込みの正しさ（QR-16）に含めると決まったため、QR-16 にまとめて廃止した（QAS-10 への訂正）
+premises: [QAS-10]
+model: data
+layer: data-inherent
+characteristic: currentness
+statement: 閾値によるマッチ（FR-05）に使うドライバーの評価は、乗客が評価を付けてから T_rating_reflect 以内に、その評価を反映した値になる。
+applies_to: [FR-05, FR-15]
+traces_to: [QIU-13, QIU-14]
 entry_point: null
-stakeholders: [USR-03]
-failure_scenario: 配備の手順に手作業が残り、デモの回の始めに手順を間違えて、前の版のまま回を始めるか、壊れた版を出す。CI の後にも手作業の確かめが残り、main に入って CI が通っても、配備できる状態とは言えない。
+stakeholders: [USR-01, USR-02]
+failure_scenario: 低い評価が続いて閾値を下回ったドライバーの評価が古いまま使われ、閾値を設定した乗客の依頼がそのドライバーに届いて許諾される。
 score: {impact: 3, likelihood: 2}
-handling: minimum-line
-handling_reason: CUJ-11〜13 だけをたどる。今期は重視しない（事業の決め、2026-10-31）
+handling: emphasized
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders:
-  - name: T_lead_feature
-    meaning: 新しい機能の変更を、最初のコミットから main に入って CI が通る（次のデモの回に配備できる状態になる）までの時間（24 時間）
-    from: QIU-28
-  - name: T_lead_fix
-    meaning: 既存の機能を直す変更を、最初のコミットから main に入って CI が通るまでの時間（8 時間）
-    from: QIU-29
-  - name: T_lead_upgrade
-    meaning: 利用技術の版を上げる変更を、最初のコミットから main に入って CI が通るまでの時間（40 時間）
-    from: QIU-30
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: T_lead を変更の種類ごとの 3 つの名前に分けた
-    reason: 2026-11-01 の利用者の回答への追随
-  - version: 3
-    date: '2026-11-03'
-    change: 未定の値 T_lead_* の意味を「main に入って CI が通るまで」に直した。失敗のシナリオを書き直し、たどる先に QIU-20〜22 を足した。handling_reason に事業の決めを書いた
-    reason: 第 1 段階の再実行（2026-11-03）で QIU-28〜30 が版 3 になった（docs/quality-chain-answers.md の設計 1-1）への追随
+  - {name: T_rating_reflect, meaning: "乗客が評価を付けてから、閾値によるマッチに使うドライバーの評価がそれを反映するまでの時間", from: QR-26}

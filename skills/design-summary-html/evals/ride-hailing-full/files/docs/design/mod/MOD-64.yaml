@@ -1,0 +1,42 @@
+id: MOD-64
+title: 依頼のたどり
+status: active
+basis: inferred
+basis_note: 期間、異常、依頼の ID で依頼を探して乗客とドライバーを仮の名で返し、依頼でシステムが行ったこととその結果を端末のエラーと外部とのやり取りを含めて時刻の順に、どの部分で起きたかとともに隠して返し、理由を示したときだけその依頼の隠した情報を返して、誰が、いつ、どの依頼の、どの情報を、どの理由で見たかを操作の記録に残すことは IFC-14、FR-34、FR-35、FR-52 の 2、5、記録が保持期間を過ぎたときの traceRetained と、個人を特定できない形に変えた記録の RECORD_ANONYMIZED は IFC-14 と FR-51 の 2、隠した情報は disclosures の答えでだけ示すことは FR-49 の 4（どれも入力）
+premises: []
+component: ELM-03
+name: 依頼のたどり
+depth: bounds
+depth_reason: null
+responsibility: エンジニアに、一件の依頼の経過を隠した形でたどらせ、理由を示したときだけ隠した情報を見せる
+visibility: public
+interface:
+  - operation: "search(actor: Actor, criteria: TraceCriteria) -> Page<TracedRide>"
+    pre: null
+    post: POST /v1/console/traces/search に、期間、異常、依頼の ID で探した依頼を、乗客とドライバーを仮の名で返す
+    errors: ["VALIDATION_FAILED: 400"]
+  - operation: "trace(actor: Actor, rideId: RideId) -> RideTrace"
+    pre: null
+    post: GET /v1/console/rides/{rideId}/trace に、依頼の経過の段階（MOD-33）、たどる記録と端末のエラーと EXT-01、EXT-02、ELM-07 とのやり取り（MOD-28）を時刻の順に、どの部分で起きたかとともに MOD-27 の engineerView で隠して返す。たどる記録が保持期間を過ぎていれば traceRetained を偽にし、残っている記録だけを返す
+    errors: ["NOT_FOUND: 404"]
+  - operation: "disclose(actor: Actor, rideId: RideId, reason: string, key: IdempotencyKey) -> Disclosure"
+    pre: null
+    post: POST /v1/console/rides/{rideId}/disclosures で、MOD-27 の disclosable で決めたその依頼の隠した情報だけを返し、見た記録（MOD-29）と冪等キーの答え（隠した情報を除く）を一つの取引で書く。送り直しても見た記録は一つ
+    errors: ["VALIDATION_FAILED: 400（reason REQUIRED）", "RECORD_ANONYMIZED: 409", "NOT_FOUND: 404"]
+invariants: []
+depends_on: [MOD-23, MOD-25, MOD-26, MOD-27, MOD-28, MOD-29, MOD-33, MOD-37, MOD-45]
+functions: [FR-34, FR-35, FR-49, FR-51, FR-52]
+realizes:
+  - IFC-14 POST /v1/console/traces/search
+  - IFC-14 GET /v1/console/rides/{rideId}/trace
+  - IFC-14 POST /v1/console/rides/{rideId}/disclosures
+drivers: [DRV-24, DRV-29, DRV-30]
+decisions: [DEC-15, DEC-19]
+behaviour: null
+verification:
+  - checks: 隠したたどりと同じ人の同じ仮の名、理由のない見る操作の 400、見た記録、RECORD_ANONYMIZED、traceRetained、NOT_FOUND（FR-34 の 1、4、FR-35 の 1〜4、FR-51 の 2）
+    how: 結合の層
+  - checks: 知らされた異常からその依頼をたどり、依頼から決済まで欠けた段階なく、どの部分で起きたかが分かる（FR-34 の 2、3、NFR-38）
+    how: 運用の予行の層（NFR-38 の出どころ）
+parameters: []
+as_is: new

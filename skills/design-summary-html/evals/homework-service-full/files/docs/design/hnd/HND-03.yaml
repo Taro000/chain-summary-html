@@ -1,0 +1,16 @@
+id: HND-03
+title: API の要求と応答のスキーマ
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: architecture-to-high-level-design
+to: implementation
+component: ELM-03
+origin:
+- IFC-01
+- IFC-02
+what: IFC-01 と IFC-02 の要求と応答のスキーマ
+bounds: IFC-01 と IFC-02 の操作とエラーの決まり（DEC-09）
+trigger: ELM-03 の API を実装するとき
+resolution: null

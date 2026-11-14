@@ -1,16 +1,14 @@
 id: QIU-06
 title: 保護者に提出を知らせる
 status: retired
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 user: USR-05
 cuj: CUJ-01
 outcomes: []
 need: 保護者は提出を知れる。
-context_of_use: {device: スマートフォンのブラウザ, network: null, user_type: null, task: 保護者に提出を知らせる, environment: null, other: null}
+context_of_use: {device: スマートフォン, network: null, user_type: null, task: 保護者に提出を知らせる, environment: null, other: null}
 characteristic: effectiveness
 statement: 保護者は提出を知れる。
 failure_scenario: 保護者が提出を知らない。
@@ -18,5 +16,3 @@ measure: {numerator: 知らせた提出, denominator: 提出, narrowed_to: —, 
 kpi: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

@@ -1,23 +1,14 @@
 id: FND-59
-title: DEC-15 の位置の記録の読める相手に、NFR-45 の毎日の一覧（到着の位置と乗る場所の距離）がない
+title: 押さえの解除で後で効きうる確定が効いたと分かって済んだ決済に、それより前に 202 PAYMENT_PENDING と答えたキーの送り直しが何を受けるかが決まっていない
 status: open
-version: 1
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-45 の chosen（押さえを解いて決める決まりと、試みの今の結果で答える決まり）、IFC-03 の idempotency と 202 PAYMENT_PENDING と 402 PAYMENT_DECLINED の行、IFC-17 の誤りの扱い、DEC-42 と DAT-26 の送り直しへの答え、IFC-23 の 402 の caller_does は入力。済んだ決済に拒否と答えうる道は、このレビューがそれらを順にたどった推定
+premises: [EXT-01]
 raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-15
-- DEC-29
+raised_in: reviews/3-high-level-design.md
+to: architecture-to-high-level-design
+targets: [DEC-45, IFC-03]
 severity: minor
-evidence: DEC-15 の選んだ案では、位置の記録を読める毎日の処理の用途は「保存期間の削除」だけ。NFR-45 版 2 の毎日の一覧は「到着の位置と乗る場所の距離」を示し、その出どころを「状態の履歴（FR-39）の到着（FR-25 の位置と印）」とする。第 3 段階はすでに一覧のために到着の位置（DAT-08）を読む。読める相手の表を一か所で保つという DEC-15 の得るものと食い違う
-suggestion: 位置の記録の読める相手に「毎日の処理（NFR-45 の一覧）」を足すか、到着のときに距離を求めて記録し、毎日の処理が座標を読まない形にする
+evidence: FND-58 を受けた変更（d6851d6）で、取引が変わらないまま処理されなかったとした決済の要求が後で効きうる押さえへのドライバーのやり直し（新しい冪等キー）が、押さえを取り消し済みと読まずにはっきり拒否されると、ELM-03 はその試みを拒否で終え、押さえを解く試みを作り、そのキーに 202 PAYMENT_PENDING で答える。解除が押さえの確定済みに退けられると、前の要求が効いたので、同じ押さえに決済の新しい試みを作って取引を読んで済んだとし、依頼を completed にして ride.charge_settled で済んだことと額を示す（DEC-45、IFC-03、IFC-17、報告の「後で効きうる確定のある押さえ」）。このとき 202 と答えたキーが結び付く試み（DAT-26 の attemptId）は拒否のまま残る。202 と答えた決済の同じキーの送り直しは「そのときの結果」を受ける（DEC-42、DAT-26、IFC-03 の 202 PAYMENT_PENDING の行）が、それがキーの試みの結果か依頼の決済の結果かは書かれておらず、DEC-45 と IFC-03 の idempotency が書く答え方（決済は試みの今の結果で答え、押さえを解いて決めている間だけ試みが拒否でも 202 PAYMENT_PENDING）を当てると、解除で済んだと分かった後は 402 PAYMENT_DECLINED になる。その caller_does は済んでいないことと理由を示して乗客の支払い方法の変更を待つこと（IFC-03、IFC-23）なので、202 を受け損ねたドライバーの端末が同じキーで送り直すと、済んだ決済に済んでいないと答えうる。押さえを解いている間に新しいキーで送ったやり直し（試みを作らずに 202 を受ける）の送り直しも、結び付く試みがなく答えが決まらない。お金は一度だけ動き、ride.charge_settled と今の状態は済んだことを示す
+suggestion: DEC-45 と IFC-03 に、202 PAYMENT_PENDING と答えた決済のキーの送り直し（answerDueAt の後に試みから答えるときも）が、押さえを解いて決めた後に受ける答えを書く。たとえば、後で効きうる確定が効いたと押さえの解除で分かり、新しい試みで決済を済んだとした後は 200 と済んだ額（新しいキーが受ける「済んでいれば最初の結果」と同じ）、解除で押さえが取り消された後は拒否された試みの理由で 402 PAYMENT_DECLINED。報告の「後で効きうる確定のある押さえ」の流れにも、同じキーの送り直しへの答えを描く
 resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A5（DEC と報告書、上の段との突き合わせ）

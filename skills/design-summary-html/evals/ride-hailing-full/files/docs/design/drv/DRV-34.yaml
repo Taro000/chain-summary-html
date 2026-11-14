@@ -1,0 +1,17 @@
+id: DRV-34
+title: 個人の情報は、示す、記録する、知らせる、写すどこでも一つの決まりを通る
+status: active
+basis: inferred
+basis_note: QR-56（最低限守る線）と、DRV-29、DRV-21、DRV-24 から推定した全体の原則。新しい画面、記録、知らせを加える段階と実装が、それぞれ隠し方を決めかねないため
+premises: [CON-06]
+kind: principle
+statement: 位置情報と乗車の記録を誰に見せるかの決まりと、個人の情報を隠し伏せる決まりは、それぞれ一か所で決まり、画面、記録、ログ、知らせ、写しのどれもその決まりを通る
+sources: [QR-56, QR-34, QR-57, QR-58]
+concern_of: [USR-01, USR-02, USR-03]
+scenario: null
+negotiable: false
+derived_from: [DRV-29, DRV-21, DRV-24]
+priority: null
+primary: false
+conflicts: []
+placeholders: []

@@ -1,0 +1,17 @@
+id: QCR-01
+title: NFR-06 の測る区間
+status: open
+stage: '3'
+targets:
+- NFR-06
+origin:
+- IFC-01
+- IFC-03
+issue: NFR-06 の 3 秒が、ストレージへのファイルの PUT を含むかが分からない
+suggestion: NFR-06 の測る区間に、ストレージへの PUT を含めないと書く
+quality_stages:
+- 4
+impact: low
+impact_note: 予算の表の区間が一つ変わるだけ
+answer: null
+answered_in: null

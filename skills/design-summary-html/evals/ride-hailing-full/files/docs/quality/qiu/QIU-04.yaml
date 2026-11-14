@@ -1,44 +1,32 @@
 id: QIU-04
-title: 手配した車を見分けて乗る
-status: draft
-version: 2
+title: 乗客が確認した料金を超えて請求されない
+status: active
 basis: inferred
-basis_note: ニーズ（正しい車かの確認の手間を省く）は入力。T_board、測定量、OUT-02 への結び付きは推定。T_board の値は 2026-11-01 の利用者の回答で決めた
-needs_agreement: true
-approver_candidates:
-  - プロダクトオーナー
+basis_note: ニーズ（出来るだけ安く移動したい）と料金の確認は入力。乗客が確認した料金がそのまま支払う額になることは質問 1 で、乗車中に降りる場所を変えて承認した料金に更新されることは第 2 段階の質問 7 で確認済み（CON-01）。決済をする降車（乗客）の CUJ に置くことは第 3 段階の決めたこと #4 で確認済み。降車の CUJ はどの中間成果も直接は生まないため、中間成果は挙げない（推定）。測定量と利用状況は推定
+premises: [CON-01, CON-03, CON-05]
 user: USR-01
-cuj: CUJ-02
-outcomes: [OUT-02]
-need: 乗車の手間を省きたい（正しい車かの確認）
+cuj: CUJ-03
+outcomes: []
+need: 出来るだけ安く目的地に移動したい
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: 乗客
-  task: 迎車を見つけて乗る
-  environment: 乗車場所（路上）
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録した乗客
+  task: 目的地での降車と決済
+  environment: 車内
   other: null
-characteristic: efficiency
-statement: 乗客は、迎車が乗車場所に着いてから 1 分（T_board）以内に、手配した車を見分けて乗車を始められる。
-failure_scenario: 似た車が並ぶ場所で手配した車を見分けられず、乗客とドライバーが互いを探して時間を失う。
+characteristic: freedom from risk > economic risk mitigation
+statement: 目的地で降りる乗客は、確認した料金（CON-01 の確定額）を超える額や、同じ乗車への二重の額を請求されない。
+failure_scenario: 降りた後に、手配時や降りる場所を変えたときに確かめた料金より高い額や二重の額が請求され、乗客は問い合わせて返金を求め、サービスを使わなくなる。
 measure:
-  numerator: 迎車が乗車場所に到着してから 1 分（T_board）以内に乗車が始まった乗車
-  denominator: 乗車が始まった乗車
-  narrowed_to: スマートフォンのブラウザ。テスト用アカウントを除く
-  denominator_needed_only: 乗車が始まった乗車だけ（合流できなかったものは QIU-15 で数える）
-  contribution: 乗客が乗車場所に遅れて来た時間も含まれる。車の見分けやすさ（表示）は A/B で比べられる
+  numerator: 乗客が確認した料金（CON-01 の確定額）を超える額を請求された乗車（二重の請求を含む）
+  denominator: 決済された乗車
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く。乗車中に降りる場所を変えた乗車は、乗客が承認した新しい料金と比べる
+  denominator_needed_only: 決済まで進んだ乗車だけを数える
+  contribution: 請求額は料金の計算と決済というプロダクトの振る舞いで決まる
   observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: しきい値 T_board に値を入れた
-    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま

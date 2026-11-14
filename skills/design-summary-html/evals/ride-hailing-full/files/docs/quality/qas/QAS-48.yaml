@@ -1,0 +1,12 @@
+id: QAS-48
+title: T_cause_found の最初の値
+status: overturned
+stage: 4
+kind: decision
+statement: T_cause_found を 1 日（24 時間）とする。
+why_unsure: 入力に数値も基準となる値もなく、エンジニアの体制も分からない。1 日は、知らせを受けたエンジニアが次のデモの前に原因を特定できる長さとして置いた控えめな最初の値。
+breadth: medium
+severity: low
+rating_note: QIU-22、FR-33、FR-34 が依存する。第 1 段階と第 2 段階が次の実行で書く値で、変えるのは容易
+answer: 誤り。通知を受けてから障害の原因を特定するまでは 30 分
+answered_in: "第 4 段階、決めたこと #16"

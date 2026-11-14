@@ -1,22 +1,14 @@
 id: FND-62
-title: DEC-29 の疑わしい到着を見分けるしきい値が設計上の値になっていない
-status: open
-version: 1
+title: MOD-42 の判断表 B は、同じキーで送り直した二回目の答えが処理されなかったなら試みを処理されなかったで終え、一回目の要求が効いたかもしれない試みでお金が二度動きうる
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-45 の chosen と rationale、IFC-17 の誤りの「実行の前に退けられた」の行と timing、第 3 段階の報告の DAT-11 の状態遷移、MOD-41 の判断表 A と並行性の節（秘密の鍵の読み出しの失敗を notProcessed とすること）、MOD-42 の判断表 B と C と verification、MOD-56 の後で効きうる確定、MOD-57 の判断表 A と B は入力。お金が二度動く道は、このレビューがそれらを順にたどった推定
+premises: [EXT-01]
 raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-29
-severity: minor
-evidence: 'DEC-29 は parameters: [] だが、応答を左右する点に「疑わしいとみなす境目（速さ、誤差）」を挙げる。NFR-45 版 2 は「印を付ける規則は設計が決める（DEC-29）」とする。しきい値は報告書の設計上の値にも要合意にもない'
-suggestion: 速さと誤差のしきい値に仮の値ともとを書いて要合意にするか、第 3・4 段階に回すことと持ち主を書く
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A4、review-procedures の「応答を左右する点」
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-42]
+severity: major
+evidence: DEC-45 は、確かめの読み出しと送り直しが処理されなかったときは最初の呼び出しが効いたかは分からないため試みを結果が分からないまま確かめ続けるとし、IFC-17 も実行の前に退けられた答えを、状態を変える呼び出しへの答えなら処理されなかった、確かめの読み出しと送り直しへの答えなら結果が分からないままと分ける。ところが MOD-42 の判断表 B（sendWaiting）は、一回目が unknown（no_answer、in_progress、rate_limited）で同じキーと同じ中身で送り直した二回目が done、refused、notProcessed なら「一回目の答えと同じ行で分ける」とし、その行は「done、notProcessed → その結果（notProcessed は before_execution）」なので、送り直しの notProcessed で試みを not_processed（before_execution）に終える。判断表 C でも、作る試みと確定と解除の試みを同じキーで送り直す行は「その分け方」で同じに終え、最後の行（確かめの送り直しが notProcessed なら unknown のまま確かめ続ける）と重なり、どちらを当てるかが決まっていない。送り直しが notProcessed になるのは、MOD-41 が秘密の鍵を読めずに送らなかったとき（MOD-41 の並行性とエラー）や、二つの呼び出しの間に鍵か権限が変わったときなどで、一回目の要求は EXT-01 で効いていうる。そのとき、返金の試みは refund_failed（503 PAYMENT_SERVICE_UNAVAILABLE）になって返金できる残りに数えられず（MOD-57 の判断表 A）、担当者のやり直しが新しい試みと新しいキーで二度返金しうる（QR-45、DRV-32）。押さえの試みは依頼を受け付けなかったとして確かめられず、効いていた押さえが解かれない（FR-54 の 3）。決済の確定の試みは unchanged でないため後で効きうる確定とされず、乗客が支払い方法を変えて新しい押さえを確定すると二度請求しうる（FND-58 が閉じた道、DEC-45）。MOD-42 の verification は判断表 B と C の行ごとに単体の層で確かめるので、この分け方がそのままテストになる
+suggestion: 判断表 B の二回目（送り直しと読み直し）の notProcessed と read_rejected を、DEC-45 と IFC-17 のとおり stillUnknown（試みは unknown のまま確かめ続け、異常）にし、notProcessed で試みを終えるのを、その試みの初めての呼び出しの答えだけにする。判断表 C の送り直しの行の「その分け方」から notProcessed を除いて最後の行と重ならないようにする（上から当てる表にするなら、送り直しと読み出しの notProcessed の行を上に置く）。MOD-42 の verification に、一回目に答えがなく送り直しが notProcessed になる行と、その後に一回目が済んでいたと偽物が見せる場面を加える
+resolution: 受け入れ。MOD-42 の判断表 B で、一回目に答えがなく同じキーで送り直した二回目の答えのうち、done と refused だけを一回目と同じ行で分け、notProcessed は stillUnknown（試みは unknown のまま確かめ続け、異常）にした。読み出しの read_rejected も stillUnknown のまま。判断表 C の送り直しの行の答えから notProcessed を除き、送り直しの notProcessed と読み出しの read_rejected の行（unknown のまま確かめ続け、異常）と重ならないようにした。notProcessed で試みを not_processed（before_execution）に終えるのは、その試みの初めての呼び出しへの答えだけで、それを見分けるため firstSentAt を初めての呼び出しの前に書いて確定する（利用者が待つ試みは作る取引で、利用者が待たない試みは初めて送る前の条件つきの書き込みで）。報告の「データ」の money_attempts にその不変条件を加え、一回目に答えがなく送り直しが処理されなかった試みを、偽物が後で済んでいたと見せる場面を MOD-42 の確かめ方（結合の層）に加えた

@@ -1,33 +1,24 @@
 id: QR-21
-title: 額と他人の依頼を書き換えられない
-status: draft
-version: 2
-basis: inferred
-basis_note: 決済はテスト環境（質問 1）なので影響を 5 から 3 に下げた。点と扱いは推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 迎車の到着を、実際に着いたときにすぐ知らせる
+status: retired
+basis: confirmed
+basis_note: 質問 9 の回答で、迎車の到着の知らせを QR-06（依頼、許諾、取り消しを相手にすぐ示す）と一つの品質要求にまとめたため廃止した。中身は QR-06 にある
+premises: []
 model: product
 layer: external
-characteristic: security > integrity
-statement: システムは、請求額（キャンセル料と不在の料金を含む）とドライバーの受取額をサーバーが確定した料金と額から求め、ブラウザから送られた額を使わず、利用者に自分の依頼と乗車のほかを操作させない。
-applies_to: [FR-05, FR-07, FR-12, FR-20, FR-27, FR-29, FR-32]
-traces_to: [QIU-08, QIU-16]
+characteristic: functional suitability > functional correctness
+statement: システムは、迎車が実際に乗車場所に着いたときに、着いてから T_arrival_notice 以内にそのことを乗客に知らせ、着く前には着いたとして知らせない。乗客の不在として終えられるまでの T_noshow_wait は、実際に着いた時刻から数える。
+applies_to: [FR-10, FR-26]
+traces_to: [QIU-08, QIU-09]
 entry_point: null
 stakeholders: [USR-01, USR-02]
-failure_scenario: ブラウザから送る額を書き換えて安く請求させる。他人の依頼を操作する。
-score: {impact: 3, likelihood: 2}
-handling: minimum-line
-handling_reason: サーバーで額を決める作りで塞ぐ設計の問題で、CUJ-03 では同じ点の QR-20 を重視にした
+failure_scenario: 迎車が乗車場所の一つ手前の交差点にいるうちに着いたと知らされ、乗客は見当たらない車を探し、ドライバーは早く不在として終えられるようになって去る。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: キャンセル料と不在の料金も、サーバーが決めた額で請求することを加えた
-    reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）
+placeholders:
+  - {name: T_arrival_notice, meaning: "迎車が実際に乗車場所に着いてから、乗客に着いたことを知らせるまでの時間", from: QR-21}
+  - {name: T_noshow_wait, meaning: "第 2 段階の値。迎車が乗車場所に着いてから、ドライバーが乗客の不在として依頼を終えられるようになるまでの時間", from: FR-26}

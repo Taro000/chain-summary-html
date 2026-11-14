@@ -1,0 +1,44 @@
+id: MOD-12
+title: 乗車の照会
+status: active
+basis: inferred
+basis_note: 乗客、ドライバー、日時で乗車と料金を請求した依頼を探し、選んだものの記録を示し、ないときは見つからないことを示すことは FR-38（入力）。探す操作と記録を読む操作は IFC-12、条件を本文で送ることは DEC-39 と DEC-44、何を示すかを ELM-03 が決めることは DEC-15（入力）。照会から返金に進むことは第 3 段階の報告の「画面」の CUJ-15（入力）。条件を画面の URL と端末の保存に置かないことは推定（MOD-10）
+premises: []
+component: ELM-02
+name: 乗車の照会
+depth: bounds
+depth_reason: null
+responsibility: 乗客、ドライバー、期間で乗車と料金を請求した依頼を探し、その記録を示す
+visibility: public
+interface:
+  - operation: "RideSearch() -> 乗車の照会の画面"
+    pre: null
+    post: 乗客、ドライバー、期間の条件を本文で POST /v1/console/rides/search（IFC-12）に送り（DEC-39）、当てはまる乗車と料金を請求した依頼を示し（FR-38 の 1、3）、空の items なら見つからないことを示す（FR-38 の 4）。条件を画面の URL と端末の保存に置かない
+    errors:
+      - "VALIDATION_FAILED: どの条件の誤りかを示す"
+  - operation: "RideRecord(rideId: RideId) -> 乗車の記録の画面"
+    pre: null
+    post: GET /v1/console/rides/{rideId} の記録（乗る場所と降りる場所、到着を確認した場所、各段階の時刻、ドライバーと車、料金、決済と返金の額、評価、取り消しと誰がどの段階で終えたか、請求した額とその種類）を示し（FR-38 の 2、3）、その乗車の返金の画面（MOD-02）を開ける
+    errors:
+      - "NOT_FOUND: 見つからないことを示し、探し直させる"
+invariants: []
+depends_on: [MOD-01, MOD-02, MOD-08]
+functions: [FR-38]
+realizes:
+  - IFC-24 乗車の照会
+  - IFC-12 POST /v1/console/rides/search
+  - IFC-12 GET /v1/console/rides/{rideId}
+drivers: [DRV-29]
+decisions: [DEC-15, DEC-39, DEC-44]
+behaviour: null
+verification:
+  - checks: 当てはまる乗車、料金を請求した依頼、空の items の示し方（FR-38 の 1、3、4）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: 記録の項目の示し方（FR-38 の 2、3）
+    how: 単体の層
+  - checks: 探す条件が画面の URL と端末の保存に残らない
+    how: 単体の層と端から端の層
+  - checks: 苦情から乗車を照会して返金に進む（CUJ-14、CUJ-15）
+    how: 端から端の層（試験の環境の偽物の設定）
+parameters: []
+as_is: new

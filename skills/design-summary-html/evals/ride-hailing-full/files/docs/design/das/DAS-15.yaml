@@ -1,0 +1,12 @@
+id: DAS-15
+title: 流れで送った変化を Web Push でも知らせるまでの待ちと、Web Push を送る呼び出しと配信の時間を暫定に採る
+status: open
+stage: 3
+kind: decision
+statement: ELM-03 は、流れで送った出来事の示した時刻が流れに書いてから 2 秒のうちに届かなければ Web Push でも知らせ（IFC-11）、Web Push を送る呼び出しのタイムアウトを 5 秒とし、5xx、タイムアウト、つながらないときは 1 秒置いて一度だけ送り直し（IFC-21）、NFR-07 の予算の Web Push の配信のホップを 1.0 秒とする（DEC-46）。値はそれぞれの項目にある
+why_unsure: ブラウザの提供元の配信サービス（iPhone は Apple の配信サービス）が知らせを端末に届けるまでの時間と、流れで受けた変化を示した時刻の報告がふだんどれだけで届くかは入力になく、測ってもいない（何も配備しない、TC-09）。待ちが短いと、示したのに報告が遅れた相手にも知らせが重なって出て、長いと、画面から外れた相手への知らせが T_dispatch_propagation に間に合わない
+breadth: medium
+severity: low
+rating_note: IFC-11、IFC-21、DEC-46 が依存する。値が合わなければ、知らせが重なって出るか、画面から外れた相手の組が GOOD にならないだけで、インタフェースの形とデータは変わらず、運用の中で直せる
+answer: null
+answered_in: null

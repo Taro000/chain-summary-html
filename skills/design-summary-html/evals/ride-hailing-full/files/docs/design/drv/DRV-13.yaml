@@ -1,34 +1,31 @@
 id: DRV-13
-title: 記録を障害で失わない
-status: draft
-version: 1
-basis: inferred
-basis_note: シナリオは QR-35・NFR-38 から（入力）。データベースが Turso であることは質問 2・9 で確認済み。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-kind: quality
-statement: 依頼、乗車、請求、返金の記録は、サーバーやデータベースの障害の後も失われず、障害の直前まで戻せる
-sources: [QR-35, NFR-38, FR-07, FR-27, FR-29, FR-31, FR-39, FR-50, TC-06]
-concern_of: [USR-01, USR-02, USR-04]
+title: 問題のある変更を止めるか前の版に戻しても、進んでいる依頼と記録を使い続けられる
+status: active
+basis: assumed
+basis_note: 変更のシナリオは QR-39、QR-69、QR-40（最低限守る線）と FR-36 と NFR-41、NFR-42 のゲート（入力）から。前の版が新しい版の書いた記録を読めるかで、保存するデータの形の変え方が分かれるため、設計を動かす要求にした（推定）。T_rollback の値は QAS-39 による。配備はデモの回を開くときに行う（TC-15）。順位は質問 6 で確認済み
+premises: [TC-15, QAS-39]
+kind: change
+statement: 新しい版や変えた振る舞いに問題があれば、システムを動かしたまま変えた振る舞いを止めるか、決まった自動の手順で T_rollback のうちに前の版に戻せ、進んでいる依頼と乗車とそれまでの記録をそのまま使い続けられる。利用技術の版上げでデータを移しても、データは失われず変わらない
+sources: [QR-39, QR-69, QR-40, FR-36, NFR-41, NFR-42]
+concern_of: [USR-03]
 scenario:
-  source: サーバーかデータベースの障害
-  stimulus: 障害で止まる
-  artifact: 依頼、乗車、請求、返金の記録（FR-07、FR-27、FR-29、FR-31、FR-39、FR-50）
-  environment: デモの環境のデータベースは Turso（TC-06）。手元の開発の記録は対象にしない
-  response: 記録を障害の直前まで戻せる
-  measure: 復元の訓練で、障害の直前までに確定した乗車・請求・返金の記録がすべてある（NFR-38。突き合わせで確かめる）
+  source: エンジニア（USR-03）
+  stimulus: 公開した変更や利用技術の版上げに問題が見つかる
+  artifact: 配備の手順、変えた振る舞いの切り替え（FR-36）、保存するデータの形
+  environment: デモの回を開くときの配備（TC-15）。配車を止めずに入れ替えることは求めない
+  response: 変えた振る舞いを止めるか前の版に戻すと元の振る舞いに戻り、進んでいる依頼と乗車と記録は前の版でもそのまま使える
+  measure: NFR-41 のゲート、NFR-42 のゲート
 negotiable: null
 derived_from: []
 priority:
   business: medium
-  business_reason: QR-35 は最低限守る線
+  business_reason: QR-39、QR-69、QR-40 は最低限守る線
   difficulty: medium
-  difficulty_reason: 障害の直前まで戻す仕組みが、Turso の機能と費用に左右される
-  rank: 26
+  difficulty_reason: 前の版が新しい版の書いたデータを読めるように保存するデータの形の変え方を決め、変えた振る舞いを動かしたまま切り替える
+  rank: 30
 primary: false
-conflicts:
-  - with: DRV-18
-    note: 障害の直前まで戻すには、Turso の復元の機能に頼るか、別の場所へ写し続ける（第 2 段階。費用は DRV-26 の範囲で）
-placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+conflicts: []
+placeholders:
+  - name: T_rollback
+    meaning: 新しい版や変えた振る舞いを戻すと決めてから、前の振る舞いに戻るまでの時間
+    from: QR-39

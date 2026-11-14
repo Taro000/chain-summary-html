@@ -1,0 +1,12 @@
+id: DAS-01
+title: 同時に使う生徒は 300 人まで
+status: open
+stage: '2'
+kind: judgment
+statement: 締め切り前に同時に提出する生徒は 300 人までとする
+why_unsure: 塾の生徒の数は入力にない
+breadth: medium
+severity: low
+rating_note: DEC-01 だけが頼る。超えたらインスタンスを足す
+answer: null
+answered_in: null

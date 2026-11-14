@@ -1,0 +1,14 @@
+id: HND-14
+title: EXT-01 を呼ぶクライアントの部品と、そのやり直しと時間切れの設定
+status: decided
+basis: inferred
+basis_note: お金を動かすモジュールは第 4 段階が ELM-03 の実行で確定の深さで設計し、その送り直しの振る舞いは、クライアントの部品が持つ自動のやり直し、時間切れ、冪等キーの付け方に左右される。そのため部品の選び方を技術方針の主なライブラリに入れず、そのモジュールとともに第 4 段階に送る（推定）。bounds の POL-02 は、HTTP を直接呼ぶ案でも外への呼び出しを payments の機能の adapters/ に限るよう、FND-14 を受けて変えた
+premises: [EXT-01, TC-10]
+from: architecture-to-technical-policy
+to: high-level-design-to-detailed-design
+component: ELM-03
+origin: [POL-01, DEC-10]
+what: ELM-03 の EXT-01 のつなぎ口が使うクライアントの部品（Stripe の公式の Node.js の部品か、HTTP を直接呼ぶか）と、その部品の自動のやり直し、時間切れ、冪等キーの付け方の設定
+bounds: POL-01（HTTP のサーバーの技術の組み合わせ）、POL-02（EXT-01 の部品と、外へ HTTP を呼ぶ大域の fetch と node:http、node:https の呼び出しは、payments の機能の adapters/ だけが使う）、DEC-10（試みごとのキー、同じ試みは同じキーで送り、新しいキーでは送り直さない）、HND-05（お金の道の時間切れとやり直しの値は第 3 段階）
+trigger: 第 4 段階の ELM-03 の実行
+resolution: "DEC-47 で、Stripe の公式の部品を使わず、payments の adapters/ から Node.js の fetch で HTTPS の API を直接呼ぶと決め、MOD-41 で自動のやり直しをせず、時間切れを呼ぶ側の期限（IFC-17 の一回の呼び出しのタイムアウトと待ちの終わりの早い方）で切り、状態を変える呼び出しには試みのキーだけを付けると決めた。固定する API の版と要求と応答の型は HND-20 で実装に送った"

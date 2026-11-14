@@ -1,0 +1,34 @@
+id: MOD-34
+title: 変化の流れ
+status: active
+basis: inferred
+basis_note: GET /v1/events で開く Server-Sent Events の流れ、生存の確かめ 15 秒、つなぎ直しの続き、ほかのインスタンスの出来事を 1 秒ごとに読むこと、古い印に stream.resync を送ること、流れを開いた後にセッションが消されたら閉じること、多すぎる流れに 429 を返すことは IFC-11 と DEC-06（入力）。流れに書いたことを MOD-33 に知らせ、セッションの確かめを起動のときに渡される口で行うことは推定
+premises: []
+component: ELM-03
+name: 変化の流れ
+depth: bounds
+depth_reason: null
+responsibility: 利用者の端末に、開いたままの流れで出来事を届ける
+visibility: public
+interface:
+  - operation: "open(actor: Actor, lastEventId: string or none) -> EventStream"
+    pre: MOD-20 がセッションを確かめた後
+    post: lastEventId の後の出来事から MOD-33 の eventsAfter で送り、印が古ければ stream.resync を送る。確定した出来事を受けたらすぐ送り、ほかのインスタンスの出来事を 1 秒ごとに読み、15 秒ごとに生存の確かめを送る（IFC-11）。流れに書いた出来事ごとに MOD-33 の streamWritten を呼ぶ。セッションが消されたら閉じる
+    errors: ["TOO_MANY_REQUESTS: 429。一つのアカウントで開いた流れが多すぎる（上限の数は実装）"]
+invariants: []
+depends_on: [MOD-21, MOD-27, MOD-33]
+functions: []
+realizes:
+  - IFC-11 stream.resync
+drivers: [DRV-02, DRV-03]
+decisions: [DEC-06, DEC-41]
+behaviour: null
+verification:
+  - checks: 流れを切ってつなぎ直すと続きから届き、重なりを eventId で捨てられ、古い印に stream.resync が届く（IFC-11、NFR-11）
+    how: 結合の層（端末とのつながりの偽物）
+  - checks: 生存の確かめの間隔と、セッションを消すと流れが閉じること
+    how: 結合の層（時計の偽物）
+  - checks: 中身が相手ごとに MOD-27 を通している（他人の依頼の出来事が届かない）
+    how: 結合の層
+parameters: []
+as_is: new

@@ -1,11 +1,9 @@
 id: FR-07
 title: Bulk download
 status: retired
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 statement: The system lets teachers download submissions in bulk.
 origin: cuj-step
 cuj: CUJ-02
@@ -14,8 +12,6 @@ traces_to: [QIU-03]
 proposal: null
 existing: false
 extends: null
-interface: ['Screen: the student web app']
+interface: ['screen: teacher']
 acceptance_criteria: [—]
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

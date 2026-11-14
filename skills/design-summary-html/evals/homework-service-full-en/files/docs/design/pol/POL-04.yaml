@@ -1,0 +1,25 @@
+id: POL-04
+title: The pipeline and the conventions inside the code
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: pipeline-and-code
+addresses:
+- DRV-06
+- DRV-07
+decisions:
+- DEC-05
+rules:
+- rule: Logs are structured and carry the trace_id
+  check: The integration tests
+pipeline:
+- step: check
+  when: On every change to main
+  runs: Type checks, the linter, unit and integration tests
+  blocks: Merging to main
+- step: release
+  when: When a version tag is set
+  runs: End-to-end tests, and building the image once
+  blocks: Deployment
+as_is: new

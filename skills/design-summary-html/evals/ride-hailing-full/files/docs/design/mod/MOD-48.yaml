@@ -1,0 +1,40 @@
+id: MOD-48
+title: 走っているかの判断
+status: active
+basis: assumed
+basis_note: 走っているかを端末が測った速さと最近の位置からサーバーが決め、新しい値がないか速さが分からないときは受け付けず止まってから操作するよう示すことは DEC-22、走っている間はドライバーから連絡のメッセージを送らせず中身を示さないことは DEC-27（QCR-04 の答え）、V_moving_lock は FR-22、判断を単独で境目まで試せることは QR-55 と NFR-21（どれも入力）。判断表の行（分からないときと、速さのどれかが V_moving_lock 以上のときに受け付けない側に倒す）は QR-28 の失敗のシナリオからの推定。使う位置の新しさと窓は HND-09 を決めたもので DAS-26 による暫定の決定。参加者の iPhone の Safari の速さで V_moving_lock の上と下を分けられるか（HND-09 の確かめ）は、実機で確かめていないため DAS-27 にした
+premises: [DAS-26, DAS-27]
+component: ELM-03
+name: 走っているかの判断
+depth: full
+depth_reason: 車が走っているかを、位置の新しさ、速さの有無と大きさ、位置の動いた距離と確からしさの組で決める、いくつもの条件の規則（HND-09 が確定の深さの判断表を求める）。誤ると走りながらの操作を受け付ける（QR-28、安全）
+responsibility: ドライバーの最近の位置から、車が走っているか止まっているかを決める
+visibility: internal
+interface:
+  - operation: "classify(recent: CorrectedPosition[], now: Instant) -> moving | stopped | unknown"
+    pre: recent はそのドライバーの最近 30 秒の位置で、直した測った時刻の新しい順
+    post: 判断表 A で決める。時刻と ID と外部によらず、同じ入力に同じ答え
+    errors: []
+invariants: []
+depends_on: []
+functions: [FR-22]
+realizes: []
+drivers: [DRV-11]
+decisions: [DEC-22, DEC-27]
+behaviour: "報告書の節: MOD-48 走っているかの判断"
+verification:
+  - checks: 判断表 A の行ごとと、V_moving_lock のちょうど上と下、速さのない位置、10 秒のちょうど前と後の古さ、位置が一つ、窓の 20 秒のちょうど前と後
+    how: 単体の層（位置と速さをデータで入れる。NFR-21 の出どころ）
+  - checks: 参加者の iPhone の Safari で、止まっているときは受け付け、時速 10 km ほどで走っているときは受け付けないこと（DAS-27）
+    how: 実機の受け入れの層（試験の環境の本物の外部サービスの設定で、ドライバーの ELM-01 を車で使う台本の項目）
+parameters:
+  - name: 判断に使う位置の新しさ
+    value: 直した測った時刻が 10 秒のうち
+    basis: HND-09。端末は 5 秒ごとに送る（IFC-05）ので、一つ抜けても新しい位置がある長さ（DAS-26）
+  - name: 速さを見る窓
+    value: 最近 10 秒の位置の速さのどれか
+    basis: HND-09。速さの揺れで一つだけ小さく出ても走っているとする側に倒す（DAS-26）
+  - name: 速さのない位置だけのときの窓
+    value: 最近 30 秒のうち 20 秒以上離れた二つの位置で、動いた距離と両方の確からしさの和を時間で割った値が V_moving_lock より小さいときだけ止まっている
+    basis: HND-09。動いた距離の上の見積もりで V_moving_lock より遅いと言えるときだけ受け付ける（DAS-26）
+as_is: new

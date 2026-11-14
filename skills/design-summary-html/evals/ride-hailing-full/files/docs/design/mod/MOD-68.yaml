@@ -1,0 +1,47 @@
+id: MOD-68
+title: 保持期間と個人を特定できない形への変換
+status: active
+basis: assumed
+basis_note: 記録してから 3 年を過ぎた乗車の記録、依頼の経過の記録、位置情報、アカウントの情報を、状態の変化の種類と時刻を残して操作した人と位置を消し、3 年を過ぎていないものを変えず、使い続けている参加者のアカウントも同じに変えて使えなくすることは FR-51 と QR-59、記録した日を Asia/Tokyo で数えることは DEC-37 と FR-51 の 3、3 年を過ぎた日の鍵を日々の処理が写しとともに捨てることは DEC-16 と DEC-17、日々の処理の仕事の順（記録の変換と鍵を捨てること、保持期間を過ぎた記録を消すこと）は IFC-15、実体ごとの保持期間は DAT-01〜DAT-27 の retention、N_ride_record_days と N_trace_retention_days は品質チェーンの未定の値（NFR-39 の 365 日と 28 日）、N_message_retention_days は第 3 段階の未定の値（どれも入力）。鍵を捨てるのを、その日までに記録したどの記録も変え終えた後だけにし、途中で失敗したら捨てないこと、アカウントの記録した日をアカウントを作った日として、訂正した項目もそのとき一緒に変えることは推定。一つの取引の行の数は DAS-20 による暫定の決定
+premises: [DAS-20]
+component: ELM-03
+name: 保持期間と個人を特定できない形への変換
+depth: full
+depth_reason: 記録してから 3 年を過ぎた個人の情報を、状態の変化の種類と時刻を残して消し、その日の鍵を写しとともに捨て、保持期間を過ぎた記録を消す。戻せない変更で、誤ると個人の情報が残るか、残すべき記録が消える（重大さが高）。いくつもの機能の表のデータを決まった順に変える
+responsibility: 保持期間を過ぎた記録を、決まった順に消すか個人を特定できない形に変える
+visibility: internal
+interface:
+  - operation: "anonymizeAndDispose(jobDate: LocalDate) -> RetentionReport"
+    pre: 呼ぶのは MOD-32 の「記録の変換と鍵を捨てること」の仕事だけ
+    post: 判断表 A の順で、記録した日（Asia/Tokyo）が jobDate の 3 年前の日以前の記録を、それぞれの持ち主のモジュールに変えさせ、どれも済んだときだけ、その日までの鍵を MOD-23 の disposeKeysThrough で捨てる。そのあと MOD-23 の ensureKeys で今日から先の鍵を作る
+    errors: ["RetentionFailed: どこかの持ち主が変え終えなかった（鍵を捨てず、MOD-32 は仕事を失敗とし、次の呼び出しがやり直す。変えた行は変えたまま）"]
+  - operation: "purgeExpired(jobDate: LocalDate) -> RetentionReport"
+    pre: 呼ぶのは MOD-32 の「保持期間を過ぎた記録を消すこと」の仕事だけ
+    post: 判断表 A の消す行のとおり、保持期間を過ぎた記録をそれぞれの持ち主のモジュールに消させる
+    errors: ["RetentionFailed"]
+invariants:
+  - 鍵を捨てるのは、その日までに記録したどの記録も変え終えた後だけ
+  - 変えた記録は、状態の変化の種類と時刻を持ち、操作した人、位置、個人の情報を持たない
+  - 3 年を過ぎていない記録は変えない
+depends_on: [MOD-21, MOD-23, MOD-26, MOD-28, MOD-33, MOD-35, MOD-36, MOD-37, MOD-38, MOD-43, MOD-45, MOD-47, MOD-49, MOD-53, MOD-54, MOD-57, MOD-59, MOD-62, MOD-63, MOD-67]
+functions: [FR-51]
+realizes: []
+drivers: [DRV-21, DRV-23]
+decisions: [DEC-16, DEC-17, DEC-37]
+behaviour: "報告書の節: MOD-68 保持期間と個人を特定できない形への変換"
+verification:
+  - checks: 3 年のちょうど前と後の記録（Asia/Tokyo の日付の変わり目）と、変えた記録が状態の変化の種類と時刻を残して操作した人と位置を持たない（FR-51 の 1、3）
+    how: 結合の層（時計の偽物）
+  - checks: 変え終えた後に鍵を捨て、写しの置き場所の鍵もなくなり、捨てた日の項目が読めない。途中で失敗したら鍵を捨てない
+    how: 結合の層（鍵の置き場所の偽物）
+  - checks: 使い続けているアカウントが 3 年で使えなくなり、サインインに ACCOUNT_RETIRED（FR-51 の 4）
+    how: 結合の層
+  - checks: 保持期間を過ぎた記録が消え、取り出せる期間の記録は残る（NFR-39、NFR-46）
+    how: 結合の層
+  - checks: 前の版のデータに新しい版を当てて移した後も変換と削除が同じに効く（NFR-42）
+    how: 運用の予行の層
+parameters:
+  - name: 一つの取引で変えるか消す行の数
+    value: 200
+    basis: 一つの取引を ELM-04 の取引の予算のうちに短く保ち（DEC-46）、日々の処理の時間の上限（MOD-32）に十分に収まる暫定の値（DAS-20）
+as_is: new

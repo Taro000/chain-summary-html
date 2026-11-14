@@ -1,0 +1,52 @@
+id: MOD-05
+title: Web Push の知らせ
+status: active
+basis: inferred
+basis_note: 担当者とエンジニアの Web アプリが異常の知らせを Web Push で受けることは DEC-20、知らせの中身が短い題だけで個人の情報を持たず、端末ごとの宛先を登録し、外すことは DEC-21、IFC-10、IFC-21（入力）。使い始めで知らせを受ける許しを求めることは IFC-24 と IFC-25（入力）。サービスワーカーが知らせの受け取りと押したときの扱いだけをすることは POL-04、Web Push の登録と知らせの許しを src/platform/ にだけ置き、偽物をそこに差し込むことは POL-02 と POL-03（入力）。同じ eventId の知らせを tag で一つにすることは IFC-21（入力）。ELM-02 のサービスワーカーは知らせを示して、押すと対応する画面を開くだけで、示した時刻をためず、示した記録を送らないことは IFC-21 と IFC-10（入力。この段階が出した FND-41 を第 3 段階が受け入れて書いた）。押したときに開く画面の選び方は推定
+premises: []
+component: ELM-02
+name: Web Push の知らせ
+depth: bounds
+depth_reason: null
+responsibility: 担当者とエンジニアのブラウザで Web Push の知らせを受けて示す
+visibility: internal
+interface:
+  - operation: "enable() -> PushPermission"
+    pre: 担当者かエンジニアの操作から呼ぶ（ブラウザは利用者の操作の後にだけ許しを求める）
+    post: 知らせの許しを求め、許されたら MOD-04 の Web Push の公開の鍵で宛先を作り、PUT /v1/push-subscriptions/current（IFC-10）を MOD-01 で送って登録する。許されないか使えないときはそれを返し、画面は流れ（MOD-03）だけで動く
+    errors:
+      - "答えがない: 登録を送れなかったことを返し、次のサインインで登録し直す"
+  - operation: "refresh() -> none"
+    pre: null
+    post: 許されていれば、サインインのたびに今の宛先を PUT /v1/push-subscriptions/current で登録し直す（置き換え、IFC-10）
+    errors: []
+  - operation: "disable() -> none"
+    pre: null
+    post: DELETE /v1/push-subscriptions/current（IFC-10）を MOD-01 で送り、このブラウザの宛先を外す
+    errors: []
+  - operation: "serviceWorker.onPush(payload: PushPayload) -> none と serviceWorker.onNotificationClick(payload: PushPayload) -> none"
+    pre: null
+    post: 受けた知らせの中身（v、type、eventId、rideId、title、IFC-21）の title だけを、eventId を tag にして一つ示し、ほかを読みに行かない。押されたら、開いている ELM-02 の画面を前に出すか開き、MOD-10 の知らせの道筋に type と rideId を渡す。示した時刻をためない
+    errors:
+      - "知らない type か新しい版の中身: title だけを示し、押されたら始めの画面を開く（DEC-41）"
+invariants: []
+depends_on: [MOD-01, MOD-04]
+functions: [FR-33]
+realizes:
+  - IFC-10 PUT /v1/push-subscriptions/current
+  - IFC-10 DELETE /v1/push-subscriptions/current
+  - IFC-21 push の出来事
+drivers: [DRV-24]
+decisions: [DEC-20, DEC-21, DEC-41]
+behaviour: null
+verification:
+  - checks: 許す、断る、使えないのどれでも画面が動き、許されたときだけ宛先を登録する
+    how: 単体の層（Vitest の Browser Mode、Chromium）。知らせの許しと Web Push の登録の偽物（POL-03）と MOD-01 の偽物
+  - checks: 宛先の登録、登録し直し、外すこと
+    how: 単体の層（MOD-01 の偽物）
+  - checks: サービスワーカーが title だけを eventId の tag で示し、押すと type ごとの画面の道筋に渡し、知らない type でも始めの画面を開く
+    how: 単体の層（Browser Mode でサービスワーカーの処理に push と notificationclick の出来事を渡す）
+  - checks: 異常の知らせがエンジニアの宛先として Web Push の偽物に届く
+    how: 運用の予行の層（NFR-38 の出どころ、POL-03）
+parameters: []
+as_is: new

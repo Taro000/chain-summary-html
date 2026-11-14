@@ -1,0 +1,12 @@
+id: DAS-04
+title: 担当者とエンジニアは主なブラウザの入ったコンピューターを使う
+status: open
+stage: 2
+kind: judgment
+statement: 運営・サポートの担当者とエンジニアは、Chrome、Edge、Firefox、Safari のどれかの今の版か一つ前の版の入ったコンピューターで、担当者とエンジニアの Web アプリを使う。スマートフォンでは使わない
+why_unsure: 利用状況は担当者とエンジニアの端末を問わないとしており（QIU-21〜QIU-33）、実際にどの端末を使うかは入力にない
+breadth: medium
+severity: low
+rating_note: DEC-03、ELM-02、ELM-12 が依存する。スマートフォンでも使うなら画面の大きさに合わせて作り直すが、サーバーとデータは変わらない
+answer: null
+answered_in: null

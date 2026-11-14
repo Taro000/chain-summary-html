@@ -1,0 +1,122 @@
+id: MOD-45
+title: 依頼と乗車の状態
+status: active
+basis: inferred
+basis_note: ELM-03 だけが依頼を書き、状態を変えるたびに今の状態を条件にして一つの取引で書き、重なった操作は先に書けた一つだけが通ることは DEC-08、状態と移り変わりと、お金の試みが動きうる間は終わりにしないこと（moneySettled）は DAT-07 と第 3 段階の報告の「要素をまたぐ状態」、状態の変化と出来事と届けの記録を一つの取引で書くことは DEC-06 と DAT-07、乗客ごとに進んでいる依頼は一つ、ドライバーごとに迎車中か乗車中の依頼は一つであることは DAT-07、取り消し、ドライバーの取り消し、不在、乗車の開始、到着の確認の操作と答えは IFC-03、許諾の前は無料で、後はキャンセル料を確かめたときだけ取り消すことは FR-07、ドライバーの取り消しで同じ内容のまま届け直し、届け直してから T_wait_prompt と T_no_accept を数えることは FR-23、T_noshow_wait は FR-26、許諾のない依頼を T_wait_prompt に知らせ T_no_accept に終えることは FR-04（値は品質チェーンの FR-04、FR-26。T_no_accept は QAS-50 の訂正、T_wait_prompt は QAS-53）、料金の請求と押さえを解くことは操作の答えを待たせず期限の処理が送ることは IFC-03、操作の記録に残す操作は IFC-03 の observability（どれも入力）。迎車の到着を位置で決める前（assigned）でも確認コードが合えば乗車を始め、その依頼には迎車の到着の時刻、段階、ride.pickup_arrived を書かないことは DAT-07、DAT-09、IFC-03（FND-56 を受けた第 3 段階の変更、入力）。結果が分からなかった決済が確かめで処理されなかったと分かれば到着した状態に戻すことと、後で効きうる確定のある押さえへのやり直しがはっきり拒否されたら押さえを解いて決まるまで payment_pending にとどまり、解ければ payment_declined、確定済みなら completed にすることは DAT-07 と DEC-45（FND-55、FND-58 を受けた第 3 段階の変更、入力）。届け直しと一覧からの除き方を MOD-52 が実装する口で行い、お金の後の処理を MOD-31 の処理として MOD-56 に渡すこと（機能の間の依存を一方に保つ）は推定。押さえ直しの結果で依頼の押さえと確定額か支払い方法を替える書き込みを、依頼の押さえ直しの印がその試みで、今の押さえがその試みの替える押さえであることを条件にすることは FND-61 を受けた（推定。替えるかは MOD-56 の settleRehold が同じ取引で決める）。押さえ直しの印を持つ rides の持ち主として、印を取る操作（空か答えの期限を過ぎていたときだけ書く claimRehold）、印がその試みなら空にする操作（clearRehold と、押さえ直しの結果の書き込み）、依頼のお金の事実（状態、今の押さえ、印、確定額、支払い方法、moneySettled）を取引の中で読む操作（moneyFacts）を契約に加え、判断表 C と不変条件に印を加えたことは FND-76 を受けた（推定。表を読み書きするのはその表を持つ機能の adapters/ だけで、依頼の状態は DEC-08 のポートを通してだけ書くことは POL-02 と DEC-08 で入力）
+premises: [CON-08]
+component: ELM-03
+name: 依頼と乗車の状態
+depth: full
+depth_reason: 依頼の状態と割り当てたドライバーを、今の状態を条件にした書き込みで一つに定め（重なった許諾、取り消し、迎車の到着のどれが効くかを決める、同時に動く仕事と状態を分ける）、許諾の前か後か、キャンセル料を確かめたか、迎車が着いてからの時間の組で答えが決まる、いくつもの条件の規則を持つ。お金の精算が終わるまで依頼を終わりにしない
+responsibility: 依頼の状態を、今の状態を条件にした書き込みだけで移す
+visibility: public
+interface:
+  - operation: "create(tx: Tx, input: NewRide) -> Ride"
+    pre: 呼ぶのは MOD-58 だけ。input の確定額は有効な見積もりの料金で、乗客の試験用かはその時点の値
+    post: holding で依頼を書き、確認コードの鍵の版（MOD-46）を持たせ、依頼の経過の「乗る場所を決め始めた」と「依頼した（料金と示した到着予定時刻）」（MOD-33）と操作の記録の「料金を確かめて依頼した」（MOD-29）を同じ取引で書く
+    errors: ["RideAlreadyActive: その乗客に終わりでない依頼がある（一意の決まり。MOD-58 は 409 RIDE_ALREADY_ACTIVE と rideId にする）"]
+  - operation: "settleHold(tx: Tx, rideId: RideId, outcome: HoldOutcome) -> Ride"
+    pre: 呼ぶのは MOD-56（押さえの試みの持ち主）だけ
+    post: 判断表 C の行のとおり、holding のときだけ、押さえたなら searching にして届ける相手を MOD-52 の口で決め、T_wait_prompt と T_no_accept の処理を MOD-31 に書く。押さえられなかったなら not_accepted にする。holding でなければ何も変えず今の依頼を返す
+    errors: []
+  - operation: "accept(tx: Tx, rideId: RideId, driver: AcceptingDriver) -> Ride"
+    pre: 呼ぶのは MOD-52 だけ。同じ取引で、その時点の値で規則と走っているかを当て直してある
+    post: searching のときだけ assigned にしてドライバーを割り当て、ride.accepted（名前と車の手がかり）を乗客に、T_wait_prompt と T_no_accept の処理を消す
+    errors: ["StateChanged: 今の状態が searching でない（MOD-52 は taken、cancelled、ended に分ける）", "DriverHasActiveRide: そのドライバーに迎車中か乗車中の依頼がある（一意の決まり。DRIVER_ALREADY_ASSIGNED）"]
+  - operation: "cancelByPassenger(actor: Actor, rideId: RideId, feeConfirmed: boolean, key: IdempotencyKey) -> CancelAnswer"
+    pre: null
+    post: POST …/cancellation で、判断表 A で答え、取り消すなら一つの取引で状態（cancelled_free か cancelled_fee）、終えた人と段階、出来事（ride.cancelled をドライバーに、一覧から除く offer.removed を MOD-52 の口で）、操作の記録（キャンセル料を確かめた取り消し）、お金の後の処理（MOD-31 の ride_money）、冪等キーの答えを書く
+    errors: ["CANCELLATION_FEE_CONFIRMATION_REQUIRED: 409 と fee", "RIDE_ALREADY_STARTED: 409", "RIDE_ALREADY_ENDED: 409 と終わった理由", "NOT_FOUND: 404"]
+  - operation: "cancelByDriver(actor: Actor, rideId: RideId, key: IdempotencyKey) -> DriverCancelAnswer"
+    pre: null
+    post: POST …/driver-cancellation で、判断表 A で答え、取り消すなら一つの取引で searching に戻してドライバーを外し、ride.driver_cancelled を乗客に、同じ乗る場所、降りる場所、料金のまま MOD-52 の口で届け直し、届け直した時刻から T_wait_prompt と T_no_accept の処理を書き直す
+    errors: ["RIDE_ALREADY_STARTED: 409", "RIDE_ALREADY_ENDED: 409", "NOT_FOUND: 404"]
+  - operation: "noShow(actor: Actor, rideId: RideId, key: IdempotencyKey) -> NoShowAnswer"
+    pre: null
+    post: POST …/no-show で、判断表 A で答え、終えるなら一つの取引で no_show、終えた人、ride.no_show を乗客に、操作の記録（不在として終えた）、お金の後の処理（不在の料金）を書く
+    errors: ["PICKUP_NOT_ARRIVED: 409", "NO_SHOW_TOO_EARLY: 409 と remainingSeconds", "RIDE_ALREADY_ENDED: 409", "NOT_FOUND: 404"]
+  - operation: "board(actor: Actor, rideId: RideId, code: string, vehiclePosition: DevicePosition, key: IdempotencyKey) -> BoardAnswer"
+    pre: null
+    post: POST …/boarding で、判断表 A で答え、assigned か pickup_arrived のときに MOD-46 の verify で照らし、合えば同じ取引で riding、乗車を始めた時刻と位置（SLI-09）、ride.started を乗客とドライバーに書く。assigned から始めたときは、迎車の到着の時刻、段階、ride.pickup_arrived を書かない（DAT-07）。合わなければ合わない試みだけを書く
+    errors: ["CONFIRMATION_CODE_MISMATCH: 422", "CONFIRMATION_CODE_LOCKED: 429 と retryAfterSeconds", "RIDE_ALREADY_STARTED: 409", "RIDE_ALREADY_ENDED: 409", "NOT_FOUND: 404"]
+  - operation: "confirmArrival(actor: Actor, rideId: RideId, position: DevicePosition, key: IdempotencyKey) -> ArrivalAnswer"
+    pre: null
+    post: POST …/arrival で、判断表 A で答え、riding のときだけ destination_arrived にし、到着を確認した場所と時刻、ride.destination_arrived を乗客に、操作の記録（到着の確認）を書く
+    errors: ["RIDE_NOT_STARTED: 409", "RIDE_ALREADY_ENDED: 409", "NOT_FOUND: 404"]
+  - operation: "markPickupArrived(tx: Tx, rideId: RideId, driver: AccountId, fix: CorrectedPosition) -> arrived | unchanged"
+    pre: 呼ぶのは MOD-47 だけで、MOD-47 の判断表 B で到着と決めた位置
+    post: assigned で割り当てたドライバーのときだけ pickup_arrived にし、着いた時刻（直した測った時刻）、ride.pickup_arrived を乗客に（changeReceivedAt は位置を受けた時刻）書く。乗車がすでに始まった依頼（迎車の到着の前に確認コードで始めた）では何も変えず unchanged
+    errors: []
+  - operation: "applyMoney(tx: Tx, rideId: RideId, change: MoneyChange) -> Ride"
+    pre: 呼ぶのは MOD-56 と MOD-59 だけ
+    post: 判断表 C の行のとおり、決済の結果（completed、payment_pending、payment_declined、到着したまま、確かめで処理されなかったと分かった payment_pending からの destination_arrived への戻り）、押さえ直しの結果（依頼の押さえと、確定額、降りる場所、承認した到着予定の時刻か支払い方法を一緒に替え、押さえ直しの印を空にし、payment_declined なら destination_arrived に戻す）、moneySettled を、今の状態を条件に書く。押さえ直しの結果は、加えて依頼の押さえ直しの印がその試みで、今の押さえがその試みの替える押さえであることを条件に、一つの書き込みで書く
+    errors: ["StateChanged: 今の状態か押さえ直しの印と今の押さえがその変化を許さない（何も変えない）"]
+  - operation: "moneyFacts(tx: Tx, rideId: RideId) -> RideMoneyFacts"
+    pre: 呼ぶのは MOD-56、MOD-58、MOD-59 だけで、依頼のお金を書く取引（決済と押さえ直しの取引 A、試みの結果の取引、押さえと押さえ直しの期限の後の答え）の中
+    post: 依頼の状態、今の押さえ（押さえの試み）、押さえ直しの印（試みと答えの期限。ないときは none）、確定額、支払い方法、moneySettled を同じ取引で読んで返す（MOD-25 の書き込みの取引の中なので、確定までほかに変えられない）
+    errors: []
+  - operation: "claimRehold(tx: Tx, rideId: RideId, attemptId: AttemptId, answerDueAt: Instant, now: Instant) -> claimed | ReholdInProgress"
+    pre: 呼ぶのは MOD-56 だけで、押さえ直しの試みを作る取引 A の中
+    post: 判断表 C の印を取る行のとおり、押さえ直しの印が空か、印の答えの期限が now 以前なら、印をこの試みと answerDueAt にして claimed を返す。ほかは何も書かずに ReholdInProgress（印の試み）を返す（呼ぶ側は取引 A を止める）
+    errors: []
+  - operation: "clearRehold(tx: Tx, rideId: RideId, attemptId: AttemptId) -> cleared | notHeld"
+    pre: 呼ぶのは MOD-56 の settleRehold だけで、押さえ直しの試みの結果か期限の後の答えを書く取引の中
+    post: 判断表 C の印を空にする行のとおり、押さえ直しの印がこの試みなら空にして cleared を、ほかは何も変えずに notHeld を返す
+    errors: []
+  - operation: "onWaitPrompt(rideId: RideId, now: Instant) -> Done; onNoAccept(rideId: RideId, now: Instant) -> Done"
+    pre: MOD-31 の受け持ち（ride_wait_prompt、ride_no_accept）
+    post: searching のままで、探し始めた時刻からその時間が過ぎていれば、ride.wait_prompted を乗客に送るか、expired にして終えた人（システム）と閾値のためかを書き、ride.expired を乗客に、offer.removed（ended）を MOD-52 の口で、お金の後の処理を書く。そうでなければ何もしない
+    errors: []
+  - operation: "facts(rideId: RideId) -> RideFacts; activeOf(account: AccountId) -> Ride or none; recordsOf(criteria: RideCriteria) -> Ride[]"
+    pre: null
+    post: 依頼の状態、相手、段階の時刻、確定額、お金の精算を返す（MOD-27、MOD-60、MOD-61、ほか）
+    errors: []
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 記録してから 3 年を過ぎた依頼の、状態の変化の種類と時刻を残し、乗客とドライバーと終えた人、乗る場所と降りる場所と位置を消す（FR-51 の 1）
+    errors: []
+invariants:
+  - 乗客ごとに、終わりでない状態（holding、searching、assigned、pickup_arrived、riding、destination_arrived、payment_pending、payment_declined）の依頼は一つまで
+  - ドライバーごとに、assigned、pickup_arrived、riding の依頼は一つまで
+  - 状態は状態遷移図の矢印でだけ移り、どの移り変わりも今の状態を条件にした一つの書き込みで、出来事と届けの記録と同じ取引で書かれる
+  - 確定額は見積もりか、押さえ直しが済んだ降りる場所の変更からだけ変わり、依頼の押さえと一緒に替わる
+  - 依頼の今の押さえは、依頼を作るときに押さえの試みとともに決まり、後は押さえ直しの結果の書き込みで、確定額か支払い方法と一緒にだけ替わる
+  - 押さえ直しの印は、空か、一つの押さえ直しの試みとその答えの期限。書くのは claimRehold（空か答えの期限を過ぎていたときだけ）で、空にするのは印がその試みのときの clearRehold と押さえ直しの結果の書き込みだけ
+  - 終わりの状態でも、要る押さえの解除と料金の請求の試みが済むか拒否で終わるまで moneySettled は偽
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-26, MOD-27, MOD-28, MOD-29, MOD-30, MOD-31, MOD-33, MOD-46]
+functions: [FR-04, FR-05, FR-06, FR-07, FR-09, FR-10, FR-12, FR-13, FR-21, FR-23, FR-24, FR-26, FR-27, FR-28, FR-42, FR-44, FR-45, FR-49]
+realizes:
+  - IFC-03 POST /v1/rides/{rideId}/cancellation
+  - IFC-03 POST /v1/rides/{rideId}/driver-cancellation
+  - IFC-03 POST /v1/rides/{rideId}/no-show
+  - IFC-03 POST /v1/rides/{rideId}/boarding
+  - IFC-03 POST /v1/rides/{rideId}/arrival
+  - IFC-11 ride.accepted
+  - IFC-11 ride.pickup_arrived
+  - IFC-11 ride.wait_prompted
+  - IFC-11 ride.expired
+  - IFC-11 ride.cancelled
+  - IFC-11 ride.driver_cancelled
+  - IFC-11 ride.no_show
+  - IFC-11 ride.started
+  - IFC-11 ride.destination_arrived
+drivers: [DRV-02, DRV-03, DRV-19, DRV-23, DRV-27, DRV-31]
+decisions: [DEC-06, DEC-08, DEC-18, DEC-25]
+behaviour: "報告書の節: MOD-45 依頼と乗車の状態"
+verification:
+  - checks: 状態遷移図の矢印ごとと、判断表 A（取り消し、ドライバーの取り消し、不在、乗車の開始（迎車中と迎車が着いた後）、到着の確認）と判断表 C の行ごと（T_noshow_wait のちょうど前と後、キャンセル料の確かめの有無、許諾の前と後、決済の結果の戻り、押さえ直しの印が空、ほかの試みで答えの期限のうち、期限を過ぎた、印がその試みか違う試みの clearRehold、印か今の押さえが合わない押さえ直しの結果）
+    how: 単体の層（時計の偽物。NFR-25 の許諾の前と後の取り消しの境目を含む）
+  - checks: 許諾と取り消しをほぼ同時に重ね、どの順でも先に書けた一つだけが通り、割り当てが一人に定まる（FR-21 の 2、NFR-11、NFR-10）
+    how: 結合の層（依頼の状態を書くポートの差し込み。NFR-11 の出どころ）
+  - checks: 書き終えた後の応答を落とし、同じキーの送り直しが一度だけ効く（取り消し、乗車の開始、到着の確認、DRV-02）
+    how: 結合の層（端末とのつながりの偽物）
+  - checks: T_wait_prompt と T_no_accept と届け直してからの時間（FR-04 の 2、3、FR-23 の 2、3）、閾値のための終わり（FR-05 の 4）
+    how: 結合の層（時計の偽物を進めて期限の処理を一回ずつ回す）
+  - checks: 依頼の経過の段階と終えた人の記録（FR-45 の 1、5、NFR-37、NFR-14）
+    how: 結合の層
+  - checks: 迎車の到着を位置で決める前に確認コードで乗車を始めた依頼が riding になり、乗車を始めた時刻と位置を持ち、迎車の到着の時刻、段階、ride.pickup_arrived、SLI-14 の組を持たず、その後に届いた迎車の位置で迎車の到着にならない（FR-27 の 1、FR-12 の 2、DAT-07）
+    how: 単体の層と結合の層
+  - checks: つなぎ直した乗客とドライバーの画面が今の状態を示す（NFR-11、QR-02）
+    how: 端から端の層（Playwright でブラウザを切ってつなぎ直す）
+parameters: []
+as_is: new

@@ -1,0 +1,71 @@
+id: MOD-37
+title: 参加者の登録
+status: active
+basis: inferred
+basis_note: アカウントを作る前に確かめ、欠けた項目と形の誤りを項目ごとに示し、同じ人の二つ目を作らず、訂正をいつ何を訂正したかとともに記録することは FR-41、試験用の区別とその変更の記録は FR-42、審査の日付と手がかりを持たずにドライバーと車両を登録し、ナンバーをドライバーの間で一つにし、訂正を乗客に示す手がかりにすることは FR-43 と TC-17、停止しているかと進んでいる依頼を示すことは FR-44、作成、訂正、試験用の区別の変更、登録、訂正を操作の記録と一つの取引で書くことは DAT-01、DAT-03、FR-50、名前と連絡先を記録した日の鍵で暗号にし、同じ人がすでにいるかをサーバーが読み解いて比べることは DAT-01 と DEC-16、個人を特定できない形に変わったアカウントは状態と時刻だけを返し、訂正できないことは FR-51 の 4 と IFC-12、GET /v1/me の項目（Web アプリがサインインしているアカウントを見分ける本人のアカウントの ID を含む。FND-51 を受けた第 3 段階の変更）は IFC-01（どれも入力）。同じ人を確かめることと作ることを一つの書き込みの取引で行い、重なった作成を分けることは MOD-25 の取引の決まりからの推定
+premises: []
+component: ELM-03
+name: 参加者の登録
+depth: bounds
+depth_reason: null
+responsibility: 担当者の操作で、参加者のアカウントとドライバーと車両の登録を持つ
+visibility: public
+interface:
+  - operation: "me(actor: Actor) -> Me"
+    pre: null
+    post: GET /v1/me に、本人のアカウントの ID（DEC-36 の不透明な ID）、アカウントの種類、名前、使える機能（MOD-27）、試験用か、止めた機能（MOD-30）を返す
+    errors: []
+  - operation: "searchAccounts(criteria: AccountCriteria) -> Page<AccountSummary>; getAccount(accountId: AccountId) -> AccountView"
+    pre: null
+    post: 種類、名前、サインインの ID、連絡先、ナンバー、試験用か、停止しているかで探し（名前と連絡先は読み解いてから比べる、DEC-39）、一つのアカウントの今の内容を返す。個人を特定できない形に変わったアカウントは状態と時刻だけ
+    errors: ["VALIDATION_FAILED", "NOT_FOUND: 404"]
+  - operation: "createAccount(actor: Actor, input: NewAccount, key: IdempotencyKey) -> CreatedAccount"
+    pre: null
+    post: 一つの書き込みの取引で、同じ人がいないことを確かめ、アカウント（試験用を選べる）、サインインの ID、設定の符号（MOD-36）、操作の記録（MOD-29）、冪等キーの答え（符号を除く、MOD-26）を書き、サインインの ID と符号を返す
+    errors: ["VALIDATION_FAILED: 400（項目ごとの符号）", "ACCOUNT_ALREADY_EXISTS: 409"]
+  - operation: "correctAccount(actor: Actor, accountId: AccountId, patch: AccountPatch, key: IdempotencyKey) -> AccountView; setTestFlag(actor: Actor, accountId: AccountId, value: boolean, key: IdempotencyKey) -> AccountView; reissueSetupCode(actor: Actor, accountId: AccountId, key: IdempotencyKey) -> SetupCode"
+    pre: null
+    post: 訂正、試験用の区別の変更、符号の出し直し（それまでの符号とセッションを無効にする、MOD-36）を、それぞれ操作の記録と冪等キーの答えと一つの取引で書く
+    errors: ["VALIDATION_FAILED", "NOT_FOUND", "ACCOUNT_RETIRED: 409"]
+  - operation: "registerDriver(actor: Actor, input: NewDriver, key: IdempotencyKey) -> DriverView; getDriver(accountId: AccountId) -> DriverView; correctDriver(actor: Actor, accountId: AccountId, patch: DriverPatch, key: IdempotencyKey) -> DriverView"
+    pre: null
+    post: 審査の日付と手がかりの項目なしにドライバーと車両を登録し、今の登録と、停止しているかとその時刻と迎車中か乗車中の依頼（MOD-45）を返し、訂正を操作の記録とともに書く。乗客に示す手がかりは、いつも今の登録から読む
+    errors: ["VALIDATION_FAILED: 400（欠けた項目、ない項目は UNKNOWN_FIELD）", "PLATE_ALREADY_REGISTERED: 409", "NOT_FOUND", "ACCOUNT_RETIRED: 409"]
+  - operation: "setSuspended(tx: Tx, accountId: AccountId, suspended: boolean, at: Instant) -> changed | unchanged; driverFacts(accountId: AccountId) -> DriverFacts"
+    pre: setSuspended を呼ぶのは MOD-55 だけ
+    post: 今の値を条件に停止を置くか解き、変えたかを返す。登録が済んでいるか、停止しているか、名前と車の手がかりを返す
+    errors: []
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 作ってから 3 年を過ぎたアカウントとドライバーと車両の登録の個人の情報を消し、使えなくなった状態にする。状態と時刻は残す（パスワードとセッション、宛先、支払い方法、受付と閾値と条件は、MOD-68 がそれぞれの持ち主に同じ実行で消させる）
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-26, MOD-27, MOD-29, MOD-30, MOD-36, MOD-45]
+functions: [FR-09, FR-36, FR-41, FR-42, FR-43, FR-50, FR-51]
+realizes:
+  - IFC-01 GET /v1/me
+  - IFC-12 POST /v1/console/accounts/search
+  - IFC-12 GET /v1/console/accounts/{accountId}
+  - IFC-12 POST /v1/console/accounts
+  - IFC-12 PATCH /v1/console/accounts/{accountId}
+  - IFC-12 PUT /v1/console/accounts/{accountId}/test-flag
+  - IFC-12 POST /v1/console/accounts/{accountId}/setup-codes
+  - IFC-12 POST /v1/console/drivers
+  - IFC-12 GET /v1/console/drivers/{accountId}
+  - IFC-12 PATCH /v1/console/drivers/{accountId}
+drivers: [DRV-20, DRV-21, DRV-25, DRV-29, DRV-30]
+decisions: [DEC-14, DEC-16, DEC-36, DEC-39]
+behaviour: null
+verification:
+  - checks: 欠けた項目、形の誤り、同じ人、ない項目、重なったナンバー（FR-41 の 2、3、FR-43 の 2、3）と、二つの作成を重ねても同じ人の二つ目ができない
+    how: 結合の層
+  - checks: 作成、訂正、試験用の区別、登録、訂正が操作の記録に残る（FR-41 の 4、FR-42 の 3、FR-43 の 4、NFR-32）
+    how: 結合の層
+  - checks: 登録の訂正が乗客に示す手がかりになる（FR-09 の 3、FR-43 の 4、NFR-22）
+    how: 端から端の層（試験の環境の偽物の設定。NFR-22 の出どころ）
+  - checks: 個人を特定できない形に変わったアカウントの答えと ACCOUNT_RETIRED（FR-51 の 2、4）
+    how: 結合の層（時計の偽物）
+  - checks: GET /v1/me の項目（本人のアカウントの ID を含む）と、止めた機能（FR-36 の 3）
+    how: 結合の層
+parameters: []
+as_is: new

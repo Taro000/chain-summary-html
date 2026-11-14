@@ -1,32 +1,22 @@
 id: QR-29
-title: 場所の座標の精度
-status: draft
-version: 1
+title: EXT-01 との決済と返金の受け渡しが、結果どおりに乗車と返金に結び付く
+status: active
 basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-model: data
-layer: data-inherent
-characteristic: precision
-statement: 乗る場所と降りる場所の座標は、建物の入口を区別できる細かさで保たれ、丸められずにドライバーの経路と乗車の終了の確かめ（FR-28）に使われる。
-applies_to: [FR-02, FR-12, FR-23, FR-28]
-traces_to: [QIU-06]
+basis_note: 決済と返金が EXT-01 のテスト環境を通ることは CON-03。失敗のシナリオと点は推定。新しく作るシステムで、外部のサービスとの受け渡しの誤りや応答のない場面は数か月に一度程度とみた。受け渡しの作りは設計で決める。依頼のときの押さえとその解除、キャンセル料と不在の料金の請求（FR-54、第 2 段階の質問 8、CON-08）も EXT-01 との受け渡しに加えた。扱い（重視）は質問 24 で確認済み（CUJ-15 の組）。CUJ-08 の組でもある（質問 21）
+premises: [CON-03, CON-08, EXT-01]
+model: product
+layer: external
+characteristic: compatibility > interoperability
+statement: システムは、支払い方法の登録、依頼のときの押さえとその解除、決済、キャンセル料と不在の料金の請求、返金を EXT-01 と受け渡し、EXT-01 が返した結果（済んだ、受け付けない、その理由）をそのとおりに依頼、乗車、支払い方法、返金に結び付ける。EXT-01 が答えないときは、乗車を終えたまま済んだかどうか分からないことを示し、結果が分かるとそれを結び付ける。
+applies_to: [FR-29, FR-30, FR-39, FR-40, FR-46, FR-54]
+traces_to: [QIU-19, QIU-12, QIU-28]
 entry_point: null
-stakeholders: [USR-01, USR-02]
-failure_scenario: 座標を住所に置き換えて渡し、ドライバーが入口の反対側に着く。
-score: {impact: 3, likelihood: 2}
-handling: minimum-line
+stakeholders: [USR-01, USR-02, USR-04, EXT-01]
+failure_scenario: EXT-01 が受け付けなかった決済が済んだものとして乗車に結び付き、ドライバーには運賃が支払われたと示され、乗客は請求されないまま、担当者は返金しようとしても通らない。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
 handling_reason: null
-implies_internal: []
+implies_internal: [QR-50]
 conflicts: []
 stated_numbers: []
-placeholders:
-  - name: D_dropoff
-    meaning: 降車場所から何メートル以内を正しい場所とするか
-    from: QIU-06、FR-28
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+placeholders: []

@@ -1,0 +1,14 @@
+id: HND-09
+title: 走っているかの判断の値と、端末の速さの確からしさの確かめ
+status: decided
+basis: inferred
+basis_note: DEC-22 と DEC-27 の応答を左右する点（DEC-27 の分は FND-02 を受けて加えた）。判断は複数の条件を当てる規則で、第 4 段階が ELM-03 の実行で確定の深さで決める。ドライバーの端末から得られる速さの確からしさ（QR-28 の basis_note）は、この段階では実機で確かめていない
+premises: []
+from: architecture-drivers-to-architecture
+to: high-level-design-to-detailed-design
+component: ELM-03
+origin: [DEC-22, DEC-27]
+what: 走っているかの判断に使う速さと位置の新しさ、使う位置の数、速さがないときの扱いの値と判断表。参加者の iPhone の Safari が測る速さで V_moving_lock の上と下を分けられるかの確かめ
+bounds: FR-22（V_moving_lock）、QR-28、QR-55、NFR-21、DEC-22（サーバーが決め、分からないときは受け付けない）、DEC-27（走っている間はドライバーに送らせず、中身を示さない）
+trigger: 第 4 段階の ELM-03 の実行
+resolution: "MOD-48 の判断表 A と parameters で決めた（使う位置の新しさ 10 秒、速さを見る窓 10 秒、速さのない位置だけのときの窓 30 秒と最短の間 20 秒、分からないときは受け付けない。DAS-26）。参加者の iPhone の Safari の速さで V_moving_lock の上と下を分けられるかは、実機で確かめていないため DAS-27 にし、MOD-48 の verification の実機の受け入れの層で確かめる"

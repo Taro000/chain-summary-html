@@ -1,57 +1,42 @@
 id: IFC-15
-title: Google Maps のサーバーの API
-status: draft
-version: 1
-basis: inferred
-basis_note: DEC-22（地図のモジュール一つから決まった場面だけ、2 秒、要求の中で送り直さない、到着予定は 60 秒ごと）と DEC-21（1 日の割り当て、鍵の制限）は入力。computeRoutes の経路と X-Goog-FieldMask は Google の文書（2026-11-03）。Places API（New）を使うこと、依頼の内容でドライバーから乗車場所までの経路を求めることは推定（FND-28）
-needs_agreement: false
-approver_candidates: []
-kind: http
-name: Google Maps のサーバーの API（外部）
-provider: ELM-11
-consumers:
-- ELM-04
-functions:
-- FR-02
-- FR-03
-- FR-10
-- FR-12
-- FR-19
-- FR-23
+title: 日々の処理
+status: active
+basis: assumed
+basis_note: 日々の処理を想定の本番は Cloud Scheduler が、ローカルはローカルの定期の呼び出しが毎日起こし、インスタンスが 0 の間も起き、期限を過ぎた処理を拾い、保存期間を過ぎた記録を FR-51 のとおりに変えてその日の鍵を写しとともに捨て、EXT-01 と照合し、記録の欠けと取り出せる期間を確かめることは DEC-11、DEC-16、DEC-17、DEC-18（入力）。起こされても一日一度だけ行うことは DEC-18（入力）。すべての仕事を終えたら個人の情報を含まない記録をプラットフォームのログに書き、想定の本番のアラートがそれと Cloud Scheduler の呼び出しの結果を読むことは DEC-20（入力）で、その記録の項目をこの IFC が決めるのは POL-05（入力）。照合を行う時刻と読む期間を決めて HND-06 を DAT-13 とともに決めた。時刻と期間は DAS-12 による暫定の決定で、処理を行った日の照合の値をその 2 日後の実行で決めることは、SLI-12 が結果を返さない処理を翌日の終わりに突き合わせること（QAS-32 による品質チェーンの暫定の決定）に合わせた。呼び出しの確かめは DEC-40。インスタンスが落ちうることは DEC-05（入力）で、取った実行が止まったとみなす時刻を過ぎたら次の呼び出しが取り直して終わっていない仕事から行い、その日の再試行が JOB_IN_PROGRESS を受け続けないようにしたことは FND-22 を受けた（推定）
+premises: [TC-08, TC-09, DAS-12, QAS-32]
+kind: batch
+name: 日々の処理
+provider: ELM-03
+consumers: [ELM-08, ELM-10]
+functions: [FR-04, FR-51, FR-54]
 operations:
-- name: POST https://places.googleapis.com/v1/places:autocomplete
-  does: 場所の候補（sessionToken でまとめる。言語は日本語、地域は日本）
-- name: GET https://places.googleapis.com/v1/places/{placeId}
-  does: 選んだ候補の位置と住所（X-Goog-FieldMask で欄を絞る。同じ sessionToken）
-- name: POST https://routes.googleapis.com/directions/v2:computeRoutes
-  does: '経路、距離、所要時間（TRAFFIC_AWARE。X-Goog-FieldMask: routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline）。見積もり、許諾、運転の開始、降車場所の変更、到着予定の取り直し、依頼の内容（60 秒は許諾で使い回す）で呼ぶ'
-format: JSON
-protocol: HTTPS。adapters の地図の包みからだけ呼ぶ（DEC-22）
-auth: サーバーの鍵（X-Goog-Api-Key。使う API だけに限る。DEC-21）。Secret Manager
+  - name: POST /internal/jobs/daily
+    does: 毎日 04:00（Asia/Tokyo）に起こされ、その日（jobDate）の処理を一度だけ行う。期限を過ぎた処理（許諾のない依頼の終わり、結果が分からないお金の操作の確かめ、残った押さえを解くこと、DEC-18）を拾い、EXT-01 と照合し（DAT-13）、記録してから 3 年を過ぎた記録とデータを FR-51 のとおりに変えてその日の鍵を写しとともに捨て（DEC-16、DEC-17）、保持期間を過ぎた記録を消し、依頼の経過と苦情の記録の欠け（NFR-14）、取り出せる期間（NFR-39）、3 年を過ぎた個人の情報の残り（NFR-46）を確かめ、すべての仕事を終えたら終えた記録を書く
+  - name: 日々の処理を終えた記録
+    does: ELM-03 が標準出力に書くログの一行で、想定の本番では Cloud Logging が受け、日々の処理を見張るアラート（ELM-08、DEC-20）が読む。すべての仕事が済んだときにだけ書く
+format: 呼び出しは本文のない HTTPS の POST。終えた記録は DEC-43 の項目を持つ JSON の一行で、event が daily_job_completed、jobDate（Asia/Tokyo の日付）、steps（仕事の名前と結果の並び）、startedAt、finishedAt を足し、個人の情報、依頼の ID、額を入れない（DEC-20、脅威のモデルの F14）
+protocol: 想定の本番は Cloud Scheduler の HTTP の呼び出し、ローカルは Compose の定期の呼び出しのサービス（POL-04）。終えた記録は標準出力から Cloud Logging（想定の本番）
+auth: 想定の本番は Cloud Scheduler の OIDC の印（決めたサービスアカウントだけ）を、ローカルは秘密の値の置き場所の共有の秘密を、ELM-03 が確かめる（DEC-40、POL-04）。外から呼べても処理は一日一度だけ（DEC-18）
 errors:
-- case: 要求の誤り、鍵の制限
-  signal: 400 INVALID_ARGUMENT、403 PERMISSION_DENIED
-  caller_does: 設計の誤りとして知らせ、地図を使えないと扱う
-- case: 1 日の割り当てに達した
-  signal: 429 RESOURCE_EXHAUSTED
-  caller_does: 地図を使えないと扱う（FR-03 AC5、FR-23 AC3）。その日の残りは決まった扱い（DRV-11）
-- case: Google の中の誤り、タイムアウト
-  signal: 5xx、2 秒で切る
-  caller_does: 要求の中では送り直さず、地図を使えないと扱う（DEC-22）
-- case: 経路がない
-  signal: 200 で routes が空
-  caller_does: NO_ROUTE（FR-02 AC6）
-idempotency: 読むだけ
+  - case: 呼び出しの印か共有の秘密を確かめられない
+    signal: 401 with code NOT_SIGNED_IN
+    caller_does: 何もしない（日々の処理は動かず、終えた記録が届かないためアラートが知らせる）
+  - case: その日の処理がすでに終わっている
+    signal: 200 で alreadyCompleted が真の答え
+    caller_does: 何もしない
+  - case: その日の処理がほかの呼び出しで動いていて、その実行の止まったとみなす時刻（取った時刻に日々の処理の時間の上限を足したもの、DAT-27）を過ぎていない
+    signal: 409 with code JOB_IN_PROGRESS
+    caller_does: 呼び出し手（Cloud Scheduler、ローカルの定期の呼び出し）は再試行の決まりで後で呼ぶ。止まったとみなす時刻を過ぎた後の呼び出しは、その実行を取り直して終わっていない仕事から行い、ふだんの呼び出しと同じに答える
+  - case: 仕事の一部が失敗した
+    signal: 500 with code JOB_FAILED
+    caller_does: 呼び出し手が再試行する。その実行は失敗を書いて取ったことを外すため、次の呼び出しがすぐ取り直す。終えた記録は書かれず、決まった時間のうちに届かなければアラートが開発者にメールで知らせる（DEC-20）。失敗は異常（DAT-22）として記録する
+idempotency: その日（jobDate）の処理は、取ったことを止まったとみなす時刻とともに ELM-04 に書いてから行い、一度だけ済ませる（DEC-18、DAT-27）。その時刻を過ぎた実行は次の呼び出しが取り直し、取り直された実行は書けずに止まるため、同じ日の仕事を二つの実行が同時に書き続けることはない。仕事はどれも繰り返しても同じ結果になる（変えた記録は変えたまま、捨てた鍵は捨てたまま、照合の結果は上書き）
 timing:
-  timeout: 1 回 2 秒、要求の中では送り直さない（DEC-22）。到着予定の取り直しは 60 秒ごと
-  ordering: null
-  delivery: null
-versioning: Google の v1（Places）と v2（Routes）。上げるのは adapters の包みだけ
-observability: external.call のログに API、結果、時間、トレース ID。地点、検索の語、経路は書かない。NFR-28 の 1 分ごとの数（DAT-21）
+  timeout: 毎日 04:00（Asia/Tokyo）に起こす。照合は、日 D の実行で EXT-01 の取引と返金のうち D の 2 日前の 00:00 から D の 00:00（Asia/Tokyo）までに作られたものを読み、処理を行った日 d の照合の値は d の 2 日後の実行で決める（SLI-12 の翌日の終わり、HND-06）。EXT-01 の一覧の読み出しのタイムアウトと確かめの間隔は IFC-17。日々の処理の時間の上限（取った実行を止まったとみなすまでの長さ）は第 4 段階が決め（HND-19）、Cloud Scheduler の呼び出しの期限はそれより長くする。呼び出し手の再試行は、止まったとみなす時刻の後にも少なくとも一度届くように、回数と間隔を第 4 段階が決める（HND-19）。終えた記録を待つ時間は第 4 段階（HND-10）。値は DAS-12
+  ordering: 仕事は、期限を過ぎた処理、照合、記録の変換と鍵を捨てること、保持期間を過ぎた記録を消すこと、確かめ、終えた記録の順
+  delivery: Cloud Scheduler とローカルの定期の呼び出しは失敗した呼び出しを再試行する（at-least-once）。処理はその日に一度だけ済む
+versioning: 終えた記録の項目は足すだけで変え、アラートの条件（infra/gcp/）は event と jobDate だけを読む
+observability: 仕事ごとの結果と時間を日々の処理の記録（DAT-27）とたどる記録（DAT-18）に、失敗を異常（DAT-22）に残す
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

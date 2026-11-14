@@ -1,0 +1,32 @@
+id: QIU-31
+title: 担当者がドライバーと車両を審査どおりに登録できる
+status: active
+basis: inferred
+basis_note: CUJ は質問 2 の回答。審査がシステムの外で行われることは回答の言い方からの推定。審査の結果をこのシステムに記録しないことは第 3 段階の質問 1 と 5 で確認済み（CON-07）で、測定量はシステムの外の審査の記録と登録を突き合わせて数えるしかない。ニーズ、測定量、利用状況は推定
+premises: [CON-07]
+user: USR-04
+cuj: CUJ-17
+outcomes: []
+need: 審査を通ったドライバーと車両を、審査を通った内容のとおりに登録したい
+context_of_use:
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 審査を通ったドライバーと車両の登録
+  environment: null
+  other: null
+characteristic: effectiveness
+statement: 審査を通ったドライバーと車両を登録する運営・サポートの担当者は、審査を通った内容のとおりに登録できる。
+failure_scenario: 車両の色やナンバーを誤って登録し、乗客は乗る場所で手配した車を見分けられずに乗れない、または別の車に乗る。
+measure:
+  numerator: 審査を通った内容と一致した登録
+  denominator: 行ったドライバーと車両の登録
+  narrowed_to: 審査を通ったドライバーと車両の登録
+  denominator_needed_only: 行った登録だけを数える
+  contribution: 登録の手順と内容の確かめ方にプロダクトが効く
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided

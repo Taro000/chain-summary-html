@@ -1,0 +1,12 @@
+id: QAS-24
+title: WCAG 2.2 レベル AA の QR-64 は最低限守る線
+status: overturned
+stage: 3
+kind: decision
+statement: 乗客とドライバーの画面が WCAG 2.2 のレベル AA に従うこと（QR-64）を最低限守る線とする。
+why_unsure: 点から決めた。事業がこの標準をどれほど重く見るかは入力にない。
+breadth: low
+severity: low
+rating_note: QR-64 だけが依存する。最低限守る線でも監視は残り、後から重視に上げるのは容易
+answer: 誤り。WCAG 2.2 レベル AA に従うことは、最低限守る線ではなく重視
+answered_in: 第 3 段階、#10（未確認の仮定の一覧への訂正）

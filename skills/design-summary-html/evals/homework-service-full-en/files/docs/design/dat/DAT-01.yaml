@@ -1,11 +1,9 @@
 id: DAT-01
 title: Assignment
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 entity: Assignment
 owner: ELM-03
 store: ELM-04
@@ -18,9 +16,5 @@ consistency: Written per request from teachers
 retention: Until the end of the school year
 classification: internal
 drivers: []
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

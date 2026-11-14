@@ -1,31 +1,14 @@
 id: FRP-09
-title: 許諾のときに示した迎車の到着予定を記録する
+title: 乗客とドライバーの端末で起きたエラーを、その依頼と結び付けて記録する
 status: accepted
-version: 2
 basis: inferred
-basis_note: FR-07 版 2 から推定。提案することは質問 17〜19（2026-11-01）の前提の確認
-needs_agreement: false
-approver_candidates: []
+basis_note: "QR-41 からの推定。端末で起きたエラーの記録が欠けないことは #12 の回答。FR-34 はシステムが行ったことをたどるが、乗客とドライバーの端末で起きたエラーを記録する機能はない"
+premises: []
 proposed_by: functional-requirements-to-product-quality
-origin:
-- QR-08
-- QR-09
-changes: FR-10
-reason: FR-07 は、許諾のときに示した乗車場所への到着予定時刻から T_cancel_grace を過ぎたかでキャンセル料をかけるかを決めるが、その値を記録する FR がない。FR-10 は到着予定を示すだけで、記録しない。記録がないと、取り消しの後に判定を確かめられず、苦情（FR-45）でも根拠を示せない。
-suggested_statement: システムは、依頼が許諾されたとき、乗客に最初に示した乗車場所への到着予定時刻を依頼に記録する。ドライバーが替わったときは、新しいドライバーの許諾のときの値を記録する。
-affects:
-- QR-08
-- QR-09
-- FR-07
-- NFR-12
+origin: [QR-41]
+changes: null
+reason: 障害の原因の特定と苦情の確かめに、乗客とドライバーの端末で起きたエラーの記録が要るが、それを記録する機能がどの FR にもない。
+suggested_statement: システムは、乗客とドライバーの端末で起きたエラーを、どの依頼のどの画面で起きたかとともに記録し、エンジニアが依頼の経過と合わせてたどれるようにする。
+affects: [NFR-37]
 placeholders: []
-resolution: FR-10 版 2 として受け入れた。FR-07 版 3 はこの記録で無料かを決める。
-changelog:
-- version: 1
-  date: '2026-11-01'
-  change: 提案
-  reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）
-- version: 2
-  date: '2026-11-01'
-  change: 受け入れた
-  reason: 第 2 段階の質問 18・19（2026-11-01）
+resolution: "受け入れ。FR-52 として今期作る。端末で起きたエラーの記録（QR-41）は第 3 段階の決めたこと #12 で重視に決まっている。"

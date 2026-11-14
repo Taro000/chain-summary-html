@@ -1,0 +1,79 @@
+id: MOD-20
+title: HTTP の入口
+status: active
+basis: assumed
+basis_note: 誤りの形と状態の組は DEC-35、セッションのクッキーと Origin の確かめは DEC-40、冪等キーの答え方は DEC-42、たどる ID と X-Resend と X-Request-Id とログの項目は DEC-43、経路の名付けは DEC-44、境界の出来事を受けたときに書いて答えたときに結果を足すことは DEC-23 と DAT-19、境界の一か所で結果の値と投げた失敗を約束事の形に変え、ライブラリの既定の形を返さないことは POL-04、src/http/ に Hono のアプリと境界のエラーの変換を置くことは POL-02、client-config が公開してよい値だけを返すことは DEC-34 と IFC-01、生存確認が状態を返さず記録に残らないことは IFC-16（どれも入力）。時間のしきい値の SLO とお金の道の上の期限は各 IFC の timing の値をそのまま使う（IFC-03、IFC-04、IFC-05、IFC-07、IFC-09、IFC-13）。ほかの操作に答える期限と生存確認の値は HND-19 を、生存確認の間隔と知らせるまでの失敗は HND-10 も決めたもので、EXT-02 を呼ぶ操作の期限は HND-07 で実装に送った EXT-02 の呼び出しの枠（MOD-40）より長くした。期限、入口の回数の限り、生存確認の値は DAS-17 による暫定の決定で、外部を呼ばない操作の期限は、ELM-02 の MOD-01 のタイムアウト 15 秒（DAS-16）が通信の余裕 5 秒を足しても収まるよう 10 秒より短くした。期限を過ぎた外部を呼ばない操作を 503 SERVICE_UNAVAILABLE で答えることは DEC-35 と DEC-42 から推定（何も書かれていなければ同じキーの送り直しが初めから行い、確定していれば同じキーの送り直しが最初の答えを受ける）。日々の処理の経路（IFC-15）では、セッションより前に呼び出しの印（想定の本番は Cloud Scheduler の OIDC の印、ローカルは共有の秘密）を確かめ、合えば利用者を system（DEC-43 の actorKind）にし、合わなければ 401 NOT_SIGNED_IN で答え、セッションのクッキーを使わないその経路を Origin の確かめから外すことは、IFC-15 の auth と errors と DEC-40（入力）に従うよう FND-64 を受けて判断表 A に加えた（行の置き場所は推定）。入口の回数を数える送り元の上限は、報告のメモリの構造にあって parameters になかった値で、FND-71 を受けて parameters と DAS-17 に置いた
+premises: [DAS-17, DAS-16]
+component: ELM-03
+name: HTTP の入口
+depth: full
+depth_reason: ELM-03 に届くどの要求もここを通り、どの答えにも答える期限（HND-19）と共通の約束事の形と境界の出来事（SLI-01〜SLI-06 のもと）をここが守る。その期限に ELM-01 と ELM-02 のタイムアウト（ELM-02 の MOD-01、HND-17）が頼り、境界の出来事に六つの SLI が頼るため、枠の深さでは影響の広さが高い
+responsibility: ELM-03 に届く要求を操作のモジュールに渡し、どの答えも共通の約束事の形で期限のうちに返す
+visibility: public
+interface:
+  - operation: "handle(request: HttpRequest) -> HttpResponse"
+    pre: null
+    post: 判断表 A の順で、要求の ID を作り、たどる ID と送り直しの別を読み、境界の出来事を受けた時刻で書き（MOD-28。位置の報告、端末からの報告、生存確認を除く）、日々の処理の経路では呼び出しの印か共有の秘密を確かめて利用者を system にし、ほかの経路ではセッションから利用者を決め（MOD-36）、状態を変える要求の Origin を確かめ（日々の処理の経路を除く）、経路をその利用者に許すかを MOD-27 で確かめ、要求の形を確かめ、冪等キーの要る経路は MOD-26 の check を通してから経路の操作を呼ぶ。操作が返した型のある結果と投げた失敗を DEC-35 の形に変え（判断表 B）、X-Request-Id と X-Idempotent-Replayed を付け、答えた時刻、状態、符号、outcome、failureOrigin を境界の出来事に足し、DEC-43 の項目のログを一行書く。経路の答えの期限（parameters と各 IFC の timing）のうちに操作が答えなければ、外部を呼ばない操作はその取引を止めて 503 SERVICE_UNAVAILABLE で答え、外部を呼ぶ操作は IFC-17 の待ちの切り方で期限のうちに答える
+    errors: ["VALIDATION_FAILED: 400。要求の形の誤り（冪等キーの要る経路でキーが欠けているときを含む）", "NOT_SIGNED_IN: 401。セッションがないか切れている。日々の処理の経路では、呼び出しの印か共有の秘密がないか合わない", "NOT_ALLOWED: 403。利用者の種類に許していない経路か、Origin の違う状態を変える要求", "NOT_FOUND: 404。ない経路", "TOO_MANY_REQUESTS: 429。入口の回数の限りを超えた（Retry-After を付ける）", "INTERNAL_ERROR: 500。操作が投げた扱えない失敗", "SERVICE_UNAVAILABLE: 503。外部を呼ばない操作が答えの期限を過ぎたか、ELM-04 か秘密の置き場所が答えない（何も書いていない）"]
+  - operation: "registerRoute(route: RouteDefinition) -> none"
+    pre: 起動のときに、各機能の index.ts が出す経路だけを登録する
+    post: 経路の名前（operationId）、方法と経路、冪等キーが要るか、外部を呼ぶか、答えの期限、境界の出来事に依頼の段階（ridePhase）を写すかを登録に加える。MOD-27 に決まりのない経路と、期限のない経路は起動しない
+    errors: ["RouteWithoutAccessRule: MOD-27 の登録に決まりのない経路（起動しない）"]
+  - operation: "clientConfig() -> ClientConfig"
+    pre: null
+    post: GET /v1/client-config に、MOD-22 が確かめた設定のうち公開してよい値と偽物の選び方と buildId だけを返す（DEC-34）
+    errors: []
+  - operation: "health() -> HealthStatus"
+    pre: null
+    post: GET /healthz に status だけを返す。何も読まず、変えず、境界の出来事にもログにも残さない
+    errors: []
+invariants:
+  - 受けた要求には、答えたかどうかにかかわらず、受けた時刻の境界の出来事が一行ある（位置の報告、端末からの報告、生存確認を除く）
+  - どの答えも DEC-35 の形で、Hono と @hono/zod-openapi の既定の誤りの形を返さない
+  - ログのどの行も DEC-43 の項目を持ち、MOD-27 を通っていない値を持たない
+  - 外部を呼ばない操作が答えの期限を過ぎて 503 で答えるとき、その操作の取引は確定していないか、確定していれば同じキーの送り直しがその答えを受ける（MOD-26）
+depends_on: [MOD-21, MOD-22, MOD-24, MOD-26, MOD-27, MOD-28, MOD-36]
+functions: [FR-48, FR-49]
+realizes:
+  - IFC-01 GET /v1/client-config
+  - IFC-16 GET /healthz
+drivers: [DRV-01, DRV-12, DRV-24, DRV-25, DRV-28, DRV-31]
+decisions: [DEC-15, DEC-23, DEC-34, DEC-35, DEC-40, DEC-42, DEC-43, DEC-44, DEC-46]
+behaviour: "報告書の節: MOD-20 HTTP の入口"
+verification:
+  - checks: 要求の確かめの失敗、型のある結果、投げた失敗、ない経路が DEC-35 の形になり、ライブラリの既定の形が出ない（判断表 B）
+    how: 単体の層（POL-04 の境界のエラーの変換の単体のテスト）
+  - checks: 利用者の種類と本人の確かめの有無の組ごとの 401 と 403、Origin の違う状態を変える要求の 403、端末から送る値を書き換えた要求（FR-48 の 3、FR-49 の 1、NFR-27）
+    how: 結合の層（経路の登録から組を作る。NFR-27 の出どころ）
+  - checks: 判断表 A の日々の処理の経路の行（印のある呼び出しが Origin なしで通って system として MOD-32 に届き、印のないものと合わない印とセッションのクッキーだけのものが 401 NOT_SIGNED_IN になる。FND-64）
+    how: 単体の層（印の確かめはポートの偽物）と結合の層（日々の呼び出しの偽物が、定期の呼び出しと同じ形の要求をローカルの共有の秘密で送る。想定の本番の OIDC の印は何も配備しないため結合の層では確かめない、TC-09）
+  - checks: 経路の登録ごとに MOD-27 の決まりと答えの期限があり、ないと起動しない
+    how: 結合の層
+  - checks: 境界の出来事が受けたときに書かれて答えたときに結果が足され、書き終えた後の応答を落とした送り直しの X-Resend が写り、SLI-01〜SLI-06 の項目がそろう
+    how: 結合の層（端末とのつながりの偽物）
+  - checks: 外部を呼ばない操作が答えの期限を過ぎると 503 で答え、同じキーの送り直しが一度だけ効く
+    how: 結合の層（依頼の状態を書くポートの差し込みで操作を期限の後まで止める、時計の偽物）
+  - checks: 生存確認が status だけを返し、境界の出来事とログに残らない。client-config が公開してよい値と偽物の選び方だけを返す（POL-04）
+    how: 結合の層
+  - checks: 入口の回数の限りの 429 と Retry-After
+    how: 結合の層（時計の偽物）
+parameters:
+  - name: ELM-03 が答える期限（時間のしきい値の SLO とお金の道にない、外部を呼ばない操作。IFC-01、IFC-03 の今の状態と乗車の開始と到着の確認、IFC-04 の受付の切り替えと一覧と依頼の選択、IFC-06、IFC-08、IFC-09 の過去の乗車と苦情、IFC-10、IFC-12、IFC-14）
+    value: 5 秒
+    basis: HND-19。自身の処理と一つか二つの取引（DEC-46 の予算でそれぞれ 0.1 秒）、パスワードの照らし合わせ、担当者の検索で読み解く項目に、取引の待ちの遅い裾を見込んだ暫定の値（DAS-17）
+  - name: ELM-03 が答える期限（EXT-02 を呼ぶ操作。IFC-02 の四つの操作と IFC-03 の降りる場所の変更の見積もり）
+    value: 8 秒
+    basis: HND-19 と HND-07。一つの操作の EXT-02 の呼び出しをやり直しを含めて 6 秒のうちに諦める枠（MOD-40）に、自身の処理と見積もりを書く取引と余裕の 2 秒を足した暫定の値（DAS-17）
+  - name: ELM-03 が答える期限（生存確認 GET /healthz）
+    value: 1 秒
+    basis: HND-19。何も読まずに答える。外からの生存確認のタイムアウトより短い（DAS-17）
+  - name: 入口の回数の限り（本人の確かめなしで受ける操作）
+    value: POST /v1/sessions と POST /v1/account-setups は送り元ごとに 1 分に 20 回、GET /v1/client-config と GET /healthz は送り元ごとに 1 分に 120 回。インスタンスごとに数える
+    basis: DEC-35 の 429 と IFC-01、IFC-16。参加者 2 人（OPF-03）と担当者とエンジニアの使い方より十分に多く、推し量りの試みを MOD-36 のアカウントを止める回数とともに抑える暫定の値（DAS-17）
+  - name: 入口の回数を数える送り元の上限（メモリの構造）
+    value: インスタンスごとに 10000 の送り元（分が変われば消え、超えたら古いものから消す）
+    basis: デモの参加者と担当者とエンジニア（OPF-02、OPF-03）の送り元より十分に多く、多くの送り元からの要求でもインスタンスのメモリを決まった大きさに抑える暫定の値。超えて消した送り元はその分の数えを失い、限りを少し超えて受けうるだけ（DAS-17）
+  - name: 外からの生存確認の間隔、タイムアウト、知らせるまでの失敗（IFC-16。infra/gcp/ の Cloud Monitoring の設定）
+    value: 1 分ごと、タイムアウト 10 秒、2 分続けて失敗したら知らせる
+    basis: HND-19 と HND-10。止まってから知らせるまで最悪 1 分（次の確かめ）と 2 分（続く失敗）と知らせの送りの 1 分の和の 4 分で、T_alert_delay（5 分、QR-33）のうち。タイムアウトは期限 1 秒より長い（DAS-17）
+as_is: new

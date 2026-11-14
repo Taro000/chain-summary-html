@@ -1,16 +1,14 @@
 id: QIU-03
 title: Returned within 3 days
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 user: USR-02
 cuj: CUJ-02
 outcomes: [OUT-02]
 need: Teachers can grade and return a submission within 3 days of receiving it.
-context_of_use: {device: Smartphone browser, network: null, user_type: null, task: Returned within 3 days, environment: null, other: null}
+context_of_use: {device: Smartphone, network: null, user_type: null, task: Returned within 3 days, environment: null, other: null}
 characteristic: efficiency
 statement: Teachers can grade and return a submission within 3 days of receiving it.
 failure_scenario: The grading screen is slow, and returns slip into the next week.
@@ -18,5 +16,3 @@ measure: {numerator: Submissions returned within 3 days, denominator: Returned s
 kpi: KPI-02
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

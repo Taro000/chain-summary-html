@@ -1,49 +1,46 @@
 id: IFC-19
-title: Cloud Monitoring の規則
-status: draft
-version: 2
-basis: inferred
-basis_note: DEC-17（二つの規則、役目、開け閉めの手順。二つ目の規則は運用のジョブを見ない）と第 2 段階の DEC-37 版 4（期間の終わりに毎日の処理が二つ目の規則を止める）は入力。指標の名前、ラベル（response_code_class、response_code、result）、60 秒ごとに取られ最大 120 秒遅れて見えることは Cloud Monitoring の指標の一覧（2026-11-03）。一つ目の規則の条件の分け方と値は DEC-54 版 2（FND-37）。二つ目の規則をジョブの名前で毎日の処理のジョブに絞ることは推定（最初の配備で確かめる）
-needs_agreement: true
-approver_candidates:
-- 開発の責任者
-kind: event
-name: Cloud Monitoring の規則（外部）
-provider: ELM-14
-consumers:
-- USR-03
-functions:
-- FR-36
+title: 地図のサービスの API（EXT-02）
+status: active
+basis: assumed
+basis_note: 場所の候補、住所と位置、二つの場所の間の道の長さと移動時間をサーバーの一つのつなぎ口から求め、EXT-02 が失敗するか答えないときは場所の検索と見積もりを止め、確定した依頼と乗車は止めず、迎車中と乗車中の着く見込みをサーバーが新しい位置から決まった間隔で求め直すことは DEC-13（入力）。製品が Google Maps Platform であることは TC-12（入力）。使う API と項目（Places API (New) の Autocomplete と Place Details、Geocoding API の逆の検索、Routes API の computeRoutes）は Google Maps Platform の文書による（POL-05、報告の「入力」）。名前と連絡先を渡さないことは DEC-13 と脅威のモデルの F7（入力）。着く見込みを求め直す間隔を決めて HND-08 を決めた。間隔の値は DAS-11 による暫定の決定で、着く見込みの遅れが T_vehicle_location_lag に収まることは報告の「遅延の予算とタイムアウト」で計算した。呼び出しのタイムアウトとやり直しは HND-07 で第 4 段階で、着く見込みを求め直す呼び出しがやり直しを含めて諦めるまでの枠を、その計算から書いたことは FND-28 を受けた。見積もりの料金に使う道の項目（道の長さと時間）は、模す運賃の定めの中身を待つ（QCR-09。第 4 段階の ELM-03 の質問 1 で尋ねている）。定めが区間ごとの速さのような道のほかの項目を要すれば、computeRoutes で求める項目が加わる
+premises: [EXT-02, TC-12, DAS-11, QCR-09]
+kind: http
+name: 地図のサービスの API（Google Maps Platform）
+provider: ELM-06
+consumers: [ELM-03]
+functions: [FR-01, FR-02, FR-03, FR-06, FR-08, FR-13, FR-20, FR-47]
 operations:
-- name: 一つ目の規則（デモの回の間だけ有効）
-  does: 一つの規則に二つの条件を持つ。急ぐ知らせは、(a) run.googleapis.com/request_count の response_code_class が 5xx の数が 5 分で 5 件以上、または (b) run.googleapis.com/container/instance_count が 10 分届かないとき。急がない知らせは、(c) response_code が 429 の数が 5 分で 30 件以上のとき（知らせに条件の名前を入れて見分ける）。ラベルでは入口とアプリの応答を分けられないので、アプリが返した 503（Turso に届かないときを含む）と業務の 429（回数の制限、ログインの停止、流れの上限など）も数える。業務の 429 を外すと入口が返す 429（同時の要求の枠が尽きた）も拾えないので、429 はしきい値を高くして急がない知らせにした（DEC-54 版 2）
-- name: 二つ目の規則（デモの期間だけ有効）
-  does: run.googleapis.com/job/completed_execution_count の result が failed のものが 1 件以上。毎日の処理のジョブだけを見る（ジョブの名前で絞り、運用のジョブは見ない。DEC-17）。期間の終わりに毎日の処理が止める（第 2 段階の DEC-37 版 4）
-format: Cloud Monitoring の通知（チャットへの通知の経路。チャットを選んでから決める）。急ぐか急がないかは条件の名前で示す
-protocol: Cloud Monitoring → 通知先
-auth: 通知先は Cloud Monitoring の設定にだけ置く（DEC-34）
+  - name: POST https://places.googleapis.com/v1/places:autocomplete
+    does: 入れた文字から場所の候補を求める。候補の所在地（secondaryText）で同じ名前と似た名前を区別する（FR-01、QR-09）
+  - name: GET https://places.googleapis.com/v1/places/{placeId}
+    does: 選んだ候補の位置と住所を求める（FieldMask で location と formattedAddress だけ、FR-01、QR-09）
+  - name: GET https://maps.googleapis.com/maps/api/geocode/json
+    does: 端末が測った現在地から住所を求める（逆の検索、FR-02）
+  - name: POST https://routes.googleapis.com/directions/v2:computeRoutes
+    does: 二つの場所の間の車の道の長さと時間を求める（FieldMask で distanceMeters と duration だけ。見積もり、迎車と乗車中の着く見込み、依頼の内容の移動時間、降りる場所の変更、FR-03、FR-06、FR-08、FR-13、FR-20、FR-47）
+format: JSON。言語は日本語、地域は日本。位置は WGS84 の緯度と経度
+protocol: HTTPS の要求と応答。ELM-03 の places の機能の adapters/ だけが呼ぶ（POL-02）
+auth: サーバー用の API の鍵（ELM-03 だけが持つ、POL-04）。鍵は使う API に絞る
 errors:
-- case: チャットが止まっている
-  signal: 届かない
-  caller_does: 残る危険（第 2 段階の F16）
-- case: 業務の 429 で (c) が鳴った（ログインや設定の符号の総当たり、流れの開き直しなど）
-  signal: 急がない知らせ
-  caller_does: 急がず、Logs Explorer で request.completed の route_id と符号、auth.* と stream.* のログを見て、入口の 429 か業務の 429 かを分ける。攻撃が続くならデモを閉じる（第 2 段階の DEC-21）
-idempotency: 条件が続く間は一度。外れたら閉じる（30 分で自動で閉じる）
+  - case: 当てはまる場所がない（候補がない、ZERO_RESULTS）
+    signal: 結果なし
+    caller_does: 見つからないことを答える（FR-01 の 3、FR-02 の 3）
+  - case: 二つの場所の間を車で行く道がない（routes が空）
+    signal: 道なし
+    caller_does: ROUTE_NOT_FOUND で答える（FR-03 の 4、FR-47 の 4）
+  - case: タイムアウト、つながらない、5xx、429、OVER_QUERY_LIMIT
+    signal: 失敗か答えない
+    caller_does: MAP_SERVICE_UNAVAILABLE で答え、着く見込みは示せないとする。確定した依頼と乗車は止めない（FR-01 の 5、FR-03 の 5、FR-47 の 5、DEC-13、QR-65）
+  - case: 鍵の誤りか権限（403、REQUEST_DENIED）
+    signal: システムの誤り
+    caller_does: 異常として記録し、上と同じに答える
+idempotency: どの呼び出しも読むだけで繰り返してよい
 timing:
-  timeout: null
+  timeout: 呼び出しのタイムアウトとやり直しの回数と間隔は第 4 段階が決める（HND-07。DEC-13 のタイムアウトの順を守る）。迎車中と乗車中の着く見込みは、新しい位置を受けたときに、前に求めてから 10 秒以上たっていれば求め直す（HND-08）。求め直しに使う位置が T_vehicle_location_lag より古ければ求めず、着く見込みを示せないとする。着く見込みを求め直す呼び出しは、やり直しを含めて最初に送ってから 8.5 秒のうちに答えを得なければ諦め、着く見込みを示せないとする（T_vehicle_location_lag の 30 秒から、位置の古さ 10.7 秒、求め直す間隔 10 秒、流れと示すまで 0.8 秒を引いた残り。報告の「遅延の予算とタイムアウト」）。第 4 段階はこの枠の中で値を決める（HND-07）。値は DAS-11
   ordering: null
-  delivery: 指標は 60 秒ごとに取られ最大 120 秒遅れて見えるので、知らせまで 4〜5 分（遅延の予算）
-versioning: 規則の定義は infra に置き、手順だけが変える（DEC-27）
-observability: Cloud Monitoring が出来事を残す
+  delivery: null
+versioning: Places API (New) の v1、Geocoding API、Routes API の v2 の端点（EXT-02 の文書）。項目は FieldMask で決めたものだけを求める
+observability: 呼び出しごとの結果と時間をたどる記録（DAT-18）に残す。位置と探す文字は伏せる（DEC-15）
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 一つ目の規則の条件を、急ぐ知らせ（5xx が 5 分で 5 件以上、またはインスタンスの指標が 10 分ない）と急がない知らせ（429 が 5 分で 30 件以上）に分け、引き換え（業務の 429 と入口の 429 を分けられない）を書いた。業務の 429 で鳴ったときの扱いを足した。二つ目の規則は毎日の処理のジョブだけを見て（運用のジョブは見ない）、期間の終わりに毎日の処理が止めると書いた
-  reason: '第 3 段階の再実行（2026-11-04）: DEC-54 版 2（FND-37）、第 2 段階の DEC-17 版 4・DEC-37 版 4'

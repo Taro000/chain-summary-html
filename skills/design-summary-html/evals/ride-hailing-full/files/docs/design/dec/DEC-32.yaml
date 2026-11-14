@@ -1,51 +1,41 @@
 id: DEC-32
-title: Node.js の上の Hono を一つのコンテナイメージで動かす
-status: draft
-version: 1
-basis: inferred
-basis_note: TC-01〜05、TC-13 は入力。実行の土台と道具は提案（質問 11 は回答なし）
-needs_agreement: false
-approver_candidates: []
-stage: architecture
-question: 何の上で動かし、手元とデモの回で同じ形をどう保つか
-addresses:
-- DRV-17
-- DRV-18
-- DRV-15
+title: パイプラインは開発者のマシンだけで動かし、変更のたびの検査は git のフックが、リリースの前の確かめは版の印から起こすリリースの手順が行う
+status: active
+basis: assumed
+basis_note: 作ること、試すこと、動かすことをローカルだけで完結させ、何も配備しないことは TC-09（入力、設計の第 1 段階の質問 1 で確認済み、交渉できない）。新しい版はデモの回を開くときに配備すること（TC-15）と、ローカルでは同じコンテナか同じランタイムで動かすこと（DEC-05）は入力。開発者 1 人の体制は PC-03。比べ方と選び方は推定。開発者のマシンでコンテナを動かせることは DAS-08 による仮定
+premises: [TC-09, TC-15, PC-03, DAS-08]
+stage: technical-policy
+question: TC-09 のもとで、品質チェーンのゲートとこの技術方針の検査を、どこで、何が起こして動かすか
+addresses: [DRV-15, DRV-16, DRV-12, DRV-13]
 options:
-- name: Node.js（LTS）の上の Hono。一つのコンテナイメージを手元（Docker）と Cloud Run（サービスとジョブ）で動かし、ふだんの開発は Node.js と手元の libSQL で回す。設定は環境変数、秘密は Secret Manager（GitHub の秘密は CI の分だけ）。React の組み立ては Vite、テストは Vitest と Playwright
-  effect: Stripe、libSQL、Hono の Node.js 向けの部品がそのまま使える
-  cost: 特になし
-- name: Bun の上の Hono
-  effect: 起動と実行が速い
-  cost: ライブラリとの相性の確かめが要る
-- name: Deno の上の Hono
-  effect: 型と権限の仕組みが組み込み
-  cost: 道具が TC-04・05 と重なる
-chosen: Node.js（LTS）の上の Hono。一つのコンテナイメージを手元（Docker）と Cloud Run（サービスとジョブ）で動かし、ふだんの開発は Node.js と手元の libSQL で回す。設定は環境変数、秘密は Secret Manager（GitHub の秘密は CI の分だけ）。React の組み立ては Vite、テストは Vitest と Playwright
-rationale: TC-01〜05（DRV-17）をそのまま満たし、TC-06・07（DRV-18）の Cloud Run と Turso に同じイメージで載る。足す道具（Vite、Playwright、axe、依存の確かめ）は TC-13 の範囲
+  - name: 開発者のマシンだけで動かす。検査の手順は git のフックが main に入る変更のたびに起こし、リリースの手順は開発者が main の commit に版の印を付けて起こし、検査の手順を初めからやり直したうえで、同じマシンのコンテナで試験の環境を立てて止める
+    effect: すべてローカルで完結し、費用がかからない。フックと、コーディングエージェントと、開発者が同じ命令（pnpm check、pnpm release）を動かす。フックを飛ばした変更があっても、通らない版はリリースの手順が配備しない
+    cost: main に入る変更を止めるのはフックだけで、フックを飛ばせば止まらない。リリースのたびに、開発者のマシンで試験の環境を立てる時間がかかる
+  - name: 開発者のマシンのコンテナで CI のサーバー（Woodpecker など）を動かし、変更のたびとリリースのたびに走らせる
+    effect: CI のサーバーが走った記録と画面を持つ
+    cost: CI のサーバーと走らせる仕組みを 1 人で動かして保つ。走るのは開発者のマシンが動いている間だけで、一つ目と変わらない
+  - name: 外部の CI のサービス（GitHub Actions など）で走らせる
+    effect: 開発者のマシンによらず走る
+    cost: 試すことをローカルの外で行い、TC-09 を破る
+chosen: 開発者のマシンだけで動かす。検査の手順は git のフックが main に入る変更のたびに起こし、リリースの手順は開発者が main の commit に版の印を付けて起こし、検査の手順を初めからやり直したうえで、同じマシンのコンテナで試験の環境を立てて止める
+rationale: 三つ目は交渉できない TC-09（DRV-15）を破るため外した。二つ目は一つ目と同じく開発者のマシンの上で動き、得るのは走った記録の画面だけで、もう一つの仕組みを保つ手間が DRV-16 で劣る。一つ目は、変更のたびの検査（CI のゲートと依存の規則、DRV-12）を git のフックで、リリースの前の確かめ（リリース前の確認のゲート、配備と戻しの予行、DRV-13）をリリースの手順で行い、どちらも同じ命令なので、コーディングエージェントも開発者も同じものを動かす（POL-06）。リリースの手順は検査の手順を初めからやり直すため、フックを飛ばしても、通らない変更は配備されない（ゲートの「通らない変更は公開しない」を守る）。試験の環境は ELM-03 のイメージと libSQL のサーバーのコンテナで立てて止め（POL-03）、確かめたものと同じイメージをローカルの本番に配備する（DEC-05）
 rejected:
-- option: Bun の上の Hono
-  reason: 相性の確かめで DRV-26 の手間が増える
-- option: Deno の上の Hono
-  reason: 道具が TC-04・05 と重なる
+  - option: 開発者のマシンのコンテナで CI のサーバー（Woodpecker など）を動かし、変更のたびとリリースのたびに走らせる
+    reason: 走る所は一つ目と同じで、CI のサーバーを保つ手間が DRV-16 で劣る
+  - option: 外部の CI のサービス（GitHub Actions など）で走らせる
+    reason: 試すことをローカルの外で行い、交渉できない TC-09 を破る
 gains:
-- ライブラリがそのまま使える
-- 手元と Cloud Run で同じイメージ
+  - ローカルで完結し、費用がかからない
+  - フック、コーディングエージェント、開発者が同じ命令を動かす
 costs:
-- 特になし
+  - フックを飛ばせば、検査を通らない変更が main に入りうる（リリースの手順が配備は止める）
+  - リリースのたびに試験の環境を立てる時間がかかる
 sensitive_points: []
 trade_offs: []
-assumptions: []
-depends_on:
-- DEC-01
+assumptions:
+  - 開発者のマシンは、試験の環境のコンテナを立てられる（DAS-08）
+  - コーディングエージェントと開発者は git のフックを飛ばさない（POL-06 が求める）
+depends_on: [DEC-05, DEC-26]
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）

@@ -1,0 +1,41 @@
+id: POL-01
+title: The stack of each kind of component
+status: active
+basis: inferred
+basis_note: null
+premises:
+- TC-01
+- TC-04
+- DAS-02
+scope: technology
+addresses:
+- DRV-06
+- DRV-07
+decisions:
+- DEC-01
+- DEC-08
+rules:
+- rule: Packages are managed in one pnpm workspace
+  check: The check step installs without changing the lockfile
+stack:
+- kind: Web app in the browser
+  elements:
+  - ELM-01
+  - ELM-02
+  language: TypeScript
+  runtime: The students' and teachers' browsers, in their current release and the one before it
+  framework: React
+  libraries:
+  - Vite (build)
+  - React Router (screen flow)
+- kind: HTTP server and nightly batch
+  elements:
+  - ELM-03
+  - ELM-06
+  language: TypeScript
+  runtime: The Active LTS version of Node.js, in a container (DAS-02)
+  framework: Hono (DEC-08)
+  libraries:
+  - Zod (request validation)
+  - The ObjectStore SDK (signed URLs, DEC-02)
+as_is: new

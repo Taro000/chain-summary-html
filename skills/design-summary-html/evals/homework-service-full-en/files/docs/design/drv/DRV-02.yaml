@@ -1,12 +1,9 @@
 id: DRV-02
 title: Confirm submissions without keeping students waiting
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 kind: quality
 statement: Return the confirmation of a submission within 3 seconds
 sources:
@@ -20,7 +17,7 @@ scenario:
   artifact: FR-01, FR-02
   environment: The rush before a deadline
   response: The receipt is shown
-  measure: The 95th percentile of submission confirmation is within 3 seconds (NFR-06)
+  measure: 'NFR-06''s monitor: the 95th percentile of confirmation within 3 seconds'
 negotiable: null
 derived_from: []
 priority:
@@ -34,8 +31,3 @@ conflicts:
 - with: DRV-01
   note: Writing the record before the receipt slows the confirmation (FND-01)
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

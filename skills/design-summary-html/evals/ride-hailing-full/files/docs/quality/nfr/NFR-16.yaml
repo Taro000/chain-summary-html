@@ -1,35 +1,21 @@
 id: NFR-16
-title: ログインと役割の画面のテスト
-status: draft
-version: 2
-basis: inferred
-basis_note: 推定。設定の符号の確かめを足したことは QR-20 版 2（招待制、設計 2-9）への追随（推定）
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-20
-kind: gate
-cuj: CUJ-01
-statement: ログインしていない要求と、ほかの役割の画面への要求が受け付けられないこと、一度使った・出し直す前の・正しくない設定の符号でパスワードを決められないことを、自動テストで確かめる。
+title: 止まってから再開する回復の訓練
+status: active
+basis: assumed
+basis_note: 訓練の中身は QR-17 からの推定。デモの前ごとという頻度は暫定の決定（QAS-28）
+premises: [OPF-01, EXT-01, QAS-28]
+from: [QR-17]
+kind: audit
+cuj: CUJ-08
+statement: 保存するデータの形を変えるリリースのたびと、各デモの前（OPF-01）に、依頼と乗車と決済の途中でシステムを止めて再開する訓練を行い、確定した依頼、乗車中の乗車と確定額、EXT-01 から受けた押さえ、決済、キャンセル料と不在の料金の請求、返金の結果が一つも失われず、止まる前の状態から続けられることを確かめる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: null
+  transactions: 確定した依頼とその押さえ、乗車中の乗車、決済、キャンセル料と不在の料金の請求、返金
 slo: null
-gate:
-  where: CI
-  check: ログインしていない要求、ログアウト後の要求、乗客・ドライバー・運営・サポート担当がほかの役割の画面を使う要求、一度使った設定の符号、出し直す前の符号、正しくない符号でパスワードを決める要求（FR-01、FR-48）
-  threshold: すべて拒まれる
-audit: null
+gate: null
+audit:
+  mechanism: 回復の訓練（試験の環境で、進んでいる依頼と乗車と決済の途中で止めて再開する）
+  criterion: 確定した依頼、乗車中の乗車と確定額、押さえ、決済、キャンセル料と不在の料金の請求、返金の結果がどれも失われず、止まる前の状態から続けられること
+  cadence_or_deadline: 保存するデータの形を変えるリリースのたびと、各デモの前
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。設定の符号（使った、出し直す前、正しくない）でパスワードを決められないことを確かめる場合に足した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。第 3 段階の再実行（2026-11-03）の QR-20 版 2 への追随（docs/quality-chain-answers.md の設計 2-9）

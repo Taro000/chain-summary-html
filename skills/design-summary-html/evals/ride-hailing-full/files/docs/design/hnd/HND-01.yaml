@@ -1,0 +1,14 @@
+id: HND-01
+title: EXT-01 のテスト環境が押さえ、請求、返金に答えるまでの時間
+status: decided
+basis: inferred
+basis_note: 確かめる点は QR-24 の basis_note（EXT-01 のテスト環境の応答の速さは入力になく、設計が確かめる）にある。この段階のどの判断もこれによらず、送り先は推定
+premises: [EXT-01, TC-10]
+from: requirements-to-architecture-drivers
+to: architecture-to-high-level-design
+component: null
+origin: [QR-24]
+what: EXT-01 のテスト環境が、押さえ、押さえ直し、請求、解除、返金にどれだけの時間で答えるか。お金が動く道の時間切れと待ちを決めるときに、QR-24 の T_payment_response のうちに結果か分からないことを示せるかを確かめる
+bounds: QR-24（T_payment_response のうちに結果か分からないことを示す）、NFR-29、DRV-07（確定額どおりに一度だけ動く）、DRV-32（結果が分からない操作は確かめてから進む）
+trigger: 第 3 段階の次の実行
+resolution: IFC-03 と IFC-17 で確かめた。決済に ELM-03 が答える期限 8.8 秒（EXT-01 への一回の呼び出し 4 秒、同じキーでの一度のやり直し、自身の処理と取引）は、EXT-01 のテスト環境の速さによらず T_payment_response のうちにあり、それまでに分からなければ結果が分からないことを示す（DEC-45）ため、QR-24 の時間のうちに結果か分からないことを示せる。EXT-01 の応答の時間そのものは測っておらず、一回の呼び出しのタイムアウトと NFR-07 の予算の押さえのホップは暫定の値（DAS-10）で、測るゲートは QCR-06 で品質チェーンに求めた

@@ -1,0 +1,44 @@
+id: MOD-30
+title: 振る舞いの切り替え
+status: active
+basis: inferred
+basis_note: 切り替えをデータベースに置いてエンジニアの画面から変え、ELM-03 は操作ごとに読み、Web アプリには流れで伝えることは DEC-26 と DAT-23、変えたことを操作の記録と一つの取引で書くことは DAT-23 と IFC-14、機能を加えるか直す変更がその振る舞いを切り替えに登録し、切り替えを読むのはその機能の application/ の入口の一か所であることは POL-04、止めると変える前の振る舞いに戻り、まったく新しい機能は示さないことは FR-36（どれも入力）。switch.changed を書く口を MOD-33 が実装して起動のときに渡すことは、機能の間の依存を一方に保つための推定
+premises: []
+component: ELM-03
+name: 振る舞いの切り替え
+depth: bounds
+depth_reason: null
+responsibility: 変えた振る舞いの切り替えを持ち、操作のたびにその値を渡す
+visibility: public
+interface:
+  - operation: "isOn(name: SwitchName) -> boolean"
+    pre: name は切り替えの登録にあるもの（ないと起動しない）
+    post: その時の値（DAT-23）
+    errors: []
+  - operation: "list() -> SwitchView[]"
+    pre: null
+    post: GET /v1/console/switches に、切り替えの一覧と、動いているか止めているかを返す
+    errors: []
+  - operation: "set(actor: Actor, name: SwitchName, enabled: boolean, key: IdempotencyKey) -> SwitchView"
+    pre: null
+    post: PUT /v1/console/switches/{switchName} で、一つの取引で値、操作の記録（MOD-29）、冪等キーの答え（MOD-26）を書き、起動のときに渡された口（MOD-33）に switch.changed を書かせる。その時から効く
+    errors: ["NOT_FOUND: 知らない切り替え"]
+invariants: []
+depends_on: [MOD-21, MOD-25, MOD-26, MOD-29]
+functions: [FR-36]
+realizes:
+  - IFC-14 GET /v1/console/switches
+  - IFC-14 PUT /v1/console/switches/{switchName}
+  - IFC-11 switch.changed
+drivers: [DRV-12, DRV-13]
+decisions: [DEC-26]
+behaviour: null
+verification:
+  - checks: 切り替えの登録ごとに、止めた側と動かした側を通す（登録にあってテストのない切り替えがあると失敗する、POL-04）
+    how: 結合の層
+  - checks: 止めると進んでいる依頼と乗車が失われずに変える前の振る舞いに戻り、まったく新しい機能は示さない（FR-36 の 1〜3）
+    how: 結合の層と端から端の層
+  - checks: 変えたことが操作の記録と switch.changed に残る
+    how: 結合の層
+parameters: []
+as_is: new

@@ -1,28 +1,14 @@
 id: FND-14
-title: 配備と戻しで、毎日の処理のジョブのイメージがサービスと一緒に変わるかが決まっていない
+title: 依存の規則が、外部のシステムとデータベースのつなぎ口と ELM-01 の差し替え口を迂回する道を残している
 status: accepted
-version: 2
 basis: inferred
-basis_note: DEC-05・27、ELM-06、NFR-35 の文は入力。版がずれたときに起きることは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: POL-02 の依存の規則と規則、POL-03 の差し替え口、HND-14、報告の「リポジトリとディレクトリ」の文は入力。規則が限らない道は、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-27
-- DEC-05
-- ELM-06
+raised_in: reviews/2b-technical-policy.md
+to: architecture-to-technical-policy
+targets: [POL-02]
 severity: minor
-evidence: ジョブはサーバーと同じイメージで、同じモジュールのコードでサーバーの表を書く（DEC-05）。「期間を始める」がジョブを作り、「デモを開く」がサービスを配備し、「戻す」が前のイメージを配備する（DEC-27、ELM-06）。どの手順もジョブのイメージを替えると書いていない。期間の途中で二度配備すると、ジョブは二つ前の版のまま新しい構造に書き込む。NFR-35 が確かめるのは一つ前の版だけ（DRV-16、DRV-04）
-suggestion: 配備と戻しの手順が、サービスとジョブを同じイメージに替えることを DEC-27 と ELM-06 に書き、配備の記録（FR-41）に両方の版を残す
-resolution: 受け入れた。DEC-27（版 2）と ELM-06（版 2）に、サービスのイメージを替える手順（デモを開く、戻す）は同じ実行でジョブも同じイメージに替え、配備の記録に両方の版を残すことを書いた。配備の記録が指すイメージ（今と一つ前）を消さないことを ELM-09（版 2）に書いた
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 2 段階のレビュー（活動 A2、A4）
-- version: 2
-  date: '2026-11-03'
-  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
-  reason: 第 2 段階の再実行（2026-11-03）
+evidence: 報告は、外部のシステムの部品を各機能の adapters/ だけが使い、application/ は adapters/ を使わないことなどを「どれも Oxlint の規則で、検査の手順が守る」と書く。しかし POL-02 の依存の規則は、一つ目に大域の fetch を限らず、EXT-01 を HTTP で直接呼ぶ案（HND-14 が第 4 段階に残す）や、実装が決める EXT-02 と Web Push の呼び方が fetch なら、外部の部品の規則は何も限らず、adapters/ の外のコードが ELM-05、ELM-06、ELM-07 を呼べて、POL-03 の偽物の差し替え口（payments、places、notifications のポート）と DEC-10 の試みの記録を通らない。二つ目に、application/ に禁じるのは adapters/ だけで、drizzle-orm、@libsql/client、src/platform/ のデータベースのつなぎを import でき、表を書くのはその機能の adapters/ だけという規則は機能の間でしか確かめられず、NFR-11 の重なりの偽物が差し込む DEC-08 の書き込みのポートを迂回できる。三つ目に、POL-03 は EXT-01 の入力部品と地図を描く部品の偽物を ELM-01 の src/platform/ に差し込むが、その部品（Stripe.js と地図の部品）を src/platform/ だけが import する規則がない
+suggestion: 同じ Oxlint の規則で、ELM-03 では大域の fetch と node:http、node:https を外部のシステムを持つ機能の adapters/ のほかで使わせず、application/ と domain/ には drizzle-orm、@libsql/client、src/platform/ のデータベースのつなぎを import させない。ELM-01 と ELM-02 では、EXT-01 と地図の部品を src/platform/ のほかで import させない
+resolution: 受け入れ。POL-02 の依存の規則で、ELM-03 の src/ の中で外へ HTTP を呼ぶもの（大域の fetch、node:http と node:https の request と get、undici）を payments、places、notifications の機能の adapters/ だけに許し、application/ にはデータベースの部品（drizzle-orm、@libsql/client）と src/platform/db/ を import させず、依頼の状態とお金の操作の試みの記録をポートを通してだけ書くことにした。ELM-01 と ELM-02 では、EXT-01 の入力部品と地図を描く部品とそれらの大域の名前を src/platform/ だけに許す規則を加え、大域の fetch と XMLHttpRequest も src/platform/ だけに許した。HND-14 の bounds をそれに合わせた

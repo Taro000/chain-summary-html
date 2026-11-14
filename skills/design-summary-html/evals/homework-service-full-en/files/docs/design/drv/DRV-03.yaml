@@ -1,12 +1,9 @@
 id: DRV-03
 title: Receipts match the submission records
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 kind: quality
 statement: Every submission whose receipt is shown is in the records
 sources:
@@ -22,20 +19,15 @@ scenario:
   artifact: FR-02
   environment: Normal operation and the rush before a deadline
   response: The receipt matches the record
-  measure: No receipt without a record (NFR-07 version 2)
+  measure: 'NFR-07''s monitor: no receipt without a record'
 negotiable: null
 derived_from: []
 priority:
   business: high
-  business_reason: QR-03 and QR-07 are emphasized (CUJ-01, 04)
+  business_reason: QR-03 and QR-07 are emphasized (CUJ-01, CUJ-04)
   difficulty: medium
   difficulty_reason: The files and the records are kept in different places
   rank: 2
 primary: true
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

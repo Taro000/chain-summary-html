@@ -1,15 +1,11 @@
 id: EBP-01
 title: Error budget policy for the submission SLO
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: confirmed
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: []
 applies_to: [NFR-01]
 rules:
 - {when: Less than 50% of the budget remains, action: The next sprint puts reliability work first}
 - {when: The budget is used up, action: Only fixes ship for the rest of the window}
 - {when: The 24 hours before a deadline, action: No deploys that touch submissions}
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

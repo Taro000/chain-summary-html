@@ -1,0 +1,22 @@
+id: QR-60
+title: カードの情報はシステムのどこも通らず、どこにも残らない
+status: active
+basis: assumed
+basis_note: カードの情報の扱いの標準を模す開発方針の中身（システムのサーバー、ログ、データを通さず保存しない）は質問 1 で確認済み（CON-04）。入れ方は設計への申し送り（DIN-03）で、ここでは選ばない。FR-46 は、FRP-06 を第 2 段階が受け入れて、カードの情報を受け取らず記録しないようになった。持ち込んだ役割は開発の責任者と推定した。最低限守る線とすることは QAS-22 による暫定の決定
+premises: [CON-04, EXT-01, QAS-22]
+model: product
+layer: external
+characteristic: security > confidentiality
+statement: 乗客が支払い方法として入れるカードの情報は、このシステムのサーバー、ログ、データのどれも通らず、どこにも残らない。システムが受け取るのは EXT-01 が返す登録の結果だけである。
+applies_to: [FR-46, FR-29]
+traces_to: []
+entry_point: {type: policy, source: カードの情報の扱いの標準（PCI DSS）を模す開発方針, brought_by: 開発の責任者}
+stakeholders: [USR-01, EXT-01]
+failure_scenario: 支払い方法の登録の失敗を調べるために、入れられたカードの番号がそのままログに記録される。
+score: {impact: 4, likelihood: 2}
+handling: minimum-line
+handling_reason: 開発方針から来るため対象から外さない
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

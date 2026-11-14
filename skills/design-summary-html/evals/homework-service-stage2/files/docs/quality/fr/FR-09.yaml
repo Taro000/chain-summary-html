@@ -1,0 +1,17 @@
+id: FR-09
+title: 試験の提出を数えない
+status: active
+basis: inferred
+basis_note: null
+premises: []
+statement: システムは、試験用のアカウントからの提出を、提出の件数と月次の件数に数えない。
+origin: quality-in-use
+cuj: null
+cuj_step: null
+traces_to: [QIU-01, QIU-05, KPI-01]
+proposal: null
+existing: false
+extends: null
+interface: ['レポート: 塾の事務']
+acceptance_criteria: [試験用のアカウントで提出しても、月次のレポートの件数は変わらない。]
+quality_hints: []

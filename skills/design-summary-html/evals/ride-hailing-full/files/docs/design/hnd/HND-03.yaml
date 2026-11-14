@@ -1,0 +1,14 @@
+id: HND-03
+title: 端末が現在地を送る間隔と、現在地を分からないとみなす古さ
+status: decided
+basis: inferred
+basis_note: DEC-07 の応答を左右する点。NFR-19 の時間のしきい値の道にあるため、第 3 段階に送る
+premises: []
+from: architecture-drivers-to-architecture
+to: architecture-to-high-level-design
+component: null
+origin: [DEC-07]
+what: 画面に出ている乗客とドライバーの端末が測った位置を送る間隔と、サーバーが位置を分からないものとして依頼を届ける判断から外し、最後に分かった位置として示すまでの古さの値
+bounds: NFR-19 と SLI-10（T_vehicle_location_lag のうちに持つ）、QR-19、DEC-07（画面に出ている間に送り、古い位置は分からないものとする）
+trigger: 第 3 段階の次の実行
+resolution: IFC-05 で決めた。端末は 5 秒ごとに、その前の 5 秒のうちに測った位置を送り、測った時刻から T_vehicle_location_lag を過ぎた位置は分からないものとして依頼を届ける判断から外し、最後に分かった位置と時刻として示す（値は DAS-11）

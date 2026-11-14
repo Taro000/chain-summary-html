@@ -1,0 +1,23 @@
+id: POL-05
+title: インタフェースの種類ごとの仕様書の作り方
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: specs
+addresses:
+- DRV-06
+decisions:
+- DEC-08
+rules: []
+specs:
+- interfaces: ELM-03 が提供する HTTP の操作（IFC-01、IFC-02）
+  made: from-code
+  how: Hono の経路の定義から OpenAPI の文書を生成する
+- interfaces: ストレージへのファイル（IFC-03）
+  made: owner
+  how: ObjectStore の文書を IFC が引く
+- interfaces: 夜間のバッチ（IFC-04）
+  made: none
+  how: IFC が決まり
+as_is: new

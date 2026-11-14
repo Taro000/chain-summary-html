@@ -1,0 +1,12 @@
+id: QAS-39
+title: 前の版に戻すまでの時間
+status: open
+stage: 4
+kind: decision
+statement: T_rollback を 30 分とする。
+why_unsure: 入力に数値はない。30 分は、自動の手順で戻す前提で、進んでいる依頼と乗車への影響を小さく抑えられる長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QR-39 と NFR-41 が依存する。最低限守る線で、変えるのは容易
+answer: null
+answered_in: null

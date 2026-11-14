@@ -1,14 +1,13 @@
 id: ELM-01
 title: Student web app
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- TC-04
 kind: component
 name: Student web app
-responsibility: Opens assignments, uploads files straight to the storage, submits and shows receipts. Saves drafts
+responsibility: Opens assignments, uploads files straight to the storage, submits and shows receipts. Saves drafts and holds the parents' screens
 functions:
 - FR-01
 - FR-02
@@ -17,16 +16,16 @@ drivers:
 - DRV-01
 - DRV-02
 - DRV-03
-decisions: []
+- DRV-04
+decisions:
+- DEC-01
+- DEC-02
+- DEC-05
+- DEC-06
 team: TEAM-01
-technology: null
-runs_on: ELM-07
+technology: The students' and teachers' browsers (DEC-01)
+runs_on: null
 depends_on:
 - ELM-03
 - ELM-05
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

@@ -1,32 +1,26 @@
 id: DRV-14
-title: 外部サービスとブラウザの機能を替えても、その部品だけが変わる
-status: draft
-version: 1
-basis: inferred
-basis_note: シナリオは QR-44・NFR-42 から（入力）。サービスの名前は質問 6 で確認済み。予定した替えはない。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-kind: change
-statement: Stripe、Google Maps Platform、ブラウザの機能（位置情報、画面の点灯）への依存は、それぞれ一つの部品に閉じ込められ、替えたり版を上げたりしても、ほかの部品を変えずに済む
-sources: [QR-44, NFR-42, TC-10, TC-11, FR-52]
-concern_of: [USR-03, STK-01]
-scenario:
-  source: 開発者本人（TEAM-01）
-  stimulus: Stripe や Google Maps Platform の版を上げる、または替える。ブラウザの機能が変わる
-  artifact: 決済、地図、位置情報、画面の点灯への依存
-  environment: 開発の間
-  response: その依存を閉じ込めた部品だけが変わり、流れ、保存した記録、突き合わせの規則は変わらない
-  measure: 静的な依存の確かめで違反 0 件（NFR-42）
-negotiable: null
+title: 乗客とドライバーは iOS の Safari で使う Web アプリで使う
+status: active
+basis: confirmed
+basis_note: 制約は DIN-04 と CON-05（入力）。交渉できないことと、乗客とドライバーが迎車を待つ間、迎車中、乗車中にアプリを画面に出したままにすることは、質問 2 で確認済み（QCR-02 で品質チェーンに記録を求めた）。ドライバーが受付をしている間も出したままにすることは、設計の第 2 段階の質問 2 で確認済み（TC-18。QCR-03 は回答済みで、品質チェーンが反映するまで前提に残す）。iOS の Safari の Web アプリは、前に出ていない間と画面を消している間は位置を送らず処理も止まり、知らせはホーム画面に加えた Web アプリでしか届かない（この段階の推定。Apple の公式の記述は見つからず、第 2 段階が実機で確かめる）。そのため DRV-03 と DRV-04 と競合し、その扱いは質問 2 の答えで決まった。対応する iOS と Safari の版はどの入力も決めておらず、第 2 段階が決める。順位は質問 6 で確認済み
+premises: [TC-13, TC-18, CON-05, QCR-02, QCR-03]
+kind: constraint
+statement: 乗客とドライバーは、ネイティブアプリではなく、スマートフォンのブラウザで使う Web アプリでこのサービスを使う。対象は iOS の Safari だけで、ほかの端末とブラウザには対応しない。乗客とドライバーは、迎車を待つ間、迎車中、乗車中にアプリを画面に出したままにし、ドライバーは受付をしている間も出したままにする
+sources: [TC-13, TC-18, DIN-04, CON-05]
+concern_of: [USR-01, USR-02, STK-03]
+scenario: null
+negotiable: false
 derived_from: []
 priority:
-  business: medium
-  business_reason: QR-44 は最低限守る線。予定した替えはない
-  difficulty: medium
-  difficulty_reason: Stripe、Google Maps Platform、ブラウザの機能を、それぞれ一つの部品に閉じ込める。解き方は知られている
-  rank: 25
-primary: false
-conflicts: []
+  business: high
+  business_reason: 開発方針から来た交渉できない制約（下書き）
+  difficulty: high
+  difficulty_reason: 位置、知らせ、後ろでの処理が Web アプリでできる範囲に限られ、主な設計を動かす要求の DRV-03 と DRV-04 と競合する
+  rank: 1
+primary: true
+conflicts:
+  - with: DRV-03
+    note: アプリが前に出ていない間、ページは変化を受けて示せず、知らせはホーム画面に加えた Web アプリでしか届かない
+  - with: DRV-04
+    note: アプリが前に出ていない間は位置が届かず、示す位置が実際の位置から遅れる
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映。質問 6 で仮のスタブの差し替えがなくなった）}

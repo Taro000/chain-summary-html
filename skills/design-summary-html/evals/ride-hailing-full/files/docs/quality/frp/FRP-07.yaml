@@ -1,28 +1,14 @@
 id: FRP-07
-title: 状態の変化を画面に示した時刻を記録する
+title: 登録では、名前、顔写真、連絡先、車種、色、ナンバーだけを入れ、審査の記録は入れない
 status: accepted
-version: 2
-basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
-proposed_by: product-quality-to-slo
-origin:
-- QR-02
-changes: null
-reason: QR-02 は状態の変化が相手の画面にすぐ届くことを求めるが、相手の画面に示した時刻を記録する FR がない。サーバーの側からは、携帯の回線とブラウザの中の遅れが見えない。
-suggested_statement: システムは、依頼と状態の変化を相手の画面に示したとき、示した時刻を、状態の変化の ID と相手のアカウントとともにサーバーに送って記録する。
-affects:
-- NFR-02
-- SLI-02
+basis: confirmed
+basis_note: 第 3 段階の質問 5 の回答（審査の結果は、審査の日付と審査の記録を探す手がかりも含めて記録しない。登録で入れる項目は名前、顔写真、連絡先、車種、色、ナンバーだけ）。FR-43 の受け入れ基準は審査を通ったこと（日付と手がかり）を入れさせ、入っていない登録を受け付けないため、回答とぶつかる
+premises: []
+proposed_by: functional-requirements-to-product-quality
+origin: [QR-63, QR-20]
+changes: FR-43
+reason: FR-43 は登録とともに審査の日付と審査の記録を探す手がかりを入れさせるが、旅客運送の法令を模す開発方針は審査の結果を記録しないとする。審査を通ったことは担当者が登録することそのもので表す。
+suggested_statement: システムは、担当者が審査を通ったドライバーと車両を、ドライバーの名前、顔写真、連絡先、車種、色、車のナンバーで登録し、訂正できるようにする。審査の日付や審査の記録を探す手がかりは入れさせず、記録しない。
+affects: [NFR-22, NFR-35, NFR-36]
 placeholders: []
-resolution: FR-54 として受け入れた（新しい FR）。
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 提案
-  reason: 第 4 段階の下書き
-- version: 2
-  date: '2026-11-01'
-  change: 受け入れた（FR-54）
-  reason: 第 2 段階の質問 14〜17（2026-11-01）
+resolution: 受け入れ。FR-43（新規）をその場で変えた。CON-07 と第 3 段階の質問 5 の回答に従う。
