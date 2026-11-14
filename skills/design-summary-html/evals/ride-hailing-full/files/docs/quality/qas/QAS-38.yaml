@@ -1,0 +1,12 @@
+id: QAS-38
+title: 調査と照会に要る記録を取り出せる日数
+status: overturned
+stage: 4
+kind: decision
+statement: N_trace_retention_days を 90 日、N_ride_record_days を 365 日とする。どちらも記録してから 3 年（QR-59）を超えない。
+why_unsure: 入力に数値はない。90 日は、遅れて気づいた障害を調べられる長さ、365 日は、遅れて寄せられた苦情や返金の求めに乗車の記録で応えられる長さとして置いた最初の値。法令が決めるのは上限の 3 年だけである。
+breadth: medium
+severity: medium
+rating_note: QR-37、QR-42、NFR-39 が依存する。短すぎると苦情と返金に応えられないが、上限の 3 年を超えないため個人の情報を長く残すことにはならない
+answer: 一部が誤り。依頼の経過をたどる記録（ログ、状態の履歴、現在地の受信の記録）を取り出せる期間 N_trace_retention_days は 28 日（デモは 1 回が 1〜2 日で、苦情はデモの期間の中で扱うため）。N_ride_record_days の 365 日は訂正なし
+answered_in: "第 4 段階、決めたこと #18"

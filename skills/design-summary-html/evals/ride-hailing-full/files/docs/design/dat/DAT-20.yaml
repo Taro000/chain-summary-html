@@ -1,40 +1,19 @@
 id: DAT-20
-title: ブラウザのエラーの記録
-status: draft
-version: 2
+title: 届けと示した時刻の記録
+status: active
 basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: ブラウザのエラーの記録
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- client_error_id
-- account_id、role
-- kind、message（値を除いたもの）
-- browser
-- occurred_at、received_at
-- trace_id、ride_id
-- test_account
+basis_note: 相手の端末が変化を示した時刻を送り、サーバーがつながっていない相手へ示せなかったことを記録することは DEC-23 と FR-53（入力。FR-53 を今期作ることは QAS-54 による品質チェーンの暫定の決定で、第 3 段階のレビューの質問 1 で成り立つと答えを受けた。QCR-08 が品質チェーンに運び、当てられるまで前提に残す）。出来事と相手の組ごとの行を出来事と同じ取引で作ること、届けた道と結果を持つこと、示せなかったと記録するのを相手の流れが開いていなかったときだけにすることは推定。操作による変化の changeReceivedAt を、その変化を書いた要求ではなく、同じたどる ID の境界の出来事（DAT-19）のうち最も早く受けた時刻にし、たどる ID を持つことは FND-36 を受けた（推定）
+premises: [QAS-54]
+entity: 出来事を相手に届けた記録と、相手が示した時刻（FR-53）
+owner: ELM-03
+store: ELM-04
+key_attributes: [eventId, recipientAccountId, changeKind, rideId, traceId, changeReceivedAt, deliveredVia, deliveryOutcome, failureOrigin, notDisplayed, displayedAt, displayedAtDevice, displayedWhere, recipientTestAccount, requestTestAccount]
 relations:
-- to: DAT-06
-  kind: many-to-one
-  note: 依頼
-consistency: 測るモジュールだけが書く。client_error_id で一つ。構造化ログ（IFC-09）にも書く。ELM-05 は持ち主のモジュールを通して書く（DEC-53。T_log_retention を過ぎた行の削除）
-retention: T_log_retention
-classification: personal
-drivers:
-- DRV-28
-- DRV-27
-- DRV-07
+  - {to: DAT-09, kind: many-to-one, note: 届けた出来事}
+  - {to: DAT-07, kind: many-to-one, note: 依頼と乗車}
+consistency: 出来事を書く取引で、届ける相手ごとに一行を作る。changeReceivedAt は、操作による変化ではその変化を書いた要求と同じたどる ID（DEC-43。利用者の一回の操作で、同じ冪等キーの送り直しを含む）の境界の出来事（DAT-19）のうち ELM-03 の入口が最も早く受けた時刻（受けたインスタンスが止まった後の送り直しで書いた変化も最初の要求の時刻）、迎車の到着では乗る場所から D_pickup_position_gap のうちの迎車の位置を受けた時刻。届けたとき（流れか Web Push）に結果を足し、相手の流れが開いていなければ notDisplayed を真にする（FR-53 の 2）。示した時刻は端末の報告（IFC-10）の最初のものだけを書き、DEC-37 で直した時刻と直す前の時刻を持つ
+retention: SLO のウィンドウ（直近 28 日、NFR-07）と N_trace_retention_days の長い方を過ぎたら日々の処理が消す
+classification: internal
+drivers: [DRV-26, DRV-03, DRV-25]
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: T_log_retention を過ぎた行の削除は ELM-05 が持ち主のモジュールを通して行うと書いた
-  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

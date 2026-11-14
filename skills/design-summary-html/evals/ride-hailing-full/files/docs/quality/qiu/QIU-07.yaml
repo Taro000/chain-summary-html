@@ -1,44 +1,32 @@
 id: QIU-07
-title: 降車場所ですぐに支払いを終える
-status: draft
-version: 2
-basis: inferred
-basis_note: ニーズ（降車の手間を省く）は入力。決済の仕組みは質問 5 で確認済み。T_alight と測定量は推定。T_alight の値は 2026-11-01 の利用者の回答で決めた
-needs_agreement: true
-approver_candidates:
-  - プロダクトオーナー
+title: 乗客が危険な運転や加害をするドライバーに当たらない
+status: retired
+basis: confirmed
+basis_note: 乗車中の危険（危険な運転や犯罪）は当てはまる CUJ がないため利用時の品質要求の対象にしないと、第 3 段階の #19（第 2 段階の QAS-08 への訂正）で決まり、廃止した。ドライバーの振る舞いは、閾値を設定した乗客の満足（QIU-06）と苦情への対応（QIU-27）で扱う
+premises: []
 user: USR-01
-cuj: CUJ-03
-outcomes: []
-need: 降車の手間を省きたい
+cuj: CUJ-01
+outcomes: [OUT-01]
+need: 変なドライバーに当たりたくない
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: 乗客
-  task: 降車と支払い
+  device: スマートフォン
+  network: 問わない
+  user_type: 登録した乗客
+  task: 配車の手配
   environment: null
-  other: Web アプリ内の決済（料金は手配時に確定）
-characteristic: efficiency
-statement: 乗客は、降車場所に着いてから 30 秒（T_alight）以内に支払いを終えて降りられる。
-failure_scenario: 降車場所に着いてから決済に手間取り、乗客が車内で待たされる。
+  other: null
+characteristic: freedom from risk > health and safety risk mitigation
+statement: スマートフォンで配車を手配した乗客は、乗車中に危険な運転やドライバーからの加害に遭わない。
+failure_scenario: 知らないドライバーの車に乗った乗客が、乱暴な運転でけがをする、または車内で嫌がらせを受ける。
 measure:
-  numerator: 降車場所に着いてから 30 秒（T_alight）以内に決済が完了した乗車
-  denominator: 決済が完了した乗車
-  narrowed_to: スマートフォンのブラウザ、Web アプリ内の決済
-  denominator_needed_only: 決済が完了した乗車だけ（決済の失敗は QIU-16 で数える）
-  contribution: 降車の操作と決済の処理に直接つながる
-  observable: true
+  numerator: 乗客が乗車中に危険な運転やドライバーからの加害を受けた乗車
+  denominator: 始まった乗車
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く
+  denominator_needed_only: 乗車が始まったものだけを数える
+  contribution: どのドライバーとマッチさせるかが効くが、運転と振る舞いそのものはプロダクトの外で決まる
+  observable: false
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: しきい値 T_alight に値を入れた
-    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま

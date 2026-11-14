@@ -1,0 +1,42 @@
+id: MOD-53
+title: 評価
+status: active
+basis: inferred
+basis_note: 乗り終えた乗客の評価（1〜5、振る舞いと車の状態の項目、任意の短い文）を記録し、同じ取引でドライバーのまとめた評価（すべての評価の平均と件数）を書き直すことは IFC-09、DEC-24、DAT-14、一つの乗車に評価は一つで、乗車が始まらなかった依頼と終わっていない乗車を受け付けないことは FR-15 の 4、5、評価を記録したことを依頼の経過に書くことは FR-45 の 4、任意の文を記録した日の鍵で暗号にすることは DAT-14、評価は評価の操作からだけ変わることは FR-49 の 3（どれも入力）。まとめた評価を、評価を書く書き込みの取引の中でそのドライバーのすべての評価から求め直す（重なった評価のどちらも入る、MOD-25 の取引の決まり）ことは推定
+premises: []
+component: ELM-03
+name: 評価
+depth: bounds
+depth_reason: null
+responsibility: 乗り終えた乗客の評価を記録し、ドライバーのまとめた評価を同じ取引で書き直す
+visibility: public
+interface:
+  - operation: "rate(actor: Actor, rideId: RideId, rating: RatingInput, key: IdempotencyKey) -> RatingRecorded"
+    pre: null
+    post: POST /v1/rides/{rideId}/rating で、一つの書き込みの取引の中で、評価、そのドライバーのすべての評価から MOD-51 の aggregate で求め直したまとめた評価、依頼の経過の「評価を記録した」、冪等キーの答えを書く。乗客の試験用かはその時点の値を写す
+    errors: ["RATING_NOT_ALLOWED: 409（乗車が始まらなかった依頼か、終わっていない乗車）", "ALREADY_RATED: 409（新しいキーでも二つ目は記録しない）", "VALIDATION_FAILED: 400（score の OUT_OF_RANGE）", "NOT_FOUND: 404（自分の乗車でない）"]
+  - operation: "driverRating(driver: AccountId) -> RatingAggregate"
+    pre: null
+    post: マッチに使うまとめた評価（和と件数）
+    errors: []
+  - operation: "ratingOf(rideId: RideId) -> Rating or none; deleteCommentsRecordedThrough(date: LocalDate) -> integer"
+    pre: null
+    post: その乗車の評価（MOD-61）。記録してから 3 年を過ぎた任意の文を消す（MOD-68、DAT-14）
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-26, MOD-27, MOD-33, MOD-45, MOD-51]
+functions: [FR-15, FR-42, FR-45, FR-49]
+realizes:
+  - IFC-09 POST /v1/rides/{rideId}/rating
+drivers: [DRV-08, DRV-27]
+decisions: [DEC-24]
+behaviour: null
+verification:
+  - checks: 同じドライバーへの二つの評価を重ねても、まとめた評価が両方を含む（QR-66、NFR-35）
+    how: 結合の層（二つの要求を同じデータベースで重ねる）
+  - checks: RATING_NOT_ALLOWED、ALREADY_RATED（新しいキーでも）、範囲（FR-15 の 3〜5）
+    how: 結合の層
+  - checks: 評価とまとめた評価を同じ取引で書き、SLI-13 の項目（receivedAt と aggregateUpdatedAt）がそろう
+    how: 結合の層
+parameters: []
+as_is: new

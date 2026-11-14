@@ -1,27 +1,14 @@
 id: FND-25
-title: DEC-15 の読める相手の表に、SLI-03 の毎分の確かめ（DEC-35）がない
+title: 担当者がアカウントとドライバーを探して今の内容を見る操作がなく、訂正、試験用の区別、設定の符号の出し直し、停止の相手を選べない
 status: accepted
-version: 2
 basis: inferred
-basis_note: DEC-15 の選んだ案と読める相手の表、DEC-35 の確かめ、DEC-16 の版 3 の数え方は入力。食い違いの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: IFC-12、IFC-24、FR-41〜FR-44 の受け入れ基準、DEC-14 の文は入力。担当者が相手を選べないことは、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-architecture-2.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-15
-- DEC-35
-severity: minor
-evidence: DEC-15 は座標を持つ三つの表を位置のモジュールだけが読み書きし、表ごとに読める相手を決める。2 回目の再実行で、サーバーが毎分、使用中の参加者の最後に届いた位置が 30 秒以内かを確かめるようになった（DEC-35）が、この確かめを行うサーバーの測るモジュールは、最後の位置にも位置の受信の記録にも読める相手として載っていない。逆に、位置の受信の記録の行の「毎日の処理（SLI-03 と保存期間）」は、毎日の SLI-03 を確かめの記録から数える DEC-16 の版 3 と合わない（DRV-21、DRV-27）
-suggestion: 位置のモジュールが、座標を除いた最後の受信の時刻を測るモジュールに返すことを DEC-15 の表に加える。位置の受信の記録の行の毎日の処理の用途を、DEC-16 と FND-20 の答えに合わせて直す
-resolution: 受け入れた。DEC-15（版 4）の最後の位置の読める相手に、配信（位置のモジュールが相手と状態を確かめて返す）と、サーバーの測るモジュール（SLI-03 の毎分の確かめ。座標を除いた受けた時刻だけを返す）を足した。受信の記録の毎日の処理の用途を、SLI-03 の確かめ直し（受けた時刻だけ。DEC-16 版 4）と保存期間の削除にした
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 2 段階の再実行分のレビュー（活動 A5）
-- version: 2
-  date: '2026-11-03'
-  change: 受け入れた（DEC-15 を直した）
-  reason: architecture-drivers-to-architecture の再実行（第 2 段階の再実行、3 回目）
+raised_in: reviews/3-high-level-design.md
+to: architecture-to-high-level-design
+targets: [IFC-12, IFC-24]
+severity: major
+evidence: IFC-12 のアカウントとドライバーの操作（PATCH /v1/console/accounts/{accountId}、PUT …/test-flag、POST …/setup-codes、PATCH /v1/console/drivers/{accountId}、POST と DELETE …/suspension）はどれも accountId を名指すが、アカウントかドライバーの登録を一覧にする、探す、一つ読む操作は IFC-12 にない（探す操作は乗車と操作の記録だけ）。POST /v1/console/accounts はサインインの ID と設定の符号を返すだけ。そのため、FR-42 の 1（試験用として作ったアカウントを試験用として示す）を担当者に示す所がなく（試験用かを返すのは本人への GET /v1/me だけ）、FR-41 の 4 と FR-43 の 4（今の内容を訂正する）、FR-42 の 3、FR-44（停止するドライバーと、停止しているか）、DEC-14（パスワードを忘れた参加者の設定の符号を出し直す）の相手を、担当者が選べない。乗車の照会から ID が分かるのは乗車のある乗客とドライバーだけ。IFC-24 のアカウント、ドライバーと車両の登録、ドライバーの停止と再開の画面も、相手をどう選ぶかを書いていない。CUJ-16〜CUJ-18 の機能が一部しか使えない
+suggestion: IFC-12 に、アカウントを種類、名前、サインインの ID などで探す操作（条件は本文で送る、DEC-39、DEC-44）と、一つのアカウントとドライバーの登録を読む操作（試験用か、停止しているか、今の登録の内容）を加え、IFC-24 の画面にその一覧と内容を置く
+resolution: IFC-12 に、参加者のアカウントを種類、名前、サインインの ID、連絡先、車のナンバー、試験用か、停止しているかで探す POST /v1/console/accounts/search と、一つのアカウントの今の内容（試験用かを含む）を読む GET /v1/console/accounts/{accountId}、一つのドライバーの登録と停止を読む GET /v1/console/drivers/{accountId} を加え、IFC-24 の画面で、探した一覧から選んだ相手に訂正、試験用の区別、設定の符号の出し直し、登録の訂正、停止と再開を行うようにした。報告の CUJ-16〜CUJ-18 の流れと画面を合わせた

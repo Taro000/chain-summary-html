@@ -1,22 +1,14 @@
 id: FND-72
-title: DEC-12 のキーの表は確定と取り消しを押さえごとの一つのキーにし、5xx の後に新しいキーでやり直す道がない
-status: open
-version: 1
+title: MOD-39 は版の決まりの最も安い料金を QCR-05 の答えに頼るが、premises に QCR-05 がない
+status: accepted
 basis: inferred
-basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-39 の premises、decisions、basis_note、報告の MOD-39 の振る舞いと「データ」の fare_tables の行、QCR-05、DEC-09 の premises は入力
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-high-level-design.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-12
-severity: major
-evidence: 第 3 段階のレビューの活動 B3 から。DEC-12 版 4 の選んだ案はキーを「確定と取り消しは押さえごと」とし、assumptions は「Stripe は動き始めた要求の応答を 5xx も含めて少なくとも 24 時間保ち、同じキーには同じ応答を返す」とする。すると確定か取り消しに 5xx が返った後、同じキーの送り直しは 24 時間同じ 5xx を受け、起きていないと確かめても新しいキーを作る決まりがない。第 3 段階は押さえだけにキーへ試みの番号を足した（DEC-52 版 2、IFC-13）が、確定と取り消しは DEC-12 の表に縛られる。結果は FND-71 のとおり（押さえを残したまま未払い、取り消しの確かめが押さえの期限まで続く）。DRV-04（お金を一度だけ）と DRV-30 版 2（失敗と分かった後のやり直しは新しい操作）にかかわる
-suggestion: DEC-12 のキーの表に、確定と取り消しにも試みの何回目かを入れる（<PaymentIntent>_capture_a<n>、_cancel_a<n>）か、5xx の後は人が片付けると決めて理由と知らせを書く。決めたら第 3 段階に FND-71 の追随を伝える
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: 出した
-  reason: 第 3 段階のレビュー（再実行分）
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-39]
+severity: minor
+evidence: MOD-39 の版の決まりは F0 ≥ 500 で、報告はそれを「模擬の運賃表の最も安い料金は CON-08 の 500 円以上、QCR-05 の答え」とし、「データ」の fare_tables の check も QCR-05 の答えを挙げる。QCR-05 は回答済みで品質チェーンがまだ当てていないが、MOD-39 の premises は QCR-09 だけで、decisions（DEC-17、DEC-38）にも QCR-05 を premises に持つ DEC-09 がなく、basis_note も QCR-05 を引かない。QCR-05 が当てられたとき、変わりうる MOD-39 が見つからない。fare_tables の行の「決まりの形は質問 1 の答えで変わりうる」も、質問 1 に答えのある今の状態と合わない
+suggestion: MOD-39 の premises に QCR-05 を加えて basis_note でその答えを引き、fare_tables の行の文を今の状態に直す
+resolution: 受け入れ。MOD-39 の premises に QCR-05 を加え、basis_note で版の決まりの F0 ≥ 500 が QCR-05 の答え（設計の第 2 段階の質問 5）によることを引いた。報告の「データ」の fare_tables の行の文を今の状態（決まりの形は決めたこと 1 の答えのとおり）に直した

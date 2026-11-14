@@ -11,7 +11,7 @@
 | スキル | 読むもの | 書くもの | 例 |
 |---|---|---|---|
 | [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo) の `docs/quality/` | `docs/quality/summary.html` | [日本語](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/quality/summary.html) · [英語](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/quality/summary.html) |
-| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design) の `docs/design/`（第 1〜3 段階） | `docs/design/summary.html` | [日本語](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/design/summary.html) · [英語](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/design/summary.html) |
+| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design) の `docs/design/`（第 1〜3 段階と 2b） | `docs/design/summary.html` | [日本語](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/design/summary.html) · [英語](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/design/summary.html) |
 
 ## インストール
 
@@ -21,7 +21,7 @@ npx skills add Taro000/chain-summary-html -a claude-code -g -y     # 二つと�
 npx skills add Taro000/chain-summary-html -s design-summary-html   # 一つだけ
 ```
 
-Python 3.9 以降と PyYAML が要ります（`uv run --with pyyaml` でも動きます）。それぞれの `evals/`（1.7 MB と 4.5 MB）は、使うだけなら消してかまいません。
+Python 3.9 以降と PyYAML が要ります（`uv run --with pyyaml` でも動きます）。それぞれの `evals/`（2.2 MB と 5.8 MB）は、使うだけなら消してかまいません。
 
 ## 共通の動き
 
@@ -57,9 +57,12 @@ Python 3.9 以降と PyYAML が要ります（`uv run --with pyyaml` でも動�
 | 部分 | 中身 |
 |---|---|
 | 成果物のつながり | 設計を動かす要求からデータの実体までの、段階ごとの項目の数 |
-| 第 1 段階 | 順位表（開いておく）、設計の前提、利害関係者、シナリオ、制約、原則、競合、実現できるか |
-| 第 2 段階 | 要素、五つのビュー、決定ごとのカード、脅威のモデル、通し確認、負債、走る費用 |
-| 第 3 段階 | 共通の約束事、インタフェース、エラーの決まり、シーケンス図、遅延の予算、失敗したときの流れ、ER 図、測定点、受け入れ基準のトレース |
+| 第 1 段階 | 順位表（開いておく）、設計の与件、シナリオ、制約、原則、競合、実現できるか |
+| 第 2 段階 | 要素、四つのビュー、決定ごとのカード、脅威のモデル、通し確認、費用と体制、負債 |
+| 第 2b 段階 | 技術方針（技術の組み合わせ、リポジトリ、テストの層、パイプライン、仕様書の作り方）とその図、決定 |
+| 第 3 段階 | 共通の約束事、インタフェース、エラーの決まり、SLI の出どころ、シーケンス図、遅延の予算、画面、ER 図、状態 |
+
+どの段階も、最後にまだ決まっていない申し送り（後の段階か実装に残したこと）を示します。
 
 ページは設計の方向性をすばやくつかむためのものです。
 
@@ -67,7 +70,7 @@ Python 3.9 以降と PyYAML が要ります（`uv run --with pyyaml` でも動�
 - どの文も、最初の文から括弧の補足を除いた要点だけを示します。文を裏付けたりたどったりするための列は省き、改訂の履歴の注記は削ります。
 - mermaid は CDN から読むので、ページを見るにはネットが要ります。
 
-**使い方:** req-to-design を少なくとも第 1 段階まで実行し（`docs/design/drv/` が要る）、「docs/design の成果物を HTML にまとめてください」と頼みます。再実行したあとは「設計の要約を作り直してください」。
+**使い方:** req-to-design を少なくとも第 1 段階まで実行し（`docs/design/drv/` が要る）、「docs/design の成果物を HTML にまとめてください」と頼みます。再実行したあとは「設計の要約を作り直してください」。読むのは req-to-design 0.3.0 の形式です。それより前の成果物は、req-to-design のリリースノートのとおり、先に各段階を再実行してください（第 2 段階の後に第 2b 段階）。第 4 段階（詳細設計）はページに載せません。
 
 ## メンテナンス
 
@@ -78,7 +81,7 @@ skills/<skill>/
 ├── assets/                  CSS、JS、言語ごとの文言（lang/ja.json、lang/en.json）
 ├── references/page-spec.md  ページの仕様
 └── evals/                   試験の 4 件
-scripts/check-chain.py       cuj-to-slo の用語集と artifacts.md との食い違いを確かめる
+scripts/check-chain.py       二つの連鎖の用語集、artifacts.md、報告書のテンプレートとの食い違いを確かめる
 scripts/build-pages.py       例のサイトを作る（main に push するたび .github/workflows/pages.yml が公開する）
 tests/                       自動テスト、試験用の成果物を作るスクリプト、eval の採点スクリプト
 ```
@@ -94,15 +97,15 @@ uv run --with pyyaml python3 -m unittest discover -s tests -v
 # 二つの eval の成果物から、例のサイトを _site/ に作る
 uv run --with pyyaml python3 scripts/build-pages.py
 
-# 架空の課題提出サービスの eval の成果物を作り直す
+# 架空の課題提出サービスの eval の成果物を作り直す（設計のほうは req-to-design の tables.py と check.py を使う）
 uv run --with pyyaml python3 tests/make_homework_fixture.py
-uv run --with pyyaml python3 tests/make_homework_design_fixture.py
+uv run --with pyyaml python3 tests/make_homework_design_fixture.py [path/to/req-to-design]
 
 # skill-creator の手順で走らせた design-summary-html の eval を採点する
 uv run --with pyyaml python3 tests/grade_design_eval.py skills/design-summary-html-workspace/iteration-1
 
-# cuj-to-slo が変わったら（引数を省くと $CUJ_TO_SLO、なければ ../cuj-to-slo）
-python3 scripts/check-chain.py [path/to/cuj-to-slo]
+# 連鎖が変わったら（省くと $CUJ_TO_SLO、なければ ../cuj-to-slo。$REQ_TO_DESIGN、なければ ../req-to-design）
+python3 scripts/check-chain.py [path/to/cuj-to-slo] [--req-to-design path/to/req-to-design] [--only cuj-to-slo|req-to-design]
 
 # 手元のコピーを、入れたスキルとして使う
 ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
@@ -112,7 +115,7 @@ ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
 
 - `check-chain.py` が食い違いを出したら、`assets/lang/*.json` と生成スクリプトを合わせます。
 - quality-summary-html の `summary.css` か `summary.js` を変えたら、design-summary-html の `assets/base.css` / `base.js` にそのまま写します。オレンジの配色は `design.css` にあります。
-- eval の `ride-hailing-full` は ride-hailing-app-demo の写しです。`docs/quality` はコミット ba28153、`docs/design` と `docs/quality` は b63c7a1 から（スキルが読まないファイルは除く）。
+- eval の `ride-hailing-full` は ride-hailing-app-demo の写しです。quality-summary-html のものはブランチ quality/replay-0.3.0（a26000f）から、design-summary-html のものはブランチ design/trial-0.3.0（cd761e7。`docs/quality` は同じ木）から写しました（summary.html と設計のレビューは除く）。
 
 ## ライセンス
 

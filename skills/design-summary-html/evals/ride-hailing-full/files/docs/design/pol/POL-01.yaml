@@ -1,0 +1,49 @@
+id: POL-01
+title: コンポーネントの種類ごとの技術の組み合わせと、どのコンポーネントも使う道具
+status: active
+basis: assumed
+basis_note: 言語、画面、サーバー、テストの道具は TC-01、TC-02、TC-03、TC-06（入力、交渉できない）。配車サーバーを Node.js の Active LTS の版でコンテナで動かし、二つの Web アプリを利用者のブラウザで動かすことは DEC-04、ブラウザは DEC-02 と DEC-03、本番のデータベースを Turso として設計しローカルの libSQL で動かすことは TC-07、TC-09、DEC-05（入力）。決済は Stripe のテスト環境、地図は Google Maps Platform であることは TC-10、TC-12（入力）。Node.js 26 が 2026 年 10 月に Active LTS になったこと、Node.js が型を外して .ts のファイルを動かす仕組みが 24.12 と 25.2 から安定であること、TypeScript 7.0 がプログラムから使う API を持たず、それに頼る道具は 6.0 を使うことは、公開の情報で確かめた（報告の「入力」）。主なライブラリの選び方は DEC-28、DEC-29、DEC-30、DEC-33 による推定。Web アプリのビルドに環境ごとの値を入れないこと（DEC-34）は FND-12 を、開発者のマシンが試験用の外部のアカウントだけを使うことは FND-13 を受けて、POL-04 に合わせた。開発者がそれを使いこなすか学べることは DAS-07、開発者のマシンの道具は DAS-08 による仮定。pnpm、TanStack Query、React Aria Components、pino、mkcert の今の版は確かめていない
+premises: [TC-01, TC-02, TC-03, TC-06, TC-07, TC-09, TC-10, TC-12, TC-13, DAS-07, DAS-08]
+scope: technology
+addresses: [DRV-17, DRV-15, DRV-16, DRV-22]
+decisions: [DEC-02, DEC-03, DEC-04, DEC-05, DEC-17, DEC-28, DEC-29, DEC-30, DEC-33, DEC-34]
+rules:
+  - rule: パッケージの管理は pnpm で、リポジトリの根に一つの workspace と一つのロックファイルを置く。Node.js と pnpm の版は package.json の engines と packageManager に書く
+    check: 検査の手順とリリースの手順は、ロックファイルを変えない入れ方（--frozen-lockfile）で依存を入れ、ロックファイルを変える必要があれば失敗する
+  - rule: ELM-03 はビルドせず、Node.js 26 が型を外して .ts のファイルをそのまま動かす。そのため ELM-03 の TypeScript は型を外すだけで動く書き方だけを使い（enum、namespace、コンストラクターの引数のプロパティを使わない）、import に .ts の拡張子を書く。ELM-01 と ELM-02 は Vite でビルドし、その出力を ELM-03 が配る。そのビルドには環境ごとの値を入れず、Web アプリは環境ごとの値を起動のときに ELM-03 から読む（DEC-34、POL-04）。リリースの手順は、ELM-01 と ELM-02 のビルドの出力を含む ELM-03 のコンテナのイメージを、版ごとに一度だけ作る（POL-04）
+    check: TypeScript の erasableSyntaxOnly の設定による型の確かめと、ELM-01 と ELM-02 のビルドを、検査の手順で。ビルドに環境ごとの値が入らないことは、POL-04 の設定の規則の検査が確かめる
+  - rule: 型の確かめは TypeScript 6 系の tsc で strict に行う。7 系の tsc には、TypeScript の API に頼る道具（openapi-typescript など）が 7 系で動くようになってから移してよく、どちらの版でも型の決まり（strict と erasableSyntaxOnly）は変えない
+    check: 検査の手順の型の確かめ
+  - rule: テストは Vitest（TC-06）で書いて走らせる。ブラウザで動くテストは Vitest の Browser Mode と Playwright（WebKit と Chromium）で、アクセシビリティの自動の検査は axe-core で行い、端から端と運用の予行の層も Vitest のテストから Playwright のブラウザを動かす。ほかのテストの走らせ手は入れない
+    check: 検査の手順とリリースの手順が Vitest だけでテストを走らせ、開発者が変更を main に入れる前に見るレビューが、テストの道具を加える変更を見る
+  - rule: ELM-04 の表の形の変更は、drizzle-kit がコードの表の定義から生成する SQL のマイグレーションだけで行い、apps/server/migrations/ に置いてコミットする。drizzle-kit の push は使わない。マイグレーションは、新しい版が動く前に、同じイメージで動かす一度だけの処理が当てる（POL-04）
+    check: 検査の手順が、コードの表の定義から生成し直したマイグレーションとコミットしたものに違いがあれば失敗する。結合の層のテストは、マイグレーションを当てたデータベースで動く
+  - rule: 開発者のマシンでは、pnpm dev が、ELM-03 を Node.js の --watch で、ELM-01 と ELM-02 を Vite の開発のサーバーで動かし、ELM-04 には libSQL のデータベースのファイルを使う。外部のシステムは偽物（POL-03）を使い、設定で、試験の環境と同じ試験用の外部のアカウントと鍵（試験用の Stripe のサンドボックス、Google Maps Platform、Web Push）に替えられる。ローカルの本番の外部のアカウントと秘密の値は使わない（POL-04）。iPhone から開くときは、mkcert が作るこのマシンだけの認証局の証明書で HTTPS にし、同じネットワークの中にだけ見せる
+    check: 動かし方を変える変更を、開発者が main に入れる前に見るレビュー
+  - rule: ローカルの libSQL のデータベースのファイルは、Turso と同じ SQLite のエンジンだが、ネットワークの上の取引の決まり（取引の時間の限り、つながりの切れ）を持たない。そのため、結合の層はデータベースのファイルで動かし、試験の環境とローカルの本番は Turso と同じ libSQL のサーバーのコンテナで動かして、その違いを端から端の層と運用の予行の層が通る（POL-03）
+    check: リリースの手順の端から端の層と運用の予行の層
+stack:
+  - kind: HTTP のサーバー（要求に答え、変化を流し、期限の処理と日々の処理を回す）
+    elements: [ELM-03]
+    language: TypeScript 6 系（7 系へは上の規則のとおり）、strict、型を外すだけで動く書き方（erasableSyntaxOnly）
+    runtime: Node.js 26（今の Active LTS の版、DEC-04）を、コンテナの中で。想定の本番は Cloud Run、実際に動かすのは開発者のマシン（DEC-05）
+    framework: Hono 4（TC-03）と @hono/node-server
+    libraries:
+      - Zod と @hono/zod-openapi（要求の確かめと、HTTP の仕様書の生成、DEC-33）
+      - Drizzle ORM と @libsql/client（ELM-04 の読み書き、DEC-29）
+      - drizzle-kit（マイグレーションの生成、DEC-29）
+      - pino（ログ、POL-04）
+      - "node:crypto（鍵、項目の暗号、パスワード、ID と乱数。外の暗号のライブラリと認証のライブラリは使わない、DEC-30）"
+  - kind: ブラウザで動く単一ページの Web アプリ
+    elements: [ELM-01, ELM-02]
+    language: TypeScript 6 系（7 系へは上の規則のとおり）、strict
+    runtime: ELM-01 は iOS 18.4 以降の Safari で、ホーム画面に加えた Web アプリ（DEC-02）。ELM-02 はコンピューターの Chrome、Edge、Firefox、Safari の今の版と一つ前の版（DEC-03）。ビルドは Node.js 26 の上の Vite
+    framework: React 19（TC-02）
+    libraries:
+      - Vite（ビルドと開発のサーバー、DEC-28）
+      - React Router 8 のデータの組み立て方（画面の移り変わり、DEC-28）
+      - TanStack Query（サーバーの状態の持ち方と読み直し、DEC-28）
+      - React Aria Components（候補の一覧つきの入力、ダイアログなどのアクセシブルな部品、DEC-28）
+      - openapi-fetch と packages/api-client の生成した型（ELM-03 の呼び出し、DEC-33）
+      - CSS Modules（見た目。CSS のフレームワークは使わない）
+as_is: new

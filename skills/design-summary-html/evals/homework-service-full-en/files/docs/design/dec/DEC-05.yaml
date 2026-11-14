@@ -1,11 +1,9 @@
 id: DEC-05
 title: The browser creates the trace ID and passes it on
-status: draft
-version: 2
+status: active
 basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+basis_note: Added after FND-02
+premises: []
 stage: architecture
 question: How are the records of one submission linked?
 addresses:
@@ -18,10 +16,10 @@ options:
   effect: Simple to build
   cost: Failures in the browser are not linked
 chosen: The browser creates the trace ID and passes it in a header
-rationale: Added in the second re-run. A CUJ-03 investigation starts from one ID.
+rationale: A CUJ-03 investigation starts from one ID (added after FND-02).
 rejected:
 - option: The server creates the ID
-  reason: Browser failures are not linked (question 4, FND-02)
+  reason: Browser failures are not linked (FND-02)
 gains:
 - One ID from the notice to the cause
 costs:
@@ -33,15 +31,4 @@ depends_on:
 - DEC-01
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft
-- version: 2
-  date: '2026-09-25'
-  change: Added to the rationale
-  reason: Stage 2 re-run (FND-02)

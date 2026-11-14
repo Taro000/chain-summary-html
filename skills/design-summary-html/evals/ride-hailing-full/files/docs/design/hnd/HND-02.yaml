@@ -1,0 +1,14 @@
+id: HND-02
+title: SLI-09 が比べる二つの位置を同じ基準で比べられるか
+status: decided
+basis: inferred
+basis_note: 確かめる点は SLI-09 の basis_note（設計は、二つの位置を同じ基準で比べられることを確かめる）にある。この段階のどの判断もこれによらず、SLI の出どころを決める第 3 段階に送ることは推定
+premises: [EXT-02, TC-12]
+from: requirements-to-architecture-drivers
+to: architecture-to-high-level-design
+component: null
+origin: [SLI-09]
+what: 依頼に入る乗る場所の位置（EXT-02 か乗客の端末から得たもの）と、乗車を始めたときの車の位置（ドライバーの端末から得たもの）を、SLI-09 が数えるとおりに同じ基準で比べられるか
+bounds: SLI-09 の数える単位の出来事と数え方の規則（変えない）、NFR-12、DRV-05、DRV-27
+trigger: 第 3 段階の次の実行
+resolution: DAT-07 で確かめた。依頼に入る乗る場所の位置（EXT-02 の場所の位置か乗客の端末の位置）も、乗車を始めたときの車の位置（ドライバーの端末の位置）も WGS84 の緯度と経度で、同じ基準でそのまま比べられる。乗車を始めた位置は乗車の開始の要求が持つ端末の位置を記録する（SLI-09 の出どころは DAT-07）

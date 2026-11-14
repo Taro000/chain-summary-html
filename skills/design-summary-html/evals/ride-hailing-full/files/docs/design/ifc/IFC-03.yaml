@@ -1,193 +1,140 @@
 id: IFC-03
-title: ドライバーの API
-status: draft
-version: 2
-basis: inferred
-basis_note: FR の受け入れ基準、DEC-09（条件付きの書き込み）、DEC-12（降車の確定は同じキーで 2 回まで）、DEC-29（疑わしい到着の印）、第 2 段階の DEC-30 版 2（運転の開始は担当のドライバーのアカウントだけ）と DEC-33 版 2（乗車の終了は T_route_long）は入力。状態が許さないときの符号は FND-34、確かめ中の降車場所の変更と乗車の終了の重なりは DEC-52 版 2（FND-33）。経路、エラーの符号、確認コードの回数の上限、依頼の内容の経路（FND-28）は推定
-needs_agreement: true
-approver_candidates:
-- 開発の責任者
+title: 依頼と乗車の操作
+status: active
+basis: assumed
+basis_note: 依頼の状態を ELM-03 だけが今の状態を条件にした書き込みで変え、端末の状態を変える操作を一回の操作ごとのキーで冪等にすることは DEC-08、押さえ、押さえ直し、全額と一部の確定、取り消しを EXT-01 で行うことは DEC-09、お金の操作の試みとキーと結果が分からないときの扱いは DEC-10、確認コードは DEC-25（どれも入力）。操作、誤りの符号、答え方は DEC-35、DEC-42、DEC-45 による推定。押さえと決済と押さえ直しの答えの期限は IFC-17 の待ちから計算し（HND-05、HND-01 を IFC-17 とともに決める）、決済の期限 8.8 秒が T_payment_response（NFR-29 がシステムの境界で数える 10 秒）のうちにあることで、EXT-01 のテスト環境の速さによらず QR-24 の時間のうちに結果か分からないことを示せると確かめた（HND-01）。T_payment_response の値は QAS-33 による品質チェーンの暫定の決定。乗車を始めた位置を記録して SLI-09 を数えることは DAT-07。乗る場所を決め始めた端末の時刻を依頼で運ぶことは FND-24、受けたインスタンスが答える前に止まったときの同じキーの送り直しへの答えは FND-22、乗客が押さえ直したことと決済の状態をドライバーに示すことは FND-30、SLI の出どころを DEC-43 の操作のまとめ方にそろえたことは FND-23 を受けた（その読み方は QCR-07 で品質チェーンに確かめる）。EXT-01 が押さえ、押さえ直し、決済を実行の前に退けた（処理されなかった）ときの答えと、処理されなかった決済をドライバーがやり直して新しい試みを作ること、今の状態がそれを示すことは FND-45 を受けて DEC-45 とともに決めた（推定）。乗車の開始と到着の確認はこの timing のとおり時間のしきい値の SLO とお金の道になく、端末のタイムアウトの値は第 4 段階が ELM-01 で決めることに、報告の DRV-01 の流れをそろえたことは FND-40 を受けた。報告の CUJ-08 の流れの決済のやり直しへの答えを冪等キーで書き分けたことは FND-49 を受けた。結果が分からないと答えた決済が確かめで処理されなかったと分かったときの答え（同じキーには 503 PAYMENT_SERVICE_UNAVAILABLE、新しいキーのやり直しは新しい試み）は FND-55 を受けて DEC-45 とともに決めた。迎車の到着を位置で決める前の依頼でも確認コードが合えば乗車を始めることは、FR-27 の 1 と FR-12 の 2（入力。乗車の開始を迎車の到着で条件づけない）により FND-56 を受けて決め、決済の試みが動いているか結果が分からない依頼の支払い方法の変更への答え（PAYMENT_PENDING_CONFIRMATION）は IFC-17 の ordering から FND-57 を受けて決めた（推定）。取引が変わらないまま処理されなかったとした決済の要求がその押さえで後で効きうる間は支払い方法の変更にも PAYMENT_PENDING_CONFIRMATION で答えることと、その間のやり直しがはっきり拒否されたら押さえを解いて決まるまで 202 PAYMENT_PENDING で答えることは、FND-58 を受けて DEC-45 とともに決めた（推定）
+premises: [QAS-33, CON-01, CON-08, QCR-07]
 kind: http
-name: ドライバーの API
-provider: ELM-04
-consumers:
-- ELM-02
-functions:
-- FR-15
-- FR-16
-- FR-17
-- FR-18
-- FR-19
-- FR-20
-- FR-21
-- FR-22
-- FR-23
-- FR-25
-- FR-26
-- FR-27
-- FR-28
-- FR-29
-- FR-31
-- FR-32
-- FR-33
-- FR-34
-- FR-47
+name: 依頼と乗車の操作
+provider: ELM-03
+consumers: [ELM-01]
+functions: [FR-04, FR-06, FR-07, FR-08, FR-09, FR-10, FR-12, FR-13, FR-23, FR-24, FR-25, FR-26, FR-27, FR-28, FR-29, FR-30, FR-45, FR-46, FR-47, FR-54]
 operations:
-- name: POST /api/v1/driver/reception/start
-  does: 受付を始める（今の位置を一つ添える）。画面の点灯は画面が行う（FR-52）。冪等キーが要る
-- name: POST /api/v1/driver/reception/stop
-  does: 受付を止める。最後の位置を消す（DEC-14）。冪等キーが要る
-- name: GET /api/v1/driver/requests
-  does: 示してよい依頼の一覧（しきい値と評価値（FR-15）、受ける条件、停止を一か所の規則で絞る。押さえの確かめ中の依頼は含めない。DEC-09、DEC-52）。SLI-01 の操作
-- name: GET /api/v1/driver/requests/{rideId}
-  does: 依頼の内容（ピン、経路、受取額、乗車場所までの距離と所要時間、乗車の所要時間）
-- name: POST /api/v1/driver/requests/{rideId}/accept
-  does: 許諾する。まだ誰にも割り当てられていなければ、このドライバーに割り当てる（DEC-09）。乗客の取り消しや T_request_max でのシステムの取り消しと重なったら、条件付きの書き込みで一方だけが効く。速さが分からないときは受け付け、分からなかったことを記録する（FR-21 AC3）。冪等キーが要る。SLI-01 の操作
-- name: GET /api/v1/driver/rides/active
-  does: 担当の進行中の依頼
-- name: POST /api/v1/driver/rides/{rideId}/cancel
-  does: 乗車の前に取り消し、依頼を乗客の依頼のまま、ほかのドライバーに示し直す（押さえはそのまま）。冪等キーが要る
-- name: POST /api/v1/driver/rides/{rideId}/arrive
-  does: 乗車場所への到着を知らせる。位置が D_arrival 以内かを確かめる。冪等キーが要る。SLI-01 の操作
-- name: POST /api/v1/driver/rides/{rideId}/start
-  does: その依頼の担当のドライバーのアカウントだけが、乗客から聞いた確認コードを送り、一致したときだけ運転を始めて in_progress にする（ほかのアカウントは 404 NOT_FOUND。第 2 段階の DEC-30 版 2）。降車場所までの経路を求める（得られなければ routeToDropoff は null。FR-23 AC3）。冪等キーが要る。SLI-01 の操作
-- name: POST /api/v1/driver/rides/{rideId}/no-show
-  does: 到着から T_noshow_wait を過ぎたら不在で終える。位置を確かめた到着なら押さえから 500 円を確定し、確かめられなかった到着なら押さえを取り消す。冪等キーが要る
-- name: POST /api/v1/driver/rides/{rideId}/complete
-  does: 乗車を終え、確定した料金を押さえから確定する（DEC-12。同じキーで 2 回まで送り直す）。確かめ中の降車場所の変更があれば取りやめ（当てない）、確定は古い押さえと変更の前の確定した料金で行う（新しい押さえは確かめを続け、見つかれば取り消す。DEC-52）。経路の上限は T_route_long（20 秒。第 2 段階の DEC-33）。冪等キーが要る。SLI-01 の操作
-- name: GET /api/v1/driver/earnings
-  does: 受取額（運賃、手数料、受取額、決済の状態。キャンセル料と不在の料金を含む）
-- name: GET /api/v1/driver/conditions
-  does: 受ける条件の今の値
-- name: PUT /api/v1/driver/conditions
-  does: 受ける条件を設定・解除する（null で解除）。値と変えた時刻を記録する。冪等キーが要る
-format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）
-protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
-auth: ドライバーの役割のセッションのクッキー。経路のまとまり /api/v1/driver で役割を一度確かめる（DEC-20）。依頼の操作は担当のドライバーだけ（ほかは 404。運転の開始も同じ。第 2 段階の DEC-30 版 2）。登録されたドライバーだけ（QR-37）
+  - name: POST /v1/rides
+    does: 乗客の依頼。名指した見積もり（IFC-02）の料金を確定額とし、乗客の支払い方法で確定額を押さえてから依頼を受け付け、届ける相手の規則（DEC-24）に合うドライバーに届ける（FR-04 の 1、FR-54 の 1）。要求は、この手配で乗客が乗る場所を決め始めた端末の時刻（pickupPlanningStartedAt、DEC-37 の添え方）を必ず持ち、ELM-03 は依頼を書く取引で、それを直した時刻を依頼の経過の「乗る場所を決め始めた」として書く（FR-45 の 1、DAT-09）。欠けているか送った時刻より後なら 400 VALIDATION_FAILED
+  - name: GET /v1/rides/current
+    does: 呼んだ人の進んでいる依頼の今の状態を返す。乗客には、探している、確定した配車のドライバーの名前と車の手がかり、迎車の位置と着く見込み、迎車の到着、確認コードと乗る前の案内、乗車中の降りる場所と車の位置を、ドライバーには、乗車場所と乗客の現在地と名前、乗車が始まってからは乗客の現在地に代えて降りる場所、到着を確認した後は決済の状態（済んだ、拒否されて乗客の支払い方法の変更を待つ、乗客が押さえ直してやり直せる、決済サービスが処理せず済んでいないのでやり直せる、分からない）を返す。示す範囲は DEC-15 の決まりによる（FR-06、FR-08、FR-09、FR-10、FR-12 の 1、FR-13、FR-24、FR-25、FR-29 の 4、5）
+  - name: POST /v1/rides/{rideId}/cancellation
+    does: 乗客の取り消し。許諾の前は無料で取り消して押さえを解き、許諾の後はキャンセル料（CON-08）を確かめたときだけ取り消し、取り消しを書いた後にキャンセル料を請求する（FR-07、FR-54 の 6、8）
+  - name: POST /v1/rides/{rideId}/driver-cancellation
+    does: 許諾したドライバーの取り消し。同じ乗る場所、降りる場所、料金のまま依頼をほかのドライバーに届け直す（FR-23）
+  - name: POST /v1/rides/{rideId}/no-show
+    does: 迎車が着いてから T_noshow_wait を過ぎた依頼を、ドライバーが乗客の不在として終える。終えたことを書いた後に不在の料金を請求する（FR-26、FR-54 の 7）
+  - name: POST /v1/rides/{rideId}/boarding
+    does: 迎車中か迎車が着いた依頼で、ドライバーが入れた確認コードを照らし、合えば乗車を始める。迎車の到着を位置で決める前（迎車の位置の確からしさが悪いときや、乗る場所から少し離れて止めたとき）でも、合えば始める（FR-27 の 1、FR-12 の 2）。合わない試みも記録し、合ったときのドライバーの位置を乗車を始めた位置として残す（FR-12 の 2〜4、FR-27、SLI-09）。迎車の到着を位置で決める前に始めた依頼では、迎車の到着を記録も知らせもしない（DAT-07）
+  - name: POST /v1/rides/{rideId}/destination-changes
+    does: 乗車中の乗客が決めた新しい降りる場所の料金と到着予定の時刻を求め、降りる場所の変更（DAT-08）を見積もりとして返す（FR-47 の 1）
+  - name: POST /v1/rides/{rideId}/destination-changes/{changeId}/approval
+    does: 乗客の承認。新しい確定額で押さえ直し、済んでから降りる場所と確定額を変え、前の押さえを解き、ドライバーに新しい降りる場所を示す（FR-47 の 2、FR-54 の 4、DEC-09）
+  - name: PUT /v1/rides/{rideId}/payment-method
+    does: 進んでいる依頼の支払い方法を、乗客が登録した新しい支払い方法（IFC-07）に変える。新しい支払い方法で押さえ直し、済んでから前の押さえを解く。決済が拒否された依頼では、押さえ直しが済むとドライバーに流れの ride.payment_method_changed（IFC-11）で知らせ、ドライバーが決済をやり直せる（FR-46 の 5、FR-29 の 4、DEC-09）。決済の試みが動いているか結果が分からない間は、押さえ直しを送れない（IFC-17 の ordering）ので変えない。決済サービスが処理しなかった決済のうち、取引が変わらないまま処理されなかったとしたものの後も、その押さえを確定済みか取り消し済みと読むまでは、その要求が後で効きうる（DEC-45）ため、ほかの押さえに移さず変えない（ドライバーのやり直しが同じ押さえで結果を決める）
+  - name: POST /v1/rides/{rideId}/arrival
+    does: ドライバーの到着の確認。到着を確認した場所と時刻を記録し、乗車を終えて決済に進む（FR-28、FR-13 の 2）
+  - name: POST /v1/rides/{rideId}/payment
+    does: ドライバーの決済。押さえの全額を確定し、済んだことと額、拒否とその理由、決済サービスが処理せず済んでいないこと、または結果が分からないことを答える。済んだ決済をもう一度行うと最初の結果を答える。処理されなかった決済のやり直しは、同じ押さえに新しい試みを作って送る。結果が分からないと答えた決済が確かめで処理されなかったと分かった後のやり直しも同じ（FR-29、FR-30、FR-54 の 5、DEC-45）。取引が変わらないまま処理されなかったとした前の決済の要求がその押さえで後で効きうる間に、やり直しが押さえを取り消し済みと読まずにはっきり拒否されたら、拒否と答えず、その押さえを解いて決まるまで結果が分からないと答える（解けば拒否として、解除が確定済みに退けられれば前の要求が効いたので済んだとして、流れの ride.charge_settled で示す、DEC-45）
+format: JSON（UTF-8）。額は DEC-38、時刻は DEC-37、ID は DEC-36
+protocol: HTTPS の要求と応答
+auth: セッション（DEC-40）。依頼、取り消し、降りる場所の変更、支払い方法の変更はその依頼の乗客だけ、ドライバーの取り消し、乗車の開始、不在、到着の確認、決済はその依頼に割り当てたドライバーだけで、ほかの人の依頼は存在を明かさず 404 NOT_FOUND（DEC-15、DEC-35、FR-49 の 2）
 errors:
-- case: 'POST /api/v1/driver/reception/start: 配車を停止されている（FR-17 AC4、FR-47 AC2）'
-  signal: 403 DRIVER_SUSPENDED
-  caller_does: 受付を始めさせずその旨を示す
-- case: 'POST /api/v1/driver/reception/start: 位置がない（FR-17 AC3。ふつうは画面が位置情報の許可で先に止める）'
-  signal: 400 LOCATION_REQUIRED
-  caller_does: 位置情報の利用の許可を求める
-- case: 'GET /api/v1/driver/requests: 受付中でない（停止されたときを含む）'
-  signal: 409 NOT_RECEIVING
-  caller_does: 受付の画面へ
-- case: 'GET /api/v1/driver/requests/{rideId}: 速さが V_moving 以上（FR-21 AC1）'
-  signal: 409 DRIVER_MOVING
-  caller_does: 停車してから操作するよう示す
-- case: 'GET /api/v1/driver/requests/{rideId}: ほかのドライバーが許諾したか、乗客かシステムが取り消した（FR-19 AC2）'
-  signal: 409 REQUEST_NO_LONGER_AVAILABLE
-  caller_does: その旨を示して一覧に戻る
-- case: 'POST /api/v1/driver/requests/{rideId}/accept: ほかのドライバーが許諾した（FR-20 AC2）'
-  signal: 409 ALREADY_TAKEN
-  caller_does: その旨を示して一覧に戻る
-- case: 'POST /api/v1/driver/requests/{rideId}/accept: 乗客が取り消したか、T_request_max でシステムが取り消した（FR-20 AC3、FR-08 AC5）'
-  signal: 409 RIDE_CANCELLED
-  caller_does: その旨を示して一覧に戻る
-- case: 'POST /api/v1/driver/requests/{rideId}/accept: 迎車中か乗車中（FR-20 AC4）'
-  signal: 409 DRIVER_BUSY
-  caller_does: 受け付けなかった旨を示す
-- case: 'POST /api/v1/driver/requests/{rideId}/accept: しきい値か評価の件数を満たさない（一覧を見た後に評価値が下がったなど。FR-16 AC2）'
-  signal: 409 NOT_ELIGIBLE
-  caller_does: 割り当てなかった旨を示して一覧に戻る
-- case: 'POST /api/v1/driver/requests/{rideId}/accept: 速さが V_moving 以上（FR-21 AC1）'
-  signal: 409 DRIVER_MOVING
-  caller_does: 停車してから操作するよう示す
-- case: 'POST /api/v1/driver/requests/{rideId}/accept: 停止された（QR-16）'
-  signal: 403 DRIVER_SUSPENDED
-  caller_does: 受付の画面へ
-- case: 'POST /api/v1/driver/rides/{rideId}/cancel: 乗車が始まっている（FR-22 AC2）'
-  signal: 409 RIDE_ALREADY_STARTED
-  caller_does: 取り消さずその旨を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/cancel: 乗客がもう取り消した（FND-34）'
-  signal: 409 RIDE_CANCELLED
-  caller_does: 読み直して今の状態を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/arrive: 乗る場所から D_arrival より離れている（FR-25 AC2）'
-  signal: 409 TOO_FAR_FROM_PICKUP
-  caller_does: 受け付けず、乗車場所に近づくよう示す（距離を添える）
-- case: 'POST /api/v1/driver/rides/{rideId}/arrive: 取り消された依頼（FR-25 AC4）'
-  signal: 409 RIDE_CANCELLED
-  caller_does: 受け付けずその旨を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/start: 確認コードが一致しない（FR-26 AC2）。残りの回数を添える'
-  signal: 422 CONFIRMATION_CODE_MISMATCH
-  caller_does: 運転を始めさせず、依頼主かどうか確かめるよう示す
-- case: 'POST /api/v1/driver/rides/{rideId}/start: 一つの割り当てで 10 回違った（仮。DEC-55）'
-  signal: 429 CONFIRMATION_ATTEMPTS_EXCEEDED
-  caller_does: 乗客と確かめて、取り消すよう示す
-- case: 'POST /api/v1/driver/rides/{rideId}/start: 乗客が取り消した（FND-34）'
-  signal: 409 RIDE_CANCELLED
-  caller_does: 読み直して今の状態を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/start: まだ到着を知らせていない（FND-34）'
-  signal: 409 RIDE_NOT_ARRIVED
-  caller_does: 読み直して今の状態を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/no-show: T_noshow_wait を過ぎていない（FR-27 AC2）。残りの秒数を添える'
-  signal: 409 NO_SHOW_TOO_EARLY
-  caller_does: 受け付けず、あとどれだけ待つかを示す
-- case: 'POST /api/v1/driver/rides/{rideId}/no-show: 乗客が取り消した（FND-34）'
-  signal: 409 RIDE_CANCELLED
-  caller_does: 読み直して今の状態を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/no-show: まだ到着を知らせていない（FND-34）'
-  signal: 409 RIDE_NOT_ARRIVED
-  caller_does: 読み直して今の状態を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/complete: 最後に指定した降車場所から D_dropoff を超えて離れている（FR-28 AC2）。距離を添える'
-  signal: 409 FAR_FROM_DROPOFF
-  caller_does: 'ドライバーに確かめ、confirmFarFromDropoff: true で新しい冪等キーで送る'
-- case: 'POST /api/v1/driver/rides/{rideId}/complete: 乗車中でない（FND-34）'
-  signal: 409 RIDE_NOT_IN_PROGRESS
-  caller_does: 読み直して今の状態を示す
-- case: 'POST /api/v1/driver/rides/{rideId}/complete: T_route_long（20 秒）で切った。乗車は終わっていて、確定が動いていることがある（第 2 段階の DEC-33、FND-21）'
-  signal: 503 ROUTE_TIMEOUT
-  caller_does: 同じ冪等キーで送り直すか、依頼を読み直す。配信で結果を待つ
-- case: 'PUT /api/v1/driver/conditions: 負の値など、ありえない値（FR-33 AC3）'
-  signal: 400 INVALID_REQUEST
-  caller_does: 受け付けず、範囲を示す
-- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
-  signal: 400 INVALID_REQUEST
-  caller_does: 欄を直す。同じものを送り直さない
-- case: '共通: ログインしていないか、セッションが切れた'
-  signal: 401 UNAUTHENTICATED
-  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
-- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
-  signal: 403 FORBIDDEN
-  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
-- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
-  signal: 404 NOT_FOUND
-  caller_does: 画面を読み直す
-- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
-  signal: 409 OPERATION_IN_PROGRESS
-  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
-- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
-  signal: 422 IDEMPOTENCY_KEY_REUSED
-  caller_does: 画面の誤り。新しい操作として新しいキーで始める
-- case: '共通: 回数の上限（DEC-55）'
-  signal: 429 RATE_LIMITED
-  caller_does: Retry-After まで待つ
-- case: '共通: 想定外の誤り'
-  signal: 500 INTERNAL_ERROR
-  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
-- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
-  signal: 503 ROUTE_TIMEOUT
-  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
-- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
-  signal: 503 DEPENDENCY_UNAVAILABLE
-  caller_does: ROUTE_TIMEOUT と同じ
-idempotency: 状態を変える POST と PUT はすべて Idempotency-Key（DEC-48）。不在と乗車の終了はお金を動かすので DEC-12 の三つのトランザクション。許諾は、同じドライバーが同じ依頼をもう一度許諾すると今の状態を返す。PUT conditions もキーを求める（同じ値の二度目も同じ結果）
+  - case: どの操作にも共通する誤りと、冪等キーの誤り
+    signal: DEC-35 と DEC-42 の符号
+    caller_does: DEC-35 と DEC-42 のとおり
+  - case: 依頼で名指した見積もりの有効期限が過ぎている
+    signal: 409 with code QUOTE_EXPIRED
+    caller_does: 見積もりを求め直して示し直し、乗客が確かめたら新しい操作として依頼する
+  - case: 乗客にまだ終わっていない依頼がある
+    signal: 409 with code RIDE_ALREADY_ACTIVE and the rideId
+    caller_does: 依頼が進んでいることを示し、その依頼を開く（FR-04 の 4）
+  - case: 使える支払い方法がない
+    signal: 409 with code PAYMENT_METHOD_REQUIRED
+    caller_does: 支払い方法の登録（IFC-07）へ移る（FR-04 の 5）
+  - case: EXT-01 が押さえか押さえ直しをはっきり拒否した
+    signal: 402 with code PAYMENT_DECLINED and reason
+    caller_does: 依頼では、受け付けなかったことと理由を示して支払い方法を変えるよう求める（FR-54 の 2）。降りる場所の変更と支払い方法の変更では、変えなかったことと理由を示す（FR-54 の 4、DEC-09）
+  - case: 押さえか押さえ直しの結果が、最初に送ってから待ちのうちに分からない
+    signal: 503 with code HOLD_UNCONFIRMED（依頼）または REHOLD_UNCONFIRMED（降りる場所の変更と支払い方法の変更）
+    caller_does: 依頼を受け付けなかったこと、または変えなかったことと、押さえが済んでいたら解くことを示す。し直すのは利用者が改めて操作したときで、新しい冪等キーで送る（FR-54 の 3、DEC-45）
+  - case: 許諾された依頼の取り消しで、乗客がまだキャンセル料を確かめていない
+    signal: 409 with code CANCELLATION_FEE_CONFIRMATION_REQUIRED and the fee
+    caller_does: キャンセル料を示し、乗客が確かめたら、確かめたことを付けて新しい冪等キーで送る（FR-07 の 2）
+  - case: 乗車が始まった依頼を取り消そうとした
+    signal: 409 with code RIDE_ALREADY_STARTED
+    caller_does: 乗車が始まっていることを示し、取り消さない（FR-07 の 4、FR-23 の 4）
+  - case: 依頼がすでに取り消されたか終わっている
+    signal: 409 with code RIDE_ALREADY_ENDED and the end reason
+    caller_does: 取り消されたか終わったことを示し、今の状態を読み直す（FR-24 の 5、FR-25 の 2、FR-27 の 3）
+  - case: 迎車が乗車場所に着く前に乗客の不在として終えようとした
+    signal: 409 with code PICKUP_NOT_ARRIVED
+    caller_does: 着く前は不在として終えられないことを示す（FR-26 の 3）
+  - case: 迎車が着いてから T_noshow_wait が過ぎていない
+    signal: 409 with code NO_SHOW_TOO_EARLY and remainingSeconds
+    caller_does: 待つ残りの時間を示す（FR-26 の 2）
+  - case: 入れた確認コードがその依頼のものと合わない
+    signal: 422 with code CONFIRMATION_CODE_MISMATCH
+    caller_does: 一致しないことをドライバーに示し、乗車を始めない（FR-12 の 3）
+  - case: 合わない試みが続いて、その依頼のコードの照らし合わせを止めている
+    signal: 429 with code CONFIRMATION_CODE_LOCKED and retryAfterSeconds
+    caller_does: 待つ時間を示す（DEC-25、値は HND-13）
+  - case: 到着を確認した後に降りる場所を変えようとした
+    signal: 409 with code RIDE_ALREADY_ARRIVED
+    caller_does: 変えられないことを示す（FR-47 の 6）
+  - case: 新しい降りる場所が見つからないか、そこまで車で行く道がない
+    signal: 422 with code ROUTE_NOT_FOUND
+    caller_does: 料金と到着予定の時刻を示せないことを伝え、降りる場所を変えない（FR-47 の 4）
+  - case: 新しい降りる場所の見積もりで EXT-02 が失敗したか答えない
+    signal: 503 with code MAP_SERVICE_UNAVAILABLE
+    caller_does: 料金と到着予定の時刻を示せないことを伝え、降りる場所を変えない（FR-47 の 5）
+  - case: 承認した降りる場所の変更の有効期限が過ぎている
+    signal: 409 with code QUOTE_EXPIRED
+    caller_does: 見積もりを求め直す
+  - case: 乗車が始まっていない依頼で到着を確認しようとした
+    signal: 409 with code RIDE_NOT_STARTED
+    caller_does: 受け付けないことを示す（FR-28 の 2）
+  - case: 到着を確認していない乗車で決済しようとした
+    signal: 409 with code RIDE_NOT_ARRIVED
+    caller_does: 到着の確認を先にするよう示す
+  - case: EXT-01 が決済（押さえの全額の確定）をはっきり拒否した（取引が変わらないまま処理されなかったとした前の決済の要求がその押さえで後で効きうる間の拒否は、押さえを解いて決まるまでこの答えにせず 202 PAYMENT_PENDING、DEC-45）
+    signal: 402 with code PAYMENT_DECLINED and reason
+    caller_does: 済んでいないことと理由をドライバーに示し（乗客には流れの ride.charge_settled で示す）、乗客が支払い方法を変えるまで待つ（FR-29 の 4）
+  - case: 決済が拒否された後、乗客が支払い方法を変えて押さえ直す前にやり直した
+    signal: 409 with code PAYMENT_METHOD_CHANGE_REQUIRED
+    caller_does: 乗客の支払い方法の変更を待つことを示す（FR-29 の 4）
+  - case: 決済の結果がまだ定まらない依頼の支払い方法を変えようとした。決済の試みが動いているか結果が分からない（payment_pending）間と、取引が変わらないまま処理されなかったとした決済の要求がその押さえで後で効きうる間（その押さえを確定済みか取り消し済みと読むまで、DEC-45）
+    signal: 409 with code PAYMENT_PENDING_CONFIRMATION
+    caller_does: 決済の結果を確かめている間は変えられないことを示し、流れの ride.charge_settled を待ってから決め直す（拒否なら支払い方法を変えられ、済めば変える要がなく、処理されなかったならドライバーがやり直す。処理されなかった後に受けたときは、ドライバーのやり直しの結果の ride.charge_settled を待つ。IFC-17 の ordering、FR-46 の 5）
+  - case: EXT-01 が押さえ、押さえ直し、決済を実行の前に退けた（処理されなかった。鍵や形の誤りで、何も実行されていない、DEC-45）。決済では、結果が分からないと答えた決済を確かめて処理されなかったと分かった後の、同じ冪等キーの送り直しも（取引が変わっておらず何も請求していない、DEC-45）
+    signal: 503 with code PAYMENT_SERVICE_UNAVAILABLE
+    caller_does: 依頼では受け付けなかったこと、降りる場所の変更と支払い方法の変更では変えなかったこと、決済では済んでいないこと（どれも何も押さえず請求していない）を示す。この答えはキーの答えなので同じ冪等キーで送り直しても同じ答えを受けるため、送り直さずに今の状態を読み直して従う（DEC-35）。し直すのは利用者が改めて操作したときで、新しい冪等キーで送る。決済はドライバーがすぐやり直せ、乗客は支払い方法を変えなくてよい（乗客には流れの ride.charge_settled で済んでいないことを示す。取引が変わらないまま処理されなかったとした決済の後は、その押さえで結果が決まるまで変えられない、PAYMENT_PENDING_CONFIRMATION）
+  - case: 決済の結果が、最初に送ってから待ちのうちに分からない。または、取引が変わらないまま処理されなかったとした前の決済の要求がその押さえで後で効きうる間に決済がはっきり拒否され、その押さえを解いて決めている（DEC-45）
+    signal: 202 with code PAYMENT_PENDING
+    caller_does: 済んだかどうか分からないことを示し、流れの ride.charge_settled を待つ（処理されなかったと分かれば、済んでいないことを示してドライバーがやり直す）。同じ冪等キーで送り直すとそのときの結果を受け、新しいキーで送ると依頼の決済を確かめた結果（結果が分からない試みか、解いている押さえ）を受け、その確かめで処理されなかったと分かれば新しい試みの結果を受ける（FR-29 の 5、FR-30 の 2、DEC-45）
+idempotency: GET は繰り返してよい。降りる場所の変更の見積もり（POST /v1/rides/{rideId}/destination-changes）は見積もりを作るだけで、送り直すと別の見積もりができ、承認が名指すのは一つだけのため、冪等キーを付けない（DEC-42）。ほかの状態を変えるどの操作も冪等キー（DEC-42）を付け、送り直しには最初の答えを返す（決済の結果が分からないときは、そのときの結果）。外部を呼ばない操作（取り消し、ドライバーの取り消し、不在、乗車の開始、到着の確認）は結果とキーを一つの取引で書くので、答える前に受けたインスタンスが止まれば送り直しが初めから行う。外部を呼ぶ操作（依頼、承認、支払い方法の変更、決済）は試みとともにキーを動いているとして書き、答えの期限（8.8 秒）のうちの送り直しには 409 OPERATION_IN_PROGRESS、期限を過ぎても答えがなければ試みの状態から DEC-45 のとおりに答える（押さえと押さえ直しは HOLD_UNCONFIRMED か REHOLD_UNCONFIRMED か PAYMENT_DECLINED か PAYMENT_SERVICE_UNAVAILABLE、決済は試みの今の結果で、後で効きうる確定のために押さえを解いて決めている間は 202 PAYMENT_PENDING）。依頼は乗客ごとに進んでいる依頼を一つまでとし（FR-04 の 4）、許諾、取り消し、乗車の開始、到着の確認は今の状態を条件に書くので、重なった操作は先に書けた一つだけが通る（DEC-08）。決済は一つの乗車に済んだか結果が分からない試みを一つまでしか持たず、新しいキーの決済でも済んでいれば最初の結果を、依頼の決済が分からなければ（payment_pending）それを確かめた結果（結果が分からない試みか、後で効きうる確定のために解いている押さえ、DEC-45）を答え、その確かめで処理されなかったと分かれば新しい試みを作ってその結果を答える。新しい試みを作るのは、前の試みが処理されなかったとき（結果が分からなかった試みが確かめで処理されなかったと分かったときを含む）と、はっきり拒否の後に乗客が押さえ直したときと、後で効きうる確定が効いたと押さえの解除で分かったとき（ELM-03 が作る）だけ（FR-30、DEC-45）。EXT-01 へのキーは試みごとに ELM-03 が作る（IFC-17）
 timing:
-  timeout: ブラウザ 15 秒（乗車の終了は 25 秒。DEC-50）。サーバーの中は T_route 10 秒（乗車の終了は T_route_long 20 秒。第 2 段階の DEC-33）。乗車の終了は要求の中で最悪 9.35 秒（Turso が遅いと 15.05 秒。T_route_long で 503 を返しても処理は続く。FND-21）。地図 2 秒、Stripe 1 回 2.5 秒、Turso 1 回 T_db 2 秒（DEC-50）
+  timeout: 時間のしきい値の SLO とお金の道の上の操作の値を決める。押さえと押さえ直しと決済（POST /v1/rides、承認、PUT /v1/rides/{rideId}/payment-method、POST /v1/rides/{rideId}/payment）は、ELM-03 の答えの期限が、自身の処理と取引の 0.2 秒と、最初に EXT-01 に送ってからの待ち 8.5 秒（IFC-17）と、結果を書く取引の 0.1 秒の和の 8.8 秒で、決済の 8.8 秒は T_payment_response（10 秒）のうち。ELM-01 のタイムアウトは 15 秒（8.8 秒と通信の余裕 5 秒の和より長い）。乗客の取り消し（NFR-07 の道とキャンセル料）、ドライバーの取り消し（NFR-07 の道）、乗客の不在（不在の料金）は外部を呼ばず、ELM-03 の答えの期限は 2 秒、ELM-01 のタイムアウトは 10 秒（2 秒と余裕 5 秒の和より長い）。料金の請求と押さえを解くことはこれらの操作の答えを待たせず、期限の処理（DEC-46 の 5 秒の間隔）が送る。タイムアウトしたら同じ冪等キーで送り直し、つながらない間は送り直す操作を持ってつながったら送る（DEC-08、DEC-17）。値は DEC-46 と IFC-17 による。ほかの操作（今の状態、乗車の開始、到着の確認、降りる場所の変更の見積もり）は時間のしきい値の SLO とお金の道になく、枠だけを決める。ELM-03 の答えの期限は自身の取引の最悪（見積もりは EXT-02 の呼び出しのタイムアウトとやり直しの和、HND-07）より長く、ELM-01 のタイムアウトはその期限に通信の余裕を足したものより長い。値は第 4 段階が決める（ELM-01 は HND-17、ELM-03 の期限は HND-19）
   ordering: null
   delivery: null
-versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
-observability: request.completed のログ。依頼の一覧、許諾、迎車の到着、運転の開始、乗車の終了は SLI-01 の六つの操作（route_id は「測定点」の表）。走行中で断った操作は時刻と速さを DAT-19 に（FR-21 AC4。座標は書かない）
-spec: ifc/specs/driver.openapi.yaml
+versioning: DEC-41
+observability: 境界の出来事（DAT-19）、依頼の経過（DAT-09。依頼したときの料金と示した到着予定時刻、届けた先、許諾、迎車の到着、乗車の開始、降りる場所の変更、到着の確認とその場所、決済とその額、取り消しと不在とそれを行った人、FR-45）、たどる記録（DAT-18）、操作の記録（DAT-17。料金を確かめて依頼したこと、降りる場所と料金の承認、キャンセル料を確かめた取り消し、不在として終えたこと、到着の確認、QR-12）に残す
+sli_bindings:
+  - sli: SLI-01
+    events: 乗客が ELM-03 の入口に送った POST /v1/rides と、乗車の開始の前の POST /v1/rides/{rideId}/cancellation（システムの境界）。同じたどる ID の要求を、DEC-43 の決まりで一つの操作にまとめる（端末が答えを受ける前の送り直しと 409 OPERATION_IN_PROGRESS の後の送り直しは同じ操作、ほかの答えを受けた後の送り直しは新しい操作）
+    fields: [traceId, resend, idempotencyKey, route, actorKind, ridePhase, testAccount, environment, receivedAt, respondedAt, httpStatus, errorCode, outcome, failureOrigin]
+    method: 境界の出来事（DAT-19）を、本番の環境のデモの回の間のものに絞り、DEC-43 の決まりで操作にまとめて、最初の要求を受けた日に数える。PAYMENT_DECLINED、RIDE_ALREADY_ACTIVE、PAYMENT_METHOD_REQUIRED、CANCELLATION_FEE_CONFIRMATION_REQUIRED は受け付けない入力か決済サービスの拒否の知らせとして GOOD。HOLD_UNCONFIRMED か PAYMENT_SERVICE_UNAVAILABLE（failureOrigin が EXT-01）か 500 か答えのない要求を一つでも含む操作は GOOD でない（QCR-07）。testAccount が真のものは外す
+  - sli: SLI-02
+    events: 乗客が ELM-03 の入口に送った GET /v1/rides/current のうち、最初の要求を受けたときの依頼が迎車中か迎車が着いた状態（ridePhase が assigned か pickup_arrived）のもの。操作へのまとめ方と数え方は SLI-01 と同じ（DEC-43）
+    fields: [traceId, resend, route, actorKind, ridePhase, testAccount, environment, receivedAt, respondedAt, httpStatus, errorCode, outcome, failureOrigin]
+    method: 境界の出来事（DAT-19）を、最初の要求を受けたときの依頼の状態で絞り、DEC-43 の決まりで操作にまとめて数える
+  - sli: SLI-03
+    events: 乗客が ELM-03 の入口に送った GET /v1/rides/current のうち、最初の要求を受けたときの依頼が乗車中（ridePhase が riding）のもの。操作へのまとめ方と数え方は SLI-01 と同じ（DEC-43）
+    fields: [traceId, resend, route, actorKind, ridePhase, testAccount, environment, receivedAt, respondedAt, httpStatus, errorCode, outcome, failureOrigin]
+    method: 境界の出来事（DAT-19）を、最初の要求を受けたときの依頼の状態で絞り、DEC-43 の決まりで操作にまとめて数える
+  - sli: SLI-05
+    events: ドライバーが ELM-03 の入口に送った GET /v1/rides/current のうち最初の要求を受けたときの依頼が迎車中か迎車が着いた状態のものと、POST /v1/rides/{rideId}/boarding。操作へのまとめ方と数え方は SLI-01 と同じ（DEC-43）
+    fields: [traceId, resend, idempotencyKey, route, actorKind, ridePhase, testAccount, environment, receivedAt, respondedAt, httpStatus, errorCode, outcome, failureOrigin]
+    method: 境界の出来事（DAT-19）を DEC-43 の決まりで操作にまとめて数える。CONFIRMATION_CODE_MISMATCH と CONFIRMATION_CODE_LOCKED は受け付けない入力の知らせとして GOOD。500 か答えのない要求を一つでも含む操作は GOOD でない（QCR-07）
+  - sli: SLI-06
+    events: ドライバーが ELM-03 の入口に送った POST /v1/rides/{rideId}/arrival と POST /v1/rides/{rideId}/payment。操作へのまとめ方と数え方は SLI-01 と同じ（DEC-43）
+    fields: [traceId, resend, idempotencyKey, route, actorKind, ridePhase, testAccount, environment, receivedAt, respondedAt, httpStatus, errorCode, outcome, failureOrigin]
+    method: 境界の出来事（DAT-19）を DEC-43 の決まりで操作にまとめて数える。PAYMENT_DECLINED は決済サービスが支払いを受け付けなかった知らせとして、PAYMENT_METHOD_CHANGE_REQUIRED は受け付けない入力の知らせとして GOOD。PAYMENT_PENDING か PAYMENT_SERVICE_UNAVAILABLE（failureOrigin が EXT-01）か 500 か答えのない要求を一つでも含む操作は GOOD でない（QCR-07）
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 運転の開始を担当のドライバーのアカウントだけとし（ほかは 404）、経路を得られなければ routeToDropoff が null と書いた。状態が許さないときの 409 を足した（start と no-show に RIDE_CANCELLED と RIDE_NOT_ARRIVED、complete に RIDE_NOT_IN_PROGRESS、cancel に RIDE_CANCELLED）。乗車の終了が確かめ中の降車場所の変更を取りやめ、古い押さえと変更の前の料金で確定することを書いた。乗車の終了の 503 ROUTE_TIMEOUT を T_route_long（20 秒）にし、タイムアウトを DEC-50 の値に直した。システムの取り消しと許諾の重なりを書いた。functions に FR-15 を足し、一覧の絞り込みで評価値を使うと書いた。PUT もキーを求めると直した。FR-17 の受け入れ基準の番号を版 2 に合わせた
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-08 版 2、FR-17 版 2、FR-26 版 2）、第 2 段階の DEC-30 版 2・DEC-33 版 2、FND-33・34・43・47・48'

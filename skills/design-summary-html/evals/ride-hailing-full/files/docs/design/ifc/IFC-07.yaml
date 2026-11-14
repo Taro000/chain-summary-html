@@ -1,82 +1,47 @@
 id: IFC-07
-title: エンジニアの API
-status: draft
-version: 2
+title: 支払い方法の登録
+status: active
 basis: inferred
-basis_note: FR-40 の受け入れ基準と DEC-19（履歴は管理の画面、ログは Logs Explorer）、DEC-15（エンジニアの役割は位置の記録を読める）は入力。検索の条件の送り方と範囲の上限は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: カードの情報を EXT-01 の入力部品から直接 EXT-01 に渡し、サーバーが作った登録の取引を端末に確かめさせ、サーバーが結果を EXT-01 から読み直してから使える支払い方法にすることは DEC-12（入力）。カードの情報を受け取らず記録しないこと、受け付けないときは別の支払い方法を求め、分からないときは分かるまで使える支払い方法にしないことは FR-46、TC-11（入力）。結果が分からないときの答えは DEC-45。登録の読み直しの待ちは IFC-17 の値から計算した。カードの番号の下 4 桁や種類も読まず持たないことは、TC-11 と QR-60 のカードの情報を広く取った推定。進んでいる依頼の支払い方法を変えることは IFC-03 の PUT /v1/rides/{rideId}/payment-method。受けたインスタンスが答える前に止まったときの同じキーの送り直しへの答えは、FND-22 を受けて DEC-42、DEC-45 とともに決めた。登録の取引を作る呼び出しが処理されなかったときの答えと送り直し方、読み直しが処理されなかったときに結果が分からないとすることは、FND-45 を受けて DEC-35、DEC-45 とともに決めた（推定）
+premises: [TC-11, CON-04]
 kind: http
-name: エンジニアの API
-provider: ELM-04
-consumers:
-- ELM-03
-functions:
-- FR-01
-- FR-39
-- FR-40
+name: 支払い方法の登録
+provider: ELM-03
+consumers: [ELM-01]
+functions: [FR-46]
 operations:
-- name: POST /api/v1/engineer/history-search
-  does: 依頼 ID、トレース ID、利用者 ID、時間の範囲、エラーの種類で状態の履歴とブラウザのエラーの記録を探し、各行に Logs Explorer を開く URL を付ける
-- name: GET /api/v1/engineer/rides/{rideId}/positions
-  does: 依頼の位置の記録と、保持の間の位置の受信の記録（原因の特定。DEC-15）
-- name: PATCH /api/v1/engineer/accounts/{accountId}
-  does: テスト用の印を付ける・外す。後の記録に写る（FR-01 AC6）。冪等キーが要る
-format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）
-protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
-auth: エンジニアの役割のセッションで、パスキーの確かめが済んだもの。経路のまとまり /api/v1/engineer
+  - name: GET /v1/payment-methods
+    does: 乗客に使える支払い方法があるか、登録の途中か結果が分からない登録があるか、いつ登録したかを返す。カードの情報（番号、下 4 桁、種類、期限）は返さない
+  - name: POST /v1/payment-method-setups
+    does: 登録を始める。EXT-01 に登録の取引（SetupIntent）を作り、入力部品（IFC-18）に渡す client secret と登録の ID を返す
+  - name: POST /v1/payment-method-setups/{setupId}/completion
+    does: 端末が入力部品で確かめた後に呼ぶ。ELM-03 が EXT-01 から登録の取引を読み直し、済んでいれば次の依頼から使う支払い方法にする（FR-46 の 1、5）
+format: JSON（UTF-8）
+protocol: HTTPS の要求と応答
+auth: 乗客のセッション（DEC-40）。乗客のほかは 403 NOT_ALLOWED（DEC-15）。client secret はその登録の取引を確かめることにだけ使え、カードの情報は ELM-03 に届かない（TC-11）
 errors:
-- case: 'POST /api/v1/engineer/history-search: 条件がない'
-  signal: 400 SEARCH_CONDITION_REQUIRED
-  caller_does: 条件を入れるよう示す
-- case: 'POST /api/v1/engineer/history-search: 時間の範囲が 31 日を超える'
-  signal: 400 RANGE_TOO_WIDE
-  caller_does: 狭めるよう示す
-- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
-  signal: 400 INVALID_REQUEST
-  caller_does: 欄を直す。同じものを送り直さない
-- case: '共通: ログインしていないか、セッションが切れた'
-  signal: 401 UNAUTHENTICATED
-  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
-- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
-  signal: 403 FORBIDDEN
-  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
-- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
-  signal: 404 NOT_FOUND
-  caller_does: 画面を読み直す
-- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
-  signal: 409 OPERATION_IN_PROGRESS
-  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
-- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
-  signal: 422 IDEMPOTENCY_KEY_REUSED
-  caller_does: 画面の誤り。新しい操作として新しいキーで始める
-- case: '共通: 回数の上限（DEC-55）'
-  signal: 429 RATE_LIMITED
-  caller_does: Retry-After まで待つ
-- case: '共通: 想定外の誤り'
-  signal: 500 INTERNAL_ERROR
-  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
-- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
-  signal: 503 ROUTE_TIMEOUT
-  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
-- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
-  signal: 503 DEPENDENCY_UNAVAILABLE
-  caller_does: ROUTE_TIMEOUT と同じ
-idempotency: 検索は読むだけの POST（条件に識別子と時刻を含むので本文で送る。DEC-16）。PATCH も Idempotency-Key を求める（DEC-48）
+  - case: どの操作にも共通する誤りと、冪等キーの誤り
+    signal: DEC-35 と DEC-42 の符号
+    caller_does: DEC-35 と DEC-42 のとおり
+  - case: EXT-01 が支払い方法を受け付けなかった
+    signal: 402 with code PAYMENT_METHOD_DECLINED and reason
+    caller_does: 登録できなかったことと理由を示し、別の支払い方法を求める（FR-46 の 3）
+  - case: 登録の結果が、最初に読んでから待ちのうちに分からないか、読み出しが処理されなかった（ELM-03 は読めなかっただけで、乗客が入力部品で確かめた登録の結果は分からない、DEC-45）
+    signal: 202 with code PAYMENT_METHOD_PENDING
+    caller_does: 登録できたかどうか分からないことを示し、流れの payment_method.settled を待つ。分かるまでその支払い方法では依頼させない（FR-46 の 4、DEC-45）
+  - case: 端末がまだ入力部品で確かめていない（取引が確かめを待っている）
+    signal: 409 with code PAYMENT_METHOD_NOT_CONFIRMED
+    caller_does: 入力部品からやり直す
+  - case: 登録を始めるとき、EXT-01 が登録の取引を作らなかった（処理されなかった）か答えない
+    signal: 503 with code PAYMENT_SERVICE_UNAVAILABLE
+    caller_does: 登録を始められないことを示す。この答えはキーの答えなので、同じ冪等キーでは送り直さない（DEC-35）。始め直すときは新しい冪等キーで送り、新しい取引を作る（作りかけの取引ではお金は動かない）
+idempotency: GET は繰り返してよい。始める操作と completion は冪等キー（DEC-42）を付け、送り直しには最初の答え（結果が分からないときは、そのときの結果）を返す。どちらも EXT-01 を呼ぶため、登録の記録とともにキーを動いているとして書き、答えの期限のうちの送り直しには 409 OPERATION_IN_PROGRESS、期限を過ぎても答えがなければ、始める操作は EXT-01 の同じキーで送り直して同じ登録の取引の client secret を、completion は登録の今の状態（使える、拒否、分からなければ 202 PAYMENT_METHOD_PENDING）を答える（DEC-45）。completion は EXT-01 の取引を読み直すだけで、何度呼んでも登録は一つ
 timing:
-  timeout: ブラウザ 15 秒。サーバーの中は T_route 10 秒
+  timeout: 登録の結果は依頼のときの押さえと押さえ直しに使う支払い方法を決める（FR-54、DEC-09）ため、お金の道の値を決める。completion の ELM-03 の答えの期限は、自身の処理 0.1 秒と、EXT-01 の読み出しとその一回の読み直しの待ち 8.5 秒（IFC-17）と結果を書く取引 0.1 秒の和の 8.7 秒、ELM-01 のタイムアウトは 15 秒（DEC-46）。始める操作も同じ値を使う。値は IFC-17 と DEC-46 による
   ordering: null
   delivery: null
-versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
-observability: 検索の条件（ID と時間の範囲）と件数を engineer.search のログに。位置を読んだことは位置の読み出しのログに（アカウントと依頼の ID だけ）
-spec: ifc/specs/engineer.openapi.yaml
+versioning: DEC-41
+observability: 境界の出来事（DAT-19）と、EXT-01 とのやり取りの結果をたどる記録（DAT-18）に残す。client secret とカードの情報はどこにも書かない
+sli_bindings: []
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: PATCH もキーを求めると直した（自然に冪等とした記述を外した）。FR-01 の受け入れ基準の番号を版 3 に合わせた（テスト用の印は AC6）
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-01 版 3）、FND-43'

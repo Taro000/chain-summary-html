@@ -1,0 +1,34 @@
+id: MOD-06
+title: 端末のエラーの報告
+status: active
+basis: inferred
+basis_note: Web アプリの予期しない失敗を画面の境の一か所で受け、端末のエラーとして ELM-03 に送り、つながっていない間はためて送ることは POL-04（入力）、ELM-02 の画面がそれを送ることは IFC-24 と IFC-25 の observability（入力）。報告の項目（一件ごとの ID、起きた時刻、画面、関わる依頼、エラーの種類、たどる ID）と、受けた ID と退けた ID の答え、大きすぎるときは分けて送ること、サインインの前のものはサインインの後に送ることは IFC-10（入力）。送るときに sentAt と直前の往復の時間を添えることは DEC-37（入力）。エラーの中身と画面の名前に個人の情報を入れないことは IFC-10 と QR-58（入力）で、決めた項目のほかを持たせず失敗の文、スタック、URL、入れた値を入れないことは推定
+premises: []
+component: ELM-02
+name: 端末のエラーの報告
+depth: bounds
+depth_reason: null
+responsibility: ELM-02 の画面で起きた予期しない失敗を、個人の情報を入れずに ELM-03 に届ける
+visibility: internal
+interface:
+  - operation: "report(failure: CaughtFailure, context: ReportContext) -> none"
+    pre: null
+    post: 報告の ID（新しい UUID）、起きた時刻（端末の時計）、画面の名前（MOD-10 の道筋の登録の名前）、関わる依頼の ID、エラーの種類（閉じた一覧の値）、たどる ID だけを持つ報告を作り、ためて POST /v1/device-reports（IFC-10）で MOD-01 からまとめて送る。失敗の文、スタック、URL、入れた値、答えの本文を入れない。送るたびに sentAt と MOD-01 の lastRoundTripMs を添える（DEC-37）。ELM-03 が受けたか退けたと答えるまで持ち、つながらない間とサインインの前はためる。呼ぶ側に投げない
+    errors: []
+invariants: []
+depends_on: [MOD-01, MOD-07]
+functions: []
+realizes:
+  - IFC-10 POST /v1/device-reports
+drivers: [DRV-24, DRV-29]
+decisions: [DEC-15, DEC-19, DEC-37]
+behaviour: null
+verification:
+  - checks: 報告が決めた項目だけを持ち、失敗の文、スタック、URL、入れた値を持たない
+    how: 単体の層（Vitest の Browser Mode、Chromium）。名前や連絡先を文に入れた失敗を起こし、MOD-01 の偽物が受けた本文を調べる
+  - checks: 受けた ID と退けた ID の答えで報告を消し、PAYLOAD_TOO_LARGE で分けて送り、つながらない間とサインインの前はためて後で送る
+    how: 単体の層（MOD-01 の偽物と時計の偽物）
+  - checks: sentAt と lastRoundTripMs を添える
+    how: 単体の層
+parameters: []
+as_is: new

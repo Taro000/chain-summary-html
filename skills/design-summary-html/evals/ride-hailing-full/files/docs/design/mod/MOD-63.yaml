@@ -1,0 +1,43 @@
+id: MOD-63
+title: 苦情と返金の求め
+status: active
+basis: inferred
+basis_note: 乗客が自分の乗車について苦情か返金の求めを寄せ、乗車と結び付けて受け付け、担当者に complaint.received で知らせ、自分の乗っていない乗車には存在を明かさず 404 を返すことは IFC-09 と FR-37、担当者が受けたものと終えたものに分けて読み、対応を終えたことを操作の記録と一つの取引で書くことは IFC-12、DAT-16、FR-50、中身を記録した日の鍵で暗号にし、試験用の区別をその時点の値で写すことは DAT-16 と FR-42 の 2（どれも入力）
+premises: []
+component: ELM-03
+name: 苦情と返金の求め
+depth: bounds
+depth_reason: null
+responsibility: 乗客の苦情と返金の求めを乗車と結び付けて受け、担当者の対応を終えるまで持つ
+visibility: public
+interface:
+  - operation: "submit(actor: Actor, rideId: RideId, complaint: ComplaintInput, key: IdempotencyKey) -> ComplaintRef"
+    pre: null
+    post: POST /v1/rides/{rideId}/complaints で、その乗客の乗車と結び付けて受け（受けた状態）、担当者への complaint.received、冪等キーの答えを一つの取引で書く
+    errors: ["NOT_FOUND: 404（自分の乗っていない乗車）", "VALIDATION_FAILED: 400"]
+  - operation: "list(actor: Actor, page: PageRequest) -> ComplaintList; resolve(actor: Actor, complaintId: ComplaintId, key: IdempotencyKey) -> ComplaintView"
+    pre: null
+    post: GET /v1/console/complaints に受けたものと終えたものを分けて新しい順に、POST …/resolution で対応を終えたこととその担当者と時刻を操作の記録と一つの取引で書く
+    errors: ["NOT_FOUND: 404"]
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 記録してから 3 年を過ぎた苦情の中身と寄せた人と対応した担当者を消し、状態と時刻を残す
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-26, MOD-27, MOD-29, MOD-33, MOD-45]
+functions: [FR-37, FR-42, FR-50]
+realizes:
+  - IFC-09 POST /v1/rides/{rideId}/complaints
+  - IFC-12 GET /v1/console/complaints
+  - IFC-12 POST /v1/console/complaints/{complaintId}/resolution
+  - IFC-11 complaint.received
+drivers: [DRV-24, DRV-27, DRV-30]
+decisions: [DEC-19]
+behaviour: null
+verification:
+  - checks: 寄せた苦情が乗車と結び付いて担当者に示され、終えたことが記録され、ほかの乗車に寄せられない（FR-37 の 1〜3、NFR-37、NFR-14 の信号）
+    how: 結合の層
+  - checks: 対応を終えたことの操作の記録（FR-50 の 1、NFR-32）
+    how: 結合の層
+parameters: []
+as_is: new

@@ -1,0 +1,22 @@
+id: QR-62
+title: 模擬の運賃表が、模す運賃の定めに合う
+status: active
+basis: inferred
+basis_note: 模擬の運賃表が模す運賃の定めに合うことは質問 1 で確認済み。定めの中身は誰もまだ確かめていない（質問 1 の回答）ため、合っているかを確かめる手立ては未解決の点に挙げた。運賃表はエンジニアが開発の作業として入れる（質問 6）。エンジニアがデータを作る人でもあることは第 1 段階が反映した（USR-03）。最低限守る線とすることは第 4 段階の質問 8 で確認済み（QAS-23）
+premises: [QAS-23]
+model: data
+layer: data-inherent
+characteristic: compliance
+statement: システムが料金を求めるのに使う模擬の運賃表は、模す運賃の定めに合っている。
+applies_to: [FR-03, FR-47]
+traces_to: []
+entry_point: {type: policy, source: 旅客運送の法令（道路運送法）を模す開発方針, brought_by: 開発の責任者}
+stakeholders: [USR-01, USR-02, USR-03]
+failure_scenario: 運賃表の初乗りの距離が模す定めと違うまま使われ、本物らしく作るはずの料金が定めに合わない。
+score: {impact: 3, likelihood: 3}
+handling: minimum-line
+handling_reason: 開発方針から来るため対象から外さない
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

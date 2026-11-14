@@ -1,0 +1,14 @@
+id: POL-06
+title: 実装からの戻り
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: implementation-feedback
+addresses:
+- DRV-06
+decisions: []
+rules:
+- rule: 設計どおりにできないときは、指摘を書いて段階を再実行する
+  check: プルリクエストのレビュー
+as_is: new

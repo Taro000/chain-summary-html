@@ -1,57 +1,35 @@
 id: DEC-39
-title: ID の形と作る場所
-status: draft
-version: 2
-basis: inferred
-basis_note: data-and-conventions.md の決まり（推測できない ID、URL に連番を入れない）は入力。接頭辞と ULID は推定
-needs_agreement: false
-approver_candidates: []
+title: 一覧はどれも不透明な cursor と limit で区切り、並べ方を一覧ごとに一つに決め、個人の情報で探す一覧は本文で条件を送る
+status: active
+basis: assumed
+basis_note: インタフェースが見せる一覧の区切り方と並べ方は、第 3 段階の確定の種類（推定）。量は小さい（OPF-02、OPF-03）が、履歴、照会、アカウント、操作の記録、たどる記録は増え続けるため区切る（推定）。個人の情報を経路と問い合わせの文字列に入れないことは DEC-44。limit の既定と最大は DAS-14 による暫定の決定で、その値を parameters に置いたことは FND-33 を受けた
+premises: [OPF-02, DAS-14]
 stage: high-level-design
-question: 公開する ID をどの形にし、誰が作るか
-addresses:
-- IFC-02
-- IFC-03
-- IFC-06
-- IFC-08
-- DRV-29
+question: 一覧をどう区切り、どう並べ、条件をどう送るか
+addresses: [DRV-24, DRV-29, FR-31, FR-38, FR-50, FND-33]
 options:
-- name: "種類の接頭辞と ULID（サーバーが作る）。ブラウザが作るキーは UUIDv4 と W3C のトレース ID。サーバーが作る: 依頼 ride_、アカウント acc_、ドライバー drv_、見積もり est_、状態の変化 chg_、お金の操作 mop_、返金の要求 rfr_、苦情 cmp_、降車場所の変更 dch_、位置の記録 pos_ の後に ULID（26 文字）。ブラウザが作る: Idempotency-Key（UUIDv4）、トレース ID（W3C の 32 桁の 16 進）、clientEventId、clientErrorId、位置の送信の clientSendId（UUIDv4）。配信のカーソルは状態の履歴とドライバーの受付の記録の通し番号から作る不透明な文字"
-  effect: 推測できない（80 ビットの乱数）、時刻の順に並ぶ、ログで種類が分かる
-  cost: 接頭辞の一覧を守る
-- name: UUIDv7 だけ
-  effect: 推測できず時刻の順
-  cost: ログで種類が分からない
-- name: データベースの連番
-  effect: 短い
-  cost: 推測でき、件数が漏れ、他人の依頼を試せる（DRV-29）
-chosen: '種類の接頭辞と ULID（サーバーが作る）。ブラウザが作るキーは UUIDv4 と W3C のトレース ID。サーバーが作る: 依頼 ride_、アカウント acc_、ドライバー drv_、見積もり est_、状態の変化 chg_、お金の操作 mop_、返金の要求 rfr_、苦情 cmp_、降車場所の変更 dch_、位置の記録 pos_ の後に ULID（26 文字）。ブラウザが作る: Idempotency-Key（UUIDv4）、トレース ID（W3C の 32 桁の 16 進）、clientEventId、clientErrorId、位置の送信の clientSendId（UUIDv4）。配信のカーソルは状態の履歴とドライバーの受付の記録の通し番号から作る不透明な文字'
-rationale: URL に載る ID は推測できないものでなければならない（data-and-conventions.md）。接頭辞は一人で調べるときの手がかりになる
+  - name: limit と不透明な cursor で区切り、{ items, nextCursor } を返す
+    effect: 区切りの間に記録が増えても重なりと抜けがない
+    cost: 何ページ目かへは飛べない
+  - name: page と pageSize で区切る
+    effect: ページの番号で飛べる
+    cost: 区切りの間に記録が増えると重なりと抜けが出る
+chosen: 一覧はどれも limit（既定 50、最大 100）と cursor で区切り、{ items, nextCursor } を返す（終わりは nextCursor が null）。cursor は利用側が解かない不透明な文字列。並べ方は一覧ごとに一つに決め、既定は時刻の新しい順で、同じ時刻は ID の順。個人の情報で探す一覧（乗車の照会、アカウントの検索、操作の記録の検索、たどる記録の検索）は、条件を POST の本文で送る資源の下の search の操作にし（DEC-44）、limit と cursor も本文で送る
+rationale: 二つ目は、乗車の履歴や操作の記録が区切りの間に増えると重なりと抜けが出て、担当者とエンジニアが記録を見落とす（DRV-24、FR-50 の 2）。一つ目は時刻と ID で続きを決めるので、増えても重ならない。条件を本文で送るのは、乗客やドライバーで探す条件がログと URL に残らないため（DRV-29）
 rejected:
-- option: UUIDv7 だけ
-  reason: 推測できなさは同じで、種類が読めない分だけ調べにくい
-- option: データベースの連番
-  reason: 推測でき、件数が漏れる
+  - option: page と pageSize で区切る
+    reason: 区切りの間に記録が増えると重なりと抜けが出て、DRV-24 と FR-50 の探し漏れを生む
 gains:
-- ID を見れば種類が分かる（ride_、acc_、drv_、est_、chg_、mop_、rfr_、cmp_）
+  - 一覧が増えても重なりと抜けがない
 costs:
-- ID の生成は差し替えられる口にする（DEC-25）
+  - ページの番号で飛べない
 sensitive_points: []
 trade_offs: []
-assumptions:
-- 状態の履歴の通し番号（seq）は配信のカーソルにだけ使い、URL には出さない
-depends_on:
-- DEC-25
-parameters: []
+assumptions: []
+depends_on: [DEC-44]
+parameters:
+  - name: 一覧の limit の既定と最大
+    value: 既定 50、最大 100
+    basis: 量は小さく（OPF-02、OPF-03）、担当者とエンジニアの画面に一度に示して見渡せる件数を見込んだ暫定の値（DAS-14）
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: "サーバーが作る ID に降車場所の変更 dch_ と位置の記録 pos_ を、ブラウザが作る ID に位置の送信の clientSendId を足した。選んだ案と案の名前の書き方をそろえた"
-  reason: "第 3 段階の再実行（2026-11-04）。FR-12 版 4、DEC-52 版 2（FND-33）"

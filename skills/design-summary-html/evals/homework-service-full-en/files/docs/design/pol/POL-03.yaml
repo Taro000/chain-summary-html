@@ -1,0 +1,57 @@
+id: POL-03
+title: Test layers and where the gates are checked
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: testing
+addresses:
+- DRV-01
+- DRV-03
+decisions:
+- DEC-03
+rules:
+- rule: Each acceptance criterion is checked at the lowest layer that can check it
+  check: The review of the pull request
+layers:
+- layer: Unit
+  covers: One module's rules (decisions and calculations)
+  replaces: Everything outside the module
+  runs: In the check step, on every change
+- layer: Integration
+  covers: ELM-03 from its HTTP boundary, with its own database
+  replaces: The external storage (the double below)
+  runs: In the check step, against a database in a container
+- layer: End-to-end
+  covers: CUJ-01 and CUJ-02 from the screens
+  replaces: Nothing
+  runs: In the release step, against the staging environment
+doubles:
+- replaces: ELM-05, the external storage
+  with: A fake that answers signed URLs and can expire or fail them
+  seam: ELM-03's storage adapter
+environments:
+- name: CI
+  runs: The check step
+  data: Built in each test
+gate_bindings:
+- nfr: NFR-03
+  where: The release step's end-to-end layer
+  by: The receipt tests
+- nfr: NFR-04
+  where: The check step
+  by: The unit and integration tests of submission
+- nfr: NFR-09
+  where: The pull request's definition of done
+  by: The reviewer
+- nfr: NFR-10
+  where: The pull request's definition of done
+  by: A second teacher's check
+audit_bindings:
+- nfr: NFR-08
+  where: A ticket every quarter
+  by: The office performs it
+- nfr: NFR-11
+  where: A ticket every half year
+  by: A developer performs it
+as_is: new

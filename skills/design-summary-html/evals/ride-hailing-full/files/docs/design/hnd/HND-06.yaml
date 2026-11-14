@@ -1,0 +1,14 @@
+id: HND-06
+title: EXT-01 との照合を行う時刻と読む期間
+status: decided
+basis: inferred
+basis_note: DEC-11 の応答を左右する点。お金の道にあるため、第 3 段階に送る。取引が二つ以上ある依頼に、支払い方法が変わった依頼と決済を EXT-01 が受け付けなかった依頼を加えたのは FND-01 による
+premises: [EXT-01]
+from: architecture-drivers-to-architecture
+to: architecture-to-high-level-design
+component: null
+origin: [DEC-11]
+what: 日々の照合を行う時刻、一回で EXT-01 から読む期間の値と、取引が二つ以上ある依頼（確定額か支払い方法が変わった依頼、決済を EXT-01 が受け付けなかった依頼）を一つにまとめる決まり
+bounds: SLI-12 の数え方の規則（結果を返さない処理は翌日の終わりに突き合わせる）、NFR-24、NFR-26、DEC-11、DEC-18（日々の処理）
+trigger: 第 3 段階の次の実行
+resolution: IFC-15 と DAT-13 で決めた。照合は毎日 04:00（Asia/Tokyo）の日々の処理で行い、2 日前の 00:00 から当日の 00:00 までに作られた取引と返金を読み、処理を行った日の値はその 2 日後の実行で決める（値は DAS-12）。取引が二つ以上ある依頼は、試みの記録の依頼の ID と metadata の attemptId で取引ごとに突き合わせ、依頼ごとにまとめる

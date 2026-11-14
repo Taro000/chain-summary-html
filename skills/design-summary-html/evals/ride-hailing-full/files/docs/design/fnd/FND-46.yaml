@@ -1,28 +1,14 @@
 id: FND-46
-title: FR-12 AC5 の「変更の前後の降車場所」を残す所がなく、FR-10 AC3 の「到着予定がないこと」の残し方も書かれていない
+title: MOD-01 のタブの保存の項目が、kept() が返す答えの種類を不変条件で除き、答えのない送りの後に 401 を受けた操作の種類と、版が変わった後の読み方を決めていない
 status: accepted
-version: 2
 basis: inferred
-basis_note: FR-12 AC5 と FR-10 AC3、DAT-05・06・07 の欄と保持期間、admin.openapi.yaml の Billing の fareChanges、DRV-32 は入力。前後の降車場所が残らないことは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: null
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- DAT-07
-- DAT-06
-- DAT-05
-severity: major
-evidence: FR-12 AC5 は、変えた時刻と、変更の前後の降車場所と料金を記録することを求める（QIU-02、06、08 の測定）。時刻は DAT-07 の destination_changed の recorded_at に、前後の料金は管理の請求の記録（Billing の fareChanges）にあるが、前後の降車場所はどこにも残らない。DAT-06 の dropoff は今の降車場所だけで、DAT-07 の details は額と理由だけ、見積もり（DAT-05）は使った後に毎日の処理が消す。DAT-07 は座標を持たず位置の参照だけを持つ（DRV-32）ので、前後の降車場所を何で持つかを決める必要がある。あわせて FR-10 AC3（到着予定を計算できないとき、依頼に到着予定がないことを記録する）は、DAT-06 の pickup_eta_at_acceptance を許諾ごとに追記するとするだけで、計算できなかったときに何を残すかが書かれていない
-suggestion: DAT-07 の destination_changed（または DAT-06）に、変更の前後の降車場所を位置の参照（DAT-08）か場所の ID で持つと書き、保持期間と匿名化（FR-53）を合わせる。pickup_eta_at_acceptance には、計算できなかったときに null を追記すると書く
-resolution: "受け入れた。DAT-07 の destination_changed は変更の前後の降車場所を DAT-08 の位置の参照（kind が dropoff_before と dropoff_after）で持ち、FR-53 で位置を消す（保持は T_pii_retention）。pickup_eta_at_acceptance は計算できなかったときに null を記録すると DAT-06 に書いた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B1、B6）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+raised_in: reviews/4-detailed-design-ELM-02.md
+to: high-level-design-to-detailed-design
+targets: [MOD-01]
+severity: minor
+evidence: MOD-01 の kept() はタブの保存の操作を最後に受けた答えの種類（答えがない、失敗の答え、401 だけ）とともに返し、MOD-02 は 401 だけの操作を何もしていないとして捨てる。報告の「キャッシュ」の節はタブの保存がその種類を持つとするが、MOD-01 の不変条件は書く項目をアカウントの ID、操作の名前、経路の値、本文、冪等キー、たどる ID、最初に送った時刻だけとする。種類も、答えのない送りの後に 401 を受けた操作（send の notSignedIn の前の送りが unanswered）をどう持つかを決めておらず、字のとおり最後の答えの 401 として持つと、タブの読み直しかサインインし直しの後に、ELM-03 で済んでいたかもしれない操作を MOD-02 が捨て、同じキーで続ける道を失う（一覧に返金が出るので二重にはならないが、MOD-02 の不変条件「答えのない間はタブを読み直しても同じキーで続く」が守られない）。また、DEC-41 で ELM-03 の版が変わると MOD-04 が画面を読み直してタブの保存は残るが、新しいビルドが前のビルドの書いた項目をどう読むかも決めていない
+suggestion: 不変条件の項目に答えの種類を加え、種類を 401 の前の送りを含めて決める（一度でも答えのない送りがあった、失敗の答えだけ、401 だけ）。項目に形の版を持たせ、読めない項目をどう扱うか（捨てずに一覧で確かめるよう示すなど）を決める
+resolution: 受け入れ。タブの保存の項目を、形の版、アカウントの ID、操作の名前、経路の値、本文、冪等キー、たどる ID、最初に送った時刻、evidence（notDone、failed、unanswered の順に上がるだけ）、最後の変える要求の答えの別（次の X-Resend のもと）、送っている途中か（変える要求を出す前に書く）とし、MOD-01 の不変条件にした。答えのない要求の後に 401 を受けた操作は evidence が unanswered のままで、タブを読み直してもサインインし直しても同じキーで続く。evidence が notDone の操作は kept() が捨て（MOD-02 の 401 だけを受けた操作を捨てる決まりはここに移した）、MOD-02 は残した操作を evidence で答えがないか失敗の答えに分ける。項目は一つ前のビルドがそのまま読める足し方だけで変え、読めない項目は消して kept() が数を返し、MOD-02 が一覧で確かめるよう示す

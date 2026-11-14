@@ -1,0 +1,16 @@
+id: HND-03
+title: The schemas of the API requests and responses
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: architecture-to-high-level-design
+to: implementation
+component: ELM-03
+origin:
+- IFC-01
+- IFC-02
+what: The schemas of the requests and responses of IFC-01 and IFC-02
+bounds: The operations and error contracts of IFC-01 and IFC-02 (DEC-09)
+trigger: When ELM-03's API is implemented
+resolution: null

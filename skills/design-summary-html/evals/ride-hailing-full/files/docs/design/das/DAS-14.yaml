@@ -1,0 +1,12 @@
+id: DAS-14
+title: 一覧の既定と最大の件数と、動いているキーへの送り直しに待たせる時間を暫定に採る
+status: open
+stage: 3
+kind: decision
+statement: 一覧の limit を既定 50、最大 100 とし（DEC-39）、外部を呼ぶ操作の動いているキーへの同じキーの送り直しに Retry-After 1 秒を返す（DEC-42）。値は DEC-39 と DEC-42 の parameters にある
+why_unsure: 一覧の件数は担当者とエンジニアの画面の作りと記録の量で、待たせる時間はお金の操作が答えるまでの実際の時間で決まるが、どちらも入力になく、測ってもいない（何も配備しない、TC-09）
+breadth: medium
+severity: low
+rating_note: DEC-39 と DEC-42 が依存する。値を変えても一覧の区切り方とキーの答え方は変わらず、利用側は Retry-After と nextCursor に従うだけなので、運用の中で直せる
+answer: null
+answered_in: null

@@ -1,39 +1,31 @@
 id: NFR-23
-title: アクセシビリティの手による確認
-status: draft
-version: 3
-basis: inferred
-basis_note: 時期は提案。指針（A11Y_guideline は WCAG 2.2 レベル AA）は 2026-11-01 の利用者の回答
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-48
-kind: audit
-cuj: null
-statement: デモの期間の前に、A11Y_guideline のうち自動で確かめられない項目を、画面ごとに人が確かめる。
+title: 押さえる額、示す額、請求する額の確定額と決まりの料金との一致の SLO
+status: active
+basis: assumed
+basis_note: 目標値 99.5% は暫定の決定（QAS-31）。依頼のときの押さえ、キャンセル料と不在の料金（CON-08、FR-54）を数える対象に含めたのは、QR-04 に含まれたことによる（第 3 段階の決めたこと 23）。SLO として置くことと方針は質問 9 の回答。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03, CON-01, CON-03, CON-08, QAS-31]
+from: [QR-04]
+kind: slo
+cuj: CUJ-03
+statement: 直近 28 日で、押さえを行って終わった依頼の 99.5% で、押さえた額、乗客とドライバーに示した額、請求した額、乗客に示した請求した額が、確定額またはキャンセル料と不在の料金（CON-08）と等しく、解いた押さえの額が押さえた額から請求した額を引いた額と等しい。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
-slo: null
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録した乗客とドライバー。試験用のアカウントを除く
+  transactions: すべての乗車の押さえと決済、許諾の後の乗客の取り消しと乗客の不在での請求、許諾の前の取り消しと許諾のないまま終わった依頼での押さえの解除。乗車中に降りる場所を変えた乗車を含む
+slo:
+  sli: SLI-11
+  target: 99.5%
+  target_status: provisional
+  target_rationale: 入力の数値も基準となる値もなく、機能はまだない。額の食い違いは乗客の信用を直接損なうため可用性より高くしたが、実際のお金は動かず（CON-03）、最初のウィンドウで数えることを優先して 99.9% より緩めた（QAS-31）。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 押さえを行って終わった依頼の 0.5% まで、確定額や決まりの料金と食い違う額があってよい
+  error_budget_volume: 許される食い違いは、ウィンドウの終わった依頼の数 × 0.5% 件。28 日に入る乗車は 2〜6 回（OPF-01、OPF-02）で、取り消しと不在の依頼を加えても 200 件に届かない限り 1 件に満たない（乗車だけなら 0.01〜0.03 件）。1 件で予算を使い切る
+  policy: EBP-01
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
 gate: null
-audit:
-  mechanism: 手による確認
-  criterion: A11Y_guideline の残りの項目に違反がない。違反には直す期限を付ける
-  cadence_or_deadline: デモの期間の前
+audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-01'
-  change: A11Y_guideline を WCAG 2.2 レベル AA にした
-  reason: 2026-11-01 の利用者の回答への追随
-- version: 3
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

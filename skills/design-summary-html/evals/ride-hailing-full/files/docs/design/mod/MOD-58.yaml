@@ -1,0 +1,42 @@
+id: MOD-58
+title: 配車の依頼
+status: active
+basis: inferred
+basis_note: 名指した見積もりの料金を確定額とし、乗客の支払い方法で確定額を押さえてから依頼を受け付け、届ける相手の規則に合うドライバーに届けること、乗る場所を決め始めた端末の時刻を必ず受けて依頼を書く取引で直した時刻で書くこと、答えと符号（QUOTE_EXPIRED、RIDE_ALREADY_ACTIVE、PAYMENT_METHOD_REQUIRED、PAYMENT_DECLINED、HOLD_UNCONFIRMED、PAYMENT_SERVICE_UNAVAILABLE）、答えの期限 8.8 秒は IFC-03、取引 A（依頼を押さえ中、乗る場所を決め始めたことと依頼したこと、押さえの試み、動いている冪等キー）と結果の取引（探している、出来事、届け先、届けの記録、キーの答え）は第 3 段階の報告の CUJ-01 の流れ、押さえの結果が待ちのうちに分からなければしなかったことにして依頼を受け付けず、押さえが済んでいたと後で分かれば解くことは DEC-45 と FR-54 の 3、受けたインスタンスが止まった依頼を期限の後の同じキーの送り直しか期限の処理が受け付けなかったとすることは DEC-45 と DAT-07、試験用の区別をその時点の値で写すことは FR-42 の 2、料金を確かめて依頼したことを操作の記録に残すことは QR-12 と IFC-03（どれも入力）。期限の後の答えを、依頼（FND-76 を受けて MOD-45 に加えた moneyFacts で）と押さえの試みを一つの書き込みの取引で読んでから読んだ状態を条件に書くものにし、依頼をすでに受け付けていれば（受けたインスタンスの遅れた結果の取引が同じキーの送り直しの check と answerOverdue の間に受け付けた）何も書かずに 201 で答え、押さえを解かないことは、FND-75 を受けて MOD-26 の registerRoute の事前条件に加えた決まりに従うもの（推定。押さえの結果が依頼に書かれていればそれに従うことは DEC-45、先に書いた答えを残すことは DEC-42 で入力）
+premises: []
+component: ELM-03
+name: 配車の依頼
+depth: full
+depth_reason: 確定額を押さえてから依頼を受け付け（お金を動かす）、押さえの結果が待ちのうちに分からなければ受け付けなかったとし、押さえが後で済んでいたと分かれば解く（結果が分からない状態を確かめる）
+responsibility: 乗客の依頼を、確定額を押さえてから受け付けて、ドライバーに届け始める
+visibility: public
+interface:
+  - operation: "request(actor: Actor, quoteId: QuoteId, pickupPlanningStartedAt: DeviceTime, key: IdempotencyKey) -> RequestAnswer"
+    pre: null
+    post: POST /v1/rides で、判断表 A で答える。受け付けられるなら、取引 A で依頼（MOD-45 の create、holding）、押さえの試み（MOD-56 の hold）、動いている冪等キー（MOD-26 の startExternal、answerDueAt は受けた時刻と 8.8 秒の和）を書き、確定の後に MOD-42 の sendWaiting で押さえる。押さえたら結果の取引で searching にして届け（MOD-56 の applyResult から MOD-45 の settleHold と MOD-52 の offerToEligible）、201 で探している依頼を答える。拒否なら 402、処理されなかったなら 503 PAYMENT_SERVICE_UNAVAILABLE、分からなければ 503 HOLD_UNCONFIRMED で、どれも依頼を受け付けなかったとし、キーにその答えを書く
+    errors: ["VALIDATION_FAILED: 400（pickupPlanningStartedAt が欠けているか送った時刻より後）", "QUOTE_EXPIRED: 409", "RIDE_ALREADY_ACTIVE: 409 と rideId", "PAYMENT_METHOD_REQUIRED: 409", "PAYMENT_DECLINED: 402 と reason", "HOLD_UNCONFIRMED: 503", "PAYMENT_SERVICE_UNAVAILABLE: 503", "OPERATION_IN_PROGRESS: 409（MOD-26）", "NOT_FOUND: 404（見積もりがその乗客のものでない）"]
+  - operation: "overdueAnswer(attemptId: AttemptId) -> StoredAnswer"
+    pre: MOD-26 が、答えの期限を過ぎた同じキーの送り直しで呼ぶ
+    post: 一つの書き込みの取引で依頼（MOD-45 の moneyFacts）と押さえの試みを読んでから、DEC-45 のとおり答える。依頼を受け付けていなければ（holding か not_accepted。押さえの結果が依頼に書かれていない）しなかったことにして、holding なら not_accepted にし、拒否なら 402、処理されなかったなら 503 PAYMENT_SERVICE_UNAVAILABLE、ほかは 503 HOLD_UNCONFIRMED で答え、押さえが済んでいればその押さえを解く試みを作る（すでにあれば作らない）。依頼を受け付けていれば（searching から先。受けたインスタンスの遅れた結果の取引が同じキーの送り直しの check と answerOverdue の間に受け付けた）何も書かずに 201（探している依頼）で答え、押さえを解かない
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-26, MOD-28, MOD-29, MOD-31, MOD-33, MOD-37, MOD-38, MOD-42, MOD-43, MOD-45, MOD-52, MOD-56]
+functions: [FR-03, FR-04, FR-45, FR-54]
+realizes:
+  - IFC-03 POST /v1/rides
+drivers: [DRV-01, DRV-02, DRV-03, DRV-07, DRV-25, DRV-27]
+decisions: [DEC-08, DEC-09, DEC-10, DEC-42, DEC-45]
+behaviour: "報告書の節: MOD-58 配車の依頼"
+verification:
+  - checks: 判断表 A の行ごと（見積もりの期限、進んでいる依頼、支払い方法、押さえた、拒否、処理されなかった、待ちのうちに分からない、乗る場所を決め始めた時刻の欠けと後）
+    how: 単体の層（MOD-42、MOD-45、MOD-56 の偽物）
+  - checks: 押さえが待ちのうちに分からず HOLD_UNCONFIRMED で答え、偽物が後で済んでいたと見せると解く試みができ、依頼は受け付けないまま（FR-54 の 3）
+    how: 結合の層（EXT-01 の偽物、時計の偽物）
+  - checks: 押さえの答えを待つ間の同じキーの送り直しに 409、期限の後に試みの状態から答える（DEC-42、DEC-45）。受けたインスタンスの結果の取引を答えの期限の後まで止め、送り直しの check が overdue を返した後、answerOverdue の前に確定させると、依頼は searching のまま押さえを解く試みは作られず、送り直しは 201 を受ける（FND-75）
+    how: 結合の層（依頼の状態を書くポートの差し込みで結果の取引を止める。時計の偽物）
+  - checks: 取引 A の後に受けたインスタンスが止まった依頼を、期限の後の同じキーの送り直しと期限の処理が受け付けなかったとする
+    how: 運用の予行の層（NFR-16 の止めて再開する予行）
+  - checks: 依頼からドライバーの一覧に示すまで（SLI-14、NFR-07）と SLI-01 の数え方（PAYMENT_DECLINED は GOOD、HOLD_UNCONFIRMED は GOOD でない）
+    how: 端から端の層と結合の層
+parameters: []
+as_is: new

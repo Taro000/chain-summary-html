@@ -1,0 +1,52 @@
+id: MOD-18
+title: 依頼のたどり
+status: active
+basis: inferred
+basis_note: 依頼を探してシステムが行ったこととその結果を順に、どの部分で起きたかが分かるように示し、ない依頼は見つからないと示すことは FR-34、名前、連絡先、乗る場所と降りる場所を隠し、同じ人を同じ仮の名で示し、理由を示したときだけその依頼の隠した情報を示して記録し、理由がなければ示さないことは FR-35、エンジニアは隠した情報をそのやり方でだけ見ることは FR-49 の 4、端末のエラーを時刻の順に合わせて隠して示すことは FR-52 の 2 と 5（入力）。探す、たどる、理由を示して見る操作と符号（NOT_FOUND、VALIDATION_FAILED、RECORD_ANONYMIZED、traceRetained）は IFC-14、隠し方と仮の名は ELM-03 が決める（DEC-15）、見た記録は ELM-03 が残す（DEC-19）。条件を本文で送ることは DEC-39（入力）。見た情報をその依頼の画面にだけ示し、ほかの依頼と仮の名に結び付けず、画面を離れたら持たないことと、理由が空なら送らないことは推定
+premises: []
+component: ELM-02
+name: 依頼のたどり
+depth: bounds
+depth_reason: null
+responsibility: 依頼を探してその経過を隠したまま示し、理由を入れたときだけその依頼の隠した情報を示す
+visibility: public
+interface:
+  - operation: "TraceSearch(criteria: TraceCriteria or none) -> 依頼の検索の画面"
+    pre: null
+    post: 期間、異常、依頼の ID の条件を本文で POST /v1/console/traces/search（IFC-14）に送り（DEC-39）、依頼を仮の名の乗客とドライバーとともに示す（FR-34 の 1、FR-35 の 2）。条件を画面の URL と端末の保存に置かない
+    errors:
+      - "NOT_FOUND と空の items: 見つからないことを示す（FR-34 の 4）"
+  - operation: "Trace(rideId: RideId) -> たどりの画面"
+    pre: null
+    post: GET /v1/console/rides/{rideId}/trace の経過を時刻の順に、どの部分で起きたか、端末のエラー、EXT-01、EXT-02、ELM-07 とのやり取りを含めて、名前、連絡先、場所を隠したまま、同じ人は同じ仮の名で示す（FR-34 の 1、3、FR-35 の 1、2、FR-52 の 2、5）。traceRetained が偽なら、残っている記録だけであることを示す
+    errors:
+      - "NOT_FOUND: 見つからないことを示す（FR-34 の 4）"
+  - operation: "disclose(rideId: RideId, reason: string) -> Disclosure"
+    pre: null
+    post: 理由が空なら送らずに理由を求める（FR-35 の 4）。空でなければ POST /v1/console/rides/{rideId}/disclosures（冪等キー）を MOD-01 で送り、答えの隠した情報を、その依頼のたどりの画面にだけ示す（FR-35 の 3、FR-49 の 4）。見た情報をほかの依頼のたどりと一覧の仮の名に結び付けず、その画面を離れたら持たず、読んだものの記憶、URL、履歴の状態、端末の保存、端末のエラーの報告に入れない
+    errors:
+      - "VALIDATION_FAILED（理由がない）: 隠した情報を示さず、理由を求める（FR-35 の 4）"
+      - "RECORD_ANONYMIZED（409）: 見られないことを示す（FR-51 の 2）"
+      - "NOT_FOUND: 見つからないことを示す"
+invariants: []
+depends_on: [MOD-01, MOD-08]
+functions: [FR-34, FR-35, FR-49, FR-52]
+realizes:
+  - IFC-25 依頼の経過のたどり
+  - IFC-14 POST /v1/console/traces/search
+  - IFC-14 GET /v1/console/rides/{rideId}/trace
+  - IFC-14 POST /v1/console/rides/{rideId}/disclosures
+drivers: [DRV-24, DRV-29, DRV-30]
+decisions: [DEC-15, DEC-19, DEC-39]
+behaviour: null
+verification:
+  - checks: 隠したまま示し、同じ人を同じ仮の名で示し、端末のエラーと外部とのやり取りを時刻の順に合わせて示し、traceRetained が偽なら残りだけと示す（FR-34 の 1、3、FR-35 の 1、2、FR-52 の 2、5）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物が隠した経過を返す
+  - checks: 理由が空なら送らず、VALIDATION_FAILED と RECORD_ANONYMIZED と NOT_FOUND を示す（FR-35 の 4、FR-34 の 4）
+    how: 単体の層
+  - checks: 見た情報をその依頼の画面にだけ示し、ほかの依頼の画面と離れてから戻った画面に出さず、読んだものの記憶、URL、履歴の状態、端末の保存、報告に残らない
+    how: 単体の層（見た後に別の依頼を開き、戻り、保存と記憶の中身を調べる）
+  - checks: 知らされた異常から依頼をたどり、理由を入れて見るまでと、その記録（CUJ-10、FR-35 の 3）
+    how: 端から端の層（試験の環境の偽物の設定）
+parameters: []
+as_is: new

@@ -1,29 +1,14 @@
 id: FND-30
-title: Stripe が押さえに 429 を返したときと届かなかったときの扱いが、IFC-02 と IFC-13・DEC-48・状態遷移図で食い違う
+title: 受け入れ基準のたどりのいくつかの行が基準を示さない流れを指し、基準を運ぶ IFC の functions と画面の信号が欠けている
 status: accepted
-version: 2
 basis: inferred
-basis_note: IFC-02 と IFC-13 の errors、DEC-48 の選んだ案、報告書の CUJ-01-B の流れと二つの状態遷移図、passenger.openapi.yaml の 503 の説明は入力。どちらの項目に従ったときに起きることは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: FR の受け入れ基準、IFC の functions、操作、誤り、報告の流れ、画面、受け入れ基準のたどりの表は入力。行ごとの照らし合わせはこのレビュー
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+raised_in: reviews/3-high-level-design.md
 to: architecture-to-high-level-design
-targets:
-- IFC-02
-- IFC-13
-- DEC-48
-- DEC-52
-severity: major
-evidence: IFC-02 は POST /api/v1/passenger/rides で「Stripe に要求が届かなかったと分かっている（接続できない、回数の上限）」を 503 PAYMENTS_UNAVAILABLE とし、呼ぶ側は「押さえていないと示し、少し後に同じ冪等キーで送れる」とする（IFC-02 の errors、passenger.openapi.yaml の 503 の説明、報告書のエラーの決まりと結果が分からないときの約束）。一方で IFC-13 は 429 を「Stripe は動いていない。要求の中では送らず確かめ中にし、見回りが同じキーで送る」とし、お金の操作の状態遷移図も processing から checking に入る理由に 429 を挙げる。配車依頼の状態遷移図には booking から 429 か接続できないときに出る道がなく、CUJ-01-B の流れにも 503 の枝がない。DEC-48 は、同じキーには最初の結果を返し、初めからやり直すのは一つ目のトランザクションを書けなかったときだけとする。この場合は一つ目のトランザクション（依頼を booking、押さえを processing、キーを processing）を書いた後なので、同じキーの送り直しは最初の結果の 503 か 409 OPERATION_IN_PROGRESS を受けるだけで、「少し後に同じ冪等キーで送れる」は手配にならない。IFC-13 と状態遷移図に従えば、乗客に「押さえていない」と示した後で、見回りが ride_R_hold_1 で押さえ、hold_checking から searching に進めうる。ACTIVE_RIDE_EXISTS が数える「進行中の依頼」に booking と hold_checking が入るかは書かれておらず、入らない作りでは、乗客が新しいキーで手配し直すと二つ目の依頼と押さえができる（DRV-30）
-suggestion: 429 と接続できないときの扱いを一つに決め、IFC-02、IFC-13、DEC-48、CUJ-01-B の流れ、配車依頼とお金の操作の状態遷移図、passenger.openapi.yaml をそろえる。一つの案は、起きていないと扱うこと。二つ目のトランザクションで依頼を not_booked、押さえを not_happened にして見回りは送らず、503 をキーの最初の結果にしない（同じキーで初めからやり直せるよう、DEC-48 の例外に足す）。もう一つの案は、タイムアウトと同じに扱うこと。202 HOLD_PENDING を返し、見回りが T_hold_wait の内に同じキーで送る（手配の 503 PAYMENTS_UNAVAILABLE をやめる）。どちらでも、ACTIVE_RIDE_EXISTS に数える依頼の状態を書く
-resolution: "受け入れた（第 3 段階の再実行、2026-11-04。一つ目の案）。Stripe が実行しなかったと答えた 429 と、送る前に接続できなかった要求は起きていないと扱い、二つ目のトランザクションで依頼を not_booked、押さえの操作を not_happened にして 503 PAYMENTS_UNAVAILABLE を返す。この 503 は操作キーの最初の結果にせず、同じキーの送り直しは初めからやり直す（DEC-48 版 2 の例外）。タイムアウト、送った後の切れ、5xx、T_op_stale は 202 HOLD_PENDING。ACTIVE_RIDE_EXISTS に数える状態は booking、hold_checking、searching、accepted、arrived、in_progress。DEC-52 版 2、IFC-02、IFC-13、CUJ-01-B の流れ、二つの状態遷移図、passenger.openapi.yaml をそろえた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B3、B9）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+targets: [IFC-03, IFC-11, IFC-22]
+severity: minor
+evidence: IFC-11 の functions は FR-09（ride.accepted がドライバーの名前と車の手がかりを運ぶ）と FR-22（走っているドライバーにも offer.added が届く）を挙げず、その行は IFC-11 を挙げない。IFC-22 の functions は、乗客に示す FR-05 の 4、FR-29 の 4 と 5、FR-30 を挙げない。IFC-22 は「現在地が分からない」の信号を IFC-02 の答えとするが、端末が位置を得られないときに IFC-02 が返すものはない（FR-02 の 3）。ドライバーの画面の「乗客が変えた」（画面の CUJ-08）には信号がなく、乗客が押さえ直したことを伝える出来事も、ドライバーへの GET /v1/rides/current の決済の状態もない（FR-29 の 4）。閾値を変えて依頼し直す道（FR-05 の 4）と、場所を変えると見積もり直す道（FR-03 の 3）は画面の CUJ-01 にない。流れの列は、ない節（CUJ-01 配車手配の失敗の流れ、乗車の履歴、日々の処理）や、場面の違う流れ（FR-21 の 2 の DRV-02 は取り消しと許諾の重なり、FR-24 の 3 の CUJ-03 はドライバーの画面でない）を指し、FR-11 の 2、FR-23 の 4、FR-28 の 2、FR-38 の 1、3、4、FR-41 の 4、FR-42 の 3、FR-47 の 6、FR-51 の 2、4 の符号と操作は指す流れにない。そのため報告の「どの割り当てた FR のどの受け入れ基準も、IFC と流れを通る」はこれらの行で成り立たない（FND-24 と FND-25 の基準は別）
+suggestion: IFC-11 に FR-09 と FR-22 を、IFC-22 に FR-05、FR-29、FR-30 を加え、IFC-22 の FR-02 の 3 の信号を端末の状態に直し、押さえ直しが済んで決済をやり直せることをドライバーに伝える所（出来事か今の状態）を IFC-03 か IFC-11 で決め、各行が基準を示す流れを指すようにするか、欠けた道と符号を流れと画面に描く
+resolution: IFC-11 の functions に FR-09 と FR-22 を、IFC-22 の functions に FR-05、FR-29、FR-30 を加え、IFC-22 の FR-02 の 3 の信号を端末の位置の取得の失敗と IFC-02 の PLACE_NOT_FOUND_AT_LOCATION に分けた。乗客が押さえ直したことをドライバーに知らせる ride.payment_method_changed を IFC-11 に加え、IFC-03 の今の状態がドライバーに決済の状態を返すようにし、IFC-23 にその信号を書いた。報告の画面の CUJ-01 に場所を変えたときの見積もり直しと閾値を変えて依頼し直す道を加え、流れと画面に欠けていた道と符号（MESSAGING_CLOSED、RIDE_ALREADY_STARTED、RIDE_NOT_STARTED、乗車の照会、アカウントの訂正と試験用の区別、RIDE_ALREADY_ARRIVED、RECORD_ANONYMIZED、ACCOUNT_RETIRED）を描き、乗車の履歴と日々の処理の流れを加え、受け入れ基準のたどりの各行が基準を示す流れを指すようにした。FR-05 は ELM-01 の functions にないため FND-35 を第 2 段階に出した

@@ -1,40 +1,23 @@
 id: QR-07
-title: 外部サービスの失敗と無応答
-status: draft
-version: 2
-basis: inferred
-basis_note: 失敗のシナリオと点は推定。扱いは質問 13 で確認済み。押さえの結果が分からないときの扱いは FR-05 版 3・FR-12 版 4 で決まった（2026-11-03 の回答、設計 2-1・3-3）。T_hold_wait の値は設計が決める（今は DEC-52 の 60 秒）。点は変えない
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 手配の操作に、乗客を待たせない速さで応える
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。デモの回のときだけ使われ、配車は全体で数回（CON-02、OPF-01、OPF-02）のため、応答の遅さが手配をやめさせる場面は全体で一度あるかどうかとみた。T_quote_response の値（3 秒）は第 4 段階が提案した仮の値で、QAS-27 による仮定。乗客の作業の時間 T_request_entry は QIU-02 に残し、ここではシステムの応答の時間を扱う
+premises: [CON-02, OPF-01, OPF-02, QAS-27]
 model: product
 layer: external
-characteristic: reliability > fault tolerance
-statement: システムは、外部サービス（地図・経路・渋滞の情報、決済）が失敗したり応答しなかったりしても、画面を待たせ続けずに決まった扱いへ移り、サービスが戻れば処理を続ける。結果が分からない間は分からないと示し、確かめないまま成功とも失敗とも示さない。
-applies_to: [FR-03, FR-05, FR-12, FR-23, FR-29, FR-50]
-traces_to: [QIU-01, QIU-16]
+characteristic: performance efficiency > time behaviour
+statement: システムは、乗客が場所を入れたときの候補、乗る場所と降りる場所が決まったときの到着予定時刻と料金、依頼の受け付けを、操作から T_quote_response（3 秒）以内に示す。
+applies_to: [FR-01, FR-02, FR-03, FR-04]
+traces_to: [QIU-02]
 entry_point: null
-stakeholders: [USR-01, USR-02, 地図・経路・渋滞の情報の外部サービス, 決済の外部サービス]
-failure_scenario: 決済のサービスが応答しないまま請求が宙に浮き、完了とも未払いとも記録されない。地図のサービスの遅れで手配の画面が止まる。押さえの結果が分からないまま、手配が「確かめています」で止まり続ける。確かめないまま「押さえていない」と示し、残っていた押さえに気づかないまま乗客がもう一度手配する。
-score: {impact: 4, likelihood: 3}
+stakeholders: [USR-01]
+failure_scenario: 屋外で乗る場所と降りる場所を決めても到着予定時刻と料金がなかなか示されず、乗客は手配をやめて流しのタクシーを拾う。
+score: {impact: 3, likelihood: 2}
 handling: minimum-line
-handling_reason: CUJ-01 の重視が上限の 4 件を超えたため、最低限守る線にした（質問 13）。決済はテスト環境で、地図のサービスの失敗は FR-03 が扱いを決めている
-implies_internal: [QR-43, QR-44]
-conflicts:
-  - with: QR-03
-    note: 呼び出しを待つ時間とやり直しが手配の待ち時間に加わる。待つ時間の上限を手配の待ち時間の中に収める
-  - with: QR-04
-    note: 呼び出しを待つ時間とやり直しが降車の待ち時間に加わる。待つ時間の上限を降車の待ち時間の中に収める
+handling_reason: null
+implies_internal: []
+conflicts: []
 stated_numbers: []
 placeholders:
-  - name: T_hold_wait
-    meaning: 押さえの結果が分からないとき、手配をやめる（降車場所を変えない）までに確かめる時間（値は設計が決める。今は DEC-52 の 60 秒）
-    from: FR-05
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-03'
-    change: 押さえの結果が分からないとき（FR-05 版 3・FR-12 版 4）を要求と失敗のシナリオに加え、T_hold_wait を置いた
-    reason: 第 2 段階の再実行（2026-11-03）の FR-05・12 への追随（docs/quality-chain-answers.md の設計 2-1・3-3）
+  - {name: T_quote_response, meaning: "乗客が場所を入れる、場所を決める、依頼するといった手配の操作から、システムが候補、到着予定時刻と料金、受け付けたことを示すまでの時間", from: QR-07}

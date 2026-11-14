@@ -1,28 +1,14 @@
 id: FRP-06
-title: 保存期間を過ぎた個人情報を消す
+title: 支払い方法は乗客が EXT-01 に直接入れ、システムは登録の結果だけを受け取る
 status: accepted
-version: 2
 basis: inferred
-basis_note: QR-40 を残すことは質問 4 で確認済み。消し方は推定。FR-39 の「書き換えない」と両立させる扱いは第 2 段階で決める
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+basis_note: QR-60 からの推定。FR-46 の受け入れ基準「乗客が支払い方法を入れると、システムはそれを EXT-01 に登録し」は、システムがカードの情報を受け取って渡すと読め、CON-04 と QR-60 が禁じることを通しうる
+premises: [CON-04, EXT-01]
 proposed_by: functional-requirements-to-product-quality
-origin: [QR-40]
-changes: null
-reason: QR-40 は保存期間を過ぎた位置情報と個人情報を残さないことを求めるが、消す FR がない。FR-39 は状態の履歴を追記だけで残す。
-suggested_statement: システムは、位置情報と個人情報を含むログとデータを、記録してから T_pii_retention を過ぎると消すか、個人を特定できない形に変える。
-affects: [FR-53, FR-39, QR-40]
-placeholders:
-  - name: T_pii_retention
-    meaning: 位置情報と個人情報を含むログとデータを残す期間
-    from: QR-40
-resolution: FR-53 として受け入れた。記録は残し、操作した人と位置を消して個人を特定できない形に変える。FR-39 の「追記だけ」に FR-53 の例外を加えた（第 2 段階の質問 12）
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 提案
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 受け入れ
-    reason: 第 2 段階の再実行
+origin: [QR-60]
+changes: FR-46
+reason: カードの情報がシステムのサーバー、ログ、データを通らないこと（CON-04）を、FR-46 の受け入れ基準が保てない。
+suggested_statement: 乗客が支払い方法を入れるとき、カードの情報は EXT-01 が直接受け取り、システムは EXT-01 が返した登録の結果だけを受け取って、登録できたかどうかを示す。
+affects: [NFR-47]
+placeholders: []
+resolution: 受け入れ。FR-46（新規）をその場で変えた。CON-04 に従う。

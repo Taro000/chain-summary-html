@@ -1,0 +1,36 @@
+id: MOD-17
+title: 異常の一覧
+status: active
+basis: inferred
+basis_note: どの機能で、いつ、何が起きたかをエンジニアに知らせ、続く異常は続いていることが分かるように知らせ、知らされた異常からその依頼をたどれることは FR-33 と FR-34 の 2（入力）。異常の一覧（続くものはまとめて件数と最初と最後の時刻）と anomaly.detected、押すとその異常の依頼のたどりを開くことは IFC-14、IFC-11、IFC-25（入力）。異常を見つけて記録するのは ELM-03（DEC-20）。依頼に関わらない端末のエラーも、ELM-03 が異常としたものはここに示す（FR-52 の 3。記録するのは ELM-01 と ELM-03）。依頼のない異常から期間で依頼の検索を開くことは推定
+premises: []
+component: ELM-02
+name: 異常の一覧
+depth: bounds
+depth_reason: null
+responsibility: 見つかった異常を示し、その依頼のたどりに導く
+visibility: public
+interface:
+  - operation: "Anomalies() -> 異常の一覧の画面"
+    pre: null
+    post: GET /v1/console/anomalies（IFC-14）を新しい順に、どの機能で、いつ、何が起きたか、関わる依頼とともに、続いている異常は件数と最初と最後の時刻で示し（FR-33 の 1、2）、空の items なら異常がないことを示す。anomaly.detected（IFC-11）を受けたら読み直して新しい異常を示す。選ぶと、依頼のある異常はその依頼のたどり（MOD-18）を、依頼のない異常はその時刻の前後の期間で依頼の検索（MOD-18）を開く（FR-34 の 2）
+    errors: []
+invariants: []
+depends_on: [MOD-01, MOD-03, MOD-08, MOD-18]
+functions: [FR-33, FR-34, FR-52]
+realizes:
+  - IFC-25 異常の一覧と知らせ
+  - IFC-14 GET /v1/console/anomalies
+  - IFC-11 anomaly.detected
+drivers: [DRV-24]
+decisions: [DEC-20]
+behaviour: null
+verification:
+  - checks: まとめた異常の件数と最初と最後の時刻、空の示し方、選んだ異常から開く画面（FR-33 の 1、2、FR-34 の 2）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: anomaly.detected で読み直す
+    how: 単体の層（MOD-03 の偽物）
+  - checks: 異常を起こしてから知らせを受け、その依頼をたどるまで（NFR-38、CUJ-10）
+    how: 運用の予行の層（NFR-38 の出どころ）と端から端の層（試験の環境の偽物の設定で ELM-02 の画面から）
+parameters: []
+as_is: new

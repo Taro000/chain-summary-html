@@ -1,33 +1,24 @@
 id: QR-02
-title: 状態の変化を相手の画面に届ける速さ
-status: draft
-version: 2
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。画面への配信の仕組みは未定のため起こりやすさを高めに見た。FR-54（示した時刻の記録）は測るための機能（SLI-02）なので applies_to に入れない（質問 17〜19（2026-11-01）の前提の確認）
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 端末との通信が途切れても、進んでいる配車が失われない
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。QIU-01 の利用状況（通信は問わない）と、乗客とドライバーが屋外や走る車の中でスマートフォンを使うことから、通信の途切れはデモの回（OPF-01）ごとに起きうるとみた。扱い（最低限守る線）は質問 4 で確認済み（CUJ-01 の QIU にたどり、CUJ-01 の組の外に置く）。競合の T_dispatch_propagation の値（5 秒）は第 4 段階が提案した仮の値で、QAS-25 による仮定
+premises: [OPF-01, QAS-25]
 model: product
 layer: external
-characteristic: performance efficiency > time behaviour
-statement: システムは、依頼と状態の変化（新しい依頼、許諾、取り消し、探し直し、迎車の到着）を、起きてからすぐ相手の画面に届け、許諾済み・取り消し済みの依頼を一覧に残さない。
-applies_to: [FR-06, FR-07, FR-18, FR-20, FR-22, FR-25]
-traces_to: [QIU-01, QIU-04, QIU-12, QIU-13]
+characteristic: reliability > fault tolerance
+statement: 乗客やドライバーの端末とシステムとの通信が一時的に途切れても、その間に行った依頼、許諾、取り消し、乗車の開始、到着の確認の操作は失われも二重にもならず、つながり直すと、乗客とドライバーの画面は依頼の今の状態を示す。
+applies_to: [FR-04, FR-06, FR-07, FR-08, FR-12, FR-21, FR-23, FR-27, FR-28]
+traces_to: [QIU-01, QIU-15, QIU-18]
 entry_point: null
 stakeholders: [USR-01, USR-02]
-failure_scenario: 許諾されたことがほかのドライバーの一覧に遅れて届き、何人も同じ依頼を選ぶ。乗客の取り消しが届かず無駄な迎車が続く。到着の通知が遅れ、乗客が迎車に気づかない。
+failure_scenario: 電波の弱い場所でドライバーが許諾した操作が途中で途切れ、ドライバーは許諾したつもりで乗車場所へ向かう一方、依頼はほかのドライバーに届き続け、乗車場所に二台が来るか、どちらも来ない。
 score: {impact: 4, likelihood: 4}
-handling: emphasized
+handling: minimum-line
 handling_reason: null
-implies_internal: []
-conflicts: []
+implies_internal: [QR-51]
+conflicts:
+  - {with: QR-06, note: "途切れた操作を確かめ直すことで相手に示すまでの時間が延びうる。途切れていないときは T_dispatch_propagation（5 秒）以内に示し、途切れたときは失わないことを先にする"}
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: 根拠に FR-54 の扱いを書いた（中身は変えない）
-    reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）
+placeholders:
+  - {name: T_dispatch_propagation, meaning: "乗客やドライバーの依頼、許諾、取り消しの操作、または迎車が乗車場所に実際に着いたときから、相手の画面、一覧、通知にそれが示されるまでの時間", from: QR-06}

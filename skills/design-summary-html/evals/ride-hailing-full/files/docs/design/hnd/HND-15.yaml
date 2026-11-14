@@ -1,0 +1,14 @@
+id: HND-15
+title: Web アプリが起動のときに読む環境ごとの値を、ELM-03 が渡す操作
+status: decided
+basis: inferred
+basis_note: Web アプリが環境ごとの値を起動のときに ELM-03 から読むことは DEC-34 と POL-04 の設定の規則で、FND-12 を受けて決めた。どの機能の受け入れ基準も通らない操作のため、インタフェースを機能から組み立てる第 3 段階が取り上げないおそれがあり、申し送りにした（推定）
+premises: []
+from: architecture-to-technical-policy
+to: architecture-to-high-level-design
+component: null
+origin: [DEC-34, POL-04]
+what: ELM-03 が ELM-01 と ELM-02 に起動のときに読ませる環境ごとの値を渡す操作（ELM-03 の HTTP のインタフェースの中のその操作と、本人の確かめを求めるか、エラー）
+bounds: DEC-34（ELM-03 が自身の確かめた設定から渡す）、POL-04（設定の規則。公開してよい値とブラウザの側の偽物の選び方だけを渡し、秘密の値を入れない）、POL-05（仕様書はコードから生成する）、DEC-15（外へ出る道の決まり）
+trigger: 第 3 段階の次の実行
+resolution: IFC-01 の GET /v1/client-config で決めた。本人の確かめなしで、ELM-03 が自身の確かめた設定から、EXT-01 とブラウザ用の地図と Web Push の公開の鍵、ブラウザの側の偽物を使うかどうか、版の印 buildId だけを返し、秘密の値を入れない

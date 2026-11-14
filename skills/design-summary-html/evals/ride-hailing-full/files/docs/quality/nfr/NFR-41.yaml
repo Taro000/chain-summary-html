@@ -1,40 +1,21 @@
 id: NFR-41
-title: 保存期間を過ぎた個人情報
-status: draft
-version: 3
-basis: inferred
-basis_note: T_pii_retention は 3 年（2026-11-01 の利用者の回答。この段階では値を提案していない）。現在地の受信の記録を足したことは QR-40 版 3 への追随。受信の記録は T_log_retention の間だけ残すので、ふつうは数えられない
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-- 個人情報の扱いを確かめる担当（推定）
-from:
-- QR-40
-kind: monitor
-cuj: null
-statement: 毎日、T_pii_retention を過ぎても操作した人や位置が残る記録（現在地の受信の記録を含む）を数え、1 件でもあるか、FR-53 の処理が失敗すると、エンジニアに知らせる。
+title: 自動の配備と前の版への戻しを確かめるリリース前の確認
+status: active
+basis: assumed
+basis_note: 配備と戻しはリリースの前に試せるため、リリース前の確認にした（推定）。T_rollback の 30 分は暫定の決定（QAS-39）
+premises: [QAS-39]
+from: [QR-69, QR-39]
+kind: gate
+cuj: CUJ-13
+statement: リリースの前に、新しい版を決まった自動の手順だけで配備し、戻すと決めてから T_rollback（30 分）以内に前の版に戻して、元の振る舞いに戻り、進んでいる依頼と乗車とそれまでの記録をそのまま使い続けられることを、試験の環境で確かめる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: エンジニア
+  transactions: 新しい版の配備と、前の版への戻し。進んでいる依頼と乗車がある場面を含む
 slo: null
-gate: null
+gate:
+  where: release-check
+  check: 自動の手順だけでの配備と、進んでいる依頼と乗車がある場面での前の版への戻しの予行
+  threshold: 手作業なしで配備が終わり、30 分以内に戻せて、進んでいる依頼と乗車と記録が使い続けられること
 audit: null
-monitor:
-  signal: FR-53 の処理の記録と、T_pii_retention を過ぎた記録の数
-  threshold: 1 件でも、または処理の失敗
-  notifies: エンジニア（チケット）
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-01'
-  change: T_pii_retention の値を basis_note に書いた
-  reason: 2026-11-01 の利用者の回答への追随
-- version: 3
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。数える記録に、現在地の受信の記録を足した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。第 3 段階の再実行（2026-11-03）の QR-40 版 3 への追随
+monitor: null

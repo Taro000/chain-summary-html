@@ -1,0 +1,12 @@
+id: DAS-21
+title: Web Push の知らせの TTL、流れのない相手と決めるまでの待ち、2 秒のタイマーの上限を暫定に採る
+status: open
+stage: 4
+kind: decision
+statement: MOD-33 は、Web Push の知らせの TTL を、依頼と一覧の出来事（ride.accepted、ride.pickup_arrived、ride.cancelled、ride.driver_cancelled、ride.no_show、ride.started、ride.destination_changed、ride.destination_arrived、ride.expired、offer.added、offer.removed、message.received）は 600 秒、待ち続けるかの問い（ride.wait_prompted）は T_no_accept と T_wait_prompt の差（1500 秒）、ほかの知らせ（ride.charge_settled、ride.payment_method_changed、payment_method.settled、refund.settled、complaint.received、anomaly.detected、driver.suspended、driver.resumed、switch.changed）は 86400 秒とする。出来事の確定から 2 秒のうちにどのインスタンスも相手の流れに書かなければ流れのない相手とし、流れに書いた組の 2 秒のタイマーはインスタンスごとに 1000 までにする（超えた組は控えの処理に任せる）。値は MOD-33 の parameters にある
+why_unsure: 知らせが意味を持つ長さは画面の作りと参加者の振る舞いで決まり、入力にない
+breadth: low
+severity: low
+rating_note: MOD-33 だけが依存する。TTL は T_dispatch_propagation の道の時間にかからない（HND-19）。2 秒の待ちはほかのインスタンスが出来事の記録を読む間隔 1 秒（IFC-11）より長く、その後の知らせは SLI-14 の数えから外れる。タイマーの上限を超えた組は知らせが遅れうるだけ。短すぎると端末に届く前に捨てられた知らせが出ないが、アプリを開けば流れと今の状態の読み直しで示す（DEC-06）
+answer: null
+answered_in: null

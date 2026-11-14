@@ -1,25 +1,14 @@
 id: FND-65
-title: 要素の decisions と情報のビューが、4 回目の再実行で変わった受け持ちを映していない
-status: open
-version: 1
+title: MOD-44 の照合の判断表 A に、処理されなかったとした試みの取引が EXT-01 にある組と、試みが済んだのに EXT-01 の一覧に取引がない組がない
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-45 の chosen と rationale（誤って処理されなかったとした試みと、新しい試みのないまま後で効いた要求を毎日の照合が見つける）、DAT-13 の sli_bindings と consistency、IFC-15 の timing（日 D の実行が読む期間）、NFR-24、SLI-12、DRV-07、MOD-44 の判断表 A と reconcile の post と verification は入力。行のない組と、期間の外の取引に向かう処理の道は、このレビューがそれらを数えた推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- ELM-05
-- ELM-01
-- ELM-02
-- DEC-05
-severity: minor
-evidence: ELM-05（版 4）は毎日の処理で T_request_max を過ぎた依頼を配車のモジュールで取り消し、確かめ中の押さえと返金を片付け、DEC-35 のチケットと DEC-29 の印の一覧を作るが、decisions に DEC-09・10・29・35 がない。ELM-01（版 3）は設定の符号の画面を足したが decisions に DEC-20 がなく、ELM-02 の decisions には DEC-20 と DEC-30（確認コード）がない。情報のビューの「配車依頼と乗車の状態」の出どころは「ELM-01・02 の操作、時刻の見回り」で ELM-05 がなく、DEC-05 の節と情報のビューは毎日の処理が書くものを「支払いの状態、状態の履歴の匿名化」だけとする
-suggestion: ELM-05・01・02 の decisions を足し、情報のビューと DEC-05 の節に毎日の処理が依頼の状態と履歴を書くことを足す
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A5、A6
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-44]
+severity: major
+evidence: DEC-45 は、誤って処理されなかったとした試みが EXT-01 で処理されていたときと、取引が変わらないまま処理されなかったとした確定の要求が新しい試みのないまま後で効いたときを、毎日の照合が片方にしかない処理として見つける（DAT-13）とし、DRV-07 の記録と決済サービスの処理の一致をそこに置く。MOD-44 の判断表 A は、最後の試みを succeeded、refused、refused か not_processed、unknown、なしに、EXT-01 の取引を「あり、最終の結果」「あり、拒否か取り消し」「あり、済んだ」「なし」「なしか最終でない」に分けるが、次の組の行がない。(1) 最後の試みが not_processed で、EXT-01 にその取引か確定がある組。DEC-45 が照合に任せる場合そのもので、たとえば取引が変わらないまま not_processed にした決済の確定が後で効き、ドライバーがやり直さなかった依頼は、到着したままで乗客に請求されている。(2) 試みが succeeded で、EXT-01 の一覧に取引がない組。reconcile が読む一覧は日 D の 2 日前から D の前までに作られた取引と返金（IFC-15）なので、処理を行った日 d の確定と解除が d より前の日に作った押さえの取引に向かうと（日をまたいだ乗車の決済、次の日の押さえ直しの後の解除、後で済んでいたと分かった押さえの解除）、値を決める d の 2 日後の実行の一覧にその取引がなく、ふだんにも起きる。(3) 試みが unknown で取引がないまま、値を決める 2 日後の実行に来た組（「決めない」の行は、それまでの実行のもの）。行がないので、(1) は食い違いとして異常にならず、(2) は正しい処理が食い違いになるか比べられず、NFR-24 の知らせと SLI-12 の数えが一部しか成り立たない。verification の場面（システムにだけ、EXT-01 にだけ）も、これらの組を行として持たない
+suggestion: MOD-44 の判断表 A に、(1) not_processed（理由ごと）と EXT-01 の取引か確定の組（食い違いで異常。unchanged の確定なら、その依頼の押さえの後で効きうる確定が効いたことをどう扱うかも決める）、(2) succeeded と一覧に取引のない組、(3) 値を決める実行での unknown と取引のない組の行を加える。一覧の期間より前に作られた取引に向かう処理は、試みが持つ取引の ID で読んで（IFC-17 の GET）から比べる。どれも verification の行に加える
+resolution: 受け入れ。MOD-44 の判断表 A を、システムの記録（最後の試み）と EXT-01 の側の結果と値を決める実行かのどの組にも一行が当たる形にし、照合の結果と SLI-12 の数えを行ごとに書いた。(1) refused か not_processed と、EXT-01 の済んだ取引か確定か取り消しの組は食い違い（異常）。取引が変わらないまま処理されなかったとした決済の確定が後で効いたときも、照合はお金も依頼も動かさず（決済の新しい試みを作るのはドライバーのやり直しと、押さえの解除で後で効いたと分かったときだけ、DEC-45）、ドライバーのやり直しの新しい試みが取引の状態に退けられて読んで済んだになる。(2) 一覧の期間より前に作られた取引に向かう処理（前の日に作った押さえへの確定と解除）は、試みが持つ取引の ID で読んでから比べる（MOD-41 の読み出し）。(3) 値を決める実行でまだ分からないか、EXT-01 が最終の結果を返さない処理は食い違い。MOD-44 の reconcile の post と確かめ方（単体と結合の層）に加えた

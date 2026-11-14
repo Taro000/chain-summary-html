@@ -1,12 +1,9 @@
 id: DRV-02
 title: 提出の確定を待たせない
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises: []
 kind: quality
 statement: 提出の確定を 3 秒以内に返す
 sources:
@@ -20,7 +17,7 @@ scenario:
   artifact: FR-01, FR-02
   environment: 締め切り前の集中
   response: 受領が示される
-  measure: 提出の確定の 95 パーセンタイルが 3 秒以内（NFR-06）
+  measure: NFR-06 の監視で、確定の 95 パーセンタイルが 3 秒以内
 negotiable: null
 derived_from: []
 priority:
@@ -34,8 +31,3 @@ conflicts:
 - with: DRV-01
   note: 受領の前に記録を書くと、確定が遅くなる（FND-01）
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

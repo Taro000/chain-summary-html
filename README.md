@@ -11,7 +11,7 @@ Two agent skills that each turn a skill chain's outputs into one HTML page, with
 | Skill | Reads | Writes | Demo |
 |---|---|---|---|
 | [quality-summary-html](#quality-summary-html) | [cuj-to-slo](https://github.com/Taro000/cuj-to-slo)'s `docs/quality/` | `docs/quality/summary.html` | [ja](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/quality/summary.html) · [en](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/quality/summary.html) |
-| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design)'s `docs/design/` (stages 1 to 3) | `docs/design/summary.html` | [ja](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/design/summary.html) · [en](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/design/summary.html) |
+| [design-summary-html](#design-summary-html) | [req-to-design](https://github.com/Taro000/req-to-design)'s `docs/design/` (stages 1 to 3, with 2b) | `docs/design/summary.html` | [ja](https://taro000.github.io/chain-summary-html/ride-hailing-full/docs/design/summary.html) · [en](https://taro000.github.io/chain-summary-html/homework-service-full-en/docs/design/summary.html) |
 
 ## Install
 
@@ -21,7 +21,7 @@ npx skills add Taro000/chain-summary-html -a claude-code -g -y     # both, Claud
 npx skills add Taro000/chain-summary-html -s design-summary-html   # one skill
 ```
 
-Requires Python 3.9+ and PyYAML (`uv run --with pyyaml` works). Each skill's `evals/` (1.7 MB and 4.5 MB) can be deleted if you only use the skills.
+Requires Python 3.9+ and PyYAML (`uv run --with pyyaml` works). Each skill's `evals/` (2.2 MB and 5.8 MB) can be deleted if you only use the skills.
 
 ## Common behavior
 
@@ -57,9 +57,12 @@ Go from the ranked architecture drivers to the elements, decisions, flows and da
 | Section | Contents |
 |---|---|
 | Route | Item counts by stage, drivers to data entities |
-| Stage 1 | Driver ranking (open), inputs, stakeholders, scenarios, constraints, principles, conflicts, feasibility |
-| Stage 2 | Elements, the five views, one card per decision, threat model, walkthroughs, debt, running cost |
-| Stage 3 | Conventions, interfaces, error contracts, sequence diagrams, latency budgets, failure paths, ER diagram, measurement points, acceptance-criteria trace |
+| Stage 1 | Driver ranking (open), design context, scenarios, constraints, principles, conflicts, feasibility |
+| Stage 2 | Elements, the four views, one card per decision, threat model, walkthroughs, cost and team, debt |
+| Stage 2b | Technical policies (stack, repositories, test layers, pipeline, how specs are made) with their diagrams, decisions |
+| Stage 3 | Conventions, interfaces, error contracts, SLI bindings, sequence diagrams, latency budgets, screens, ER diagram, states |
+
+Each stage ends with its open hand-offs: what it left to a later stage or to implementation.
 
 The page is for grasping the design quickly:
 
@@ -67,7 +70,7 @@ The page is for grasping the design quickly:
 - Every text is cut to its first sentence without bracketed asides, and columns that only justify or trace a text are dropped. Revision-history notes are removed.
 - Mermaid loads from a CDN, so viewing needs network access.
 
-**Use:** run req-to-design at least through stage 1 (`docs/design/drv/` must exist), then ask "Summarize docs/design as an HTML page" or "Rebuild the design summary".
+**Use:** run req-to-design at least through stage 1 (`docs/design/drv/` must exist), then ask "Summarize docs/design as an HTML page" or "Rebuild the design summary". It reads the layout of req-to-design 0.3.0; re-run the stages of older outputs first (stage 2b after stage 2), as req-to-design's release notes say. Stage 4, the detailed design, is not on the page.
 
 ## Maintaining
 
@@ -78,7 +81,7 @@ skills/<skill>/
 ├── assets/                  CSS, JS, labels per language (lang/ja.json, lang/en.json)
 ├── references/page-spec.md  page specification
 └── evals/                   four test cases
-scripts/check-chain.py       checks for drift from cuj-to-slo's glossary and artifacts.md
+scripts/check-chain.py       checks for drift from both chains' glossaries, artifacts.md and report templates
 scripts/build-pages.py       builds the demo site (.github/workflows/pages.yml publishes it on each push to main)
 tests/                       automated tests, fixture builders, eval graders
 ```
@@ -94,15 +97,15 @@ uv run --with pyyaml python3 -m unittest discover -s tests -v
 # build the demo site into _site/ from two eval cases
 uv run --with pyyaml python3 scripts/build-pages.py
 
-# rebuild the fictional homework service's eval outputs
+# rebuild the fictional homework service's eval outputs (the design one runs req-to-design's tables.py and check.py)
 uv run --with pyyaml python3 tests/make_homework_fixture.py
-uv run --with pyyaml python3 tests/make_homework_design_fixture.py
+uv run --with pyyaml python3 tests/make_homework_design_fixture.py [path/to/req-to-design]
 
 # grade design-summary-html eval runs from the skill-creator workflow
 uv run --with pyyaml python3 tests/grade_design_eval.py skills/design-summary-html-workspace/iteration-1
 
-# after cuj-to-slo changes (default path: $CUJ_TO_SLO, else ../cuj-to-slo)
-python3 scripts/check-chain.py [path/to/cuj-to-slo]
+# after a chain changes (defaults: $CUJ_TO_SLO, else ../cuj-to-slo; $REQ_TO_DESIGN, else ../req-to-design)
+python3 scripts/check-chain.py [path/to/cuj-to-slo] [--req-to-design path/to/req-to-design] [--only cuj-to-slo|req-to-design]
 
 # use your working copy as an installed skill
 ln -s "$PWD/skills/quality-summary-html" ~/.claude/skills/quality-summary-html
@@ -112,7 +115,7 @@ Generator exit codes: 0 page written (even with inconsistencies), 1 written but 
 
 - When `check-chain.py` reports drift, update `assets/lang/*.json` and the generator.
 - When quality-summary-html's `summary.css` or `summary.js` changes, copy it unchanged to design-summary-html's `assets/base.css` / `base.js`. The orange theme lives in `design.css`.
-- `ride-hailing-full` evals are copies from ride-hailing-app-demo: `docs/quality` at ba28153, `docs/design` and `docs/quality` at b63c7a1 (without files the skill does not read).
+- `ride-hailing-full` evals are copies from ride-hailing-app-demo: quality-summary-html's from branch quality/replay-0.3.0 (a26000f), design-summary-html's from branch design/trial-0.3.0 (cd761e7, whose `docs/quality` is the same tree), without summary.html and the design reviews.
 
 ## License
 

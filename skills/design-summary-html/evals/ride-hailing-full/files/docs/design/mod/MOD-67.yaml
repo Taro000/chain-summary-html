@@ -1,0 +1,73 @@
+id: MOD-67
+title: 異常の見つけ方と知らせ
+status: active
+basis: assumed
+basis_note: サーバーが操作の失敗、外部のサービスの失敗、監視の条件、SLO のアラートを自身の記録から見つけて異常として記録し、担当者とエンジニアの Web アプリに Web Push で知らせて一覧に示すことは DEC-20（DAS-05）、同じ異常が続くときは一行にまとめて件数と最後の時刻を書き直し、知らせた時刻を書き、個人の情報を持たないことは DAT-22、どの機能で、いつ、何が起きたかと続いていることを知らせることは FR-33、起きてから T_alert_delay のうちに漏れなく知らせることは QR-33 と NFR-38、監視の信号としきい値と知らせる相手は NFR-10、NFR-14、NFR-17、NFR-18、NFR-24、NFR-29、NFR-30、NFR-35、NFR-39、NFR-43、NFR-44、NFR-45、NFR-46、SLO のアラートの窓、燃え方、条件は NFR-01〜NFR-08、NFR-12、NFR-19、NFR-23、NFR-26、NFR-34 と EBP-01、処理されなかった EXT-01 の試み（実行の前に退けられたものと、取引が変わらないまま処理されなかったとした確定と解除）と、取引の状態に退けられた確定と解除を異常にすることは DEC-45（FND-55 を受けた第 3 段階の変更を含む）、迎車の到着の前に乗車が始まった依頼の迎車の到着の段階を記録の欠けに数えないことは DAT-09（FND-56 を受けた第 3 段階の変更）、日々の処理の失敗を異常にすることは IFC-15（どれも入力）。page の知らせを流れと Web Push で、ticket を一覧だけで示すこと、判断表の行の分け方は推定。異常とみなす条件、まとめ方、監視と SLO のアラートを当てる間隔は HND-10 を決めたもので、DAS-28 による暫定の決定。答えのない要求を異常にするまでの答えの期限からの余裕は、判断表 A にあって parameters になかった値で、FND-71 と同じ種類として parameters と DAS-28 に置いた
+premises: [DAS-28, DAS-05]
+component: ELM-03
+name: 異常の見つけ方と知らせ
+depth: full
+depth_reason: 何を異常とし、続く異常をどうまとめ、いつ誰に知らせるかを、記録の種類、失敗の出どころ、監視と SLO のアラートの条件の組で決める、いくつもの条件の規則（HND-10）。異常が漏れなく T_alert_delay のうちに知らされることは主な設計を動かす要求 DRV-24 の応答
+responsibility: システムの記録から異常を見つけて記録し、エンジニアと担当者に知らせる
+visibility: public
+interface:
+  - operation: "scan(now: Instant) -> integer"
+    pre: MOD-31 の anomaly_scan の受け持ちが 30 秒ごとに呼ぶ
+    post: 前に読んだ所の後のたどる記録と境界の出来事と端末のエラーを足した順に読み（MOD-28 の readAfter）、判断表 A の行で異常にし、判断表 B でまとめて知らせ、読んだ所と異常を一つの取引で書く。結果が分からないまま 10 分を過ぎた試み、終わった依頼の経過の欠け、届けた記録の規則の食い違いなど、判断表 A の scan の監視も当てる
+    errors: []
+  - operation: "evaluateSlos(now: Instant) -> integer"
+    pre: MOD-31 の slo_evaluation の受け持ちが 1 分ごとに呼ぶ
+    post: 判断表 C で、SLO ごとにアラートの窓の燃え方を MOD-66 の数えで当て、条件に当たれば異常にして知らせる。ウィンドウに許される失敗が 1 件に満たない間は、新しい悪いイベントごとに ticket にする（EBP-01 の最後の規則）
+    errors: []
+  - operation: "dailyChecks(jobDate: LocalDate) -> CheckReport"
+    pre: 呼ぶのは MOD-32 の確かめの仕事だけ
+    post: 判断表 A の daily の監視（NFR-39、NFR-43、NFR-46、NFR-35 のまとめた評価の求め直し、NFR-24 の照合の食い違い、操作の記録の鎖）を当て、異常にして知らせる
+    errors: ["CheckFailed: 確かめが読めない（MOD-32 は仕事を失敗とする）"]
+  - operation: "onLogRefused(refusal: LogRefusal) -> none"
+    pre: MOD-24 の聞き手として
+    post: 伏せていない値を書こうとしたことを NFR-45 の異常にする（値は持たない）
+    errors: []
+  - operation: "list(actor: Actor, page: PageRequest) -> Page<AnomalyView>"
+    pre: null
+    post: GET /v1/console/anomalies に、異常（どの機能で、いつ、何が、関わる依頼、続く件数と最初と最後の時刻）を新しい順に返す
+    errors: []
+  - operation: "purgeBefore(at: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: N_trace_retention_days を過ぎた異常を消す
+    errors: []
+invariants:
+  - 同じまとめの鍵の異常は、最後の時刻から 10 分のうちに続けば一行で、件数と最後の時刻を書き直す
+  - 読んだ所と、その読みから作った異常は一つの取引で書かれ、記録が読み飛ばされず、二度数えられない
+  - 異常は個人の情報を持たない
+depends_on: [MOD-21, MOD-24, MOD-25, MOD-27, MOD-28, MOD-29, MOD-31, MOD-33, MOD-35, MOD-37, MOD-42, MOD-44, MOD-45, MOD-52, MOD-53, MOD-56, MOD-57, MOD-63, MOD-66]
+functions: [FR-33, FR-34, FR-52]
+realizes:
+  - IFC-14 GET /v1/console/anomalies
+  - IFC-11 anomaly.detected
+drivers: [DRV-07, DRV-08, DRV-21, DRV-24]
+decisions: [DEC-20, DEC-23, DEC-45]
+behaviour: "報告書の節: MOD-67 異常の見つけ方と知らせ"
+verification:
+  - checks: 判断表 A、B、C の行ごと（記録の種類と失敗の出どころごと、まとめる 10 分のちょうど前と後、知らせ直し、page と ticket、SLO の窓の 20 件の条件と EBP-01 の最後の規則）
+    how: 単体の層（時計の偽物）
+  - checks: 監視の非機能要件ごとの信号で異常になり、知らせる相手に届く（NFR-10、NFR-14、NFR-17、NFR-18、NFR-24、NFR-29、NFR-30、NFR-35、NFR-39、NFR-43〜NFR-46）
+    how: 結合の層（記録を作る操作と偽物で場面を起こす）
+  - checks: 依頼から決済までの各機能と EXT-01、EXT-02 とのやり取りで異常を起こし、5 分のうちに Web Push の偽物に届き、知らされた依頼をたどれる。経路の登録と外部のつなぎ口ごとに異常の場面があり、ない機能を加えると失敗する（NFR-38）
+    how: 運用の予行の層（NFR-38 の出どころ）
+parameters:
+  - name: たどる記録と境界の出来事を読む間隔
+    value: 30 秒
+    basis: HND-10。起きてから知らせるまでの最悪は、読む間隔 30 秒と、拾う間隔 5 秒（DEC-46）と、取引と知らせの送り（流れか Web Push、IFC-21 の最悪 11 秒）の和の 1 分足らずで、T_alert_delay（5 分）のうち（DAS-28）
+  - name: SLO のアラートを当てる間隔
+    value: 1 分
+    basis: HND-10。最も短い窓（5 分）より短い（DAS-28）
+  - name: 続く異常をまとめる間と知らせ直す間
+    value: 最後の時刻から 10 分のうちに続けば一つにまとめ、続く間は 10 分に一度だけ知らせ直す
+    basis: HND-10。FR-33 の 2 の続いていることが分かる知らせを、知らせが多すぎない間で（DAS-28）
+  - name: 答えのない要求を異常にするまでの余裕（判断表 A の no_response）
+    value: 経路の答えの期限から 1 分
+    basis: HND-10。答えの期限の直後に結果の取引と答えの記録が終わる要求を異常としない余裕。受けてから知らせるまで最悪、期限（最も長い 8.8 秒）と余裕 1 分と読む間隔 30 秒と拾う間隔 5 秒と取引と知らせの送り（IFC-21 の最悪 11 秒）の和の 2 分足らずで、T_alert_delay（5 分）のうち（DAS-28）
+  - name: 結果が分からないお金の試みを異常にするまで
+    value: 最初に送ってから 10 分
+    basis: HND-10。確かめの間隔（IFC-17 の 30 秒、1、2、4、8 分）の 5 回目の確かめの後で、ふつうはそれまでに分かる（DAS-28）
+as_is: new

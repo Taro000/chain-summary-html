@@ -1,35 +1,26 @@
 id: QR-06
-title: ドライバーの端末の電池
-status: draft
-version: 2
-basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 依頼、許諾、取り消し、迎車の到着が相手にすぐ示される
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。量は小さい（OPF-02、OPF-03）が、示すのが遅れるのは量ではなく、乗客とドライバーが別々の端末で同じ依頼を見ることから起き、デモの回の中で起きうるとみた。どこで時間がかかるかは設計が確かめる。迎車の到着の知らせも、質問 9 の回答のとおりこの QR が扱う。着いたとみなす範囲を D_pickup_position_gap（50 m）とすることは第 4 段階の決めたこと 3 で、その「到着を受け付ける範囲」を迎車が乗る場所に着いたとみなす範囲と読むことは QAS-52 による仮定。T_dispatch_propagation の値（5 秒）は QAS-25、T_noshow_wait の値（5 分）は QAS-51 による仮定（どちらも第 4 段階が提案した仮の値）。着いたかどうかをどう知るかは設計で決める（FR-10）。相手の画面に示した時刻の記録（FR-53）は第 4 段階が SLI を数えるために提案した機能のため、この QR の対象の機能に入れない。扱い（重視）は質問 2 で確認済み（CUJ-01 の組）。CUJ-02 の組（質問 21）、CUJ-06 の組（決めたこと 17）でもある
+premises: [OPF-02, OPF-03, QAS-25, QAS-51, QAS-52]
 model: product
 layer: external
-characteristic: performance efficiency > resource utilization
-statement: ドライバーの Web アプリは、受付中に前面に開き続けても、受付を続けられなくなるほど端末の電池を使わない。
-applies_to: [FR-17, FR-18, FR-52]
-traces_to: [QIU-12]
+characteristic: performance efficiency > time behaviour
+statement: システムは、乗客の依頼と取り消しをドライバーの一覧と画面に、ドライバーの許諾と取り消しを乗客の画面と通知に、ほかのドライバーの許諾を依頼を見ているドライバーの一覧に、迎車が乗車場所から D_pickup_position_gap（50 m）以内に実際に着いたことを乗客の通知と画面に、操作や到着から T_dispatch_propagation（5 秒）以内に示す。迎車が着く前には着いたとして示さず、乗客の不在として終えられるまでの T_noshow_wait（5 分）は迎車が実際に着いた時刻から数える。
+applies_to: [FR-04, FR-06, FR-07, FR-10, FR-18, FR-20, FR-21, FR-23, FR-26]
+traces_to: [QIU-01, QIU-03, QIU-08, QIU-09, QIU-15, QIU-16]
 entry_point: null
-stakeholders: [USR-02]
-failure_scenario: 位置の送信と画面の点灯で電池が減り、受付中に端末が切れる。
-score: {impact: 3, likelihood: 3}
-handling: minimum-line
+stakeholders: [USR-01, USR-02]
+failure_scenario: ほかのドライバーが許諾した依頼がしばらく一覧に残り、ドライバーは選んで内容を確かめたあとで受けられないと知らされる。乗客の取り消しが遅れて届き、ドライバーはその間も乗車場所へ向かう。迎車が一つ手前の交差点にいるうちに着いたと知らされ、乗客は見当たらない車を探す。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
 handling_reason: null
-implies_internal: []
+implies_internal: [QR-51]
 conflicts:
-  - with: QR-27
-    note: 現在地を細かく送るほど、画面を点け続けるほど（FR-52）電池が減る。送る間隔は QR-27 のしきい値が求める細かさを超えない。値は第 4 段階で決める
+  - {with: QR-02, note: "途切れた操作を確かめ直すことで示すまでの時間が延びうる。途切れていないときは T_dispatch_propagation（5 秒）以内に示し、途切れたときは失わないことを先にする"}
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: FR-52 を対象に加えた（電池の消費との競合）
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+placeholders:
+  - {name: T_dispatch_propagation, meaning: "乗客やドライバーの依頼、許諾、取り消しの操作、または迎車が乗車場所に実際に着いたときから、相手の画面、一覧、通知にそれが示されるまでの時間", from: QR-06}
+  - {name: T_noshow_wait, meaning: "第 2 段階の値。迎車が乗車場所に着いてから、ドライバーが乗客の不在として依頼を終えられるようになるまでの時間", from: FR-26}
+  - {name: D_pickup_position_gap, meaning: "依頼に入る乗る場所の位置が、乗客が実際に待つ場所からずれる距離の許容。迎車が乗る場所に着いたとみなす範囲も同じ値", from: "第 4 段階の決めたこと 3（D_place_position_gap から分けた）"}

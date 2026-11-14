@@ -1,0 +1,32 @@
+id: QIU-32
+title: 担当者が審査を通っていないドライバーや車両を登録しない
+status: active
+basis: inferred
+basis_note: CUJ は質問 2 の回答。審査を通っていない登録を健康・安全の問題として扱うこと、測定量、利用状況は推定。審査の結果をこのシステムに記録しないことは第 3 段階の質問 1 と 5 で確認済み（CON-07）
+premises: [CON-07]
+user: USR-04
+cuj: CUJ-17
+outcomes: []
+need: 審査を通ったドライバーと車両だけを登録したい
+context_of_use:
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 審査を通ったドライバーと車両の登録
+  environment: null
+  other: null
+characteristic: freedom from risk > health and safety risk mitigation
+statement: ドライバーと車両を登録する運営・サポートの担当者は、審査を通っていないドライバーや車両を登録しない。
+failure_scenario: 審査を通っていないドライバーが登録されて乗客を乗せ、危険な運転をする、または整備されていない車で事故が起きる。
+measure:
+  numerator: 審査を通っていないドライバーや車両の登録
+  denominator: 行ったドライバーと車両の登録
+  narrowed_to: ドライバーと車両の登録
+  denominator_needed_only: 行った登録だけを数える
+  contribution: 審査の結果はシステムの外にしかなく（CON-07）、プロダクトは登録が審査を通ったかを確かめられない。担当者の手続きで守り、プロダクトは誰が登録したかをたどれることと、登録されたドライバーだけが依頼を受けられることで支える
+  observable: false
+  compared_with: null
+  scale: ratio
+kpi: null
+target: null
+target_status: undecided

@@ -1,28 +1,14 @@
 id: FRP-11
-title: デモの回を開いた時刻と閉じた時刻を記録する
+title: 依頼の状態の変化を相手の画面に示した時刻を記録する
 status: accepted
-version: 2
-basis: inferred
-basis_note: SLI-03 の確かめ直しを「デモの回が開いていた間」に限る回答（2026-11-03、設計 2-8）から。設計はこの記録を配備と開け閉めの記録（DAT-26）として持つが、品質チェーンの FR-41 は配備ごとの記録だけを求め、回を閉じた時刻を求めていない
-needs_agreement: false
-approver_candidates: []
+basis: assumed
+basis_note: QR-06 が求める時間は相手の画面に示されるまでで、どの FR もその時刻を記録しない（推定）
+premises: [QAS-54]
 proposed_by: product-quality-to-slo
-origin:
-- QR-27
-changes: FR-41
-reason: SLI-03 は、使用中の区間を受付と状態の記録で決め、デモの回が開いていた間に限って数える。回を閉じた後も状態の記録は受付中のまま残るので、閉じた時刻がないと、回の外の時間を新しくないと数えてしまい、二人で数えて同じ値にならない。どの FR も、回を閉じた時刻を記録しない。
-suggested_statement: システムは、デモの回を開いたとき（サーバーを配備したとき）と閉じたとき（サーバーを止めたとき）に、その時刻を配備の記録（FR-41）に残す。
-affects:
-- SLI-03
-- NFR-03
+origin: [QR-06]
+changes: null
+reason: QR-06 は、依頼、許諾、取り消し、迎車の到着が相手の画面と通知に示されるまでの時間を求める。FR-45 は配車の経過を記録するが、相手の画面に示した時刻は記録しないため、示されるまでの時間が分からない。
+suggested_statement: システムは、依頼、許諾、取り消し、迎車の到着を相手の画面に示した時刻を、その依頼と相手に結び付けて記録する。
+affects: [NFR-07, SLI-14]
 placeholders: []
-resolution: FR-41 版 4 として受け入れた。受け入れ基準に、デモの回を開いたとき（サーバーを配備したとき）と閉じたとき（サーバーを止めたとき）の時刻を記録すること（閉じる操作が途中で失敗したときも記録する）を足した。設計は DAT-26（配備と開け閉めの記録）ですでに持つ
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 提案
-  reason: 第 4 段階の再実行（2026-11-03）で SLI-03 を確かめ直しの形に書き直した（docs/quality-chain-answers.md の設計 2-8）
-- version: 2
-  date: '2026-11-03'
-  change: 受け入れた
-  reason: 第 2 段階の質問 23（第 4 段階の質問 10 と同時に尋ねた。2026-11-03）
+resolution: 受け入れ（暫定の決定、QAS-54）。FR-53 として今期作る。

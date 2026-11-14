@@ -1,0 +1,1 @@
+{id: QAS-04, title: 返却の通知の文面を固定する, status: overturned, stage: 3, kind: judgment, statement: 返却の通知は、システムが決めた文面で送る。, why_unsure: 入力は通知を求めるが、文面を誰が書くかは示さない。, breadth: low, severity: low, rating_note: QR-04 だけが頼る。, answer: 講師が自分で書く, answered_in: 第 3 段階、質問 2}

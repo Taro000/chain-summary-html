@@ -1,0 +1,12 @@
+id: DAS-08
+title: 開発者のマシンは macOS でコンテナを動かせ、iOS 18.4 以降の iPhone を一台テストに使え、それに iOS のベータ版を入れられる
+status: open
+stage: 2b
+kind: judgment
+statement: 開発者のマシン（ELM-10）は macOS で、Docker Compose の形のファイルを動かせるコンテナの実行環境（個人の使い方では無償のもの）、Node.js 26、Python 3、mkcert、Trivy を入れられ、iOS のシミュレーターを動かせる。開発者は、iOS 18.4 以降に上げられる iPhone を一台、実機の受け入れに使え、対応する iOS の更新のベータ版か公開の候補の版を Apple が出したときは、その iPhone に入れて実機の受け入れを行える（入れている間のリリースの実機の受け入れも、その版で行う）
+why_unsure: 設計の与件は開発者のマシンの種類と、テストに使える端末と、その端末に iOS のベータ版を入れられるかを述べていない。第 2 段階は、同じマシンの iOS のシミュレーターで ELM-01 を動かしてもよいとした（配置のビュー）
+breadth: medium
+severity: low
+rating_note: POL-01、POL-03、POL-04、DEC-32 が依存する。macOS でなければ iOS のシミュレーターを使えないだけで、コンテナ、Node.js、Python 3、Trivy はほかの OS でも動き、実機の受け入れは iPhone で行える。テストに使える iPhone がなければ、実機の受け入れ（NFR-15）を行えず、そのときは尋ね直す。iPhone にベータ版を入れられなければ、更新を公開の前に確かめられず、どの更新でも通るまで参加者に更新を待ってもらう案内（範囲外）だけが NFR-15 のしきい値を保ち、POL-03 の出どころと POL-04 の device-acceptance の起こるときが変わるだけ
+answer: null
+answered_in: null

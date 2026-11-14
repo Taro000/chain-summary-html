@@ -1,62 +1,33 @@
 id: DEC-44
-title: ログとトレース
-status: draft
-version: 2
+title: 経路は /v1/ の後の kebab-case の複数形の名詞とし、一つしかない資源だけ単数にし、項目は camelCase、符号は UPPER_SNAKE_CASE とし、個人の情報は経路と問い合わせに入れない
+status: active
 basis: inferred
-basis_note: DEC-18、DEC-16、Cloud Run の文書（X-Cloud-Trace-Context の値で入口のログに結ぶ方法、traceparent が要求に入ること）は入力。ブラウザのトレース ID を入口のログが使うかは文書にない。見出しを二つ送る形と欄は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: インタフェースの名前の付け方は、第 3 段階の確定の種類（推定）。個人の情報をログと URL に残さないことは QR-58 と DEC-15（入力）からの推定。呼んだ人かその端末にとって一つしかない資源を単数にすること、操作の名詞に位置で探す住所（/reverse-geocoding）を加えたこと、探す操作を資源の下の search にそろえたことは FND-31 を受けた（推定）。冪等キーの最初の答えを示すヘッダーをこの決まりの X-Idempotent-Replayed にそろえ（DEC-42）、X- で始まるヘッダーの例に加えたことは FND-39 を受けた
+premises: []
 stage: high-level-design
-question: 一つの操作の記録をどうつなぎ、ログに何を書き、何を書かないか
-addresses:
-- IFC-09
-- IFC-20
-- DEC-18
-- DEC-16
-- DRV-28
-- DRV-27
-- DRV-32
+question: 経路、項目、列挙の値、符号、流れの出来事の種類、操作の名前をどう名付け、個人の情報をどこに置くか
+addresses: [DRV-12, DRV-29, DRV-34, FND-31]
 options:
-- name: "ブラウザが traceparent と X-Client-Trace-Id を送り、サーバーは Cloud Run が渡す X-Cloud-Trace-Context を logging.googleapis.com/trace と spanId に、ブラウザの ID を client_trace_id に書く。どの行にも: timestamp、severity、message、logging.googleapis.com/trace、logging.googleapis.com/spanId、client_trace_id、event、schema_version、service（server か batch）、app_version。要求の行（request.completed）に: route_id、method、status、elapsed_ms、account_id、account_kind（participant、staff、test。SLI-01 は participant だけを数え、test を除く。staff は SLI-01 の操作を呼ばない）、ride_id。書かない: 座標、連絡先、名前、場所の検索の語、自由記述（苦情、報告）、カードの情報、クッキー、トークン、秘密、Webhook の URL、要求と応答の本文、IP アドレス（入口のログには残る）。重さ: DEBUG、INFO、WARNING、ERROR（知らせの対象は ERROR）"
-  effect: Cloud Run がブラウザのトレース ID を入口のログに使っても使わなくても、入口のログ、アプリのログ、ブラウザの記録を結べる
-  cost: 見出しが一つ増える
-- name: traceparent だけに頼る
-  effect: 見出しが一つ
-  cost: Cloud Run がブラウザのトレース ID を入口のログに使うことは文書に書かれていない（文書は traceparent が入ることだけを書く）。使わなければ結べない
-- name: 独自の見出しだけ
-  effect: 思いどおりの ID
-  cost: 入口のログには残らず、SLI-01 のテスト用アカウントの除外ができない
-chosen: 'ブラウザが traceparent と X-Client-Trace-Id を送り、サーバーは Cloud Run が渡す X-Cloud-Trace-Context を logging.googleapis.com/trace と spanId に、ブラウザの ID を client_trace_id に書く。どの行にも: timestamp、severity、message、logging.googleapis.com/trace、logging.googleapis.com/spanId、client_trace_id、event、schema_version、service（server か batch）、app_version。要求の行（request.completed）に: route_id、method、status、elapsed_ms、account_id、account_kind（participant、staff、test。SLI-01 は participant だけを数え、test を除く。staff は SLI-01 の操作を呼ばない）、ride_id。書かない: 座標、連絡先、名前、場所の検索の語、自由記述（苦情、報告）、カードの情報、クッキー、トークン、秘密、Webhook の URL、要求と応答の本文、IP アドレス（入口のログには残る）。重さ: DEBUG、INFO、WARNING、ERROR（知らせの対象は ERROR）'
-rationale: DEC-18 の応答を左右する点（入口のログに同じトレース ID が残る見出しの形）を、文書で確かめられない部分があっても成り立つ形にした。Cloud Run の文書はコンテナのログを X-Cloud-Trace-Context の値で入口の要求のログに結ぶ方法を示す
+  - name: 経路は kebab-case の複数形の名詞と名詞の下位の資源、項目は camelCase、列挙は lower_snake_case、符号は UPPER_SNAKE_CASE、出来事は「資源.出来事」
+    effect: 生成した型（DEC-33）が TypeScript の書き方にそろい、経路から操作の対象が読める
+    cost: 動詞の操作も名詞の資源として名付ける
+  - name: 経路を動詞で名付ける（/v1/cancelRide など）
+    effect: 操作がそのまま読める
+    cost: 資源と操作の区別がなくなり、同じ資源の読み書きが散らばる
+chosen: 経路は /v1/ の後に小文字の kebab-case の複数形の名詞を置き、操作は名詞の下位の資源（/cancellation、/acceptance、/payment、/reverse-geocoding）で表す。呼んだ人かその端末にとって一つしかない資源（/v1/me、/v1/client-config、…/current）だけは単数の名詞にする。探す操作は資源の下の search（POST、DEC-39）にする。担当者とエンジニアの操作は /v1/console/ の下、日々の呼び出しは /internal/ の下、生存確認は /healthz に置く。JSON の項目は camelCase、列挙の値は lower_snake_case、誤りの符号は UPPER_SNAKE_CASE、流れの出来事と Web Push の種類は「資源.出来事」の lower_snake_case（ride.accepted、offer.removed）、操作の名前（operationId）は camelCase の動詞から始める。HTTP のヘッダーは、標準のもの（Idempotency-Key）のほかは X- で始まる語を - でつなぐ（X-Trace-Id、X-Request-Id、X-Resend は DEC-43、X-Idempotent-Replayed は DEC-42）。同じ符号は、どの IFC でも同じ状態の組で返す（DEC-35）。個人の情報（名前、連絡先、場所、位置、探す文字）は経路にも問い合わせの文字列にも入れず、本文で送る
+rationale: 二つ目は資源の読み書きが散らばり、依頼の状態の変化（DEC-08）が経路から読めない。一つ目は、依頼の状態の変化を依頼の下位の資源として並べ、生成した型（DEC-33、POL-05）が TypeScript の書き方とそろう。一つしかない資源を単数にするのは、本人（/v1/me）や今の依頼（/v1/rides/current）を複数形にすると、一覧を返すように読めるため。過去の乗車の一覧は複数形の資源（/v1/past-rides）として名付ける。同じ符号を同じ状態の組で返すのは、利用側が状態の組で動き方を決める（DEC-35）ため。個人の情報を経路と問い合わせに入れないのは、アクセスのログ、ブラウザの履歴、プラットフォームの要求のログに残らないようにするため（DRV-29、QR-58）
 rejected:
-- option: traceparent だけに頼る
-  reason: 確かめられない前提に頼る
-- option: 独自の見出しだけ
-  reason: 入口のログと結べない
+  - option: 経路を動詞で名付ける（/v1/cancelRide など）
+    reason: 資源と操作の区別がなくなり、依頼の状態の変化が経路から読めず DRV-12 の変更のとどめ方を弱める
 gains:
-- 入口、サーバー、外部の呼び出し、ブラウザの記録が同じ ID でたどれる（FR-37）
-- SLI-01 の除外を (trace, spanId) で結べる（DEC-16）
+  - 経路から操作の対象が読め、生成した型が書き方にそろう
+  - 個人の情報が URL とアクセスのログに残らない
 costs:
-- 最初の配備で、入口のログの trace がブラウザの ID と同じかを確かめる
-sensitive_points:
-- 書かないものの一覧を CI で確かめること（NFR-40）
+  - 動詞の操作も名詞の資源として名付ける
+sensitive_points: []
 trade_offs: []
-assumptions:
-- Cloud Run の入口の要求のログは trace と spanId を持つ（最初の配備で確かめる）
-depends_on:
-- DEC-18
-- DEC-16
+assumptions: []
+depends_on: [DEC-15, DEC-33, DEC-35]
 parameters: []
 debt: null
-deferred: false
-revisit_when: 最初の配備で、入口のログの trace がブラウザの ID と違ったとき（違えば client_trace_id で結ぶ）
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: "account_kind の値に staff を足し、SLI-01 での扱いを書いた。選んだ案と案の名前の書き方をそろえた"
-  reason: "第 3 段階の再実行（2026-11-04）。FND-41 を受け入れた（ログの仕様書と値をそろえた）"

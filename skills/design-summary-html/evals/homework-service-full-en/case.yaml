@@ -2,12 +2,14 @@ schema_version: "1.1"
 name: homework-service-full-en
 expected_outcome: |
   docs/design/summary.html is built in English, the language the outputs are written in: its headings, table labels and
-  terms are English, with no Japanese. The page starts with the ranking table of the architecture drivers, open, in the
-  YAML's rank order, without the principle DRV-09 and the retired DRV-10. Each stage 2 decision has an entry from
-  dec/*.yaml, DEC-06 included, although the stage 2 report's decisions table leaves it out; the final report tells the
-  user so. Every text shows only its gist, its first sentence without bracketed asides (DEC-02's rationale stops before
-  "With signed URLs"). No revision notes (finding numbers, "version 2", the previous version, re-runs) reach the page.
-  The flow numbers on the threat diagram link to the threat table, and NFR-06's hop budgets are a chart against 3
-  seconds.
+  terms are English, with no Japanese. The outputs are those of req-to-design 0.3.0 (stages 1, 2, 2b and 3). The page
+  starts with the ranking table of the architecture drivers, open, in the YAML's rank order, without the principle
+  DRV-09 and the retired DRV-10. Each stage 2 decision has an entry from dec/*.yaml. The debt table shows DEC-06's debt,
+  although the stage 2 report's debt table leaves it out; the final report tells the user so, and reports no other
+  mismatch: the questions and answers under "## Decisions" are not the decisions table. Stage 2b shows the six technical
+  policies and its two decisions; only the open hand-offs are shown. Every text shows only its gist, its first sentence
+  without bracketed asides (DEC-02's rationale stops before "With signed URLs"). No finding numbers reach the page. The
+  flow numbers on the threat diagram link to the threat table, NFR-06's hop budgets are a chart against 3 seconds, and
+  the header shows 2026-09-25.
 context:
   scaffold_script: place-files.sh

@@ -1,59 +1,88 @@
 id: IFC-12
-title: 手元の保守の手順
-status: draft
-version: 2
+title: 運営・サポートの担当者の操作
+status: active
 basis: inferred
-basis_note: DEC-28（デモの回の終わりの書き出し、暗号化、最新の二つ）、DEC-36 版 2（終えるときに消す。Stripe のデモと CI のサンドボックスは最後に人の手で消す）、DEC-34（開発者の手元のログイン）は入力。コマンドの名前、ファイル名の形、書き終えてから名前を付けることは推定
-needs_agreement: false
-approver_candidates: []
-kind: batch
-name: 手元の保守の手順
-provider: ELM-22
-consumers:
-- USR-03
-functions: []
+basis_note: 苦情と返金の求めの受け付けと対応の記録（FR-37）、乗車の照会（FR-38）、アカウントの作成と訂正（FR-41）、試験用の区別（FR-42）、審査を通ったドライバーと車両の登録と訂正で審査の日付と手がかりを入れさせないこと（FR-43、TC-17）、ドライバーの停止と再開（FR-44）、担当者の操作の記録とその検索（FR-50）は入力。設定の符号を担当者が直接渡し、パスワードを忘れたときに出し直すことは DEC-14、TC-16（入力）。個人の情報を暗号にして持ち、サーバーが読み解いてから絞ることは DEC-16（入力）。操作、誤りの符号、検索を本文で送ることは DEC-35、DEC-39、DEC-42、DEC-44 による推定。担当者とエンジニアのアカウントは開発者が種の台本で作る（実装）。訂正、試験用の区別、設定の符号の出し直し、停止と再開の相手を担当者が選べるよう、アカウントを探す操作とアカウントとドライバーの登録を読む操作を加えたことは FND-25 を受けた（推定）
+premises: [TC-16, TC-17]
+kind: http
+name: 運営・サポートの担当者の操作
+provider: ELM-03
+consumers: [ELM-02]
+functions: [FR-09, FR-37, FR-38, FR-41, FR-42, FR-43, FR-44, FR-45, FR-50, FR-51]
 operations:
-- name: export
-  does: デモの回の終わりに Turso の .dump を取り、その場でパスフレーズから改ざんも見分ける暗号化をして置く。平文を残さない
-- name: prune
-  does: 書き出しを最新の二つだけ残す
-- name: restore
-  does: 書き出しか、時点を指定した復元（直近 24 時間）から新しいデータベースを作り、接続先の秘密を替える手順を示す（NFR-38 の訓練も同じ）
-- name: unarchive
-  does: 保管に回ったデータベースを戻す（期間を始める前）
-- name: destroy
-  does: システムを終えるとき、データベースと書き出しを消す（確かめの文を入れたときだけ）。最後に、Stripe のダッシュボードでデモと CI のサンドボックスを消すよう案内を示す（消すのは人の手。DEC-36 版 2）
-format: 書き出しは Turso の .dump の SQL を暗号化したファイル一つ。名前は ride-demo-<データベース>-<UTC の日時>.sql.enc、中にチェックサムを持つ（道具は第 4 段階）
-protocol: 開発者の手元の機械（ELM-21）で動くリポジトリの中のスクリプト（tools/maintenance）→ Turso の CLI（IFC-22）
-auth: 開発者自身の Turso のログイン（組織全体。DEC-34）。パスフレーズはパスワードの管理から都度入れる
+  - name: GET /v1/console/complaints
+    does: 苦情と返金の求めを、受けたものと終えたものに分けて新しい順に返す（FR-37 の 1、2）
+  - name: POST /v1/console/complaints/{complaintId}/resolution
+    does: 担当者が対応を終えたことを記録する（FR-37 の 2、FR-50）
+  - name: POST /v1/console/rides/search
+    does: 乗客、ドライバー、期間で乗車と、キャンセル料か不在の料金を請求した依頼を探す（FR-38 の 1、3、4）
+  - name: GET /v1/console/rides/{rideId}
+    does: 一つの乗車か依頼の記録（乗る場所と降りる場所、到着を確認した場所、各段階の時刻、ドライバーと車、料金、決済と返金の額、評価、取り消しの有無と誰がどの段階で終えたか、請求した額とその種類）を返す（FR-38 の 2、3、FR-45）
+  - name: POST /v1/console/accounts/search
+    does: 参加者（乗客とドライバー）のアカウントを、種類、名前、サインインの ID、連絡先、車のナンバー（ドライバー）、試験用か、停止しているかで探し、アカウントの ID、種類、名前、サインインの ID、試験用か、状態（使える、止めている、使えなくなった）、ドライバーは登録が済んでいるかと停止しているかを返す。条件は本文で送る（DEC-39、DEC-44）。名前と連絡先は ELM-03 が読み解いてから比べる（DEC-16）。訂正、試験用の区別、設定の符号の出し直し、登録の訂正、停止と再開の相手を選ぶのに使う（FR-41 の 4、FR-42 の 1、3、FR-43 の 4、FR-44、DEC-14）
+  - name: GET /v1/console/accounts/{accountId}
+    does: 一つのアカウントの今の内容（種類、名前、連絡先、サインインの ID、試験用か、状態、作った時刻と最後に訂正した時刻）を返す。担当者が訂正と試験用の区別と設定の符号の出し直しの前に確かめる（FR-41 の 4、FR-42 の 1、3、DEC-14）。個人を特定できない形に変わったアカウントは、状態と時刻だけを返す（FR-51）
+  - name: GET /v1/console/drivers/{accountId}
+    does: 一つのドライバーの今の登録の内容（名前、顔写真、連絡先、車種、色、ナンバー）と、停止しているかとその時刻、迎車中か乗車中の依頼を返す（FR-43 の 4、FR-44）
+  - name: POST /v1/console/accounts
+    does: 乗客かドライバーを選んで、確かめた内容でアカウントを作り（試験用を選べる）、サインインの ID と設定の符号を返す（FR-41 の 1、FR-42 の 1、DEC-14、DEC-36）
+  - name: PATCH /v1/console/accounts/{accountId}
+    does: アカウントの内容を訂正し、いつ何を訂正したかを記録する（FR-41 の 4）
+  - name: PUT /v1/console/accounts/{accountId}/test-flag
+    does: 試験用の区別を変え、変えたこととその時刻を記録する（FR-42 の 3）
+  - name: POST /v1/console/accounts/{accountId}/setup-codes
+    does: 設定の符号を出し直す。それまでの符号とそのアカウントのセッションを無効にする（DEC-14、DEC-40）
+  - name: POST /v1/console/drivers
+    does: 審査を通ったドライバーと車両を、ドライバーの名前、顔写真、連絡先と、車の車種、色、ナンバーで登録する。審査の日付と記録を探す手がかりの項目は持たない（FR-43 の 1、2、TC-17）
+  - name: PATCH /v1/console/drivers/{accountId}
+    does: 登録を訂正し、いつ何を訂正したかを記録し、乗客に示す手がかりを訂正した内容にする（FR-43 の 4、FR-09 の 3）
+  - name: POST /v1/console/drivers/{accountId}/suspension
+    does: ドライバーを停止する。その時から受付と許諾をさせず、まだ許諾していない依頼を一覧から除き、ドライバーに知らせ、迎車中か乗車中の依頼があればそれを返す（FR-44 の 1〜5）
+  - name: DELETE /v1/console/drivers/{accountId}/suspension
+    does: 停止を解き、再び受付を始められるようにする（FR-44 の 7）
+  - name: POST /v1/console/audit-records/search
+    does: 担当者、期間、操作の種類、対象の乗車やアカウントで操作の記録を探す（FR-50 の 2）
+format: JSON（UTF-8）。顔写真は本文の中の画像（形式と大きさの上限は実装）。額は DEC-38、時刻は DEC-37、一覧は DEC-39
+protocol: HTTPS の要求と応答
+auth: 運営・サポートの担当者のセッション（DEC-40）。担当者のほかは 403 NOT_ALLOWED（DEC-15、FR-49）。個人の情報は担当者の対応に要る範囲で示す（QR-57）
 errors:
-- case: 書き出しの途中で失敗
-  signal: 中途のファイルを消す
-  caller_does: 前の二つが残る。もう一度動かす（書き終えて確かめてから名前を付ける）
-- case: 復号できない（パスフレーズの違い、改ざん）
-  signal: 止まる
-  caller_does: もう一つの書き出しか、時点を指定した復元を使う
-- case: Turso の CLI の失敗
-  signal: その段で止まる
-  caller_does: 原因を直して動かし直す
-- case: destroy の確かめの文が違う
-  signal: 何もしない
-  caller_does: —
-idempotency: export は新しいファイルを作るだけ。prune は何度でも同じ。restore は新しいデータベースを作り元を変えない。destroy の二度目は「ない」で終わる
+  - case: どの操作にも共通する誤りと、冪等キーの誤り
+    signal: DEC-35 と DEC-42 の符号
+    caller_does: DEC-35 と DEC-42 のとおり
+  - case: 必要な項目が欠けているか、形が正しくない項目がある
+    signal: 400 with code VALIDATION_FAILED（details に項目ごとの符号）
+    caller_does: どの項目かを示し、作成と登録をしない（FR-41 の 2、FR-43 の 3）
+  - case: 審査の日付や審査の記録を探す手がかりなど、ない項目を送った
+    signal: 400 with code VALIDATION_FAILED（details の code が UNKNOWN_FIELD）
+    caller_does: 入れさせない（FR-43 の 2、TC-17）
+  - case: すでにアカウントのある人のアカウントをもう一つ作ろうとした
+    signal: 409 with code ACCOUNT_ALREADY_EXISTS
+    caller_does: そのことを示し、作成しない（FR-41 の 3）
+  - case: ほかのドライバーに登録済みの車のナンバーを入れた
+    signal: 409 with code PLATE_ALREADY_REGISTERED
+    caller_does: そのことを示し、登録しない（FR-43 の 3）
+  - case: すでに停止しているドライバーを停止しようとした
+    signal: 409 with code DRIVER_ALREADY_SUSPENDED
+    caller_does: 停止していることを示す（FR-44 の 6）
+  - case: 停止したドライバーに迎車中か乗車中の依頼がある
+    signal: 200 で activeRides を持つ答え
+    caller_does: 進んでいる依頼を示す（FR-44 の 5）
+  - case: 探して当てはまるものがない
+    signal: 200 で空の items
+    caller_does: 見つからないことを示す（FR-38 の 4、FR-50 の 2）
+  - case: 読もうとしたアカウントかドライバーの登録がない
+    signal: 404 with code NOT_FOUND
+    caller_does: 見つからないことを示し、探し直させる
+  - case: アカウントが個人を特定できない形に変わっている
+    signal: 409 with code ACCOUNT_RETIRED
+    caller_does: 訂正できないことを示し、新しいアカウントを作る（FR-51 の 4）
+idempotency: GET と search は読むだけで繰り返してよい（DEC-42）。ほかの操作は冪等キーを付け、送り直しには最初の答えを返す。停止と再開は今の状態を条件に書く
 timing:
-  timeout: null
+  timeout: 枠だけを決める。ELM-03 の答えの期限は自身の取引と読み解きの最悪より長く、ELM-02 のタイムアウトはその期限に通信の余裕を足したものより長い（DEC-46 の決め方）。担当者の操作は時間のしきい値の SLO とお金の道になく（返金は IFC-13）、値は第 4 段階が決める（ELM-02 は HND-18、ELM-03 の期限は HND-19）
   ordering: null
   delivery: null
-versioning: ファイル名と中身の形に版を持つ
-observability: 手元の端末に結果を出す。書き出しの日時はファイル名に、チェックサムは中に残る
+versioning: DEC-41
+observability: どの操作も、行った担当者、時刻、操作の種類、対象と内容、済んだかどうかを操作の記録（DAT-17）に残し（済まなかった操作も、FR-50 の 1、3）、境界の出来事（DAT-19）とたどる記録（DAT-18）にも残す。ログには個人の情報を書かない
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: destroy の最後に、Stripe のデモと CI のサンドボックスをダッシュボードで消す案内を示すことを足した
-  reason: '第 3 段階の再実行（2026-11-04）: 第 2 段階の DEC-36 版 2（FND-26 の受け入れ）'

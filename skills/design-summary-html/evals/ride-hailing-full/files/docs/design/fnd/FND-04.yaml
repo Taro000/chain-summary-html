@@ -1,26 +1,14 @@
 id: FND-04
-title: 同じ依頼の二度目の一部返金が、一度目と同じ Stripe のキーになる
+title: HND-11 が、結果が分からないお金の操作を確かめる時期を左右する値を第 4 段階に送り、HND-05 と結び付けていない
 status: accepted
-version: 2
 basis: inferred
-basis_note: FR-50、QR-17、DEC-12 と CUJ-16 の通し確認の文、Stripe の冪等キーが少なくとも 24 時間保たれること（第 2 段階の入力の Stripe の文書）は入力。同じキーで額が違う要求を Stripe が拒むことと、起きうる失敗は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: null
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-architecture.md
+raised_in: reviews/2-architecture.md
 to: architecture-drivers-to-architecture
-targets:
-- DEC-12
-severity: major
-evidence: FR-50 は、依頼の請求の一部または全部を、返金できる残りの額の範囲で返金できるとし、QR-17 は分けて行う返金を想定する。一つの依頼に返金は二度以上ありうる。FR-50 AC3 は返金の要求ごとに一意のキーを求める。DEC-12 の選んだ案は、Stripe へのキーを「依頼とお金の操作の種類と押さえの何番目か」から決め、応答がないときは返金の一覧を取り出して、まだ起きていないときだけ同じキーで送り直す。CUJ-16 の通し確認も「ELM-10 で返金（決まったキー）」とする。この決め方では、同じ依頼の二度目の返金は一度目と同じキーになる。24 時間の内なら、Stripe は額が同じなら一度目の結果を返し、額が違えば拒む。応答のなかった二度目の返金を確かめると、一覧には一度目の返金があるので、起きたと読みうる。どの場合も、二度目の返金は行われないまま完了と記録されうる（DRV-04、原則 DRV-30、CUJ-16、FR-50 AC1）
-suggestion: 返金の Stripe へのキーは、FR-50 AC3 の返金の要求の ID（操作キー）から決める。返金ごとにその ID を Stripe のメタデータに入れ、応答がないときの確かめは、その ID の返金があるかで判定する。押さえ直し（DEC-11）の何番目かと同じく、一つの依頼に何度も起きうるお金の操作をすべて挙げて、それぞれのキーの決め方を DEC-12 に書く
-resolution: 受け入れた。DEC-12（版 2）で、Stripe へのキーをお金の操作そのものから決めることにした（押さえは依頼と押さえの何番目か、確定と取り消しは押さえごと、返金は返金の要求の ID ごと）。操作の ID をメタデータに入れ、応答がないときの確かめは、PaymentIntent の返金の一覧をメタデータの返金の要求の ID で照らす。キーの表は報告書の DEC-12 の節。DEC-13（版 2）のメタデータと CUJ-16 の通し確認も直した
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 2 段階のレビュー（活動 A1、A2）
-- version: 2
-  date: '2026-11-03'
-  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
-  reason: 第 2 段階の再実行（2026-11-03）
+targets: [HND-11]
+severity: minor
+evidence: HND-11 の what は、サーバーの中の繰り返しが期限の来た処理（許諾のない依頼の知らせと終わり、結果が分からないお金の操作の確かめ）を拾う間隔の値で、basis_note は「時間のしきい値の SLO とお金の道にないため」第 4 段階に送るとしている。結果が分からないお金の操作の確かめはお金の道にあり、それを確かめに行く間隔は HND-05 で第 3 段階に送っている（お金の道の値は第 3 段階の確定の種類）。拾う間隔が長いと第 3 段階が決める確かめの間隔を守れないが、HND-11 の bounds は FR-04、FR-23、DEC-18 だけで、HND-05 も DEC-10 も挙げていない
+suggestion: お金の操作の確かめを拾う間隔を HND-05 に含めて第 3 段階に送るか、HND-11 の bounds に HND-05 と DEC-10 を加えて、第 4 段階が第 3 段階の決める確かめの間隔を守るようにする
+resolution: 受け入れ。HND-11 を第 3 段階（architecture-to-high-level-design）の次の実行に宛て直し、bounds に HND-05 と DEC-10 を加えた。DEC-18 の応答を左右する点をそれに合わせた

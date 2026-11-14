@@ -1,0 +1,34 @@
+id: MOD-65
+title: 端末からの報告
+status: active
+basis: inferred
+basis_note: 端末がためた報告（端末で起きたエラー、相手の変化を示した記録、評価を始めたこと）をまとめて受け、一件ごとの ID で一度だけ受け、エラーをたどる記録に、示した時刻を届けと示した時刻の記録に、評価を始めたことを依頼の経過に書き、評価を始めたことはその依頼の乗客の到着を確認した後の依頼のものだけを受け、受けた ID と退けた ID を返すことは IFC-10、FR-45 の 4、FR-52、FR-53、端末の時刻を DEC-37 で直すことは IFC-10（どれも入力。IFC-10 は QAS-54 に頼り、その答えは QCR-08）
+premises: []
+component: ELM-03
+name: 端末からの報告
+depth: bounds
+depth_reason: null
+responsibility: 端末がためた報告を一件ずつ、その報告を持つモジュールに渡す
+visibility: public
+interface:
+  - operation: "receive(actor: Actor, batch: DeviceReportBatch) -> ReportAnswer"
+    pre: null
+    post: POST /v1/device-reports で、報告を一件ずつ、端末のエラーは MOD-28 の deviceError に、示した時刻は MOD-33 の displayed に、評価を始めたことは、その依頼の乗客で到着を確認した後の依頼なら依頼の経過（MOD-33）に依頼ごとに最初のものだけ渡し、受けた報告の ID と退けた報告の ID の並びを返す。受けた数、退けた数、端末の時計の差の見積もりをたどる記録に残す
+    errors: ["PAYLOAD_TOO_LARGE: 413", "VALIDATION_FAILED: 400（まとめ全体の形の誤り）"]
+invariants: []
+depends_on: [MOD-21, MOD-28, MOD-33, MOD-45]
+functions: [FR-45, FR-52, FR-53]
+realizes:
+  - IFC-10 POST /v1/device-reports
+drivers: [DRV-24, DRV-26, DRV-27]
+decisions: [DEC-23, DEC-37]
+behaviour: null
+verification:
+  - checks: 同じ ID の送り直しを受けたものとして答え、形の誤りと受けられない報告を退ける。つながった後に届いたエラーを依頼に結び付ける（FR-52 の 1、3、4）
+    how: 結合の層
+  - checks: 示した時刻を出来事と相手の組ごとに最初のものだけ書く（FR-53 の 1、2）。評価を始めたことの受け方（FR-45 の 4）
+    how: 結合の層
+  - checks: 端末で起こしたエラーが記録に残る（NFR-37）
+    how: 端から端の層
+parameters: []
+as_is: new

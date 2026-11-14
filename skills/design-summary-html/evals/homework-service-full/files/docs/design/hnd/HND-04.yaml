@@ -1,0 +1,15 @@
+id: HND-04
+title: CI のジョブの並べ方
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: architecture-to-technical-policy
+to: implementation
+component: ELM-03
+origin:
+- POL-04
+what: 検査の手順のジョブの並べ方と、キャッシュの持ち方
+bounds: POL-04 の手順と、それが止めるもの
+trigger: パイプラインを組むとき
+resolution: null

@@ -1,34 +1,17 @@
 id: ELM-08
-title: ログの置き場所（Cloud Logging）
-status: draft
-version: 2
-basis: inferred
-basis_note: 提案
-needs_agreement: false
-approver_candidates: []
-kind: data-store
-name: ログの置き場所（Cloud Logging）
-responsibility: 入口の要求のログ（Cloud Run が書く。URL をそのまま残すので、URL に個人情報を入れない。DEC-16）とアプリの構造化ログ（ELM-04 と ELM-05 が書く）。保持は既定の 30 日
+title: 想定の本番の実行基盤（GCP、東京）
+status: active
+basis: assumed
+basis_note: 本番の実行の基盤を Cloud Run として設計し、実際には配備しないことは TC-08、TC-09（入力）。置き方は DEC-05 により、インスタンスの数は DAS-02 による暫定の決定。外からの生存確認をデモの回の間だけ動かすことは FND-05 を受けて加えた（DEC-20）。日々の処理が動かなかったか終えなかったことを、ELM-03 を呼ばずに回を問わず見張ってメールで知らせるアラートと、それが読むログは FND-09 を受けて加えた（DEC-20）
+premises: [TC-08, TC-15, DAS-02]
+kind: node
+name: 想定の本番の実行基盤（GCP、東京）
+responsibility: 想定の本番で ELM-03 のコンテナを動かす。日々の処理の呼び出し、秘密の値の置き場所、ELM-03 と日々の呼び出しのログ、デモの回の間だけ動かす外からの生存確認と、回を問わず日々の処理を見張るアラートもここに置き、サーバーの停止と日々の処理が終わらないことを開発者にメールで知らせる。実際には配備しない
 functions: []
-drivers:
-- DRV-21
-- DRV-27
-- DRV-28
-- DRV-32
-decisions:
-- DEC-16
-- DEC-19
+drivers: [DRV-01, DRV-15, DRV-16, DRV-23, DRV-24]
+decisions: [DEC-05, DEC-18, DEC-20]
 team: TEAM-01
-technology: Cloud Logging
-runs_on: ELM-19
+technology: GCP の Cloud Run（東京リージョン、CPU を常に割り当てる）、Cloud Scheduler、Secret Manager、Cloud Logging、Cloud Monitoring の生存確認とアラート
+runs_on: null
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: 入口のログが URL をそのまま残すことと、ELM-05 もアプリのログを書くことを責務に書いた
-  reason: FND-13、17（第 2 段階のレビュー）を受け入れた

@@ -1,40 +1,24 @@
 id: DAT-11
-title: 経路の写し
-status: draft
-version: 2
+title: お金の操作の試み
+status: active
 basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: Google の経路の写し
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- route_id
-- purpose（estimate、to_pickup、to_dropoff、destination_quote、request_detail）
-- ride_id か estimate_id
-- encoded_polyline、distance_m、duration_s
-- computed_at
+basis_note: お金の操作（押さえ、押さえ直し、全額の確定、料金の確定、取り消し、返金）を試みごとに EXT-01 に送る前に記録し、その試みだけを覆うキーで送り、答えがなければ結果が分からない状態として持ち、一つの決済、料金、返金に済んだか結果が分からない試みを一つまでに限ることは DEC-10（入力）。依頼ごとに押さえた額、請求した額とその種類、解いた額を記録することは FR-54 の 10（入力）。状態と属性は推定。SLI-11 の出どころは推定。送る前の取引で最初に確かめる時刻も書き、受けたインスタンスが答える前に止まっても期限の処理が確かめて、押さえ中のまま残った依頼を受け付けなかったとすることは FND-22 を受けた（DEC-45）。処理されなかった試みを、何も実行されていない終わった試みとして済んだか結果が分からない試みの数に入れず、やり直しを新しい試みにすることと、確かめで受けた処理されなかったでは試みを結果が分からないままにすることは FND-45 を受けた（DEC-45）。取引の ID が分かっている確定と取り消しの試みを、待ちの後の確かめでも取引が変わっていなければ処理されなかったで終え、新しい試みが取引の状態に退けられたら取引を読んで決めることは FND-55 を受けた（DEC-45）。取引が変わらないまま処理されなかったとした確定の要求を、その押さえを確定済みか取り消し済みと読むまで後で効きうるとし、その間はその処理をほかの押さえに移さず、同じ押さえへの次の試みのはっきりした拒否ではその処理を終えずに押さえを解いて決めることは FND-58 を受けた（DEC-45）
+premises: [EXT-01]
+entity: お金の操作の試み
+owner: ELM-03
+store: ELM-04
+key_attributes: [attemptId, kind, rideId, refundId, setupId, amount, idempotencyKey, ext01ObjectId, state, refusalReason, firstSentAt, nextCheckAt, settledAt, heldAmount, capturedAmount, releasedAmount, testAccount]
 relations:
-- to: DAT-06
-  kind: many-to-one
-  note: 依頼
-- to: DAT-05
-  kind: one-to-one
-  note: 見積もり
-consistency: 地図のモジュールだけが書く。到着予定の取り直し（60 秒）で同じ区間の行を置き換える。ELM-05 は持ち主のモジュールを通して書く（DEC-53。見積もりの期限を過ぎた写しの削除）
-retention: 依頼のその区間が終わるか見積もりの期限で消す（DEC-22。Google の規約の確かめは未解決の点）
-classification: personal
-drivers:
-- DRV-06
-- DRV-26
+  - {to: DAT-07, kind: many-to-one, note: 依頼と乗車}
+  - {to: DAT-12, kind: many-to-one, note: 返金の試みのとき}
+  - {to: DAT-13, kind: one-to-many, note: 照合の結果}
+consistency: EXT-01 に送る前の取引で、状態を結果が分からない（送っている）として、待ちの後に最初に確かめる時刻（nextCheckAt）とともに書き、答えを受けた後の取引で済んだか拒否を書き、依頼、降りる場所の変更、返金、支払い方法の状態も同じ取引で変える（DEC-10）。EXT-01 への呼び出しをまたぐ取引は作らない。一つの乗車の決済、一つの依頼の料金、一つの返金に、済んだか結果が分からない試みは一つまで（DEC-45）。処理されなかった試み（状態を変える呼び出しを EXT-01 が実行の前に退けたか、取引の ID が分かっている確定と取り消しで、待ちの後の最初の確かめの時刻から後に読んだ取引が変わっていなかった）は何も効いておらず、終わった試みとしてこの数に入らず、やり直しは新しいキーの新しい試み（利用者が待たない押さえの解除と料金の請求は期限の処理が作る、DEC-45）。確かめの読み出しと送り直しが処理されなかったときは、試みは結果が分からないまま。EXT-01 の一つの取引は確定か取り消しのどちらか一度だけになるので、処理されなかったとした確定と取り消しの要求が後で効いても、次の試みが取引の状態に退けられ、取引を読んで求めた結果なら済んだとする（DEC-45）。取引が変わらないまま処理されなかったとした確定（決済と料金）の要求は、その押さえを確定済みか取り消し済みと読むまで後で効きうるので、その間はその処理の試みをほかの押さえに作らず（押さえ直しを送らない）、同じ押さえへの次の試みがはっきり拒否されてもその処理を終えず、その押さえを解く試みを作ってその結果で決める。解除が済めばその拒否で処理を終え、解除が押さえの確定済みに退けられれば、その処理の新しい試みを同じ押さえに作り、取引を読んで済んだとする（DEC-45）。キーは試みごとに一つで変えない。結果が分からない試みは IFC-17 の間隔で確かめる。受けたインスタンスが答える前に止まっても、期限の処理が nextCheckAt に確かめ、押さえか押さえ直しの試みの依頼か降りる場所の変更がまだ押さえ中なら、受け付けなかったか変えなかったとする（DEC-45）。試みの結果は依頼の状態がもう変わっていても書き、受け付けなかった依頼か変えなかった押さえ直しの押さえが済んでいれば解く試みを作る。状態は報告の「要素をまたぐ状態」
+retention: 依頼と同じ（QR-17、QR-42）。試みは操作した人と位置を持たない
+classification: payment
+drivers: [DRV-07, DRV-32, DRV-02, DRV-27]
+sli_bindings:
+  - sli: SLI-11
+    events: 押さえを行って終わった依頼一件ごと（決済を最初に行った依頼、乗客が取り消した依頼、乗客の不在で終わった依頼、許諾のないまま終わった依頼）。決済や請求を何度行っても一件
+    fields: [rideId, confirmedFare, approvedFare, heldAmount, fareShownToPassenger, amountShownToDriver, capturedAmount, chargeKind, releasedAmount, amountShownAsPaid, countedOn, testAccount, environment]
+    method: 試みの記録を、依頼（DAT-07）、見積もり（DAT-06。乗客に示した料金）、降りる場所の変更（DAT-08。承認した料金）、依頼の経過（DAT-09。ドライバーに示した金額と乗客に示した支払った額）と結び付け、依頼を数える日（決済を最初に行った日か、取り消し、不在、許諾のないまま終わった日、Asia/Tokyo）ごとに問い合わせ、SLI-11 の GOOD の各項（押さえた額と確定額、示した額と請求した額、CON-08 の料金、解いた額と押さえた額から請求した額を引いた額）を比べる。押さえられなかったために受け付けなかった依頼と、試験用のアカウントの依頼は外す
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 見積もりの期限を過ぎた写しの削除は ELM-05 が持ち主のモジュールを通して行うと書いた
-  reason: '第 3 段階の再実行（2026-11-04）: FND-39'

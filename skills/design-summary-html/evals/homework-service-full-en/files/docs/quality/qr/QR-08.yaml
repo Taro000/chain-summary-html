@@ -1,11 +1,9 @@
 id: QR-08
 title: Currentness of the report
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: []
 model: data
 layer: data-inherent
 characteristic: currentness
@@ -13,7 +11,7 @@ statement: Every morning, the monthly report reflects the submissions up to the 
 applies_to: [FR-05]
 traces_to: [QIU-05]
 entry_point: null
-stakeholders: [USR-01]
+stakeholders: [USR-04, USR-02]
 failure_scenario: The nightly job runs late, and students are chased from an old list.
 score: {impact: 3, likelihood: 2}
 handling: minimum-line
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}

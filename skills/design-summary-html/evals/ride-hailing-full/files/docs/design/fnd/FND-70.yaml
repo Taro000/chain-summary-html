@@ -1,25 +1,14 @@
 id: FND-70
-title: 手配が断られたときと 503 のときの送り直しが、使用済みの見積もりで 409 ESTIMATE_EXPIRED になる
-status: open
-version: 1
+title: 日々の呼び出しの道で、想定の本番の Cloud Run の要求の時間の上限をどの項目も決めておらず、MOD-32 の呼び出しの期限と時間の上限がその前で切られうる
+status: accepted
 basis: inferred
-basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-32 の parameters、IFC-15 の timing、HND-19、DEC-05（CPU を常に割り当て、回の外はインスタンス 0）、DEC-18、POL-02 の infra/gcp/ の決まり、報告の「設計上の値」の計算は入力。Cloud Run の要求の時間の上限の既定が 300 秒であることは Cloud Run の公開の文書による推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-02
-- DAT-05
-- DEC-48
-- DEC-52
-severity: major
-evidence: 活動 B3、B9。DAT-05 の consistency は「手配はこの値を依頼に写し（同じトランザクションで used にする）」とし、CUJ-01-B は手配のトランザクション 1 で依頼を booking に書く。ところが IFC-02 は、Stripe が実行しなかった（429）か届かなかったときの 503 PAYMENTS_UNAVAILABLE で「Retry-After の後に同じ冪等キーで送れる（初めからやり直す）」とし、DEC-48 は「この 503 は何も残さず」とする。実際にはトランザクション 2 で依頼は not_booked のまま残り、見積もりは used のままなので、同じキーの送り直しは「見積もりの期限切れか使用済み」の 409 ESTIMATE_EXPIRED になる。402 CARD_DECLINED・CARD_AUTHENTICATION_REQUIRED の後に「別の支払い手段を選び、新しい冪等キーで送る」（FR-05 AC3）ときも同じ。画面の流れ（CUJ-01 の「押さえられない、混み合っている（503）」→ 手配）もこの戻りを描かない。乗客は見積もり直しを強いられ、IFC-02 の caller_does と DEC-48 の例外の文が成り立たない
-suggestion: 押さえが起きていないと定まったとき（402、429、送る前の接続の失敗）は、トランザクション 2 で見積もりの used を外す（または used_by_ride_id を not_booked の依頼に結んだまま、同じ乗客の次の手配に使えるとする）と決め、DAT-05、IFC-02、CUJ-01-B、DEC-48 の「何も残さず」の文をそろえる。あわせて、FR-05 AC3 の「依頼を作らず」と not_booked の行を残すことの関係（履歴の画面に出すか）を書く
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: 出した
-  reason: 第 3 段階のレビュー（再実行分）
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-32]
+severity: minor
+evidence: MOD-32 は日々の処理の時間の上限を 20 分、Cloud Scheduler の呼び出しの期限を 25 分（Cloud Scheduler の上限 30 分のうち）とし、IFC-15 の枠（呼び出しの期限は時間の上限より長い）と再試行の計算をそれに置く。日々の呼び出しは Cloud Scheduler から Cloud Run のサービスを通って ELM-03 に届くが、その間の Cloud Run の要求の時間の上限は、MOD-32 の parameters にも、infra/gcp/ の定義を決めるどの項目にもない。既定（300 秒）のままなら、5 分を超える日々の処理の呼び出しは 25 分の期限の前に切られて Cloud Scheduler には失敗になり、回の外（インスタンス 0、DEC-05）では要求のなくなったインスタンスが止められうるので、報告の「設計上の値」の時間の上限と再試行の計算が前提にする時間の順が成り立たない。同じ上限は IFC-11 の流れも決まった間隔で切る
+suggestion: MOD-32 の parameters（infra/gcp/ の Cloud Run のサービスの定義）に、要求の時間の上限を Cloud Scheduler の呼び出しの期限（25 分）より長く置き、報告の計算に加える。あわせて、その上限で流れが切られる間隔が IFC-11 のつなぎ直しで足りるかを見る
+resolution: 受け入れ。MOD-32 の parameters に、日々の呼び出しが通る想定の本番の Cloud Run のサービスの要求の時間の上限（infra/gcp/ の Cloud Run のサービスの定義）30 分を置き（DAS-20）、時間の上限 20 分、呼び出しの期限 25 分、要求の時間の上限 30 分の順を報告の計算に加えた。同じ上限で IFC-11 の流れは 30 分ごとに切られるが、端末は IFC-11 のつなぎ直しで続きから受ける

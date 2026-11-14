@@ -1,0 +1,14 @@
+id: HND-20
+title: EXT-01 の API の版と、要求と応答の型
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: high-level-design-to-detailed-design
+to: implementation
+component: ELM-03
+origin: [MOD-41, DEC-47]
+what: MOD-41 が Stripe-Version で固定する EXT-01 の API の版と、使う 11 の操作の form の要求の組み立てと JSON の応答の型
+bounds: DEC-41（版は Stripe-Version で固定し、上げるときは契約の層で確かめてから上げる）、DEC-47（fetch で直接呼び、自動のやり直しをしない）、IFC-17（操作と metadata に入れるもの）、MOD-41 の判断表 A（答えの分け方）と不変条件
+trigger: MOD-41（EXT-01 のつなぎ口）を実装するとき
+resolution: null

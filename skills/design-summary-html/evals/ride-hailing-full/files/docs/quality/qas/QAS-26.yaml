@@ -1,0 +1,12 @@
+id: QAS-26
+title: 到着予定時刻の当たりのしきい値と最初の目標値
+status: open
+stage: 4
+kind: decision
+statement: T_arrival_estimate_gap を 5 分とし、到着を確認した乗車の 90% が示した見込み（SLI-08）の前後 5 分以内に着くことを最初の目標値とする。
+why_unsure: 入力に数値も基準となる値もない。到着予定時刻は道の混み方と EXT-02 の見込みに左右され、ドライバーが見つかるまでと迎車の時間を含めると（FRP-08）外れが大きくなりうる。
+breadth: medium
+severity: low
+rating_note: QR-08、SLI-08、NFR-08 が依存する。最初のデモの値から見直すもので、変えるのは容易
+answer: null
+answered_in: null

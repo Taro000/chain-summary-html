@@ -1,0 +1,57 @@
+id: POL-03
+title: テストの層とゲートの出どころ
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: testing
+addresses:
+- DRV-01
+- DRV-03
+decisions:
+- DEC-03
+rules:
+- rule: 受け入れ基準は、確かめられるいちばん下の層で確かめる
+  check: プルリクエストのレビュー
+layers:
+- layer: 単体
+  covers: 一つのモジュールの規則（判断と計算）
+  replaces: モジュールの外のすべて
+  runs: 検査の手順で、変更のたび
+- layer: 結合
+  covers: ELM-03 を HTTP の境界から、自身のデータベースとともに
+  replaces: 外部のストレージ（下の偽物）
+  runs: 検査の手順で、コンテナのデータベースに対して
+- layer: 端から端
+  covers: CUJ-01 と CUJ-02 を画面から
+  replaces: なし
+  runs: リリースの手順で、試験の環境に対して
+doubles:
+- replaces: ELM-05、外部のストレージ
+  with: 署名付き URL に答え、期限切れと失敗を返せる偽物
+  seam: ELM-03 のストレージのアダプター
+environments:
+- name: CI
+  runs: 検査の手順
+  data: テストごとに作る
+gate_bindings:
+- nfr: NFR-03
+  where: リリースの手順の端から端の層
+  by: 受領の表示のテスト
+- nfr: NFR-04
+  where: 検査の手順
+  by: 提出の処理の単体と結合のテスト
+- nfr: NFR-09
+  where: プルリクエストの完成の定義
+  by: レビューする人
+- nfr: NFR-10
+  where: プルリクエストの完成の定義
+  by: もう一人の講師の確かめ
+audit_bindings:
+- nfr: NFR-08
+  where: 四半期ごとのチケット
+  by: 塾の事務が行う
+- nfr: NFR-11
+  where: 半年ごとのチケット
+  by: 開発者が行う
+as_is: new

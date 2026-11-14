@@ -1,11 +1,9 @@
 id: DAT-02
 title: Submission
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 entity: Submission
 owner: ELM-03
 store: ELM-04
@@ -18,9 +16,5 @@ consistency: The record and the receipt are written in one transaction (DEC-03).
 retention: One year after graduation
 classification: personal
 drivers: []
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

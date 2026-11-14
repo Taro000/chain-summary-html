@@ -1,47 +1,47 @@
 # High-level design: Homework submission service
 
-Status: answers applied · Updated: 2026-09-22 · Stage 3 of 4
+Status: answers applied · Updated: 2026-09-25 · Inputs as of: none · Stage 3 of 4
 
 ## Summary
 
 Four interfaces; the confirmation budget fits in 3 seconds.
 
+## Inputs
+| Source | What it gave |
+|---|---|
+| 2b-technical-policy.md | The technical policies |
+
 ## Shared conventions
+| Convention | DEC |
+|---|---|
+| Errors are problem details with a code and a traceId | DEC-09 |
+| An Idempotency-Key on every state-changing request | DEC-10 |
 
-| Convention | Decided | DEC |
-|---|---|---|
-| Errors | Problem details with a code and a traceId | DEC-07 |
-| Idempotency keys and retries | An Idempotency-Key on every state-changing request | DEC-08 |
-
-## Decisions
-
-| DEC | Question | Chosen | Rejected | Basis |
-|---|---|---|---|---|
-| DEC-07 | In which shape do all APIs return errors? | Problem details (RFC 9457) with a code and a traceId | Our own {code, message} | Inferred |
-| DEC-08 | Which requests are idempotent? | An idempotency key on every state-changing request | An idempotency key on submissions only | Inferred |
+## Design decisions
+<!-- generated: decisions -->
+| DEC | Title | Addresses | Basis |
+|---|---|---|---|
+| DEC-09 | Return errors as problem details | IFC-01, IFC-02 | inferred |
+| DEC-10 | State-changing requests carry an idempotency key | IFC-01, IFC-02, DRV-03 | inferred |
+<!-- /generated -->
 
 ## Interfaces
+<!-- generated: interfaces -->
+| IFC | Title | Kind | Provider | Consumers | FRs | Spec | Basis |
+|---|---|---|---|---|---|---|---|
+| IFC-01 | Submission API | http | ELM-03 | ELM-01 | FR-01, FR-02, FR-04, FR-06 | HND-03 | inferred |
+| IFC-02 | Grading API | http | ELM-03 | ELM-02 | FR-03, FR-05, FR-08 | HND-03 | inferred |
+| IFC-03 | Files in the storage | file | ELM-05 | ELM-01, ELM-03 | FR-01 | — | inferred |
+| IFC-04 | Nightly submission report | batch | ELM-06 | ELM-02 | FR-05, FR-09 | — | inferred |
+<!-- /generated -->
 
-| IFC | Kind | Name | Provider | Consumers | Operations | FR | Spec | Basis |
-|---|---|---|---|---|---|---|---|---|
-| IFC-01 | HTTP | Submission API | ELM-03 | ELM-01 | 4 | FR-01, FR-02, FR-06 | submissions.openapi.yaml | Inferred |
-| IFC-02 | HTTP | Grading API | ELM-03 | ELM-02 | 4 | FR-03, FR-05, FR-08 | teacher.openapi.yaml | Inferred |
-| IFC-03 | File | Files in the storage | ELM-05 | ELM-01, ELM-03 | 1 | FR-01 | — | Inferred |
-| IFC-04 | Batch | Nightly submission report | ELM-06 | ELM-02 | 1 | FR-05 | — | Inferred |
-
-## Error contracts
-
-| IFC | Operation | Case | Signal | The caller |
-|---|---|---|---|---|
-| IFC-01 | POST /api/v1/submissions | the deadline has passed | 409 DEADLINE_PASSED | Show that the deadline has passed |
-| IFC-01 | POST /api/v1/submissions | the file is not in the storage | 422 FILE_MISSING | Upload the file again |
-| IFC-01 | Common | not signed in | 401 UNAUTHENTICATED | Go to the sign-in screen |
-| IFC-01 | Common | the request is malformed | 400 INVALID_REQUEST | Fix the fields |
-| IFC-02 | POST /api/v1/teacher/submissions/{id}/return | not graded yet | 409 NOT_GRADED | Ask for the grade first |
-| IFC-02 | Common | not signed in | 401 UNAUTHENTICATED | Go to the sign-in screen |
-| IFC-02 | Common | the request is malformed | 400 INVALID_REQUEST | Fix the fields |
-| IFC-03 | — | The URL has expired | 403 (ObjectStore) | Get a new URL |
-| IFC-04 | — | The previous day is not finished | Continues from the unfinished day | Nothing |
+## SLI bindings
+<!-- generated: sli-bindings -->
+| SLI | Title | Vantage | Bound on | Existing source | Request instead |
+|---|---|---|---|---|---|
+| SLI-01 | Submission availability | system-boundary | IFC-01 | OPF-02 | — |
+| SLI-02 | Nightly report deadline | data | IFC-04 | OPF-02 | — |
+<!-- /generated -->
 
 ## End-to-end flows
 
@@ -82,7 +82,7 @@ sequenceDiagram
   A-->>T: Show that it is returned
 ```
 
-### DRV-01 Keep accepting
+### DRV-01 Keep accepting submissions in the rush before a deadline
 
 ```mermaid
 sequenceDiagram
@@ -94,11 +94,9 @@ sequenceDiagram
   A->>P: POST /api/v1/submissions
 ```
 
-## Latency budgets
+## Latency budgets and timeouts
 
-The budgets are not timeouts.
-
-### NFR-06 (the 95th percentile of submission confirmation within 3 seconds)
+### NFR-06 (SLI-01)
 
 Measured from the browser sending the request to the receipt being shown.
 
@@ -111,15 +109,16 @@ Measured from the browser sending the request to the receipt being shown.
 | Margin | 1.50 s |  |
 | Total | 3.00 s | NFR-06 threshold |
 
-### NFR-02 (the nightly report finishes by 6:00)
+Failure paths and the error budget: failures during a storage outage count against NFR-01's budget.
+
+### NFR-02 (SLI-02)
 
 It starts at 02:00, with four hours to spare (DEC-04). Too few hops for a table.
 
-### Failure paths and error budgets
-
-| SLO | Valid events in 28 days | Error budget volume | How failure paths count |
-|---|---|---|---|
-| NFR-01 (SLI-01) | 40,000 submissions | 200 | Failures during a storage outage count against the budget |
+### Timeouts
+| Call path | Value (IFC) | Worst wait of the caller |
+|---|---|---|
+| ELM-01 → ELM-03 | 10 s (IFC-01) | 10 s |
 
 ## Screens
 
@@ -152,16 +151,19 @@ erDiagram
   DAT-02 ||--o| DAT-04 : "grade"
 ```
 
-| DAT | Entity | Owner | Store | Consistency | Retention | Classification | Basis |
-|---|---|---|---|---|---|---|---|
-| DAT-01 | Assignment | ELM-03 | ELM-04 | Written per request from teachers | Until the end of the school year | internal | Inferred |
-| DAT-02 | Submission | ELM-03 | ELM-04 | The record and the receipt are written in one transaction (DEC-03). The receipt number comes from the record's ID | One year after graduation | personal | Inferred |
-| DAT-03 | Submitted file | ELM-01 | ELM-05 | Uploaded once through a signed URL | One year after graduation | personal (students' answers) | Inferred |
-| DAT-04 | Grade | ELM-03 | ELM-04 | Written per grading | One year after graduation | personal | Inferred |
+<!-- generated: data -->
+| DAT | Title | Owner | Store | Classification | Basis |
+|---|---|---|---|---|---|
+| DAT-01 | Assignment | ELM-03 | ELM-04 | internal | inferred |
+| DAT-02 | Submission | ELM-03 | ELM-04 | personal | inferred |
+| DAT-03 | Submitted file | ELM-03 | ELM-05 | personal (students' answers) | inferred |
+| DAT-04 | Grade | ELM-03 | ELM-04 | personal | inferred |
+<!-- /generated -->
 
 ### Data quality flows
-
-The numbers of the monthly report (QR-08):
+| Requirement | Comes from | Checked by | Passed on by, and how long it takes | Compared with |
+|---|---|---|---|---|
+| QR-07 | ELM-03 | Receipts against records every night | ELM-06, by the next morning | Receipts and records |
 
 ```mermaid
 flowchart LR
@@ -169,13 +171,9 @@ flowchart LR
   r --> m["Monthly report"]
 ```
 
-| Requirement | Comes from | Checked by | Passed on by | Compared with |
-|---|---|---|---|---|
-| QR-07 | ELM-03 | Receipts against records every night | ELM-06 | Receipts and records |
-
 ## States across elements
 
-### Submission (ELM-01, ELM-03)
+### Submission (DAT-02)
 
 ```mermaid
 stateDiagram-v2
@@ -188,23 +186,59 @@ stateDiagram-v2
 
 It becomes submitted only after the record is written (DRV-09).
 
-## Measurement points
-
-| SLI | Produced by | Fields |
-|---|---|---|
-| SLI-01 | ELM-03's request log | route, status, trace_id |
-| SLI-02 | ELM-06's completion record | finished_at |
-
 ## Acceptance criteria trace
-
-| FR | Criterion | IFC | Flow |
+<!-- generated: criteria -->
+| FR | Criterion | IFCs | Flow |
 |---|---|---|---|
-| FR-01 | Confirming a submission shows a receipt | IFC-01 | CUJ-01 |
-| FR-01 | No submission after the deadline | IFC-01 | CUJ-01 |
-| FR-03 | A submission can be graded and returned | IFC-02 | CUJ-02 |
+| FR-01 | 1 | IFC-01, IFC-03 | CUJ-01 |
+| FR-01 | 2 | IFC-01, IFC-03 | CUJ-01 |
+| FR-02 | 1 | IFC-01 | CUJ-01 |
+| FR-02 | 2 | IFC-01 | CUJ-01 |
+| FR-03 | 1 | IFC-02 | CUJ-02 |
+| FR-04 | 1 | IFC-01 | CUJ-03 |
+| FR-05 | 1 | IFC-02, IFC-04 | CUJ-04 |
+| FR-06 | 1 | IFC-01 | CUJ-01 |
+| FR-08 | 1 | IFC-02 | CUJ-02 |
+| FR-09 | 1 | IFC-04 | CUJ-04 |
+<!-- /generated -->
 
-## Design parameters
+## Findings
+<!-- generated: findings -->
+| FND | Title | Severity | Raised by | To | Status | Items changed |
+|---|---|---|---|---|---|---|
+<!-- /generated -->
 
-| Parameter | Value | Basis | Item |
+## Hand-offs
+<!-- generated: handoffs -->
+| HND | Title | From | To | Component | Status | Decided in |
+|---|---|---|---|---|---|---|
+| HND-01 | How fast the storage answers a PUT | requirements-to-architecture-drivers | architecture-to-high-level-design | — | decided | IFC-03 |
+| HND-03 | The schemas of the API requests and responses | architecture-to-high-level-design | implementation | ELM-03 | open | — |
+<!-- /generated -->
+
+## Decisions
+| # | Question | Answer | Items |
 |---|---|---|---|
-| Idempotency key retention | 24 hours | Provisional | DEC-08 |
+| 1 | Which error shape? | Problem details (as drafted) | DEC-09 |
+
+## Open assumptions
+<!-- generated: assumptions -->
+| ID | Title | Kind | Breadth | Severity | Items that depend on it |
+|---|---|---|---|---|---|
+<!-- /generated -->
+
+## Placeholders
+
+None.
+
+## Open gaps
+
+None.
+
+## Out of scope
+
+The content of the parents' screens (CHG-01).
+
+## Next
+
+Run high-level-design-to-detailed-design for each component.

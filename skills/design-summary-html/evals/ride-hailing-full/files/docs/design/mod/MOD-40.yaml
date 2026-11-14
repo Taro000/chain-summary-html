@@ -1,0 +1,49 @@
+id: MOD-40
+title: EXT-02 のつなぎ口
+status: active
+basis: inferred
+basis_note: サーバーの EXT-02 のつなぎ口だけが場所の候補、住所、道と移動時間を求めることは DEC-13、使う四つの呼び出しとその答えの分け方は IFC-19、EXT-02 を呼ぶ部品と外への HTTP を places の adapters/ だけが使うことは POL-02、本物の EXT-02 に契約の層で照らすことは POL-03 と POL-05（どれも入力）。呼び出しのタイムアウトとやり直しの回数と間隔（HND-07）は、枠の深さのこのモジュールの中にあり、時間のしきい値の SLO とお金の道になく評価が低いため実装に送った。この段階が足した枠は、一つの操作の EXT-02 の呼び出しをやり直しを含めて 6 秒のうちに諦めること（MOD-20 の EXT-02 を呼ぶ操作の答えの期限 8 秒に収める）と、呼ぶ側が渡す期限で切ること（着く見込みは IFC-19 の 8.5 秒、MOD-50）
+premises: []
+component: ELM-03
+name: EXT-02 のつなぎ口
+depth: bounds
+depth_reason: null
+responsibility: EXT-02 に場所の候補、住所、道と時間を求め、その答えをシステムの言葉に変える
+visibility: internal
+interface:
+  - operation: "autocomplete(text: string, near: Position or none, deadline: Instant) -> Candidate[] | failure"
+    pre: deadline は呼ぶ側の期限で、一つの操作の EXT-02 の呼び出しはやり直しを含めて 6 秒を超えない
+    post: 候補と所在地（secondaryText）。結果がなければ空。タイムアウト、つながらない、5xx、429、OVER_QUERY_LIMIT は failure（failureOrigin EXT-02）、403 と REQUEST_DENIED は failure（failureOrigin system）で返し、deadline を過ぎてやり直さない。呼び出しごとの結果と時間を、探す文字を伏せてたどる記録に残す
+    errors: []
+  - operation: "placeDetails(placeId: string, deadline: Instant) -> Place | notFound | failure"
+    pre: autocomplete と同じ
+    post: 位置と住所（FieldMask で location と formattedAddress だけ）。失敗の分け方と記録は autocomplete と同じ
+    errors: []
+  - operation: "reverseGeocode(position: Position, deadline: Instant) -> Address | none | failure"
+    pre: autocomplete と同じ
+    post: 現在地に当たる住所。なければ none。失敗の分け方と記録は autocomplete と同じ（位置を伏せる）
+    errors: []
+  - operation: "route(from: Position, to: Position, deadline: Instant) -> RouteMeasure | noRoute | failure"
+    pre: deadline は呼ぶ側の期限（見積もりは 6 秒のうち、着く見込みは IFC-19 の 8.5 秒のうち、MOD-50）
+    post: 車の道の長さ（m）と時間（秒）（FieldMask で distanceMeters と duration だけ）。道がなければ noRoute。失敗の分け方と記録は autocomplete と同じ
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-22, MOD-28]
+functions: [FR-01, FR-03]
+realizes:
+  - IFC-19 POST https://places.googleapis.com/v1/places:autocomplete
+  - IFC-19 GET https://places.googleapis.com/v1/places/{placeId}
+  - IFC-19 GET https://maps.googleapis.com/maps/api/geocode/json
+  - IFC-19 POST https://routes.googleapis.com/directions/v2:computeRoutes
+drivers: [DRV-05, DRV-10]
+decisions: [DEC-13]
+behaviour: null
+verification:
+  - checks: 本物の EXT-02 に決めた少ない呼び出しで照らし、同じ名前の候補が区別に使う所在地を返して渡す（NFR-13）
+    how: 契約の層（試験の環境の本物の外部サービスの設定）
+  - checks: 失敗、無応答、遅れた答え、403 の分け方と、渡された期限で切ること
+    how: 単体の層（EXT-02 の偽物）
+  - checks: 偽物の設定で places のポートに偽物を差し込める（NFR-09）
+    how: 結合の層
+parameters: []
+as_is: new

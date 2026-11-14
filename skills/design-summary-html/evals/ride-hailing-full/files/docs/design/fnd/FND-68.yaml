@@ -1,0 +1,14 @@
+id: FND-68
+title: MOD-51 は迎車中か乗車中のドライバーを届ける相手から除く規則を持ち、DEC-24 と IFC-04 の規則と合わず、MOD-52 の判断表 A の 3 行目の選ぶ操作の答えに届かない
+status: accepted
+basis: inferred
+basis_note: DEC-24、DRV-35、DRV-08、IFC-04 の GET /v1/offers と DRIVER_ALREADY_ASSIGNED の行、FR-18 の 1、MOD-51 の判断表 A、MOD-52 の判断表 A と C、interface と verification は入力
+premises: []
+raised_by: design-review
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-51, MOD-52]
+severity: minor
+evidence: DEC-24 と DRV-35 の届ける相手の規則は、受付、停止、登録、評価と件数、乗客の閾値、ドライバーの条件と新しい現在地で、IFC-04 の GET /v1/offers もそれを当て、迎車中か乗車中のドライバーには許諾のときだけ 409 DRIVER_ALREADY_ASSIGNED で答える。MOD-51 の判断表 A は「進んでいる依頼 → busy」を規則に加え、MOD-52 はそれを届けるとき（offerToEligible、判断表 C）、一覧、選ぶ操作、許諾のどれにも当てるので、受付をしたまま迎車中か乗車中のドライバーには依頼が届かず、知らされない（FR-18 の 1）。MOD-52 の判断表 A は、3 行目で選ぶ操作にはその条件を当てずに内容を見せるとするが、5 行目の MOD-51 の notEligible（busy）で必ず 409 OFFER_NO_LONGER_AVAILABLE（not_eligible）と offer.removed になり、3 行目の選ぶ操作の答えに届かない。あわせて、MOD-52 の accept と selectOffer の post と verification は選ぶ操作と許諾の表を「判断表 B」と呼ぶが、報告ではそれは判断表 A で、判断表 B は受付の切り替え
+suggestion: DEC-24 と IFC-04 のとおり MOD-51 から busy を除き、迎車中か乗車中のドライバーは MOD-52 の判断表 A の 3 行目で許諾だけを DRIVER_ALREADY_ASSIGNED で退ける。迎車中か乗車中のドライバーには届けない方がよいなら、第 2 段階か第 3 段階に指摘を出して DEC-24 と IFC-04 を変えてから、3 行目の選ぶ操作の答えを合わせる。MOD-52 の post と verification の表の名前を報告に合わせる
+resolution: 受け入れ。DEC-24 と IFC-04 のとおり、MOD-51 の判断表 A から進んでいる依頼（busy）の規則を除き、迎車中か乗車中のドライバーにも依頼を届けて一覧と内容を示し、許諾だけを MOD-52 の判断表 A の 3 行目で 409 DRIVER_ALREADY_ASSIGNED で退ける。MOD-52 の selectOffer と accept の post と確かめ方の表の名前を、報告の判断表 A に直した

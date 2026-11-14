@@ -1,0 +1,35 @@
+id: MOD-22
+title: 設定
+status: active
+basis: inferred
+basis_note: 設定を環境変数から読み、一か所が Zod で確かめ、欠けているか形が違えば起動しないこと、動く環境の名前を持つこと、試験だけのものを一つの登録に並べてローカルの本番と想定の本番の名前では選ばせないこと、秘密の値を環境ごとのディレクトリか Secret Manager から読むことは POL-04、Web アプリに渡す値は公開してよいものと偽物の選び方だけであることは DEC-34（どれも入力）
+premises: []
+component: ELM-03
+name: 設定
+depth: bounds
+depth_reason: null
+responsibility: 起動のときに設定と秘密の値の在りかを確かめ、確かめた設定だけをほかのモジュールに渡す
+visibility: internal
+interface:
+  - operation: "load(env: EnvironmentVariables) -> Settings"
+    pre: 起動のときに一度だけ
+    post: Zod で確かめた設定（動く環境の名前、EXT-01 のアカウントの名指し、鍵と秘密の在りか、偽物の選び方、Web アプリに渡す公開の値、試験だけのものの登録）
+    errors: ["SettingsInvalid: 欠けているか形が違う（起動しない）", "TestOnlyInProduction: ローカルの本番か想定の本番の名前で、試験だけのものを選んだ（起動しない）"]
+  - operation: "publicClientConfig() -> ClientConfig"
+    pre: null
+    post: EXT-01 の公開の鍵、ブラウザ用の地図の鍵、Web Push の公開の鍵、ブラウザの側の偽物を使うか、buildId だけ（DEC-34）
+    errors: []
+invariants: []
+depends_on: []
+functions: []
+realizes: []
+drivers: [DRV-15, DRV-16]
+decisions: [DEC-34]
+behaviour: null
+verification:
+  - checks: 設定を一つずつ欠いて起動しない。試験だけのものの登録から一つずつ、ローカルの本番と想定の本番の名前で選んで起動しない（POL-04）
+    how: 結合の層
+  - checks: Web アプリに渡す値が公開してよい値と偽物の選び方だけ（POL-04）
+    how: 結合の層
+parameters: []
+as_is: new

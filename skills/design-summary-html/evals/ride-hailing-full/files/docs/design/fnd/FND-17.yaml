@@ -1,33 +1,14 @@
 id: FND-17
-title: 記録の食い違いと、片側にしかない前提と引き換え
+title: NFR-28 の修正の期限を保つ記録が、依存の部品の脆弱性にしか開かれない
 status: accepted
-version: 2
 basis: inferred
-basis_note: YAML と報告書の内容は入力（スクリプトで突き合わせた）。食い違いの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: POL-03 の NFR-28 の置き場所、POL-04 の deps-audit、POL-01 の技術の組み合わせは入力。Node.js とイメージのもとの OS の部品の脆弱性を見つける手順がないことは、このレビューの読み取り
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-16
-- DEC-17
-- DEC-20
-- DEC-01
-- DEC-21
-- DEC-03
-- DEC-11
-- DEC-18
+raised_in: reviews/2b-technical-policy.md
+to: architecture-to-technical-policy
+targets: [POL-03, POL-04]
 severity: minor
-evidence: 次の 8 点。(1) DEC-16 は設計上の値（Cloud Logging の保持 30 日）を持つが needs_agreement が false で、要合意の表にない。(2) DEC-17 は revisit_when を持ち、報告書は SLO の速い条件のアラートを先送りとするが、deferred は false。(3) 技術的負債と先送りの表は DEC-03・11・18 の退けた案を先送りとするが、要合意の表にない（DEC-03 は値の合意だけ）。(4) DEC-20 のパスキーとクッキーは、サービスを作り直しても URL が同じという DEC-06 の前提に頼るが、DEC-20 の前提にない。(5) DRV-01 の通し確認に、DEC-01（一つのサービスが一つの障害の単位）と DEC-21（地図の割り当てに達すると決まった扱いに移る）の引き換えがない。(6) 実行時の構成のビューに ELM-05 から ELM-08 へのログの書き込みがない（情報の表は ELM-05 がアプリのログを書くとする）。(7) CUJ-01 の「配車を手配する」の行が、その手順の FR-01（アカウントとログイン）を通していない。(8) デモとデモの間に使われない Turso の無料の枠のデータベースがどう扱われるかが、TC-06 と DRV-18 を支える前提として書かれていない
-suggestion: それぞれ YAML と報告書を合わせる。(1) needs_agreement を true にして要合意に加える。(2) deferred を true にする。(3) 退けた案の見直しは先送りの表から外すか、要合意に加える。(4) DEC-20 の前提に加える。(5) DRV-01 の残る危険に加える。(6) 矢印を加える。(7) 行に FR-01 を加える。(8) Turso の文書で確かめて DEC-07 か DEC-28 の前提に書く
-resolution: 受け入れた（2 点目は分けて受け入れた）。(1) DEC-16 を要合意にした。(2) DEC-17 は決めた決定なので先送りの印は付けず、先送りの部分を DEC-35（deferred が true）に分け、DEC-17 の revisit_when を外した。(3) 退けた案の見直し（DEC-03・11・18）を先送りの表から外し、報告書の「退けた案を考え直すとき」に書いた。(4) DEC-20 の前提に URL を足した（Cloud Run の文書で、作り直しても決まった形の URL は変わらないと確かめた）。(5) DRV-01 の通し確認の残る危険に DEC-01・21 の引き換えを足した。(6) 実行時の構成に ELM-05 → ELM-08 の矢印を足した。(7) CUJ-01 の「配車を手配する」の行に FR-01 を足した。(8) Turso の文書で、無料の枠では 10 日使われないデータベースが保管に回ることを確かめ、DEC-08 の前提と DEC-27 の期間を始める手順に書いた
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 2 段階のレビュー（活動 A2、A4、A5、A9）
-- version: 2
-  date: '2026-11-03'
-  change: 受け入れた（状態を受け入れにし、resolution を書いた。合意が要るものは決定の側に移した）
-  reason: 第 2 段階の再実行（2026-11-03）
+evidence: POL-03 の NFR-28 の置き場所は、依存の脆弱性の調べ（deps-audit）が見つけた脆弱性ごとに、見つけた日と期限を書いた記録を開くとし、POL-04 の deps-audit が動かすのは pnpm audit だけ。配備するのは Node.js 26 の上の ELM-03 のコンテナのイメージ（POL-01、POL-04）だが、Node.js そのものとイメージのもとの OS の部品の脆弱性を見つける手順も、それに記録を開く手順もなく、それらには NFR-28 の修正の期限が保たれない
+suggestion: deps-audit に、リリースのイメージ（Node.js とそのもとの OS の部品）の脆弱性の調べを加え、見つけたものに同じ記録を開く。ほかの道で知る（Node.js のセキュリティのリリースを開発者が見るなど）なら、その道と記録の開き方を置き場所に書く
+resolution: 受け入れ。POL-04 の deps-audit で、リリースの手順ではそのイメージを、週に一度では配備しているイメージを、もとの OS の部品の脆弱性について Trivy で調べ、そのイメージの Node.js の版より後のセキュリティのリリースがあるかを Node.js の公開のリリースの一覧で調べ、見つけたものごとに NFR-28 の記録を開くことにした。POL-03 の NFR-28 の置き場所と監査の規則をそれに合わせた

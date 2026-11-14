@@ -1,11 +1,9 @@
 id: IFC-02
 title: Grading API
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: http
 name: Grading API
 provider: ELM-03
@@ -37,17 +35,13 @@ errors:
 - case: 'Common: the request is malformed'
   signal: 400 INVALID_REQUEST
   caller_does: Fix the fields
-idempotency: State-changing requests carry an Idempotency-Key (DEC-08)
+idempotency: State-changing requests carry an Idempotency-Key (DEC-10)
 timing:
   timeout: Browser 10 s
   ordering: null
   delivery: null
 versioning: v1 in the path
 observability: Trace IDs in the logs
-spec: ifc/specs/teacher.openapi.yaml
+sli_bindings: []
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

@@ -1,0 +1,13 @@
+id: QCR-08
+title: 相手の画面に示した時刻の記録（FR-53）を今期作る（QAS-54 は成り立つ）
+status: answered
+stage: review-3
+targets: [QAS-54, FR-53]
+origin: [IFC-10, IFC-11, IFC-21, DAT-20, DEC-46]
+issue: QAS-54（FRP-11 を受け入れ、依頼、許諾、取り消し、迎車の到着を相手の画面に示した時刻を記録する FR-53 を今期作る）は品質チェーンの第 2 段階の暫定の決定で、FR-53 の premises にある。設計は、その記録の上に IFC-10 の示した時刻の報告と SLI-14 の出どころ、DAT-20、IFC-11 の流れの後の Web Push と示せなかった記録、IFC-21 の送る呼び出しの値、DEC-46 の NFR-07 の予算の Web Push の道を決め、DRV-03 と DRV-26 も前提に置く。覆ればこれらをやり直すため、第 3 段階のレビューが QAS-54 が成り立つかを尋ねた
+suggestion: QAS-54 は成り立つ。FR-53 を今期作ることを QAS-54 の答えとして記録して確認済みにし、FR-53 の basis_note にその答えを引く
+quality_stages: [2]
+impact: high
+impact_note: 答えが違えば FR-53 が廃止されて SLI-14 と NFR-07 が変わり、設計の第 3 段階の IFC-10、IFC-11、IFC-21、DAT-20、DEC-46 と第 1 段階の DRV-03、DRV-26 をやり直す。第 3 段階のレビューの質問 1 で尋ね、成り立つと答えを受けたため、どの設計の項目も変わらない
+answer: 作る。QAS-54 は成り立つ（下書きどおり。試行の模擬回答）
+answered_in: 第 3 段階のレビューの質問 1

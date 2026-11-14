@@ -1,17 +1,16 @@
 id: DRV-04
 title: Screens for parents can be added
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises:
+- CHG-01
 kind: change
 statement: Parents' screens can be added without changing the existing screens and APIs
 sources:
 - CHG-01
-concern_of: []
+concern_of:
+- STK-01
 scenario:
   source: Development team
   stimulus: Add the parents' screens
@@ -30,8 +29,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

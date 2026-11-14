@@ -1,49 +1,31 @@
 id: IFC-16
-title: Google Maps の地図の表示
-status: draft
-version: 1
+title: 生存確認
+status: active
 basis: inferred
-basis_note: DEC-21（ブラウザの鍵を参照元と Maps JavaScript API に限る）、DEC-24（ドラッグしない代わり）は入力。地図が出ないときの代わりの示し方は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: 想定の本番のデモの回の間、Cloud Monitoring の外からの生存確認がサーバーの停止を見て、ELM-03 を通らずにメールで知らせ、生存確認が呼ぶ入口は生きていることだけを返し何も変えないことは DEC-20 と脅威のモデルの F13（入力）。生存確認の仕様書をコードから生成することは POL-05（入力）。操作の形は推定
+premises: [TC-08]
 kind: http
-name: Google Maps の地図の表示（外部、ブラウザ）
-provider: ELM-11
-consumers:
-- ELM-01
-- ELM-02
-- ELM-03
-functions:
-- FR-02
-- FR-10
-- FR-11
-- FR-19
-- FR-23
-- FR-24
-- FR-45
+name: 生存確認
+provider: ELM-03
+consumers: [ELM-08]
+functions: [FR-33]
 operations:
-- name: Maps JavaScript API の読み込み
-  does: ブラウザの鍵で読み込む
-- name: 地図、マーカー、経路の線
-  does: サーバーが返した位置と encodedPolyline を描く。ブラウザからは Places も Routes も呼ばない
-format: Maps JavaScript API
-protocol: ブラウザから Google へ直接（HTTPS）
-auth: ブラウザの鍵（参照元をサービスの URL に、API を Maps JavaScript API に限る。DEC-21）
+  - name: GET /healthz
+    does: ELM-03 が要求に答えられることだけを返す。何も変えず、状態、依頼、個人の情報を返さない（DEC-20、F13）
+format: JSON（UTF-8）。status だけを持つ
+protocol: HTTPS の要求と応答。想定の本番のデモの回の間だけ Cloud Monitoring の外からの生存確認が呼ぶ（回を開く手順で入れ、閉じる手順で止める、POL-04）
+auth: なし。入口で回数を限る（DEC-35 の 429）
 errors:
-- case: 鍵の誤り、割り当て、読み込めない
-  signal: gm_authFailure か読み込みの失敗
-  caller_does: 地図の代わりに住所と位置の文字を示し、ドラッグしない代わり（DEC-24）で操作を続ける。ブラウザのエラーの記録に残す
-idempotency: 読むだけ
+  - case: ELM-03 が答えないか 5xx を返す
+    signal: 生存確認の失敗
+    caller_does: 決まった回数続くと、Cloud Monitoring が開発者にメールで知らせる（DEC-20）
+idempotency: 読むだけで繰り返してよい
 timing:
-  timeout: Google に任せる
+  timeout: 枠だけを決める。生存確認のタイムアウトは入口の最悪の答えより長く、確かめの間隔と知らせるまでの続けて失敗する回数は、停止から T_alert_delay のうちに知らせられる長さにする。時間のしきい値の SLO とお金の道になく、値は第 4 段階が決める（HND-19。異常とみなす条件と監視の間隔は HND-10）
   ordering: null
   delivery: null
-versioning: 読み込む版を固める（第 4 段階）
-observability: 地図の失敗をブラウザのエラーの記録（IFC-05）に
+versioning: DEC-41
+observability: 呼ばれたことは境界の出来事にもログにも残さない（SLI の数えに入れない）
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

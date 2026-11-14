@@ -1,16 +1,14 @@
 id: QIU-02
 title: 提出したことを確かめられる
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 user: USR-01
 cuj: CUJ-01
 outcomes: []
 need: 生徒は、提出した課題が講師に届いたことをその場で確かめられる。
-context_of_use: {device: スマートフォンのブラウザ, network: null, user_type: null, task: 提出したことを確かめられる, environment: null, other: null}
+context_of_use: {device: スマートフォン, network: null, user_type: null, task: 提出したことを確かめられる, environment: null, other: null}
 characteristic: satisfaction > trust
 statement: 生徒は、提出した課題が講師に届いたことをその場で確かめられる。
 failure_scenario: 受領の表示がなく、生徒が同じ課題を何度も出し直す。
@@ -18,5 +16,3 @@ measure: {numerator: 受領の表示を見た提出, denominator: 完了した�
 kpi: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

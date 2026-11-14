@@ -1,47 +1,31 @@
 id: NFR-04
-title: 請求と返金の記録の一致の SLO
-status: draft
-version: 3
+title: 配車受付の可用性の SLO
+status: active
 basis: inferred
-basis_note: 目標値 99% は提案。突き合わせは FR-55（FRP-08 を受け入れた）。決済は Stripe のテスト環境で、最初のデモの回の日から数える（2026-11-03 の回答、設計 1-4。SLI-04）。毎日の突き合わせで判定するので、締め切りの型にする
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-32
+basis_note: 失敗の数え方は QR-01 からの推定。目標値 99% は質問 6 の回答。SLO として置くことと方針は質問 9 の回答。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03]
+from: [QR-01]
 kind: slo
-cuj: CUJ-08
-statement: 直近 28 日で、突き合わせた依頼の 99% で、押さえ・請求（運賃、キャンセル料、不在の料金）・返金の記録が決済のサービスの記録と一致する。
+cuj: CUJ-06
+statement: 直近 28 日で、CUJ-06 のドライバーの有効な操作の 99% に、システムが失敗せずに応える。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: 押さえ（FR-05、FR-12）、請求（FR-29、FR-30、FR-31）、キャンセル料（FR-07）、不在の料金（FR-27）、返金（FR-50）、突き合わせ（FR-55）
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録したドライバー。試験用のアカウント（QR-47 が記録する区別）を除く
+  transactions: ドライバーが配車受付の画面で行う操作（本人であることを確かめて使い始める、受付を始める・やめる、届いた依頼の一覧を求める、依頼の内容を求める、依頼を許諾する）
 slo:
   sli: SLI-04
   target: 99%
-  target_status: provisional
-  target_rationale: 提案。運用実績がないので保守的にした。お金の誤りは 1 件ごとに NFR-07 で知らせるので、この SLO は傾向を見るためのもの。KPI から導いていない
-  window: 28-day rolling
-  error_budget: 突き合わせた乗車の 1% まで、記録が一致しなくてよい
-  error_budget_volume: 28 日の突き合わせた乗車の件数 × 0.01（件数は未定）
+  target_status: confirmed
+  target_rationale: 入力の数値も基準となる値（負荷試験や本番の値）もなく、機能はまだない。最初のウィンドウで数えることを優先した控えめな値（質問 6 で確認）。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 有効な操作の 1% まで、システムが失敗してよい
+  error_budget_volume: 許される失敗はウィンドウの有効な操作の数 × 1% 件。28 日に入るのはデモ 1〜2 回分（OPF-01）で、乗車は 2〜6 回（OPF-02）のため、有効な操作が 100 件に届かない限り 1 件に満たない。全停止に換算すると、ウィンドウの使う時間 3〜12 時間（OPF-01）の 1% の 1.8〜7.2 分
   policy: EBP-01
-  bad_run_budget_share: 1 ÷（28 日の突き合わせた乗車の件数 × 0.01）。28 日の乗車が 100 件に満たないと、1 件の不一致でバジェットを使い切る
-  progress_alert: NFR-06（毎朝 8:30 に突き合わせが終わっていなければ知らせる）
-  after_miss: ticket
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
 gate: null
 audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-01'
-  change: 突き合わせを FR-55 にし、キャンセル料と不在の料金を加え、仮の決済スタブの間は数えないことにした
-  reason: 第 4 段階の再実行（第 2 段階 7d0cb6d・08c3ee0、第 3 段階 156240c・9c28917）
-- version: 3
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。basis_note の差し替えの記述を直した。対象の取引に FR-12 の押さえ直しを足した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。設計の連鎖が返した課題（古い記述（仮のスタブ））への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-4）と、第 3 段階の再実行（2026-11-03）の QR-32 版 3 への追随

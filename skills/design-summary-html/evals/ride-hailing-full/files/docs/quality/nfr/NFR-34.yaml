@@ -1,35 +1,31 @@
 id: NFR-34
-title: 前の版に戻す訓練
-status: draft
-version: 2
-basis: inferred
-basis_note: 時期は提案
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-25
-kind: audit
-cuj: CUJ-12
-statement: デモの期間の前に、進行中の依頼がある状態で前の版に戻し（FR-42）、依頼が続けられ、記録が失われないことを確かめる。
+title: 新しい評価をマッチに使う評価に反映する速さの SLO
+status: active
+basis: assumed
+basis_note: 目標値 99% としきい値 T_rating_reflect（1 時間）は暫定の決定（QAS-36）。SLO として置くことと方針は質問 9 の回答。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03, QAS-36]
+from: [QR-16]
+kind: slo
+cuj: CUJ-05
+statement: 直近 28 日で、乗客が送った評価の 99% を、受けてから T_rating_reflect（1 時間）以内にマッチに使うドライバーの評価に反映する。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
-slo: null
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録した乗客。試験用のアカウントを除く
+  transactions: ドライバーの評価
+slo:
+  sli: SLI-13
+  target: 99%
+  target_status: provisional
+  target_rationale: 入力の数値も基準となる値もなく、機能はまだない。1 時間は、評価が付いてから次の依頼が届くまでに反映されていれば閾値による絞り込みが正しく働く長さとして置いた最初の値。99% は最初のデモで数えることを優先した控えめな値（QAS-36）。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 評価の 1% まで、反映が 1 時間を超えてよい
+  error_budget_volume: 許される遅れは、28 日に入る評価（乗車 2〜6 回、OPF-01、OPF-02 を超えない）の 1% で 0.06 件以下。1 件で予算を使い切る
+  policy: EBP-01
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
 gate: null
-audit:
-  mechanism: 戻す訓練
-  criterion: 戻した後、進行中の依頼が続けられ、状態の履歴と請求の記録が欠けない
-  cadence_or_deadline: デモの期間の前
+audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

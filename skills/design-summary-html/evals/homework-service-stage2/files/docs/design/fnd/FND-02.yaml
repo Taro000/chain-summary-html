@@ -1,22 +1,15 @@
 id: FND-02
 title: トレース ID の引き継ぎがない
 status: accepted
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-09-20-architecture.md
+raised_in: reviews/2-architecture.md
 to: architecture-drivers-to-architecture
 targets:
 - DEC-05
 severity: minor
 evidence: ブラウザの失敗がつながらない
 suggestion: ブラウザで ID を作る
-resolution: DEC-05 を直した
-changelog:
-- version: 1
-  date: '2026-09-20'
-  change: 作成
-  reason: 第 2 段階のレビュー
+resolution: 受け入れ。DEC-05 を足した

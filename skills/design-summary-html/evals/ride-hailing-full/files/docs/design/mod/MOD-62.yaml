@@ -1,0 +1,46 @@
+id: MOD-62
+title: 連絡のメッセージ
+status: active
+basis: inferred
+basis_note: 配車が確定してから乗車が始まるまでだけ、その依頼の乗客と割り当てたドライバーがサーバーを通るメッセージで連絡でき、車が走っている間（DEC-22 と同じ判断）はドライバーから送れず、ドライバーには届いたことだけを示して中身は止まってから示すことは DEC-27（QCR-04 の答え）、操作と答えと、受けた順、冪等キーで一通だけにすることは IFC-06、相手に message.received で届けることは IFC-11、中身を記録した日の鍵で暗号にしてログ、たどる記録、知らせに書かないことは DAT-15 と IFC-06 の observability（どれも入力）
+premises: []
+component: ELM-03
+name: 連絡のメッセージ
+depth: bounds
+depth_reason: null
+responsibility: 配車が確定してから乗車が始まるまで、その依頼の乗客とドライバーのメッセージを受け渡す
+visibility: public
+interface:
+  - operation: "list(actor: Actor, rideId: RideId, now: Instant) -> Message[]"
+    pre: null
+    post: GET /v1/rides/{rideId}/messages に、その依頼のメッセージを受けた順に返す。ドライバーで、MOD-48 が moving か unknown と決めるときは、届いたことと時刻だけを返す
+    errors: ["NOT_FOUND: 404（その依頼の乗客か割り当てたドライバーでない）"]
+  - operation: "send(actor: Actor, rideId: RideId, body: MessageBody, key: IdempotencyKey) -> Message"
+    pre: null
+    post: POST /v1/rides/{rideId}/messages で、依頼が assigned か pickup_arrived のときだけ受け、送り手がドライバーなら MOD-48 で stopped のときだけ受け、メッセージ（中身は暗号）、相手への message.received（走っているドライバーには届いたことだけ）、冪等キーの答えを一つの取引で書く
+    errors: ["MESSAGING_CLOSED: 409", "DRIVER_MOVING: 409", "VALIDATION_FAILED: 400（body の TOO_LONG）", "NOT_FOUND: 404"]
+  - operation: "purgeBefore(at: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: N_message_retention_days を過ぎたメッセージを消す
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-26, MOD-27, MOD-33, MOD-45, MOD-47, MOD-48]
+functions: [FR-11]
+realizes:
+  - IFC-06 GET /v1/rides/{rideId}/messages
+  - IFC-06 POST /v1/rides/{rideId}/messages
+  - IFC-11 message.received
+drivers: [DRV-29, DRV-34]
+decisions: [DEC-22, DEC-27]
+behaviour: null
+verification:
+  - checks: 配車の確定の前、乗車が始まった後、取り消された後の MESSAGING_CLOSED（FR-11 の 1、2）と、同じキーで一通だけ
+    how: 結合の層
+  - checks: 走っている間と速さが分からないときのドライバーの送りと中身（DEC-27）
+    how: 結合の層（位置と速さの偽物）
+  - checks: 中身がログ、たどる記録、知らせに出ない
+    how: 結合の層
+  - checks: SLI-02 の連絡の操作の数え方
+    how: 結合の層
+parameters: []
+as_is: new

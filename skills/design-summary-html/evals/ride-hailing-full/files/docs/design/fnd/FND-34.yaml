@@ -1,27 +1,14 @@
 id: FND-34
-title: ドライバーの API の運転の開始・不在・乗車の終了・取り消しと、管理の返金に、今の状態が許さないときの符号がない
-status: accepted
-version: 2
+title: 境界の SLI を ELM-03 の入口の記録だけで数えるため、ELM-03 が止まっている間にプラットフォームが答えた操作がどこにも数えられない
+status: open
 basis: inferred
-basis_note: 配車依頼の状態遷移図、IFC-03 と IFC-06 の errors、driver.openapi.yaml と admin.openapi.yaml の応答、DAT-13 の整合の取り方は入力。重なったときに呼ぶ側が受けるものは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-23、DAS-02、SLI-01〜SLI-06、第 2 段階の報告の実行時の構成の注、第 3 段階の IFC の sli_bindings と DAT-19 は入力。止まった間の操作が数えられないことは、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-03
-- IFC-06
+raised_in: reviews/3-high-level-design.md
+to: architecture-drivers-to-architecture
+targets: [DEC-23]
 severity: minor
-evidence: 配車依頼の状態遷移図は、到着の後に乗客の取り消し（arrived から cancelled）と、ドライバーの運転の開始と不在（arrived から in_progress、no_show）を両方許す。DEC-09 の条件付きの書き込みで一方だけが通るが、負けた側に返す符号がない。driver.openapi.yaml の固有の符号は、start が 422 CONFIRMATION_CODE_MISMATCH と 429 CONFIRMATION_ATTEMPTS_EXCEEDED、no-show が 409 NO_SHOW_TOO_EARLY、complete が 409 FAR_FROM_DROPOFF、ドライバーの取り消しが 409 RIDE_ALREADY_STARTED だけで、IFC-03 の共通の行にも状態の衝突はない（迎車の到着だけが 409 RIDE_CANCELLED を持つ）。管理の返金も、DAT-13 が同じ種類のお金の操作を一つずつに限るのに、返金が動いている間の符号がない（乗客の未払いの支払いには 409 PAYMENT_IN_PROGRESS がある）
-suggestion: 状態が許さないときの 409（例として RIDE_CANCELLED、RIDE_NOT_ARRIVED、RIDE_NOT_IN_PROGRESS、REFUND_IN_PROGRESS）と呼ぶ側の扱い（読み直して示す）を、IFC-03、IFC-06、報告書のエラーの表、仕様書に足す
-resolution: "受け入れた。IFC-03 の start と no-show に 409 RIDE_CANCELLED と RIDE_NOT_ARRIVED、complete に 409 RIDE_NOT_IN_PROGRESS、cancel に 409 RIDE_CANCELLED、IFC-06 の返金に 409 REFUND_IN_PROGRESS と RIDE_NOT_CHARGED を足した。呼ぶ側は読み直して今の状態を示す。エラーの表と仕様書をそろえた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B3、B10）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: DEC-23 は SLI-01〜SLI-06 の出来事をサーバーの入口の記録で見ると決め、プラットフォームのロードバランサーの記録を退けた。第 2 段階の報告は ELM-03 の入口をシステムの境界とし、第 3 段階の出どころはそれに従って、入口が受けたときに書く境界の出来事（DAT-19）で数える。想定の本番で、一つのインスタンスが落ちて起き直すまで（DAS-02）や起き直せない間に届き、プラットフォームが ELM-03 に渡せずに誤りで答えた操作は、ELM-03 が受けないため記録がない。SLI-01 の vantage_reason は「システムに届いた操作はすべて見える」とするが、その間の操作はどこにも数えられず、DEC-23 の失うものにもこの見えない所がない。端末が後で同じキーで送り直せば、その操作は良い一つとして数えられる（FND-23）
+suggestion: DEC-23 の失うものにこの見えない所を書き、想定の本番では、ELM-03 が記録しなかった要求をプラットフォームの要求の記録から GOOD でないものとして加えるか、見えないことを品質チェーンに伝える
+resolution: null

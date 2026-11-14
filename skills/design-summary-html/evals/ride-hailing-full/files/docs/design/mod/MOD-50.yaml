@@ -1,0 +1,36 @@
+id: MOD-50
+title: 着く見込みの更新
+status: active
+basis: inferred
+basis_note: 迎車中と乗車中の着く見込みを、新しい位置を受けたときに前に求めてから 10 秒以上たっていれば求め直し、位置が T_vehicle_location_lag より古ければ求めず、求め直す呼び出しをやり直しを含めて 8.5 秒のうちに諦めて示せないとすることは IFC-19（HND-08、DAS-11）、乗客に ride.eta_updated で届け、示せないときはそのことを届けることは IFC-11、EXT-02 が答えなくても確定した依頼と進んでいる乗車を続けることは DEC-13 と QR-65（どれも入力）
+premises: []
+component: ELM-03
+name: 着く見込みの更新
+depth: bounds
+depth_reason: null
+responsibility: 迎車中と乗車中に、新しい位置から着く見込みを求め直して乗客に届ける
+visibility: internal
+interface:
+  - operation: "onDriverFix(driver: AccountId, fix: CorrectedPosition) -> none"
+    pre: MOD-47 の聞き手として呼ばれる
+    post: そのドライバーの依頼が assigned か riding で、前に求めてから 10 秒以上たち、位置が新しければ、乗車場所（迎車中）か降りる場所（乗車中）までの道の時間を MOD-40 で最初に送ってから 8.5 秒のうちに求め、ride.eta_updated を乗客に届ける。求められないか位置が古ければ示せないとして届ける。依頼の状態は変えない
+    errors: []
+  - operation: "onAccepted(tx: Tx, rideId: RideId) -> none"
+    pre: null
+    post: 許諾の後に最初の着く見込みを求める処理を書く（ride.accepted の後に別に届ける）
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-28, MOD-31, MOD-33, MOD-40, MOD-45, MOD-47]
+functions: [FR-06, FR-08, FR-13]
+realizes:
+  - IFC-11 ride.eta_updated
+drivers: [DRV-04, DRV-06, DRV-10]
+decisions: [DEC-13]
+behaviour: null
+verification:
+  - checks: 10 秒の間と 8.5 秒で諦めること、古い位置で求めないこと
+    how: 結合の層（EXT-02 の偽物、時計の偽物）
+  - checks: EXT-02 が答えないと示せないとして届け、乗車は続く（NFR-09、QR-65）
+    how: 結合の層（NFR-09 の出どころ）
+parameters: []
+as_is: new

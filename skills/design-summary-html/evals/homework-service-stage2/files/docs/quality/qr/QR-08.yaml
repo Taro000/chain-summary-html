@@ -1,11 +1,9 @@
 id: QR-08
 title: レポートの最新性
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: []
 model: data
 layer: data-inherent
 characteristic: currentness
@@ -13,7 +11,7 @@ statement: 月次のレポートは、前日までの提出を毎朝反映して
 applies_to: [FR-05]
 traces_to: [QIU-05]
 entry_point: null
-stakeholders: [USR-01]
+stakeholders: [USR-04, USR-02]
 failure_scenario: 夜間の処理が遅れ、古い未提出の一覧で催促する。
 score: {impact: 3, likelihood: 2}
 handling: minimum-line
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

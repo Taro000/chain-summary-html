@@ -1,0 +1,57 @@
+id: MOD-13
+title: アカウント
+status: active
+basis: inferred
+basis_note: 乗客かドライバーを選んで入れた内容を示し確かめてから作り、欠けた項目と形の誤りとすでにある人を示して作らず、訂正を記録することは FR-41、試験用として作って示し、区別を変えて記録することは FR-42（入力）。担当者が設定の符号を参加者に直接渡し、パスワードを忘れたら出し直すことは TC-16 と DEC-14（入力）。探す、読む、作る、訂正する、区別を変える、符号を出し直す操作と符号（ACCOUNT_ALREADY_EXISTS、ACCOUNT_RETIRED）は IFC-12、探して今の内容を確かめてから選ぶことは IFC-24（入力）。条件を本文で送ることは DEC-39 と DEC-44（入力）。設定の符号を出した操作の答えの画面にだけ示し、離れたら持たないことと、条件を画面の URL と端末の保存に置かないことは推定（符号はそのアカウントのパスワードを決められるため）
+premises: [TC-16]
+component: ELM-02
+name: アカウント
+depth: bounds
+depth_reason: null
+responsibility: 参加者のアカウントを作り、探して選んだアカウントの今の内容を示して、訂正、試験用の区別の変更、設定の符号の出し直しを送る
+visibility: public
+interface:
+  - operation: "AccountCreate() -> アカウントを作る画面"
+    pre: null
+    post: 乗客かドライバーと、試験用かを選んで入れた内容を示し、担当者が確かめてから POST /v1/console/accounts（IFC-12）を MOD-01 で送る（FR-41 の 1、FR-42 の 1）。答えのサインインの ID と設定の符号は、その答えの画面にだけ示す
+    errors:
+      - "VALIDATION_FAILED: details の項目ごとに示し、作らない（FR-41 の 2）"
+      - "ACCOUNT_ALREADY_EXISTS: すでにアカウントのある人であることを示し、作らない（FR-41 の 3）"
+      - "答えがない、5xx: 作ったかどうか分からないことを示し、同じ操作として送り直させる（MOD-01）"
+  - operation: "AccountSearch(kind: AccountKind or any) -> AccountId or none"
+    pre: null
+    post: 種類、名前、サインインの ID、連絡先、ナンバー、試験用か、停止しているかの条件を本文で POST /v1/console/accounts/search に送り（DEC-39）、一覧から担当者が選んだアカウントの ID を返す。空の items なら見つからないことを示す。条件を画面の URL と端末の保存に置かない
+    errors:
+      - "VALIDATION_FAILED: どの条件の誤りかを示す"
+  - operation: "AccountDetail(accountId: AccountId) -> アカウントの画面"
+    pre: null
+    post: GET /v1/console/accounts/{accountId} の今の内容（試験用か、状態を含む）を示し、訂正（PATCH /v1/console/accounts/{accountId}）、試験用の区別の変更（PUT /v1/console/accounts/{accountId}/test-flag）、設定の符号の出し直し（POST /v1/console/accounts/{accountId}/setup-codes）を MOD-01 で送り、答えの後に読み直す（FR-41 の 4、FR-42 の 3、DEC-14）。出し直した設定の符号は、その答えの画面にだけ示す。どの設定の符号も、それを出した操作の答えの画面を離れたら持たず、URL、履歴の状態、端末の保存、端末のエラーの報告に入れない
+    errors:
+      - "ACCOUNT_RETIRED（409）: 訂正できないことと、新しいアカウントを作ることを示す（FR-51 の 4）"
+      - "NOT_FOUND: 見つからないことを示し、探し直させる"
+      - "VALIDATION_FAILED: 項目ごとに示す"
+invariants: []
+depends_on: [MOD-01, MOD-08]
+functions: [FR-41, FR-42, FR-50]
+realizes:
+  - IFC-24 アカウント
+  - IFC-12 POST /v1/console/accounts/search
+  - IFC-12 GET /v1/console/accounts/{accountId}
+  - IFC-12 POST /v1/console/accounts
+  - IFC-12 PATCH /v1/console/accounts/{accountId}
+  - IFC-12 PUT /v1/console/accounts/{accountId}/test-flag
+  - IFC-12 POST /v1/console/accounts/{accountId}/setup-codes
+drivers: [DRV-19, DRV-29, DRV-30]
+decisions: [DEC-14, DEC-36, DEC-39, DEC-44]
+behaviour: null
+verification:
+  - checks: 確かめてから作り、項目ごとの誤りとすでにある人を示して作らない（FR-41 の 1〜3）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: 試験用として作って示し、区別を変える（FR-42 の 1、3）。訂正と符号の出し直し（FR-41 の 4）。ACCOUNT_RETIRED と NOT_FOUND の示し方
+    how: 単体の層
+  - checks: 設定の符号を答えの画面にだけ示し、離れた後に URL、履歴の状態、端末の保存、報告に残らない
+    how: 単体の層と端から端の層（作ってから画面を離れ、戻るで符号が出ないことと保存の中身を調べる）
+  - checks: アカウントを作り、本人がパスワードを決めてサインインするまで（CUJ-16）
+    how: 端から端の層（試験の環境の偽物の設定。参加者の ELM-01 で符号を入れる）
+parameters: []
+as_is: new

@@ -1,0 +1,43 @@
+id: MOD-25
+title: データベースのつなぎ
+status: active
+basis: inferred
+basis_note: ELM-04 の読み書きを Drizzle ORM と @libsql/client で行い、表の形の変更を drizzle-kit が生成する SQL のマイグレーションで行い、新しい版が動く前に同じイメージの一度だけの処理が当てることは POL-01、DEC-29、POL-04、マイグレーションを動いている版と一つ前の版が読める足し方だけにすることは DEC-26 と POL-04、データベースのつなぎを src/platform/db/ に置き、application/ に使わせないことは POL-02（どれも入力）。書き込みの取引の始めに書き込みの錠を取り、書き込みの取引を一つずつ進めることは、ELM-04 が Turso と libSQL（SQLite のエンジン、TC-07、POL-01）であることから推定。いくつもの確定の深さのモジュールの不変条件がこれに頼る（報告書の「データ」）
+premises: [TC-07]
+component: ELM-03
+name: データベースのつなぎ
+depth: bounds
+depth_reason: null
+responsibility: ELM-04 への読み書きの取引を開き、マイグレーションを当てる
+visibility: internal
+interface:
+  - operation: "writeTx(work: (tx: Tx) -> T, deadline: Instant) -> T"
+    pre: 外部のシステムを呼ぶ処理を work の中で行わない（DAT-11）
+    post: 始めに書き込みの錠を取る取引（BEGIN IMMEDIATE）で work を行い、すべて書けたときだけ確定する。work の中で読んだ値は、確定するまでほかの書き込みの取引に変えられない（書き込みの取引は一つずつ順に確定する）。deadline までに錠を取れないか確定しなければ取引を止める
+    errors: ["DatabaseUnavailable: つながらないか、deadline までに錠を取れないか確定しなかった（何も書かれていない）", "CommitOutcomeUnknown: 確定を送った後に答えを受けずにつながりが切れた（呼ぶ側は冪等キーの記録か書いたはずの行を読み直して決める）"]
+  - operation: "read(query: Query) -> Rows"
+    pre: null
+    post: 確定した値を読む
+    errors: ["DatabaseUnavailable"]
+  - operation: "migrate() -> none"
+    pre: 配備の前の一度だけの処理だけが呼ぶ（POL-04）
+    post: apps/server/migrations/ のマイグレーションを順に当てる
+    errors: ["MigrationFailed: 当てられなかった（新しい版を動かさない）"]
+invariants: []
+depends_on: [MOD-22]
+functions: []
+realizes: []
+drivers: [DRV-02, DRV-13, DRV-15]
+decisions: [DEC-17, DEC-26, DEC-29]
+behaviour: null
+verification:
+  - checks: 二つの書き込みの取引の中の読みと書きが重ならない（一つの取引の中で読んで条件にした値が、確定までほかの取引に変えられない）
+    how: 結合の層（二つの取引を同じデータベースのファイルで重ねる）
+  - checks: コードの表の定義から生成し直したマイグレーションとコミットしたものの違い
+    how: 検査の手順（POL-01）
+  - checks: 前のリリースの版のデータに新しい版のマイグレーションを当て、前の版が読める（NFR-41、NFR-42）
+    how: 運用の予行の層
+  - checks: Turso と同じ libSQL のサーバーで、取引の時間の限りとつながりの切れを通る
+    how: 端から端の層と運用の予行の層（POL-01）
+parameters: []
+as_is: new

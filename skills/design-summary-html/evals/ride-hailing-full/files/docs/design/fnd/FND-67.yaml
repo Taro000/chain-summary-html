@@ -1,0 +1,14 @@
+id: FND-67
+title: MOD-43 の判断表 B は、確かめる前の登録の取引の requires_payment_method を拒否として登録を終え、completion が動いている間の行を持たない
+status: accepted
+basis: inferred
+basis_note: IFC-17 の誤りの「確かめた後の requires_payment_method」、IFC-07、IFC-18、第 3 段階の報告の DAT-05 の状態遷移、MOD-43 の判断表 B と並行性の節、報告の MOD-43 の「started の後に、確かめている（completion の試みが動いている）を通る」、MOD-42 の判断表 C の読み直しの行は入力。確かめる前の登録の取引が requires_payment_method を示すことは EXT-01（Stripe）の登録の取引の状態の決まりによる推定
+premises: [EXT-01]
+raised_by: design-review
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-43, MOD-42]
+severity: minor
+evidence: IFC-17 は拒否を「確かめた後の requires_payment_method」とし、確かめる前の取引の状態と分ける。MOD-43 の判断表 B は、started の登録の読み直しが requires_payment_method なら 402 PAYMENT_METHOD_DECLINED で declined（終わり）とし、端末がまだ確かめていない行を requires_confirmation と requires_action にだけ置く（MOD-42 の判断表 C の setup_result も requires_payment_method を refused にする）。登録の取引は、端末が入力部品で確かめる前（作っただけのときや、確かめが EXT-01 に届かなかったとき）も requires_payment_method を示すので、確かめる前に届いた completion は、拒否されていないカードの登録を拒否で終え、乗客に別の支払い方法を求める（FR-46 の 3）。また、報告は started の後に確かめている（checking）を通るとするが、判断表 B に checking の行がなく、ほかのキーの completion が重なったとき（setup:登録 の一意の決まりで二つ目の試みが退けられた後）の答えが決まっていない
+suggestion: 判断表 B と MOD-42 の判断表 C の読み直しの行で、requires_payment_method を、EXT-01 の取引が確かめの失敗（last_setup_error）を持つとき（拒否）と持たないとき（端末がまだ確かめていない。409 PAYMENT_METHOD_NOT_CONFIRMED で started のまま）に分け、checking の行（今の試みを確かめて、その結果か 202 PAYMENT_METHOD_PENDING で答えるなど）を加える
+resolution: 受け入れ。MOD-42 の判断表 C の読み直しの行と MOD-43 の判断表 B で、requires_payment_method を、確かめの失敗（last_setup_error）を持つとき（拒否。402 PAYMENT_METHOD_DECLINED、declined）と持たないとき（端末がまだ確かめていない。requires_confirmation、requires_action と同じに読み直しの試みを refused の not_confirmed で終え、409 PAYMENT_METHOD_NOT_CONFIRMED で started のまま）に分けた。確かめで分かった registration_unknown の読み直しが端末がまだ確かめていないことを示したときは、第 3 段階の DAT-05 の「確かめて拒否か、取引がなかった」として理由 not_confirmed の declined にする。MOD-43 の判断表 B に確かめている（ほかのキーの completion の読み直しが開いている）行を加え、その待ちのうちなら何も書かずに 409 OPERATION_IN_PROGRESS と Retry-After 1 秒で（同じキーの送り直しがその結果を受ける）、待ちを過ぎていれば（受けたインスタンスが止まった）確かめを早めて registration_unknown と 202 PAYMENT_METHOD_PENDING で答える（DEC-42 がこの場合を書いていない点は FND-74）。MOD-41 の読み出しの答えに確かめの失敗があるかを添えた

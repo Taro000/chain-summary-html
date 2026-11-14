@@ -1,11 +1,11 @@
 id: DEC-01
 title: 一つの API サーバーと二つの Web アプリにする
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: assumed
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- DAS-01
+- PC-03
 stage: architecture
 question: システムをどう分け、どこで動かすか
 addresses:
@@ -39,15 +39,8 @@ trade_offs:
 - with: DRV-01
   note: 締め切り前の集中を一つのサーバーで受ける
 assumptions:
-- 同時に使う生徒は 300 人まで
+- 同時に使う生徒は 300 人まで（DAS-01）
 depends_on: []
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

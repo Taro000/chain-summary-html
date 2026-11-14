@@ -1,18 +1,18 @@
 id: DRV-06
 title: Built and run by two developers within 30,000 yen a month
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises:
+- PC-01
+- PC-03
 kind: constraint
 statement: Two developers build and run it, for at most 30,000 yen a month
 sources:
 - PC-01
 - PC-03
-concern_of: []
+concern_of:
+- STK-01
 scenario: null
 negotiable: false
 derived_from: []
@@ -25,8 +25,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

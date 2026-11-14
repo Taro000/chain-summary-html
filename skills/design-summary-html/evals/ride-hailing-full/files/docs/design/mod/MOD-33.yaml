@@ -1,0 +1,76 @@
+id: MOD-33
+title: 出来事の届け
+status: active
+basis: assumed
+basis_note: 状態の変化と同じ取引で出来事の記録に書き、足すだけで直さず、流れをその記録の順に届けてつなぎ直しは sequence の続きから届けることは DEC-06 と DAT-09、出来事を書く取引で届ける相手ごとに届けと示した時刻の記録を作り、changeReceivedAt を同じたどる ID の最も早く受けた時刻（迎車の到着は位置を受けた時刻）にし、届けたときに結果を足し、相手の流れが開いていなければ notDisplayed を真にし、示した時刻は端末の報告の最初のものだけを直した時刻と直す前の時刻で書くことは DAT-20 と IFC-10（入力）、流れで送った出来事の示した時刻が流れに書いてから 2 秒のうちに届かなければ Web Push でも知らせ、その組を示せなかったとはしないことは IFC-11（DAS-15）、Web Push を送る呼び出しのタイムアウトと一度だけの送り直しは IFC-21、届ける中身を相手ごとに DEC-15 の決まりで通すことは IFC-11、SLI-01〜SLI-03 の知らせと SLI-14 の数え方は IFC-11 と IFC-10 の sli_bindings（どれも入力。IFC-10、IFC-11、IFC-21、DAT-20 は QAS-54 に頼り、その答えは QCR-08）。ほかのインスタンスが流れに書いたかを、出来事の確定から決まった待ちの後に届けの記録で確かめて、流れの開いていなかった相手を決めること（流れの在りかの表を持たない）と、2 秒の待ちをインスタンスの中のタイマーで行い、期限の来た処理を控えにすることは、DEC-46 の拾う間隔 5 秒では IFC-11 の 2 秒を守れないための推定。Web Push の TTL は HND-19 を決めたもので、DAS-21 による暫定の決定。流れに書いた組の 2 秒のタイマーの上限は、報告のメモリの構造にあって parameters になかった値で、FND-71 を受けて parameters と DAS-21 に置いた
+premises: [DAS-21]
+component: ELM-03
+name: 出来事の届け
+depth: full
+depth_reason: 状態の変化と同じ取引で書いた出来事を、相手ごとに流れか Web Push で一度ずつ届けたことにし、届けた結果と示した時刻を記録する（SLI-14 と SLI-01〜SLI-03 のもと）。流れの開いていなかった相手と、示した時刻の届かない相手への Web Push の決まりは、いくつもの条件の規則で、届けの記録の行は、いくつものインスタンスの流れと端末の報告が同時に書く（同時に動く仕事と状態を分ける）。Web Push を送る呼び出し（外部の状態を変える呼び出し）を動かし、タイムアウトの後の結果を定める
+responsibility: 変化の出来事を記録し、相手ごとの届けを、流れか Web Push で示した時刻まで受け持つ
+visibility: internal
+interface:
+  - operation: "append(tx: Tx, event: NewEvent, recipients: Recipient[]) -> EventId"
+    pre: 状態の変化を書く取引の中で呼ぶ。recipients は出来事の持ち主が決めた相手（相手のない、依頼の経過の段階だけの出来事は空）
+    post: 出来事（DAT-09）を次の sequence で書き、相手ごとに届けの記録（DAT-20）を届けの状態 pending で書く。changeReceivedAt は MOD-28 の同じたどる ID の最も早く受けた時刻か、迎車の到着では渡された位置を受けた時刻。確定の後に deliverCommitted を呼ぶよう取引に頼む
+    errors: []
+  - operation: "deliverCommitted(eventIds: EventId[]) -> none"
+    pre: append を書いた取引の確定の後
+    post: このインスタンスの流れ（MOD-34 が渡した LocalStreams）に渡し、相手ごとの「流れのない相手と決める」処理を確定から決まった待ちの後に MOD-31 に書く
+    errors: []
+  - operation: "streamWritten(eventId: EventId, recipient: AccountId, at: Instant) -> none"
+    pre: MOD-34 が、ある相手の流れに出来事を書いたとき（どのインスタンスでも）
+    post: 届けの記録の streamWrittenAt がまだなければ書き、この時刻から 2 秒（IFC-11）の後に判断表 A を当てるタイマーを持ち、控えを MOD-31 に書く
+    errors: []
+  - operation: "displayed(report: DisplayReport) -> accepted | duplicate | rejected"
+    pre: MOD-65 が、端末の示した時刻の報告ごとに呼ぶ
+    post: 出来事と相手の組の届けの記録に、まだ示した時刻がなければ、DEC-37 で直した時刻と直す前の時刻と示した所を書く（FR-53 の 1、2）。同じ組の二度目は duplicate、その相手の出来事でなければ rejected
+    errors: []
+  - operation: "eventsAfter(recipient: Recipient, after: Sequence or none, limit: integer) -> EventBatch or tooOld"
+    pre: null
+    post: その相手に届けるべき出来事を sequence の順に、MOD-27 の outbound（流れの出来事）を通した中身で返す。印が持つ期間より古ければ tooOld（MOD-34 は stream.resync を送る）
+    errors: []
+  - operation: "progress(rideId: RideId) -> ProgressRecord[]"
+    pre: null
+    post: その依頼の経過の段階（FR-45）を時刻の順に返す（MOD-61、MOD-64、MOD-66、MOD-67）
+    errors: []
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer; purgeBefore(eventsBefore: Instant, deliveriesBefore: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 記録してから 3 年を過ぎた依頼の経過の段階の操作した人と中身の個人の情報を消して種類と時刻を残し、依頼に結び付かない出来事と、届けと示した時刻の記録の保持期間を過ぎたものを消す（DAT-09、DAT-20）
+    errors: []
+invariants:
+  - 出来事と相手の組ごとに届けの記録は一行で、streamWrittenAt と示した時刻は最初のものだけを持つ
+  - 出来事の sequence は確定した順に増え、確定した後に前の番号の出来事が現れない（MOD-25 の書き込みの取引は一つずつ確定する）
+  - notDisplayed を真にするのは、出来事の確定から決まった待ちのうちにどのインスタンスもその相手の流れに書かなかったときだけ
+  - 一つの組に Web Push を送るのは一度だけ（配信サービスの誤りの答えへの IFC-21 の一度の送り直しを除く）
+depends_on: [MOD-21, MOD-25, MOD-27, MOD-28, MOD-30, MOD-31, MOD-35]
+functions: [FR-18, FR-33, FR-45, FR-53]
+realizes: []
+drivers: [DRV-02, DRV-03, DRV-24, DRV-26, DRV-27]
+decisions: [DEC-06, DEC-15, DEC-21, DEC-23, DEC-46]
+behaviour: "報告書の節: MOD-33 出来事の届け"
+verification:
+  - checks: 判断表 A の行ごと（流れに書いた、示した時刻が 2 秒のうちに来た、来ない、流れのない相手、宛先の有無、配信サービスの答えごと）
+    how: 単体の層（時計の偽物、Web Push の部品の偽物）
+  - checks: 流れに書いてから 2 秒のうちに示した時刻が来ないと Web Push を一度だけ送り、その組を示せなかったとせず、知らせを示した時刻で数える（IFC-11）
+    how: 結合の層（Web Push の偽物、時計の偽物）
+  - checks: 流れの開いていない相手を示せなかったと記録し、後で示した時刻を書く（FR-53 の 2）。同じ組の示した時刻は最初のものだけ（FR-53 の 1）
+    how: 結合の層
+  - checks: 二つのインスタンスが同じデータベースで、ほかのインスタンスの書いた出来事を 1 秒ごとに読んで流し、その組を示せなかったとしない
+    how: 結合の層（二つの ELM-03 を同じデータベースのファイルに）
+  - checks: SLI-01〜SLI-03 の知らせの項目と SLI-14 の項目がそろう
+    how: 結合の層
+  - checks: 依頼、許諾、取り消し、迎車の到着を相手の画面に示すまで（SLI-14、NFR-07）
+    how: 端から端の層（試験の環境の偽物の設定）
+parameters:
+  - name: Web Push の知らせの TTL
+    value: 依頼と一覧の出来事は 600 秒、ride.wait_prompted は 1500 秒（T_no_accept と T_wait_prompt の差）、ほかの知らせは 86400 秒（種類の分け方は DAS-21）
+    basis: HND-19 の枠（知らせが意味を持つ長さを超えない）。T_dispatch_propagation の道の時間にかからない（DAS-21）
+  - name: 流れのない相手と決めるまでの待ち（出来事の確定から）
+    value: 2 秒
+    basis: ほかのインスタンスが出来事の記録を読む間隔 1 秒（IFC-11）と、読んで流れに書くまでの余裕。この待ちの後に Web Push を送る相手は示せなかった組として SLI-14 の数えから外れる（FR-53 の 2）ので、NFR-07 の予算にかからない（DAS-21）
+  - name: 流れに書いた組の 2 秒のタイマーの上限（メモリの構造）
+    value: このインスタンスで 1000 の組（超えた組は、MOD-31 に書いた控えの処理 delivery_check に任せる）
+    basis: デモの量（OPF-02、OPF-03）では同時に数組で、それより十分に多く、多くの出来事が重なってもインスタンスのメモリを決まった大きさに抑える暫定の値。控えに任せた組の知らせは遅れうるが、届けの記録と示した時刻の書き方は変わらない（DAS-21）
+as_is: new

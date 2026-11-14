@@ -1,0 +1,23 @@
+id: QR-68
+title: 乗り終えた乗客は、少ない操作で評価を送れる
+status: active
+basis: assumed
+basis_note: 降車後に少ない操作で評価を送れることを CUJ-04 の重視とすることは決めたこと 14 で確認済み（QAS-10 への訂正）。使用性は画面を調べて確かめる製品の性質として扱う。失敗のシナリオと点は推定。評価は 1〜5 の 5 段階（第 2 段階の質問 9）。N_rating_operations の値（3 回）は第 4 段階が提案した仮の値で、QAS-35 による仮定
+premises: [QAS-35]
+model: product
+layer: external
+characteristic: usability > operability
+statement: 乗り終えた乗客は、乗車が終わった画面から N_rating_operations（3 回）以内の操作で、乗ったドライバーの評価を送れる。
+applies_to: [FR-15]
+traces_to: [QIU-13]
+entry_point: null
+stakeholders: [USR-01, USR-02]
+failure_scenario: 降りた後に評価の画面までいくつも操作が要り、乗客は評価を送らずに閉じ、評価の低いドライバーの評価が下がらない。
+score: {impact: 3, likelihood: 3}
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders:
+  - {name: N_rating_operations, meaning: "乗車が終わった画面から評価を送り終えるまでの乗客の操作の回数の上限", from: QR-68}

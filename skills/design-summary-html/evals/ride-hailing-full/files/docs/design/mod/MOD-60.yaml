@@ -1,0 +1,34 @@
+id: MOD-60
+title: 今の乗車
+status: active
+basis: inferred
+basis_note: 呼んだ人の進んでいる依頼の今の状態を返し、乗客とドライバーに示すもの（探している、ドライバーの名前と車の手がかり、迎車の位置と着く見込み、迎車の到着、確認コードと乗る前の案内、乗車中の降りる場所と車の位置、ドライバーには乗車場所と乗客の現在地と名前、乗車が始まってからは降りる場所、到着を確認した後は決済の状態）は IFC-03、示す範囲は DEC-15、位置が古いときは最後に分かった位置と時刻とすることは IFC-05、手がかりは訂正した後の登録から示すことは FR-09 の 3（どれも入力）。ドライバーの今の依頼を、迎車中か乗車中の依頼があればそれ、なければ決済を待つ最も新しい依頼とすることは推定
+premises: []
+component: ELM-03
+name: 今の乗車
+depth: bounds
+depth_reason: null
+responsibility: 乗客とドライバーに、進んでいる依頼の今の状態を返す
+visibility: public
+interface:
+  - operation: "current(actor: Actor, now: Instant) -> CurrentRide or none"
+    pre: null
+    post: GET /v1/rides/current に、その人の進んでいる依頼の今の状態を、MOD-27 の判断表 B の範囲で返す。乗客には確認コード（MOD-46）を含め、位置は MOD-47 の latest で、古ければ最後に分かった位置と時刻として、決済の状態は MOD-56 から返す。進んでいる依頼がなければ none
+    errors: []
+invariants: []
+depends_on: [MOD-27, MOD-37, MOD-45, MOD-46, MOD-47, MOD-56]
+functions: [FR-06, FR-08, FR-09, FR-10, FR-12, FR-13, FR-24, FR-25, FR-43, FR-49]
+realizes:
+  - IFC-03 GET /v1/rides/current
+drivers: [DRV-02, DRV-04, DRV-29]
+decisions: [DEC-15]
+behaviour: null
+verification:
+  - checks: 依頼の状態ごとに返す項目（FR-06 の 2、FR-09 の 1、2、FR-10 の 2、FR-12 の 1、FR-13、FR-24 の 1〜3、5、FR-25、FR-29 の 4、5 の決済の状態）
+    how: 結合の層
+  - checks: 他人の依頼を示さず、乗車が始まった後は乗客の現在地を、取り消された後は名前と場所を示さない（FR-49 の 2、FR-24 の 3、FR-25 の 2）
+    how: 結合の層
+  - checks: SLI-02、SLI-03、SLI-05 の ridePhase が受けたときの状態で写る
+    how: 結合の層
+parameters: []
+as_is: new

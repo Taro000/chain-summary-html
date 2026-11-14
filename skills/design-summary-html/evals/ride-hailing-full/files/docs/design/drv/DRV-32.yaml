@@ -1,31 +1,17 @@
 id: DRV-32
-title: ログに個人情報を残さず、履歴と受信の記録の位置は権限のある役割だけが読める形で持つ
-status: draft
-version: 3
+title: お金を動かす操作は繰り返しても一度しか動かず、結果が分からない操作は確かめてから進む
+status: active
 basis: inferred
-basis_note: 品質チェーンの競合の解き方（QR-23 と QR-39・41）、QR-39 の二つの道（伏せる、権限のある人だけが読める形）、NFR-40 が状態の履歴も調べること、FR-39・SLI-05 が場所で行う四つの操作の位置を求めること、FR-17 が受信の記録に位置を持ち FR-45 がそれを示すことは入力。ログとエラーの記録は伏せ、履歴に要る位置は権限のある役割だけが読める形で持つと分けたのは推定（FND-01。質問 15 は回答なし）
-needs_agreement: false
-approver_candidates: []
+basis_note: QR-04、QR-29、QR-45 と FR-30、FR-40（入力）と、DRV-07、DRV-02 から推定した全体の原則
+premises: [EXT-01]
 kind: principle
-statement: ログとブラウザのエラーの記録には、伏せていない位置・連絡先・名前とカード情報を残さない。状態の履歴の記録にも、伏せていない位置・連絡先・名前を書かない。履歴に要る位置（場所で行う四つの操作。FR-39、SLI-05、NFR-14、NFR-45）と、現在地の受信の記録の位置（FR-17。苦情の調べ FR-45 で示す）は、権限のある役割だけが読める形で持ち、変化やアカウントに結び付ける。利用者 ID、依頼 ID、トレース ID は残す
-sources: [QR-23, QR-38, QR-39, QR-41, NFR-40, FR-17, FR-38, FR-39, FR-45, SLI-05, NFR-14, NFR-45]
-concern_of: [USR-01, USR-02, USR-03]
+statement: お金を動かす操作（押さえ、押さえ直し、請求、解除、返金）は、何度繰り返しても一度しか動かない。EXT-01 の結果が分からない操作は、EXT-01 で結果を確かめてから、同じ操作をし直すか次に進む
+sources: [QR-04, QR-29, QR-45, FR-30, FR-40, FR-54]
+concern_of: [USR-01, USR-04]
 scenario: null
 negotiable: false
-derived_from: [DRV-21, DRV-22, DRV-28, DRV-27]
+derived_from: [DRV-07, DRV-02]
 priority: null
 primary: false
-conflicts:
-  - with: DRV-27
-    note: 解いた（FND-01）。前の版は状態の履歴に伏せていない位置を残さないとし、DRV-27（SLI-05、NFR-14、NFR-45）の変化ごとの位置と食い違った。履歴の記録には座標を書かず、位置は権限のある役割だけが読める形で持って変化に結び付ける（QR-39 の二つ目の道）。第 2 段階は DEC-15 で採った
+conflicts: []
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
-  - version: 2
-    date: 2026-11-03
-    change: ログとブラウザのエラーの記録は伏せ、状態の履歴の記録にも書かず、履歴に要る位置は権限のある役割だけが読める形で持って変化に結び付けると直した（QR-39 の二つ目の道を戻した）
-    reason: FND-01 を受け入れた（第 1 段階の再実行）
-  - version: 3
-    date: 2026-11-03
-    change: 権限のある役割だけが読める形で持つ位置に、現在地の受信の記録の位置（FR-17、FR-45）を足した。履歴に要る位置を、場所で行う四つの操作に絞った
-    reason: 品質チェーンの再実行（FR-17 版 2、FR-39 版 3、FR-45 版 2、QR-38・39 版 3。回答の設計 2-3・2-5）に追随した（第 1 段階の再実行、3 回目）

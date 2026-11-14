@@ -1,0 +1,36 @@
+id: DEC-10
+title: State-changing requests carry an idempotency key
+status: active
+basis: inferred
+basis_note: null
+premises: []
+stage: high-level-design
+question: Which requests are idempotent?
+addresses:
+- IFC-01
+- IFC-02
+- DRV-03
+options:
+- name: An idempotency key on every state-changing request
+  effect: Retries never duplicate
+  cost: Keys are kept for 24 hours
+- name: An idempotency key on submissions only
+  effect: Less to keep
+  cost: A retried return sends two notifications
+chosen: An idempotency key on every state-changing request
+rationale: Neither a submission nor a return may happen twice when retried (DRV-03).
+rejected:
+- option: An idempotency key on submissions only
+  reason: Returns can happen twice
+gains: []
+costs: []
+sensitive_points: []
+trade_offs: []
+assumptions: []
+depends_on: []
+parameters:
+- name: Idempotency key retention
+  value: 24 hours
+  basis: Provisional
+debt: null
+as_is: new

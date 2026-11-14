@@ -1,11 +1,10 @@
 id: IFC-03
 title: ストレージへのファイル
-status: draft
-version: 1
+status: active
 basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+basis_note: 'HND-01 を決めた: PUT は確定の区間の外にある'
+premises:
+- EXT-01
 kind: file
 name: ストレージへのファイル
 provider: ELM-05
@@ -24,17 +23,13 @@ errors:
 - case: URL の期限切れ
   signal: 403 (ObjectStore)
   caller_does: 新しい URL をもらう
-idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+idempotency: 状態を変える要求は Idempotency-Key（DEC-10）
 timing:
   timeout: ブラウザ 10 秒
   ordering: null
   delivery: null
 versioning: 経路に v1
 observability: トレース ID をログに書く
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

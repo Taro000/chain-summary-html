@@ -1,0 +1,15 @@
+id: HND-04
+title: How the CI jobs are arranged
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: architecture-to-technical-policy
+to: implementation
+component: ELM-03
+origin:
+- POL-04
+what: How the jobs of the check step are arranged, and what they cache
+bounds: POL-04's steps and what they block
+trigger: When the pipeline is set up
+resolution: null

@@ -1,0 +1,12 @@
+id: QAS-29
+title: 現在地の新しさのしきい値、確かめの間隔と最初の目標値
+status: overturned
+stage: 4
+kind: decision
+statement: T_vehicle_location_lag を 15 秒とし、受付、迎車、乗車をしているドライバーを 1 分ごとに確かめ、その 95% で位置が 15 秒以内であることを最初の目標値とする。
+why_unsure: 入力に数値も基準となる値もない。15 秒は、近づく迎車を見る乗客と、乗る場所までの距離で依頼を届ける判断にとって大きく外れない長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QR-19、SLI-10、NFR-19 が依存する。最初のデモの値から見直すもので、変えるのは容易
+answer: 一部が誤り。T_vehicle_location_lag は 30 秒。目標 95% と 1 分ごとの確かめはそのまま。しきい値と目標はどちらも仮
+answered_in: "第 4 段階、決めたこと #17"

@@ -1,0 +1,12 @@
+id: DAS-25
+title: 迎車の到着に使う位置の確からしさの上限を暫定に採る
+status: open
+stage: 4
+kind: decision
+statement: MOD-47 は、確からしさ（accuracy）が 30 m より大きい位置からは迎車の到着を決めない。値は MOD-47 の parameters にある
+why_unsure: 参加者の iPhone の Safari が街中で返す位置の確からしさは測っていない
+breadth: low
+severity: low
+rating_note: MOD-47 だけが依存する。厳しすぎると到着の知らせが遅れ（NFR-07 の迎車の到着の組が悪いイベントになる）、緩すぎると着く前に着いたと示しうる（DRV-03）。運用の中で直せる
+answer: null
+answered_in: null

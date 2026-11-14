@@ -1,32 +1,14 @@
 id: FRP-10
-title: 乗車場所から離れた到着の知らせを受け付けない
+title: 迎車中のドライバーに乗客の現在地を示す
 status: accepted
-version: 2
-basis: inferred
-basis_note: QR-49 から。提案することは質問 17〜19（2026-11-01）。現在地を得られないときの扱いは第 2 段階で決める
-needs_agreement: false
-approver_candidates: []
+basis: confirmed
+basis_note: "第 3 段階の #20 の回答（迎車中のドライバーには乗客の現在地を示す。その位置が古いと乗る場所で互いを見つけられない）。FR-24 はドライバーに乗客が決めた乗車場所を示すが、乗客の現在地は示さない。乗客の現在地を見られるのは許諾したドライバーが乗車を始めるまでに限る（QR-57）"
+premises: [CON-06]
 proposed_by: functional-requirements-to-product-quality
-origin:
-- QR-49
-changes: FR-25
-reason: キャンセル料と不在の料金がドライバーの受取額に入る（FR-32 版 3）ので、乗車場所に着く前に到着を知らせると、不在で終えて 500 円を得られ、乗客は置いていかれて料金を請求される。FR-25 は到着の位置を記録するが、確かめずに受け付ける。
-suggested_statement: システムは、ドライバーが到着を知らせたとき、ドライバーの現在地が依頼の乗る場所から D_arrival より離れていれば受け付けず、乗車場所に近づくよう示す。現在地を得られないときにどう扱うか（受け付けて印を付ける、受け付けない）は第 2 段階で決める。
-affects:
-- QR-49
-- NFR-14
-- FR-27
-placeholders:
-- name: D_arrival
-  meaning: 乗る場所から何メートル以内なら到着を受け付けるか（現在地の誤差を見込む）
-  from: FRP-10
-resolution: FR-25 版 2 として受け入れた。位置を確かめられないときは受け付けて印を付け（質問 18）、その依頼では不在の料金を請求しない（FR-27 版 3）。キャンセル料の判定では着いていないと扱う（FR-07 版 3）。
-changelog:
-- version: 1
-  date: '2026-11-01'
-  change: 提案
-  reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）
-- version: 2
-  date: '2026-11-01'
-  change: 受け入れた
-  reason: 第 2 段階の質問 18・19（2026-11-01）
+origin: [QR-19]
+changes: FR-24
+reason: QR-19 は迎車中のドライバーに示す乗客の現在地が遅れないことを求めるが、FR-24 はそれを示さない。
+suggested_statement: システムは、ドライバーが依頼を許諾してから乗車が始まるまで、乗客が決めた乗車場所に加えて、乗客の現在地をドライバーに示す。
+affects: [NFR-19, SLI-10]
+placeholders: []
+resolution: "受け入れ。FR-24（新規）をその場で変えた。第 3 段階の決めたこと #20 の回答に従う。乗客の現在地を見せるのは許諾したドライバーに乗車が始まるまでに限る（QR-57）。"

@@ -11,13 +11,18 @@ technology_constraints:
 - id: TC-02
   statement: 提出したファイルは外部のストレージ（ObjectStore）に置く
   kind: external-service
-  source: context.yaml の制約
+  source: context.yaml EXT-01
   basis: stated
 - id: TC-03
   statement: 塾の既存のクラウドの一つの地域で動かす
   kind: platform
   source: 利用者の入力、質問 2
   basis: confirmed
+- id: TC-04
+  statement: 生徒と講師の画面は、ブラウザで動く Web アプリにする
+  kind: platform
+  source: context.yaml DIN-01
+  basis: stated
 project_constraints:
 - id: PC-01
   kind: budget
@@ -53,4 +58,3 @@ stakeholders:
   - 新学期に間に合うこと
   source: 利用者の入力
   basis: inferred
-as_is: null

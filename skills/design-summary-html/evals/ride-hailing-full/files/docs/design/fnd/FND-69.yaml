@@ -1,0 +1,14 @@
+id: FND-69
+title: MOD-31 と MOD-32 を同じ jobs/ に置くと、jobs とお金、異常、保持期間ほかの機能の間に import の循環ができる
+status: accepted
+basis: inferred
+basis_note: 報告の「モジュール」の図と文、MOD-31、MOD-32、MOD-33、MOD-42〜MOD-45、MOD-49、MOD-50、MOD-56、MOD-58、MOD-59、MOD-67、MOD-68 の depends_on、POL-02 の規則（機能の間は index.ts からだけ、ディレクトリとモジュールの間の import に循環を作らない、import/no-cycle）は入力。循環は、このレビューのスクリプトが機能のディレクトリの間の依存から見つけた
+premises: []
+raised_by: design-review
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-31, MOD-32]
+severity: minor
+evidence: 報告の図は MOD-32（日々の処理）を上の業務の機能に、MOD-31（期限の来た処理）を下の業務の機能に描くが、どちらも jobs/ に置く。MOD-32 は MOD-44（payments）、MOD-67（anomalies）、MOD-68（retention）に依存し、anomalies、payments、charges、rides、locations、booking、notifications の 7 の機能のモジュールは MOD-31 に依存する。POL-02 ではほかの機能を index.ts からだけ使うので、jobs/index.ts は MOD-31 と MOD-32（IFC-15 の経路）の両方を出し、payments のモジュール → jobs/index.ts → MOD-32 → payments/index.ts → そのモジュールの import の循環になる。POL-02 の「ディレクトリとモジュールの間の import に循環を作らない」と import/no-cycle の検査がこれを退け、報告の「どれも import の循環を作らない」とも合わない。MOD-32 を jobs/ の外に置くと、機能の間に循環はない（このレビューのスクリプト）
+suggestion: MOD-32 を jobs/ の外の上の機能のディレクトリ（daily/ など）に置き、報告の図と文を合わせる
+resolution: 受け入れ。MOD-32 を jobs/ の外の上の機能のディレクトリ daily/ に置き、報告の図と文を合わせた（jobs/ には下の MOD-31 だけが残り、機能の間の import に循環はない）

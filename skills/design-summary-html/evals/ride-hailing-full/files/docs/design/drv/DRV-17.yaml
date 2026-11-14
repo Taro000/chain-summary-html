@@ -1,26 +1,22 @@
 id: DRV-17
-title: 指定の技術で作る
-status: draft
-version: 1
-basis: inferred
-basis_note: 技術は利用者の入力、足してよいことは質問 3、交渉できないことは質問 9 で確認済み。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: TypeScript、React、Hono で作り、Oxlint、Oxfmt、Vitest で確かめる
+status: active
+basis: confirmed
+basis_note: 制約は利用者が与えた設計の与件（入力）。交渉できないことは質問 3 で確認済み。第 2 段階はこの中で各コンポーネントのランタイムを決め、第 2b 段階が技術方針でこれに従う。順位は質問 6 で確認済み
+premises: [TC-01, TC-02, TC-03, TC-04, TC-05, TC-06]
 kind: constraint
-statement: TypeScript で書き、画面は React、サーバーは Hono、静的な検査は Oxlint、整形は Oxfmt、テストは Vitest を必ず使う。足りないところには、ほかの道具やライブラリを足してよい
-sources: [TC-01, TC-02, TC-03, TC-04, TC-05, TC-13]
+statement: コードは TypeScript で書き、画面は React で、サーバーは Hono で作る。静的な検査に Oxlint を、書式の整形に Oxfmt を、試験に Vitest を使う
+sources: [TC-01, TC-02, TC-03, TC-04, TC-05, TC-06]
 concern_of: [STK-01]
 scenario: null
 negotiable: false
 derived_from: []
 priority:
   business: high
-  business_reason: 交渉できない制約（TC-01〜05、TC-13）
+  business_reason: 利用者が与えた交渉できない制約（下書き）
   difficulty: low
-  difficulty_reason: 問題に合う技術で、どの構造でも使える。足りない道具は足してよい
-  rank: 15
-primary: true
+  difficulty_reason: どの妥当な作りもこれらの技術で書ける
+  rank: 16
+primary: false
 conflicts: []
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}

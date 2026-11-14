@@ -1,0 +1,41 @@
+id: POL-01
+title: コンポーネントの種類ごとの技術の組み合わせ
+status: active
+basis: inferred
+basis_note: null
+premises:
+- TC-01
+- TC-04
+- DAS-02
+scope: technology
+addresses:
+- DRV-06
+- DRV-07
+decisions:
+- DEC-01
+- DEC-08
+rules:
+- rule: パッケージの管理は pnpm の一つの workspace で行う
+  check: 検査の手順がロックファイルを変えない入れ方で依存を入れる
+stack:
+- kind: ブラウザで動く Web アプリ
+  elements:
+  - ELM-01
+  - ELM-02
+  language: TypeScript
+  runtime: 生徒と講師のブラウザの今の版と一つ前の版
+  framework: React
+  libraries:
+  - Vite（ビルド）
+  - React Router（画面の移り変わり）
+- kind: HTTP のサーバーと夜間のバッチ
+  elements:
+  - ELM-03
+  - ELM-06
+  language: TypeScript
+  runtime: Node.js の Active LTS の版を、コンテナで（DAS-02）
+  framework: Hono（DEC-08）
+  libraries:
+  - Zod（要求の確かめ）
+  - ObjectStore の SDK（署名付き URL、DEC-02）
+as_is: new

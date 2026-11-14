@@ -1,0 +1,57 @@
+id: MOD-41
+title: EXT-01 のつなぎ口
+status: active
+basis: inferred
+basis_note: 使う 11 の操作、答えの分け方（済んだ、はっきりした拒否、結果が分からない、処理されなかった）、状態を変える呼び出しに試みごとの Idempotency-Key を付けて同じ試みは同じキーと同じ中身で送ること、metadata に attemptId と traceId とこのシステムの不透明な ID だけを入れること、Stripe-Version で版を固定すること、呼び出しごとの記録は IFC-17、DEC-10、DEC-41、DEC-45（入力）。答えの一つ一つを分ける判断表は DEC-45 が第 4 段階に任せたもので、Stripe の文書（第 3 段階の報告の「入力」。実行が始まる前に退けた要求のキーに結果を残さない、同じキーの 500 は同じ答えを返す）からの推定。部品の選び方と自動のやり直しと時間切れの設定は HND-14 を決めたもので、DEC-47（fetch で直接呼び、自動のやり直しをせず、呼ぶ側の期限で切る）。固定する API の版と要求と応答の型は HND-20 で実装に送る。照合が一覧の期間より前に作られた取引を取引の ID で読む（FND-65 を受けた MOD-44）ため呼ぶ側に MOD-44 の読み出しを加え、登録の取引の読み出しの答えに確かめの失敗（last_setup_error）があるかを添える（FND-67 を受けた MOD-42 と MOD-43 の読み直しの分け方）ことは推定
+premises: [EXT-01]
+component: ELM-03
+name: EXT-01 のつなぎ口
+depth: full
+depth_reason: お金を動かす EXT-01 の呼び出しを送り、その答えを、済んだ、はっきりした拒否、結果が分からない、処理されなかったの四つに分ける判断表（DEC-45 が第 4 段階に任せたもの）を持つ。分け方を誤ると、効いたかもしれない試みを済まなかったとしてやり直し、お金が二重に動く（重大さが高）
+responsibility: EXT-01 を呼び、その答えをお金の操作の四つの結果に分ける
+visibility: internal
+interface:
+  - operation: "call(op: Ext01Operation, params: Ext01Params, idempotencyKey: string or none, deadline: Instant) -> Ext01Answer"
+    pre: 呼ぶのは MOD-42 と MOD-43（顧客を作る）と MOD-44（一覧の期間より前に作られた取引の読み出し）だけ。状態を変える呼び出しには、試みの冪等キー（顧客は乗客ごとのキー）を渡す。deadline は IFC-17 の一回の呼び出しのタイムアウト（4 秒、一覧の 1 ページは 10 秒）と待ちの終わりの早い方
+    post: Stripe-Version を付け、自動のやり直しをせず、deadline で切って一度だけ送り、判断表 A で done（求めた状態か、読み出しでは今の状態、取引か返金か登録の ID、額。登録の取引の読み出しは確かめの失敗（last_setup_error）があるかも）、refused（DEC-45 の reason）、unknown（なぜ、分かれば取引の ID、答えが 500 か）、notProcessed（なぜ）のどれかを返す。どの答えも、試みの ID、操作、キー、取引の ID、分け方、時間をたどる記録に残す（額は残し、カードの情報は受けない）
+    errors: []
+  - operation: "findByAttempt(kind: CreationKind, attemptId: AttemptId, scope: CustomerOrPeriod, deadline: Instant) -> Ext01Object or none or unknown"
+    pre: 呼ぶのは MOD-42 だけ（500 の後の作る呼び出しの確かめ）
+    post: 顧客か期間の一覧（GET /v1/payment_intents、GET /v1/refunds）から metadata の attemptId で探し、見つかればその取引か返金を、なければ none を、一覧が読めなければ unknown を返す
+    errors: []
+  - operation: "list(kind: ListKind, createdFrom: Instant, createdTo: Instant, cursor: string or none, deadline: Instant) -> Ext01Page or unknown"
+    pre: 呼ぶのは MOD-44 だけ
+    post: 期間に作られた取引か返金の 1 ページ（MOD-44 の件数）を返す
+    errors: []
+invariants:
+  - 状態を変える呼び出しは、渡された試みのキーと同じ中身でだけ送り、キーを作らない
+  - metadata には attemptId、traceId、このシステムの不透明な ID だけを入れ、名前、連絡先、場所を入れない
+  - 自動のやり直しをせず、一回の call は一つの HTTP の要求
+depends_on: [MOD-21, MOD-22, MOD-28]
+functions: [FR-46]
+realizes:
+  - IFC-17 POST /v1/customers
+  - IFC-17 POST /v1/setup_intents
+  - IFC-17 GET /v1/setup_intents/{id}
+  - IFC-17 POST /v1/payment_intents
+  - IFC-17 POST /v1/payment_intents/{id}/capture
+  - IFC-17 POST /v1/payment_intents/{id}/cancel
+  - IFC-17 GET /v1/payment_intents/{id}
+  - IFC-17 GET /v1/payment_intents
+  - IFC-17 POST /v1/refunds
+  - IFC-17 GET /v1/refunds/{id}
+  - IFC-17 GET /v1/refunds
+drivers: [DRV-07, DRV-18, DRV-32]
+decisions: [DEC-10, DEC-41, DEC-45, DEC-47]
+behaviour: "報告書の節: MOD-41 EXT-01 のつなぎ口"
+verification:
+  - checks: 判断表 A の行ごと（求めた状態、402 の card_error、requires_payment_method、requires_action、実行の後の状態の合わない 400、タイムアウト、つながらない、409、429、500〜504、processing、401、403、実行の前の 400、見分けられない 400、確かめの読み出しへの 401）
+    how: 単体の層（答えの形を与える。NFR-25 の出どころの一つ）
+  - checks: 自動のやり直しをせず、deadline で切る（偽物が受けた要求の数と時刻を数える）
+    how: 単体の層
+  - checks: 試験用の Stripe のサンドボックスで、拒否、状態の合わない 400、同じキーの送り直しの答え、期間の一覧と metadata での探し方が判断表 A のとおりに分かれ、鍵で届くアカウントが設定の名指すものである（POL-04）
+    how: 契約の層（試験の環境の本物の外部サービスの設定）
+  - checks: カードの情報がシステムを通らない（NFR-47）
+    how: 端から端の層と契約の層（NFR-47 の出どころ）
+parameters: []
+as_is: new

@@ -1,41 +1,28 @@
 id: DRV-12
-title: ドライバーの端末の電池がデモの間もつ
-status: draft
-version: 2
+title: 一つの機能の変更はその部分にとどまり、変えなかった機能を公開の前に自動で確かめられる
+status: active
 basis: inferred
-basis_note: シナリオは QR-06・NFR-26 から（入力）。端末が iPhone だけであることは質問 7・10 で確認済み。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-kind: quality
-statement: ドライバーの Web アプリは、受付中に前面に開き続けても、デモの間に電池を使い切らない
-sources: [QR-06, NFR-26, FR-17, FR-18, FR-52]
-concern_of: [USR-02]
+basis_note: 変更のシナリオは QR-52（重視、QR-01 を支える内部品質）と QR-38（最低限守る線）と NFR-40 のゲート（入力）から。将来の変更は利用者が挙げていない（設計の与件）ため、変更の刺激は CUJ-11、CUJ-12、CUJ-13 の作業から取った。順位は質問 6 で確認済み
+premises: []
+kind: change
+statement: 一つの機能の追加や修正と、利用技術のバージョンアップに伴う変更は、それを受け持つ部分にとどまり、変えなかった機能が以前どおりに振る舞うことを公開の前に自動で確かめられる
+sources: [QR-52, QR-38, NFR-40]
+concern_of: [USR-03]
 scenario:
-  source: ドライバー（USR-02）
-  stimulus: 受付中に画面を点けたまま前面に開き、現在地を送り続ける
-  artifact: ドライバーの Web アプリ（FR-17、FR-18、FR-52）
-  environment: ドライバーが使う iPhone と iOS の Safari、満充電、デモ 1 回 N_session_hours（3 時間）
-  response: デモの間、電池が切れずに受付を続けられる
-  measure: ドライバーが使う iPhone で、3 時間電池が切れない（NFR-26、デモの期間の前の監査）
+  source: エンジニア（USR-03）
+  stimulus: 機能を加えるか直すか、利用技術の版を上げる（CUJ-11、CUJ-12、CUJ-13）
+  artifact: その機能か利用技術を受け持つ部分
+  environment: 開発の間と公開の前
+  response: 変更はその部分にとどまり、変えなかった機能が公開の前と同じに振る舞うことが、自動の試験と部分の間の依存の検査で確かめられる
+  measure: NFR-40 のゲート
 negotiable: null
 derived_from: []
 priority:
-  business: medium
-  business_reason: QR-06 は最低限守る線
+  business: high
+  business_reason: QR-52 は重視（QR-01 を支える内部品質）
   difficulty: medium
-  difficulty_reason: DRV-03 と引き換えになる。端末に左右され、iPhone だけで確かめる
-  rank: 28
-primary: false
-conflicts:
-  - with: DRV-03
-    note: 現在地を細かく送るほど、画面を点け続けるほど電池が減る（QR-27 と QR-06）。送る間隔は 10 秒を上限にし、最新性の求めより細かくしない
-placeholders:
-  - name: N_session_hours
-    meaning: デモ 1 回の長さ（3 時間）
-    from: context.yaml の運用の事実
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
-  - version: 2
-    date: 2026-11-03
-    change: 電池の確かめを、ドライバーが使う iPhone で行うと書いた
-    reason: 品質チェーンの再実行（NFR-26 版 3。回答の設計 1-3）に追随した（第 1 段階の再実行、3 回目）
+  difficulty_reason: 機能ごとの部分の分け方と依存の決まりを初めから持ち、1 人で回せる自動の試験で守る。部分の分け方は後から変えにくい
+  rank: 12
+primary: true
+conflicts: []
+placeholders: []

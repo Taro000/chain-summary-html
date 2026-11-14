@@ -1,29 +1,14 @@
 id: FND-32
-title: 依頼の支払いの状態遷移図に、押さえの解放・未払いの支払い・返金・押さえ直しの結果が分からない状態がなく、released を確かめないまま終わりにしうる
+title: IFC-02 と DAT-07 が、頼っている CON-01 と TC-12 を前提に挙げていない
 status: accepted
-version: 2
 basis: inferred
-basis_note: 報告書の「依頼の支払いの状態」の図、結果が分からないときの約束（payment.state = checking）、IFC-02 と IFC-06 の 202 の行、仕様書の PaymentState の列挙は入力。図に従ったときに起きることは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: IFC-02 と DAT-07 の basis_note と premises、CON-01、TC-12 は入力。頼っていることは、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+raised_in: reviews/3-high-level-design.md
 to: architecture-to-high-level-design
-targets:
-- IFC-02
-- IFC-03
-- IFC-06
-- IFC-08
-severity: major
-evidence: 報告書の「依頼の支払いの状態」の図は、held から released（無料の取り消し、確かめられなかった到着での不在）を直接つなぎ、released を終わりにする。押さえの取り消しの結果が分からない間の状態はない。一方でエラーの決まりは、取り消し、不在、乗車の終了で Stripe の結果が分からなければ「200 と payment.state = checking を返す」とするが、図の checking は capturing からだけ入り、出口は paid と unpaid だけ。無料の取り消しの解放が分からないまま checking にすると、確かめて解放が分かっても released に出る道がない。図に従って released にすると、結果の分からない操作を終わりの状態で隠す（活動 B9 が見るもの）。未払いの支払い（202 PAYMENT_PENDING）、返金（202 REFUND_PENDING）、押さえ直し（202 DESTINATION_CHANGE_PENDING。図は held から held の一本だけ）も、結果が分からない間の状態がない。仕様書の PaymentState の列挙（passenger.openapi.yaml ほか、同じスキーマ）も図と同じで、乗客の画面（ELM-01）、ドライバーの画面（ELM-02）、サーバー（ELM-04）は第 4 段階で別々にこの状態を解く
-suggestion: 押さえの解放、未払いの支払い、返金、押さえ直しのそれぞれに、結果が分からない間の状態と出口を描く（例として releasing と release_checking、unpaid_paying、refund_checking、rehold_checking）。checking を確定の確かめだけに絞るか、checking から released への出口を足す。PaymentState の列挙と、エラーの決まりの payment.state をそれに合わせる
-resolution: "受け入れた。支払いの状態に release_checking（押さえの取り消しの結果が分からない間）と unpaid_checking（未払いの支払いの結果が分からない間）を足し、PaymentState を 13 値にした。checking は確定の確かめだけに絞った。押さえ直しを確かめている間は held のまま（新しい押さえはお金の操作で追う）、返金を確かめている間は paid か partially_refunded のまま（返金の操作で追い、返金できる残りの額から引く）と図の注に書いた。仕様書とエラーの決まりの payment.state をそろえた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B3、B9）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+targets: [IFC-02, DAT-07]
+severity: minor
+evidence: IFC-02 の basis_note は、見積もりの示した料金を確定額にすることを CON-01 によるとし、POST /v1/quotes はそれに頼るが、premises は EXT-02 と TC-12 だけ。DAT-07 は、乗る場所の位置と乗車を始めた位置を同じ WGS84 で比べられることを、地図の製品（TC-12）の場所の位置が WGS84 であることで確かめて HND-02 を決めたが、premises は CON-01 と CON-06 だけ。CON-01 か TC-12 が変わったときに、この二つが見直す項目として見つからない
+suggestion: IFC-02 の premises に CON-01 を、DAT-07 の premises に TC-12 を加える
+resolution: IFC-02 の premises に CON-01 を、DAT-07 の premises に TC-12 を加えた

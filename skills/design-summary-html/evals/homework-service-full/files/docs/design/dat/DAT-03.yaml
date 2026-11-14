@@ -1,13 +1,11 @@
 id: DAT-03
 title: 提出のファイル
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 entity: 提出のファイル
-owner: ELM-01
+owner: ELM-03
 store: ELM-05
 key_attributes: []
 relations: []
@@ -15,9 +13,5 @@ consistency: 署名付き URL で一度だけ置く
 retention: 卒業の後 1 年
 classification: personal（生徒の答案）
 drivers: []
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

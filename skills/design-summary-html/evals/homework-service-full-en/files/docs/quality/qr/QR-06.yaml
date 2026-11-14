@@ -1,15 +1,13 @@
 id: QR-06
 title: Tolerance of storage failures
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: [EXT-01]
 model: product
 layer: external
 characteristic: reliability > fault tolerance
-statement: Attached files are not lost even when the external storage fails for a while.
+statement: Attached files are not lost even when the external storage (EXT-01) fails for a while.
 applies_to: [FR-01, FR-06]
 traces_to: [QIU-01]
 entry_point: null
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}

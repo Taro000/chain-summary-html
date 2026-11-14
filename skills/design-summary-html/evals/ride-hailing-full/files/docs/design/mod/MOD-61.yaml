@@ -1,0 +1,39 @@
+id: MOD-61
+title: 乗車の記録
+status: active
+basis: inferred
+basis_note: 乗客の過去の乗車と料金を請求した依頼を、日時、区間、支払った額、返金の額、請求した額とその種類、決済が済んでいるかとともに新しい順に返し、一つの乗車の支払った額、確定した料金、区間（変えた後の区間と承認した料金）、返金、評価を返すことは IFC-09 と FR-31、担当者が乗客、ドライバー、期間で乗車と料金を請求した依頼を探し、一つの記録を返すことは IFC-12 と FR-38、一覧の区切りは DEC-39、個人を特定できない形に変えた記録の示し方は FR-51 の 2（どれも入力）
+premises: []
+component: ELM-03
+name: 乗車の記録
+depth: bounds
+depth_reason: null
+responsibility: 終わった乗車と料金を請求した依頼の記録を、乗客と担当者に返す
+visibility: public
+interface:
+  - operation: "pastRides(actor: Actor, page: PageRequest) -> Page<PastRide>; pastRide(actor: Actor, rideId: RideId) -> PastRideDetail"
+    pre: null
+    post: GET /v1/past-rides と GET /v1/past-rides/{rideId} に、その乗客の乗車と料金を請求した依頼を新しい順に、決済が済んでいない乗車はそうと分かるように返す。なければ空の items
+    errors: ["NOT_FOUND: 404（その乗客の乗車でない）"]
+  - operation: "searchRides(actor: Actor, criteria: RideSearch) -> Page<RideSummary>; rideRecord(actor: Actor, rideId: RideId) -> RideRecord"
+    pre: null
+    post: POST /v1/console/rides/search と GET /v1/console/rides/{rideId} に、乗客、ドライバー、期間で探した乗車と料金を請求した依頼と、一つの記録（乗る場所と降りる場所、到着を確認した場所、各段階の時刻、ドライバーと車、料金、決済と返金の額、評価、誰がどの段階で終えたか、請求した額とその種類）を返す。個人を特定できない形に変えた記録は状態の変化の種類と時刻だけ
+    errors: ["VALIDATION_FAILED: 400", "NOT_FOUND: 404"]
+invariants: []
+depends_on: [MOD-23, MOD-25, MOD-27, MOD-33, MOD-37, MOD-45, MOD-53, MOD-56, MOD-57, MOD-59]
+functions: [FR-31, FR-38, FR-51]
+realizes:
+  - IFC-09 GET /v1/past-rides
+  - IFC-09 GET /v1/past-rides/{rideId}
+  - IFC-12 POST /v1/console/rides/search
+  - IFC-12 GET /v1/console/rides/{rideId}
+drivers: [DRV-21, DRV-29, DRV-30]
+decisions: [DEC-15, DEC-39]
+behaviour: null
+verification:
+  - checks: 履歴と記録の項目、料金を請求した依頼、決済が済んでいない乗車、空の items（FR-31 の 1〜4、FR-38 の 1〜4）
+    how: 結合の層
+  - checks: その乗客の乗車だけを返し、個人を特定できない形に変えた記録が誰のものか分からない（FR-49 の 2、FR-51 の 2）
+    how: 結合の層（時計の偽物）
+parameters: []
+as_is: new

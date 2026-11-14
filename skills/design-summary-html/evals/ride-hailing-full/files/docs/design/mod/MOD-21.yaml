@@ -1,0 +1,53 @@
+id: MOD-21
+title: 時計と ID
+status: active
+basis: inferred
+basis_note: 時刻、乱数、ID のもとを src/platform/ の時計と ID の作り手だけが使い、ほかのコードは渡されたものを使うことは POL-02、テストがそれを替えることは POL-03、公開する ID を種類の接頭辞と ULID にし、サインインの ID を Crockford の Base32 の 8 文字にすることは DEC-36、端末の時刻の直し方と日で数える時間帯は DEC-37（どれも入力）
+premises: []
+component: ELM-03
+name: 時計と ID
+depth: bounds
+depth_reason: null
+responsibility: 今の時刻と、ID と乱数を、テストが差し替えられる一つのもとから渡す
+visibility: internal
+interface:
+  - operation: "now() -> Instant"
+    pre: null
+    post: UTC の今の時刻（ミリ秒まで）
+    errors: []
+  - operation: "today(at: Instant) -> LocalDate"
+    pre: null
+    post: その時刻の Asia/Tokyo の日付（DEC-37）
+    errors: []
+  - operation: "newId(kind: IdKind) -> string"
+    pre: null
+    post: 種類の接頭辞と ULID を _ でつないだ ID（DEC-36）
+    errors: []
+  - operation: "newRequestId() -> RequestId; newTraceId() -> Uuid; newLoginId() -> LoginId"
+    pre: null
+    post: 要求の ID（ULID）、たどる ID（UUID v4）、サインインの ID（Crockford の Base32 の 8 文字で、I、L、O、U を使わない）
+    errors: []
+  - operation: "randomBytes(n: integer) -> bytes"
+    pre: null
+    post: 暗号に使える乱数
+    errors: []
+  - operation: "correctDeviceTime(t: DeviceTime, receivedAt: Instant) -> Instant"
+    pre: null
+    post: 端末の時刻を DEC-37 の式でサーバーの時刻に直したもの
+    errors: []
+invariants: []
+depends_on: []
+functions: []
+realizes: []
+drivers: [DRV-33, DRV-27]
+decisions: [DEC-36, DEC-37]
+behaviour: null
+verification:
+  - checks: 端末の時刻の直し方と、Asia/Tokyo の日付の変わり目（UTC の 15:00）の前と後
+    how: 単体の層
+  - checks: ほかのコードが Date、Math.random、crypto.randomUUID を使わない
+    how: 依存の規則の検査（POL-02 の no-restricted-globals）
+  - checks: テストの時計と種を決めた作り手に替えられる
+    how: 単体の層と結合の層（POL-03 の時計と ID の偽物）
+parameters: []
+as_is: new
