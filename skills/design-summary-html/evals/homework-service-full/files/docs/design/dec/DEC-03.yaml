@@ -1,11 +1,9 @@
 id: DEC-03
 title: 記録を書いてから受領を示す
-status: draft
-version: 1
+status: active
 basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+basis_note: FND-01 を受けて、受領を先に示す案から改めた
+premises: []
 stage: architecture
 question: 受領の表示を、提出の記録とどう一致させるか
 addresses:
@@ -19,10 +17,10 @@ options:
   effect: 確定が速い
   cost: 記録が欠けても受領が出る
 chosen: 一つのトランザクションで記録を書き、受領を返す
-rationale: 原則 DRV-09 に従う。前の版は、受領を先に示していた（FND-01）。
+rationale: 原則 DRV-09 に従う（FND-01 を受けて改めた）。受領を先に示すと、記録が欠けても受領が出る。
 rejected:
 - option: 受領を先に返し、記録は後で書く
-  reason: 記録が欠けうる（DRV-03 版 2）
+  reason: 記録が欠けうる（DRV-03）
 gains:
 - 受領が出たら必ず記録がある
 costs:
@@ -37,11 +35,4 @@ depends_on:
 - DEC-01
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

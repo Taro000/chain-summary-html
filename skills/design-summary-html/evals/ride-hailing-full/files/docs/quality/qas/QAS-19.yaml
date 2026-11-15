@@ -1,0 +1,12 @@
+id: QAS-19
+title: 評価の信ぴょう性（QR-27）は今期は対象外
+status: open
+stage: 3
+kind: decision
+statement: 評価がその乗車に乗った乗客からだけ付くこと（QR-27）を、今期は対象外とする。
+why_unsure: アカウントは担当者が作り、評価は乗り終えた乗車に一つだけ付くため偽の評価を作る道は細いとみたが、事業が評価の操作をどれほど気にするかは入力にない。
+breadth: low
+severity: low
+rating_note: QR-27 だけが依存する。後から最低限守る線に上げるのは容易
+answer: null
+answered_in: null

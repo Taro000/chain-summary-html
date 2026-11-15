@@ -1,0 +1,14 @@
+id: FRP-13
+title: 許諾のない依頼を、取り消す前に乗客に知らせて、待ち続けるか取り消すかを選ばせる（FR-04 の変更）
+status: accepted
+basis: assumed
+basis_note: "振る舞いと T_no_accept の仮の 30 分は第 4 段階の決めたこと #19（未確認の仮定の一覧への訂正）。システムが取り消すまでの T_no_accept は仮に 30 分。知らせる時点 T_wait_prompt の値は未定で、5 分を提案した（QAS-53）"
+premises: [QAS-53]
+proposed_by: product-quality-to-slo
+origin: []
+changes: FR-04
+reason: 利用者は、許諾のない依頼をシステムが取り消すまでを仮に 30 分とし、それより前に乗客に知らせて、待ち続けるか取り消すかを選べるようにすると答えた。FR-04 は T_no_accept の間に許諾がなければ依頼を終えるだけで、その前に乗客に選ばせない。品質要求からではなく、仮定への訂正から出た提案のため、origin は空にした。
+suggested_statement: 依頼してから T_wait_prompt の間どのドライバーも許諾しないとき、システムは乗客に知らせ、待ち続けるか取り消すかを選べるようにする。T_no_accept の間許諾がなければ、システムは依頼を終え、ドライバーが見つからなかったことを乗客に伝える。
+affects: []
+placeholders: [{name: T_wait_prompt, meaning: 許諾のない依頼について乗客に知らせ、待ち続けるか取り消すかを選ばせるまでの、依頼してからの時間}]
+resolution: "受け入れ。FR-04（新規）をその場で変えた。第 4 段階の決めたこと #19 に従う。T_wait_prompt は 5 分（QAS-53）。ドライバーが取り消して届け直した依頼（FR-23）も同じに扱う。"

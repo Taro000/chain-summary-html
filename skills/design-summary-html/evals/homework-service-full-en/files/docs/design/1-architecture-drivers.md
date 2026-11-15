@@ -1,27 +1,45 @@
 # Architecture drivers: Homework submission service
 
-Status: answers applied · Updated: 2026-09-15 · Stage 1 of 4
+Status: answers applied · Updated: 2026-09-15 · Inputs as of: none · Stage 1 of 4
 
 ## Summary
 
 Four primary drivers (the deadline rush, receipts matching records, the external storage, fast confirmation). Feasible with this budget and team.
 
-## Design inputs and stakeholders
+## Inputs
+| Source | What it gave |
+|---|---|
+| docs/quality/ | Users, CUJs, FRs, QRs, NFRs, SLIs |
+| User input (2026-09-15) | Technology and project constraints |
 
-| ID | Kind | Statement | Source | Basis |
+## Boundary and the outside
+| Outside | Kind | Exchanges with the system through |
+|---|---|---|
+| USR-01 Students | User | Screens (FR-01, FR-02, FR-06) |
+| USR-02 Teachers | User | Screens (FR-03, FR-05, FR-08) |
+| EXT-01 External storage | External system | Files (FR-01) |
+
+## Current structure
+
+Built from scratch; there is no code yet.
+
+## Design context
+<!-- generated: design-context -->
+| ID | Label | Kind | Source | Basis |
 |---|---|---|---|---|
-| TC-01 | Technology constraint: Mandated | Written in TypeScript | User input | Stated |
-| TC-02 | Technology constraint: External service | Submitted files are kept in an external storage service (ObjectStore) | context.yaml constraints | Stated |
-| TC-03 | Technology constraint: Platform | Runs in one region of the school's existing cloud account | User input, question 2 | Confirmed |
-| PC-01 | Budget | Within 30,000 yen a month | User input | Stated |
-| PC-02 | Deadline | Release before the new school year (April) | User input | Stated |
-| PC-03 | Team | Two developers; no dedicated operations engineer | User input | Stated |
-| TEAM-01 | Team | Development team | — | Stated |
-| CHG-01 | Anticipated change | Add screens for parents | User input | Stated |
-| STK-01 | Stakeholder | The cram school's owner | User input | Inferred |
+| TC-01 | TypeScript | mandated | User input | stated |
+| TC-02 | External storage | external service | context.yaml EXT-01 | stated |
+| TC-03 | The school's cloud | platform | User input, question 2 | confirmed |
+| TC-04 | Web apps | platform | context.yaml DIN-01 | stated |
+| PC-01 | Monthly cost | budget | User input | stated |
+| PC-02 | New school year | deadline | User input | stated |
+| PC-03 | Two developers | team | User input | stated |
+| TEAM-01 | Development team | team structure | — | stated |
+| CHG-01 | Parents' screens | anticipated change | User input | stated |
+| STK-01 | Owner | stakeholder | User input | inferred |
+<!-- /generated -->
 
 ## Concern inventory
-
 | Input item | Kind | Whose concern | Became |
 |---|---|---|---|
 | QR-01 | Quality | USR-01 | DRV-01 |
@@ -35,69 +53,87 @@ Four primary drivers (the deadline rush, receipts matching records, the external
 | QR-04 | Quality | USR-02 | set aside: excluded this cycle |
 
 ## Architecture drivers
-
-### Quality and change scenarios
-
-| DRV | Source | Stimulus | Artifact | Environment | Response | Measure | Basis |
-|---|---|---|---|---|---|---|---|
-| DRV-01 Keep accepting submissions in the rush before a deadline | Students (USR-01) | Submit in the hour before a deadline | FR-01 | The rush before a deadline (300 submissions a minute) | The submission is accepted and the receipt is shown | 99.5% of valid submissions succeed over a rolling 28 days (NFR-01) | Inferred |
-| DRV-02 Confirm submissions without keeping students waiting | Students (USR-01) | Submit | FR-01, FR-02 | The rush before a deadline | The receipt is shown | The 95th percentile of submission confirmation is within 3 seconds (NFR-06) | Inferred |
-| DRV-03 Receipts match the submission records | Students (USR-01) | Submit | FR-02 | Normal operation and the rush before a deadline | The receipt matches the record | No receipt without a record (NFR-07 version 2) | Inferred |
-| DRV-04 Screens for parents can be added | Development team | Add the parents' screens | The web apps and the API | After release | Added without changing the existing screens and APIs | Within 4 weeks for two developers | Inferred |
-
-### Constraints
-
-| DRV | Constraint | Negotiable | Source | Basis |
-|---|---|---|---|---|
-| DRV-05 Submitted files are kept in the external storage | Submitted files go to the external storage (ObjectStore), never to our servers | Non-negotiable | TC-02 | Stated |
-| DRV-06 Built and run by two developers within 30,000 yen a month | Two developers build and run it, for at most 30,000 yen a month | Non-negotiable | PC-01, PC-03 | Stated |
-| DRV-10 (retired) | Merged into DRV-05 | — | — | — |
-
-### Functional, observability and security drivers
-
-| DRV | Kind | Statement | Sources | Basis |
-|---|---|---|---|---|
-| DRV-07 Trace a failed submission with one trace ID | Observability | A failed submission can be traced from the browser to the storage with one trace ID | QR-10, FR-04, NFR-09 | Inferred |
-| DRV-08 Protect students' answers and personal information | Security | Only the student and their teacher can open a submission and its grade | QR-09, NFR-08 | Inferred |
-
-### Principles
-
-| DRV | Principle | Derived from | Basis |
-|---|---|---|---|
-| DRV-09 Write the record before showing the receipt | A submission shows its receipt only after its record is written, never before | DRV-03, DRV-01 | Inferred |
+<!-- generated: drivers -->
+| DRV | Title | Kind | Negotiable | Sources | Premises | Basis |
+|---|---|---|---|---|---|---|
+| DRV-01 | Keep accepting submissions in the rush before a deadline | quality | — | QR-01, NFR-01, SLI-01, TC-02 | TC-02 | inferred |
+| DRV-02 | Confirm submissions without keeping students waiting | quality | — | QR-02, NFR-06 | — | inferred |
+| DRV-03 | Receipts match the submission records | quality | — | QR-03, QR-07, NFR-03, NFR-07 | — | inferred |
+| DRV-04 | Screens for parents can be added | change | — | CHG-01 | CHG-01 | inferred |
+| DRV-05 | Submitted files are kept in the external storage | constraint | no | TC-02 | TC-02 | inferred |
+| DRV-06 | Built and run by two developers within 30,000 yen a month | constraint | no | PC-01, PC-03 | PC-01, PC-03 | inferred |
+| DRV-07 | Trace a failed submission with one trace ID | observability | — | QR-10, FR-04, NFR-09 | — | inferred |
+| DRV-08 | Protect students' answers and personal information | security | — | QR-09, NFR-08 | — | inferred |
+| DRV-09 | Write the record before showing the receipt | principle | no | QR-07 | — | inferred |
+<!-- /generated -->
 
 ## Ranking table
-
-| Rank | DRV | Business priority | Reason | Design difficulty | Reason | Primary |
-|---|---|---|---|---|---|---|
-| 1 | DRV-01 | High | QR-01 is emphasized (CUJ-01) | High | Submissions peak before deadlines and rely on the external storage | Yes |
-| 2 | DRV-03 | High | QR-03 and QR-07 are emphasized (CUJ-01, 04) | Medium | The files and the records are kept in different places | Yes |
-| 3 | DRV-05 | High | A non-negotiable constraint | Medium | A storage outage can stop submissions | Yes |
-| 4 | DRV-02 | Medium | QR-02 is a minimum line | Medium | Writing the record first adds time (DRV-09) | Yes |
-| 5 | DRV-06 | High | A non-negotiable constraint | Low | Met by keeping the structure small | No |
-| 6 | DRV-04 | Medium | An anticipated change (CHG-01) | Low | Adding a role is expected to be enough | No |
-| 7 | DRV-07 | Medium | QR-10 is a minimum line | Low | Consistent log fields are enough | No |
-| 8 | DRV-08 | High | QR-09 is emphasized (a law) | Low | Checking the role and the class is enough | No |
+<!-- generated: ranking -->
+| Rank | DRV | Business priority | Design difficulty | Primary |
+|---|---|---|---|---|
+| 1 | DRV-01 | high | high | yes |
+| 2 | DRV-03 | high | medium | yes |
+| 3 | DRV-05 | high | medium | yes |
+| 4 | DRV-02 | medium | medium | yes |
+| 5 | DRV-06 | high | low | no |
+| 6 | DRV-04 | medium | low | no |
+| 7 | DRV-07 | medium | low | no |
+| 8 | DRV-08 | high | low | no |
+<!-- /generated -->
 
 The first four are primary.
 
 ## Conflicts
-
-| Drivers | Conflict | Resolved by |
-|---|---|---|
-| DRV-01 and DRV-02 | Writing the record before the receipt slows the confirmation | Stage 2 |
+<!-- generated: conflicts -->
+| Drivers | Resolved by |
+|---|---|
+| DRV-01, DRV-02 | Stage 2 (DEC-03) |
+<!-- /generated -->
 
 ## Feasibility
+| DRV | Known way with this budget, deadline and team | Why |
+|---|---|---|
+| DRV-01 | Yes | One server is enough if files do not pass through it |
+| DRV-03 | Yes | Written in one transaction |
+| DRV-05 | Yes | With ObjectStore's signed URLs |
+| DRV-02 | Likely | Checked with the hop budgets of confirmation |
 
-| Primary driver | Verdict |
-|---|---|
-| DRV-01 | Yes: one server is enough if files do not pass through it |
-| DRV-03 | Yes: written in one transaction |
-| DRV-05 | Yes: with ObjectStore's signed URLs |
-| DRV-02 | Likely: checked with the hop budgets of confirmation |
+## Findings
+<!-- generated: findings -->
+| FND | Title | Severity | Raised by | To | Status | Items changed |
+|---|---|---|---|---|---|---|
+<!-- /generated -->
 
-## Questions and answers
+## Hand-offs
+<!-- generated: handoffs -->
+| HND | Title | From | To | Component | Status | Decided in |
+|---|---|---|---|---|---|---|
+| HND-01 | How fast the storage answers a PUT | requirements-to-architecture-drivers | architecture-to-high-level-design | — | decided | IFC-03 |
+<!-- /generated -->
 
-| # | Question | Drafted answer | Answer | What changed |
-|---|---|---|---|---|
-| 1 | The peak number of submissions before a deadline? | 300 a minute | As drafted | Nothing |
+## Decisions
+| # | Question | Answer | Items |
+|---|---|---|---|
+| 1 | The peak number of submissions before a deadline? | 300 a minute (as drafted) | DRV-01 |
+
+## Open assumptions
+<!-- generated: assumptions -->
+| ID | Title | Kind | Breadth | Severity | Items that depend on it |
+|---|---|---|---|---|---|
+<!-- /generated -->
+
+## Placeholders
+
+None.
+
+## Open gaps
+
+None.
+
+## Out of scope
+
+The content of the parents' screens (CHG-01).
+
+## Next
+
+Run architecture-drivers-to-architecture.

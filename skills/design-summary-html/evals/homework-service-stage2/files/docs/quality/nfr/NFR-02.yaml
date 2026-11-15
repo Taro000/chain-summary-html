@@ -1,19 +1,15 @@
 id: NFR-02
 title: 夜間レポートの締め切りの SLO
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: assumed
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: [QAS-03]
 from: [QR-08]
 kind: slo
 cuj: CUJ-04
 statement: 直近 28 日で、夜間レポートの 99% が毎朝 6:00 までに終わる。
-conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
-slo: {sli: SLI-02, target: 99%, target_status: provisional, target_rationale: 提案, window: 28-day rolling, error_budget: '28 日のうち 1% までの夜は 6:00 を過ぎてよい', error_budget_volume: 28 日で 0.28 回（1 回でも遅れると使い切る）, policy: EBP-02, bad_run_budget_share: 1 回の遅れでバジェットの 357%, progress_alert: 'NFR-05（5:30 に終わっていなければ知らせる）', after_miss: ticket}
+conditions: {workload: 締め切り前の 24 時間の集中まで（OPF-01）, users: 生徒と講師。試験用のアカウントを除く, transactions: 提出}
+slo: {sli: SLI-02, target: 99%, target_status: provisional, target_rationale: 運用の実績がないので仮に採った（QAS-03）, window: 28-day rolling, error_budget: '28 日のうち 1% までの夜は 6:00 を過ぎてよい', error_budget_volume: 28 日で 0.28 回（1 回でも遅れると使い切る）, policy: EBP-02, bad_run_budget_share: 1 回の遅れでバジェットの 357%, progress_alert: 'NFR-05（5:30 に終わっていなければ知らせる）', after_miss: ticket}
 gate: null
 audit: null
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

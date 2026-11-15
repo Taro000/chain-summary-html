@@ -1,11 +1,9 @@
 id: QR-12
 title: Correct grading
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: []
 model: product
 layer: external
 characteristic: functional suitability > functional correctness
@@ -13,7 +11,7 @@ statement: The returned score matches the score the teacher gave.
 applies_to: [FR-03]
 traces_to: [QIU-03]
 entry_point: null
-stakeholders: [USR-01]
+stakeholders: [USR-01, USR-02]
 failure_scenario: Saving the score goes wrong, and a different score is returned.
 score: {impact: 4, likelihood: 2}
 handling: emphasized
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}

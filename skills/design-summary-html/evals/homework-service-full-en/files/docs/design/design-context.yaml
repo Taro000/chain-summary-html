@@ -11,13 +11,18 @@ technology_constraints:
 - id: TC-02
   statement: Submitted files are kept in an external storage service (ObjectStore)
   kind: external-service
-  source: context.yaml constraints
+  source: context.yaml EXT-01
   basis: stated
 - id: TC-03
   statement: Runs in one region of the school's existing cloud account
   kind: platform
   source: User input, question 2
   basis: confirmed
+- id: TC-04
+  statement: The screens for students and teachers are web apps that run in the browser
+  kind: platform
+  source: context.yaml DIN-01
+  basis: stated
 project_constraints:
 - id: PC-01
   kind: budget
@@ -53,4 +58,3 @@ stakeholders:
   - Ready for the new school year
   source: User input
   basis: inferred
-as_is: null

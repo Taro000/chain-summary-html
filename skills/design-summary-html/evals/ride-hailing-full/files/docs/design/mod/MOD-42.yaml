@@ -1,0 +1,82 @@
+id: MOD-42
+title: お金の操作の試み
+status: active
+basis: inferred
+basis_note: お金の操作の試みごとに先に記録を書き、その試みだけを覆うキーで送り、答えがなければ結果が分からない状態として持って同じキーで送り直すか読み直して確かめ、はっきり拒否された試みのやり直しは新しいキーの新しい試みにすることは DEC-10、EXT-01 の結果をこのシステムから読みに行くことは DEC-11、試みの状態と、送る前の取引で結果が分からないとして nextCheckAt とともに書き、答えを受けた後の取引で結果と持ち主の状態を一緒に書き、呼び出しをまたぐ取引を作らないこと、一つの乗車の決済、一つの依頼の料金、一つの返金に済んだか結果が分からない試みを一つまでにすること、処理されなかった試みは数に入らず、利用者が待たない押さえの解除と料金の請求は期限の処理が新しい試みを作ることは DAT-11 と DEC-45、利用者が待つ試みの一回 4 秒、0.5 秒置いて同じキーで一度の送り直しか読み直し、最初に送ってから 8.5 秒か答えの期限から結果の取引の 0.1 秒を引いた時刻の早い方で切ること、確かめの間隔（待ちの後 30 秒、1、2、4、8 分、以後 10 分ごと）、同じキーの送り直しは最初に送ってから 23 時間のうちだけで、500 の後と 23 時間の後は読み出しで確かめること、インスタンスが 0 の間は日々の処理が確かめることは IFC-17（DAS-10）と DEC-18（どれも入力）。取引の ID が分かっている確定と解除の試みを、500 か processing の後の読み出しで、取引が求めた結果なら済んだ、操作をもうできない状態ならはっきりした拒否で異常、processing なら分からないまま、変わっていなければ待ちの後（利用者が待たない試みは最初の呼び出しの後）の最初の確かめの時刻から後に処理されなかったとし、取引の状態が操作に合わないと退けられた確定と解除を取引を読んで決め、どちらも異常にすることは DEC-45、IFC-17、DAT-11（FND-55 を受けた第 3 段階の変更、入力）。取引が変わらないまま処理されなかったとした確定の要求が後で効きうることの扱い（押さえを解いて決めることと、解除が確定済みに退けられたらその処理の試みを読んだ額で済んだとすること）は DEC-45、IFC-17、DAT-11（FND-58 を受けた第 3 段階の変更、入力）で、持ち主の MOD-56 が決め、ここはそのための試み（createFromRead）を書く。payment_pending の依頼への新しいキーの決済に、その試みを確かめた結果を答える（checkNow）ことは IFC-03 の idempotency（入力）。持ち主を種類ごとに起動のときに登録させること、最初の確かめの時刻を試みに書いて比べること、not_processed の理由と読んだ取引の状態を結果とともに持ち主に渡すこと、判断表 B と C の行の分け方は推定。実行の前に退けた答え（notProcessed）で試みを not_processed（before_execution）に終えるのを、状態を変える試みの初めての呼び出しへの答えだけにし（読み直しの試みの読み出しが処理されなかったときは IFC-07 のとおり結果が分からないまま）、同じキーの送り直しと確かめの読み出しの notProcessed と read_rejected は結果が分からないまま確かめ続けて異常にすること（判断表 B の二回目と判断表 C の送り直しの行）は、DEC-45 と IFC-17（入力）に従うよう FND-62 を受けて直した。初めての呼び出しを見分けるため firstSentAt をその呼び出しの前に書いて確定すること（利用者が待つ試みは作る取引で、利用者が待たない試みは初めて送る前の書き込みで）は推定。登録の取引の読み直し（setup_result）で、requires_payment_method を確かめの失敗（last_setup_error）を持つときだけ拒否とし、持たないときと requires_confirmation、requires_action を端末がまだ確かめていない（refused の not_confirmed）とすることは、IFC-17 の「確かめた後の requires_payment_method」（入力）と EXT-01 の登録の取引の状態の決まり（EXT-01）からの推定で、FND-67 を受けた
+premises: [EXT-01]
+component: ELM-03
+name: お金の操作の試み
+depth: full
+depth_reason: 結果が分からないお金の操作の試みを、同じ試みのまま確かめ続けて一つの結果に定め、利用者が待つ試みの送り直しと待ちを持つ（お金を動かし、結果が分からない状態を確かめる）。一つの操作に済んだか結果が分からない試みを一つまでにする決まりを、同時に試みを作る仕事の間で保つ（同時に動く仕事と状態を分ける）
+responsibility: お金の操作の試みを書いてから送り、結果が分かるまで同じ試みのまま確かめて、持ち主に結果を渡す
+visibility: internal
+interface:
+  - operation: "create(tx: Tx, attempt: NewAttempt) -> Attempt"
+    pre: 持ち主は、その操作のそれまでの試みがどれも refused か not_processed で終わっていることを同じ取引で読んである
+    post: 状態 unknown、試みごとの新しいキー、操作の鍵（operationKey）、額、解除なら目的（purpose）、押さえ直しなら替える押さえ、nextCheckAt と firstCheckAt（どちらも作った時刻と待ち 8.5 秒と 30 秒の和）で書き、確かめの処理（attempt_check）を MOD-31 に書く。sendWaiting で送る試みは firstSentAt も作った時刻で書く（作る取引が確定した後にすぐ初めて送るため、初めての呼び出しの前に確定している）
+    errors: ["OneOpenAttemptAlready: その操作に unknown か succeeded の試みがすでにある（一意の決まりで退けた。呼ぶ側は取引を止めて今の試みを読む）"]
+  - operation: "sendWaiting(attemptId: AttemptId, answerDueAt: Instant) -> AttemptOutcome"
+    pre: create の取引が確定した後に、利用者が待つ試み（hold、rehold_destination、rehold_method、capture_payment、refund、setup_intent、setup_result）にだけ呼ぶ
+    post: 判断表 B で送り、待ちのうちに分かれば結果の取引で試みの状態と持ち主の applyResult を一緒に書いて settled(結果) を、分からなければ試みを unknown のまま、nextCheckAt と firstCheckAt を待ちを終えた時刻の 30 秒後にして stillUnknown を返す（持ち主の applyResult は unknown の答えを書く）。notProcessed で試みを終えるのは一回目（初めての呼び出し）の答えだけ
+    errors: []
+  - operation: "sendLater(tx: Tx, attemptId: AttemptId) -> none"
+    pre: 利用者が待たない試み（capture_fee、release）
+    post: 確かめの処理をすぐの期限で書き直し、期限の来た処理が初めて送る（送る前に firstSentAt を、空のときだけ書いて確定する。最初の呼び出しの後に分からなければ、nextCheckAt と firstCheckAt をその 30 秒後にする）
+    errors: []
+  - operation: "check(attemptId: AttemptId, now: Instant) -> AttemptOutcome"
+    pre: 呼ぶのは MOD-31 の attempt_check の受け持ちと expedite だけ
+    post: 判断表 C で確かめ、分かれば結果の取引で試みと持ち主の applyResult を書き、not_processed の利用者が待たない試みは同じ取引で持ち主の nextAttempt が返す新しい試みを作る。分からなければ nextCheckAt を IFC-17 の次の間隔にして書く。取引の ID が分かっている確定と解除を、取引が変わっていないことで not_processed にするのは、今が firstCheckAt から後のときだけ。同じキーの送り直しの notProcessed と読み出しの read_rejected では試みを終えず、unknown のまま確かめ続けて異常としてたどる記録に残す
+    errors: []
+  - operation: "expedite(attemptId: AttemptId) -> none"
+    pre: null
+    post: 確かめの処理の期限を今にする（202 で答えたお金の操作の送り直し、DEC-42）
+    errors: []
+  - operation: "checkNow(attemptId: AttemptId, until: Instant) -> AttemptOutcome"
+    pre: 利用者が待つ確かめ。呼ぶのは、payment_pending の依頼に新しいキーの決済を受けた MOD-56 だけ
+    post: 判断表 C の確かめを一回、until までに行う（呼び出しのタイムアウトは until までの残り。送っていない試みは初めて送る）。分かれば check と同じに結果の取引で書いて settled(結果) を返し、分からなければ nextCheckAt を変えずに stillUnknown を返す
+    errors: []
+  - operation: "createFromRead(tx: Tx, attempt: NewAttempt, observed: ObservedTransaction) -> Attempt"
+    pre: 持ち主が、押さえを解く試みが読んだ取引の確定済みで refused になった結果の取引の中で、その押さえに後で効きうる確定があるときだけ呼ぶ（DEC-45）。observed は、その解除のために読んだ取引の状態と確定した額
+    post: その処理の新しい試みを、同じ押さえと新しいキー（EXT-01 には送らない）で unknown として書き、同じ取引で observed の確定した額で succeeded に移す
+    errors: ["OneOpenAttemptAlready: その操作に unknown か succeeded の試みがすでにある"]
+  - operation: "registerOwner(kind: AttemptKind, owner: AttemptOwner) -> none"
+    pre: 起動のときだけ。どの種類にも持ち主は一つ
+    post: 持ち主（applyResult(tx, attempt, result)、nextAttempt(tx, attempt) -> NewAttempt or none）を持つ。result は、not_processed の理由（before_execution、unchanged）と、確定と解除の試みで読んだ取引の状態と額（observedState）を持つ
+    errors: []
+  - operation: "attemptsOf(ref: AttemptRef) -> Attempt[]; read(attemptId: AttemptId) -> Attempt"
+    pre: null
+    post: 依頼、返金、登録ごとの試みを作った順に、一つの試みを返す（MOD-44、MOD-56、MOD-57、MOD-61、MOD-66）
+    errors: []
+invariants:
+  - 一つの操作の鍵（乗車の決済、依頼の料金、返金、押さえの解除、登録の確かめ）に、状態が unknown か succeeded の試みは一つまで
+  - 試みの状態は unknown から succeeded、refused、not_processed のどれかへ一度だけ移り、戻らない
+  - 試みのキーは試みごとに一つで変わらず、試みは消えない
+  - 試みの結果と持ち主の状態の変化は同じ取引で書かれる
+  - 取引の ID が分かっている確定と解除の試みを、読んだ取引が変わっていないことで not_processed にするのは、firstCheckAt から後の確かめだけ
+  - not_processed の試みは理由（before_execution か unchanged）を持つ
+  - not_processed（before_execution）にするのは、状態を変える試みの初めての呼び出し（firstSentAt を書いて確定した後の最初の呼び出し）への答えだけ。送り直しと読み出しの答えと、読み直しの試み（setup_result）の答えでは試みを終えない
+depends_on: [MOD-21, MOD-25, MOD-28, MOD-31, MOD-41]
+functions: [FR-29, FR-30, FR-39, FR-40, FR-42, FR-46, FR-54]
+realizes: []
+drivers: [DRV-02, DRV-07, DRV-27, DRV-32]
+decisions: [DEC-10, DEC-11, DEC-18, DEC-45]
+behaviour: "報告書の節: MOD-42 お金の操作の試み"
+verification:
+  - checks: 判断表 B と C の行ごと（待ちのうちの済んだ、拒否、処理されなかった、二回目で分かる、分からない、23 時間のうちとその後、500 の後、作る試みが見つからない、確定と解除の state_mismatch の読み出し、取引が変わっていない読み出しの firstCheckAt のちょうど前と後、早めた確かめと checkNow が firstCheckAt の前に変わっていないと読む、一回目に答えがなく送り直しが notProcessed、確かめの読み出しが read_rejected、送り直しの notProcessed、登録の読み直しの確かめの失敗のある requires_payment_method とない requires_payment_method と requires_confirmation と requires_action）
+    how: 単体の層（MOD-41 の答えを与える、時計の偽物。NFR-25 の出どころの一つ）
+  - checks: 一回目に答えがなく同じキーの送り直しが処理されなかった（401 か実行の前の 400）試みが unknown のまま確かめられ、偽物が一回目は済んでいたと見せると succeeded になり、返金のやり直しも、押さえの解除の新しい試みも、ほかの押さえへの決済も作られない（DEC-45、DRV-32、FND-62）
+    how: 結合の層（EXT-01 の偽物が一回目に答えず、送り直しに 401 を返してから、読み出しで済んだ取引を見せる。時計の偽物）
+  - checks: 取引の ID が分かっている確定の試みが 500 を受け、firstCheckAt から後も取引が変わっていなければ not_processed（unchanged）になり、偽物が後で確定を効かせると、同じ押さえへの次の試みが取引の状態に退けられて読んで済んだになる。お金は一度だけ動く（DEC-45、FND-55）
+    how: 結合の層（EXT-01 の偽物が、取引が変わっていないと読ませた後に確定済みと見せる。時計の偽物）
+  - checks: 結果が分からない試みを、偽物が後で済んでいたと見せ、確かめで一度だけ持ち主に結び付く。済んだ押さえが受け付けなかった依頼のものなら解く試みができる
+    how: 結合の層（EXT-01 の偽物、時計の偽物）
+  - checks: 一つの操作に二つ目の開いた試みを作れない（重ねて作る）
+    how: 結合の層
+  - checks: 処理されなかった解除と料金の請求が、確かめと同じ間隔で新しい試みで続き、済むまで依頼のお金の精算が終わらない
+    how: 結合の層
+  - checks: 受けたインスタンスが試みを書いた後に止まっても、期限の処理が nextCheckAt に確かめて持ち主の状態を決める（DEC-45）
+    how: 運用の予行の層（NFR-16 の止めて再開する予行）
+  - checks: 照合が数える処理の数と試みの数（SLI-11、SLI-12。処理されなかった後の新しい試みは一つの処理）
+    how: 結合の層
+parameters: []
+as_is: new

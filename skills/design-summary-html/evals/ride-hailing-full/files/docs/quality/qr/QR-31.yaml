@@ -1,29 +1,22 @@
 id: QR-31
-title: 評価値が実態の違いを表す
-status: draft
-version: 1
-basis: inferred
-basis_note: データを作るのは乗客。評価の甘さが起こりやすいことは質問 8 で確認済み。影響と扱いは推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
-model: data
-layer: data-inherent
-characteristic: accuracy
-statement: ドライバーの評価値は、ドライバーの振る舞いと車の清潔さの違いを表し、ほとんどのドライバーが同じ値に集まらない。
-applies_to: [FR-13, FR-15, FR-16]
-traces_to: [QIU-10]
+title: 決済と返金の結果は、EXT-01 から来たと確かめられたものだけを受け入れる
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。今期は対象外とすることは QAS-20 による暫定の決定
+premises: [CON-03, EXT-01, QAS-20]
+model: product
+layer: external
+characteristic: security > authenticity
+statement: システムは、決済と返金の結果を、EXT-01 から来たことが確かめられたときだけ乗車と返金に結び付ける。
+applies_to: [FR-29, FR-39]
+traces_to: [QIU-19, QIU-28]
 entry_point: null
-stakeholders: [USR-01, USR-02]
-failure_scenario: ほとんどの乗客が最高の評価を付け、評価値に差が出ない。しきい値を設定しても態度の悪いドライバーに当たる。評価値は受けた評価の単純な平均（FR-15）。
-score: {impact: 4, likelihood: 4}
-handling: emphasized
-handling_reason: null
+stakeholders: [USR-02, USR-04, EXT-01]
+failure_scenario: 誰かが EXT-01 を装って「済んだ」という結果を送り、払われていない乗車が決済済みとして扱われる。
+score: {impact: 2, likelihood: 1}
+handling: excluded
+handling_reason: 今期は対象外。決済と返金はテスト環境を通り実際のお金は動かず（CON-03）、事業化しないデモ（CON-02）で結果を装う動機も小さい
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

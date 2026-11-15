@@ -1,24 +1,19 @@
 id: ELM-07
 title: クラウドの実行環境
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- TC-03
 kind: node
 name: クラウドの実行環境
 responsibility: API サーバーと夜間のバッチを動かす
 functions: []
 drivers: []
-decisions: []
+decisions:
+- DEC-01
 team: TEAM-01
-technology: null
+technology: 塾のクラウドのコンテナの実行環境（TC-03）
 runs_on: null
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

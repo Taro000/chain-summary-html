@@ -1,0 +1,25 @@
+id: POL-04
+title: パイプラインとコードの中の約束事
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: pipeline-and-code
+addresses:
+- DRV-06
+- DRV-07
+decisions:
+- DEC-05
+rules:
+- rule: ログは trace_id を持つ構造化ログで書く
+  check: 結合の層のテスト
+pipeline:
+- step: check
+  when: main に入る変更のたび
+  runs: 型の確かめ、リンター、単体と結合のテスト
+  blocks: main に入れること
+- step: release
+  when: 版の印を付けたとき
+  runs: 端から端のテストと、イメージを一度だけ作ること
+  blocks: 配備
+as_is: new

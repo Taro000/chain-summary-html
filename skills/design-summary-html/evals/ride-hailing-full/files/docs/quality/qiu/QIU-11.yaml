@@ -1,40 +1,32 @@
 id: QIU-11
-title: しきい値を設定した乗客も配車が成立する
-status: draft
-version: 1
+title: 乗客が決めた降りる場所で降りられる
+status: active
 basis: inferred
-basis_note: しきい値は入力。比べる相手（QIU-01）と G_threshold_gap は推定。KPI との重なりは質問 2 で確認済み
-needs_agreement: true
-approver_candidates:
-  - プロダクトオーナー
+basis_note: CUJ の手順とニーズは入力。測定量と利用状況は推定。D_dropoff_gap の値（30 m）は第 4 段階の決めたこと #14 で確認済み（QAS-45）
+premises: [CON-05, QAS-45]
 user: USR-01
-cuj: CUJ-05
-outcomes: [OUT-01]
-need: 変なドライバーに当たりたくないが、手軽に配車もしたい
+cuj: CUJ-03
+outcomes: []
+need: 正しい場所で降りたい。正しい場所かの確認の手間を省きたい
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: しきい値を設定した乗客
-  task: 配車の手配
-  environment: null
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録した乗客
+  task: 目的地での降車
+  environment: 車内
   other: null
-characteristic: context coverage > context completeness
-statement: しきい値を設定した乗客も、設定していない乗客（QIU-01）と比べて G_threshold_gap ポイントを超えて下がらない割合で、迎車を乗車場所で迎えられる。
-failure_scenario: 高いしきい値を設定した乗客は、近くに条件を満たすドライバーがおらず、配車が成立しない。乗客は理由を知らずに諦める。
+characteristic: effectiveness
+statement: 乗車中の乗客は、自分が決めた降りる場所で降りられる。
+failure_scenario: 乗客が決めた建物とは別の入口や似た名前の場所で降ろされ、歩いて戻るか乗り直すことになる。
 measure:
-  numerator: 迎車が乗車場所に到着した配車依頼
-  denominator: 乗客が手配した配車依頼
-  narrowed_to: しきい値を設定した乗客、スマートフォンのブラウザ。テスト用アカウントを除く
-  denominator_needed_only: QIU-01 と同じ
-  contribution: 地域と時間帯をそろえて QIU-01 と比べる。しきい値の高さごとに数えれば、しきい値による差を切り分けられる
+  numerator: 乗客が決めた降りる場所から D_dropoff_gap（30 m）以内で降車した乗車
+  denominator: 完了した乗車
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く。乗車中に降りる場所を変えた乗車は、変えた後の場所で数える
+  denominator_needed_only: 完了した乗車だけを数える
+  contribution: 降りる場所がドライバーにどう伝わるかにプロダクトが効く
   observable: true
-  compared_with: QIU-01
+  compared_with: null
   scale: ratio
-kpi: KPI-01
+kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

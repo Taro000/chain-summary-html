@@ -1,0 +1,22 @@
+id: QR-65
+title: 地図のサービスが失敗しても答えなくても、そのことを示し、進んでいる配車は続く
+status: active
+basis: inferred
+basis_note: 場所と道のデータを EXT-02 が作ることは質問 3 で確認済み。最低限守る線とすることは質問 2 で確認済み（外部のサービスの失敗と無応答の扱い）。失敗のシナリオと点は推定。新しく作るシステムで、外部のサービスが失敗する場面は年に一度程度とみた。第 2 段階が EXT-02 をインタフェースに加えた FR-06、FR-08、FR-20 も対象の機能に加え、迎車の着く見込み（QIU-08、QIU-15）と依頼の内容（QIU-16）にもたどる
+premises: [EXT-02]
+model: product
+layer: external
+characteristic: reliability > fault tolerance
+statement: EXT-02 が失敗したり答えなかったりしても、システムは到着予定時刻と料金を示せないことを乗客に伝えて誤った見込みや料金で依頼させず、迎車の着く見込みや依頼の内容のうち EXT-02 によるものを示せないときはそのことを示し、すでに確定した依頼と進んでいる乗車は続けさせる。
+applies_to: [FR-01, FR-03, FR-04, FR-06, FR-08, FR-20, FR-47]
+traces_to: [QIU-01, QIU-02, QIU-04, QIU-08, QIU-15, QIU-16]
+entry_point: null
+stakeholders: [USR-01, USR-02, EXT-02]
+failure_scenario: EXT-02 が答えない間、乗客の画面で到着予定時刻と料金の計算が止まったまま、乗客は依頼できず、乗車中の乗客の降りる場所の変更も、承認した料金が分からないまま進む。
+score: {impact: 4, likelihood: 2}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

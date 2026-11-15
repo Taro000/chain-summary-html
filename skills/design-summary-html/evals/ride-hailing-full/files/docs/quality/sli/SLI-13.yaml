@@ -1,0 +1,29 @@
+id: SLI-13
+title: 新しい評価をマッチに使う評価に反映する速さ
+status: active
+basis: assumed
+basis_note: しきい値 T_rating_reflect（1 時間）は暫定の決定（QAS-36）。評価のまとめ方は FR-15 のすべての評価の平均（第 2 段階の質問 9）で、反映したかどうかはその平均が新しい評価を含んだかで数える
+premises: [OPF-01, QAS-36]
+function: GOOD ÷ VALID
+refs: [QR-16, NFR-34]
+reshaped: 規則 2（反映が遅れている時間の割合ではなく、評価ごとに数えた）
+target_entity: 閾値によるマッチ（FR-05）に使うドライバーの評価と、乗客が付けた新しい評価（FR-15）
+purpose: 乗客が付けた評価が、マッチに使う評価に遅れて反映されることがどれだけあるか
+unit_event: 乗客が送った一つの評価
+vantage: data
+vantage_reason: 反映の遅れは、評価を受けた時刻とマッチに使う評価がそれを含んだ時刻を比べて初めて分かる。どの利用者の操作の応えにも現れないため、データで比べる
+existing_source: null
+elements:
+  VALID:
+    definition: 乗客が送り、システムが受けた評価
+    exclusions: 試験用のアカウントの評価
+    unit: 評価
+    counting_rule: 一つの乗車への評価は一つと数える。評価はシステムが受けた日に数える
+  GOOD:
+    definition: VALID のうち、システムが受けてから T_rating_reflect（1 時間）以内に、そのドライバーのマッチに使う評価がそれを含んだもの
+    unit: 評価
+    counting_rule: VALID と同じ。一度も反映されなかった評価は GOOD に数えない
+scale: ratio
+applicability: 本番の環境で、デモの回の間（OPF-01）の、利用者の実際の評価
+lifecycle: 本番で測る。デモの回ごとに値をまとめ、振り返りに使う
+blind_spots: 反映した評価の値がまとめ方どおりかは見えない（NFR-35 と NFR-36 が受け持つ）。乗客が送れなかった評価は見えない

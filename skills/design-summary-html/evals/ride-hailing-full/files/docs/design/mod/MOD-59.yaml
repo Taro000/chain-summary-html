@@ -1,0 +1,59 @@
+id: MOD-59
+title: 降りる場所の変更
+status: active
+basis: assumed
+basis_note: 乗車中の乗客が決めた新しい降りる場所の料金と到着予定の時刻を求めて見積もりとして返し、承認で新しい確定額で押さえ直し、済んでから降りる場所と確定額を変え、前の押さえを解き、ドライバーに新しい降りる場所を示すこと、答えと符号は IFC-03 と FR-47、FR-54 の 4、承認のとき押さえ直しの試みを書き、押さえ直しが済んでから依頼の降りる場所と確定額の更新と前の押さえを解く試みを一つの取引で書き、拒否されたか分からなければ依頼を変えないこと、新しい降りる場所を記録した日の鍵で暗号にすることは DAT-08 と DEC-09、降りる場所の変更の状態（見積もった、押さえ直している、当てた、当てなかった、切れた）は第 3 段階の報告の「要素をまたぐ状態」、見積もりは冪等キーを付けずに送り直すと別の見積もりができることは IFC-03 と DEC-42、承認した料金と到着予定の時刻を残すことは FR-45 の 1 と SLI-08 の出どころ（DAT-07）、承認したことを操作の記録に残すことは QR-12 と IFC-03（どれも入力）。見積もった変更の有効期間は、第 3 段階の状態遷移図（見積もった → 切れた）が任せた値で、DAS-23 による暫定の決定。依頼の押さえ直しを MOD-56 の押さえ直しの印で依頼ごとに一つずつにし（支払い方法の変更かほかの変更の承認の押さえ直しが答えの期限のうちに動いている間の承認には、何も書かずに 409 OPERATION_IN_PROGRESS と Retry-After 1 秒で答える）、押さえ直しが済んだ結果の取引で、依頼が riding のままで、印がその試みで、依頼の今の押さえがその試みの替える押さえのときだけ当て、ほかは not_applied にして新しい押さえを解くことは FND-61 を受けた（推定。期限の後の答えと確かめで分かった結果は変更を当てないことは DAT-11 と DEC-42 で入力。ほかのキーの操作にも OPERATION_IN_PROGRESS で答えることは FND-74 で第 3 段階に出した）。期限の後の答え（overdueAnswer）を、変更と押さえ直しの試みと依頼を一つの書き込みの取引で読んでから読んだ状態を条件に書くものにし、変更がすでに applied なら（受けたインスタンスの遅れた結果の取引が同じキーの送り直しの check と answerOverdue の間に当てた）何も書かずに 200 で答え、当てた変更の押さえを解かないことは FND-75 を受けた（推定。押さえ直しの結果が変更に書かれていればそれに従い、書かれていなければしなかったことにして済んだ押さえを解くことは DEC-45、先に書いた答えを残すことは DEC-42 で入力）。依頼の押さえ直しの印を rides の持ち主の MOD-45 の claimRehold で取り（MOD-56 の rehold を通して）、依頼の押さえと確定額を MOD-45 の applyMoney で替えることは FND-76 を受けた（推定。表を読み書きするのはその表を持つ機能の adapters/ だけであることは POL-02 で入力）
+premises: [DAS-23]
+component: ELM-03
+name: 降りる場所の変更
+depth: full
+depth_reason: 乗客が承認した新しい確定額で押さえ直してから降りる場所と確定額を変え、前の押さえを解く（お金を動かす）。押さえ直しが待ちのうちに分からなければ変えず、後で済んでいたと分かれば解く（結果が分からない状態を確かめる）
+responsibility: 乗車中の降りる場所の変更を、新しい確定額で押さえ直せたときだけ当てる
+visibility: public
+interface:
+  - operation: "quoteChange(actor: Actor, rideId: RideId, newDropoff: Place) -> ChangeQuote"
+    pre: null
+    post: POST /v1/rides/{rideId}/destination-changes で、riding の依頼の今の位置から新しい降りる場所までの料金と到着予定の時刻を MOD-38 の estimate で求め、変更（quoted、有効期限）を書いて返す。冪等キーを付けない
+    errors: ["RIDE_ALREADY_ARRIVED: 409", "ROUTE_NOT_FOUND: 422", "MAP_SERVICE_UNAVAILABLE: 503", "RIDE_NOT_STARTED: 409（乗車中でない）", "NOT_FOUND: 404"]
+  - operation: "approve(actor: Actor, rideId: RideId, changeId: ChangeId, key: IdempotencyKey) -> Applied"
+    pre: null
+    post: POST …/approval で、判断表 A で答え、押さえ直すなら取引 A で変更を reholding にし、押さえ直しの試み（MOD-56 の rehold。MOD-45 の claimRehold で依頼の押さえ直しの印を取る）と冪等キーと操作の記録（承認）を書いて送る。MOD-56 の rehold が ReholdInProgress を返せば取引 A を止めて 409 OPERATION_IN_PROGRESS で答える。結果の取引で、済んで MOD-56 の settleRehold が依頼を替えたら（依頼が riding で、印がその試みで、今の押さえがその試みの替える押さえ）変更を applied にし、依頼の降りる場所と確定額と承認した到着予定の時刻と押さえを替え（MOD-45 の applyMoney）、前の押さえを解く試みを作り、ride.destination_changed をドライバーに、依頼の経過の「降りる場所を変えた（新しい降りる場所と承認した料金）」を書く。済まなかったか、settleRehold が替えなかったら not_applied にして依頼を変えない（替えなかった新しい押さえは解く）
+    errors: ["QUOTE_EXPIRED: 409", "RIDE_ALREADY_ARRIVED: 409（取引 A の後に到着の確認が先に確定したときも。新しい押さえは解く）", "PAYMENT_DECLINED: 402 と reason", "REHOLD_UNCONFIRMED: 503（答えの期限を過ぎた遅れた結果で、ほかの押さえ直しが先に動いたときも）", "PAYMENT_SERVICE_UNAVAILABLE: 503", "OPERATION_IN_PROGRESS: 409 と Retry-After 1 秒（同じキーが動いている（MOD-26）か、同じ依頼のほかの押さえ直しが答えの期限のうちに動いているかほかの変更が reholding。ほかのキーのときは何も書かず、同じキーの送り直しが初めから行う）", "NOT_FOUND: 404"]
+  - operation: "applyResult(tx: Tx, attempt: Attempt, result: AttemptResult) -> none; overdueAnswer(attemptId: AttemptId) -> StoredAnswer"
+    pre: MOD-42 の持ち主として（rehold_destination）と、MOD-26 の期限の後の答え方として
+    post: 判断表 A の結果の行のとおり、変更と依頼を試みの結果と同じ取引で、MOD-56 の settleRehold を通して書く（apply は受けたインスタンスの結果の取引で済んだときだけ）。期限の後の答えと確かめで分かった結果は、一つの書き込みの取引で変更と押さえ直しの試みを読んでから書く。変更が applied なら（受けたインスタンスの遅れた結果の取引が先に当てた）何も変えずに 200（当てた結果）で答える。ほかは、変更が reholding なら not_applied にし、押さえ直しの試みの今の状態で、拒否なら 402、処理されなかったなら 503 PAYMENT_SERVICE_UNAVAILABLE、ほかは 503 REHOLD_UNCONFIRMED で答える。どの場合も同じ取引で settleRehold を apply なしで呼び、印がこの試みなら空にし、押さえ直しが済んでいて依頼の今の押さえでなければその押さえを解く（当てた変更の押さえは依頼の今の押さえなので解かない）
+    errors: []
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 記録してから 3 年を過ぎた変更の新しい降りる場所を消し、状態と時刻と料金を残す
+    errors: []
+invariants:
+  - 依頼の降りる場所と確定額を変えるのは、押さえ直しが済んだ結果の取引だけで、依頼の押さえも一緒に替わる（MOD-56 の settleRehold）
+  - 一つの依頼で reholding の変更は一つまで
+depends_on: [MOD-21, MOD-25, MOD-26, MOD-28, MOD-29, MOD-31, MOD-33, MOD-38, MOD-42, MOD-45, MOD-56]
+functions: [FR-24, FR-45, FR-47, FR-54]
+realizes:
+  - IFC-03 POST /v1/rides/{rideId}/destination-changes
+  - IFC-03 POST /v1/rides/{rideId}/destination-changes/{changeId}/approval
+  - IFC-11 ride.destination_changed
+drivers: [DRV-05, DRV-06, DRV-07]
+decisions: [DEC-09, DEC-10, DEC-13, DEC-45]
+behaviour: "報告書の節: MOD-59 降りる場所の変更"
+verification:
+  - checks: 判断表 A の行ごと（承認の期限の前と後、到着の確認の後、押さえ直しが済んだ、拒否、処理されなかった、分からない、同じ依頼の二つ目の承認、支払い方法の変更の押さえ直しが動いている間の承認、結果の取引で依頼が到着していたか印が替わっていた）
+    how: 単体の層
+  - checks: 承認の押さえ直しと支払い方法の変更の押さえ直しを差し込みで重ね、どの順でも依頼の確定額と押さえの額と支払い方法が合い、二つ目は 409 OPERATION_IN_PROGRESS の後の送り直しで今の支払い方法と確定額から押さえ直す（FR-54 の 4、5、FND-61。場面は MOD-56 と同じ）
+    how: 結合の層（EXT-01 の偽物が押さえ直しに遅れて答える。依頼の状態を書くポートの差し込み）
+  - checks: 押さえ直しが分からないと変えず、偽物が後で済んでいたと見せるとその押さえを解く。済んだら前の押さえを解く（FR-54 の 4、DEC-09）
+    how: 結合の層（EXT-01 の偽物）
+  - checks: 承認の押さえ直しを受けたインスタンスの結果の取引を答えの期限の後まで止め、同じキーの送り直しの check が overdue を返した後、answerOverdue の前に確定させると、変更は applied のまま、依頼の押さえはその押さえ直しの押さえのまま残り、それを解く試みは作られず、送り直しは 200 を受け、後の決済が新しい確定額を請求する。逆の順（期限の後の答えが先）では変更は not_applied で 503 REHOLD_UNCONFIRMED と答え、遅れた結果の取引は依頼を替えずに新しい押さえを解く（FR-47 の 2、FR-54 の 4、5、DRV-07、FND-75。場面は MOD-56 と同じ）
+    how: 結合の層（EXT-01 の偽物が押さえ直しに遅れて答える。依頼の状態を書くポートの差し込みで結果の取引を止める。時計の偽物）
+  - checks: 道がない、EXT-02 が答えない、到着を確認した後（FR-47 の 4〜6）と、承認しないと変わらない（FR-47 の 3）
+    how: 結合の層（EXT-02 の偽物）
+  - checks: SLI-08 の承認した到着予定の時刻と、ドライバーの画面の新しい降りる場所（FR-24 の 4、NFR-31）
+    how: 結合の層と端から端の層
+parameters:
+  - name: 見積もった変更の有効期間
+    value: 見積もってから 5 分
+    basis: 第 3 段階の状態遷移図（見積もった → 切れた）が任せた値。乗客が料金を見て承認するまでの時間を見込み、道と料金が古くならない暫定の値（DAS-23）
+as_is: new

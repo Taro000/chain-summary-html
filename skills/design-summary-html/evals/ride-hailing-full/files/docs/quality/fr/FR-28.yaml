@@ -1,30 +1,21 @@
 id: FR-28
-title: 目的地への到着（乗車の終了）
-status: draft
-version: 1
+title: 到着を確認する
+status: active
 basis: inferred
-basis_note: 手順は入力。降車場所から D_dropoff を超えて離れて終えるときに確かめることは質問 8 で確認済み。D_dropoff は第 1 段階からの要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
-statement: システムは、ドライバーが降車場所への到着を知らせると、乗車を終えて、終了の時刻と位置を記録し、乗客に知らせる。
+basis_note: "機能は CUJ-08 の手順（入力）。受け入れ基準は推定。新規であることは質問 4 で確認済み。D_dropoff_gap の値（30 m）は第 4 段階の決めたこと #14（QAS-45 への訂正）、T_alighting の値（30 秒）は決めたこと #15（QAS-46 への訂正）"
+premises: [QAS-45, QAS-46]
+statement: システムは、ドライバーが降りる場所への到着を確認できるようにし、到着を確認すると乗車を終えて決済に進む。
 origin: cuj-step
 cuj: CUJ-08
 cuj_step: 到着を確認する
-traces_to: [QIU-02, QIU-06, QIU-07]
+traces_to: [QIU-11, QIU-12, QIU-19]
 proposal: null
 existing: false
 extends: null
-interface:
-  - "画面: ドライバーの Web アプリ（乗車中）"
-  - "画面: 乗客の Web アプリ（乗車中）"
+interface: ["画面: ドライバーの乗車中"]
 acceptance_criteria:
-  - ドライバーが降車場所への到着を知らせると、乗車を終え、時刻と位置を記録し、決済（FR-29）を始め、乗客の画面に到着と評価の画面（FR-13）を示す。
-  - 終える位置が、最後に指定した降車場所から D_dropoff を超えて離れているとき、ドライバーに確かめてから乗車を終える。
+  - 乗車中にドライバーが到着を確認すると、システムは乗車を終え、到着を確認した場所と時刻を記録し、決済に進む。
+  - 乗車が始まっていない依頼でドライバーが到着を確認しようとすると、システムは受け付けない。
 quality_hints:
-  - 有効性 (QIU-06) - 最後に指定した降車場所から D_dropoff 以内で降りられる
-  - 効率性 (QIU-07) - 到着から支払いの完了まで乗客を待たせない
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 2 段階の下書き（質問 1〜10 の回答を反映）
+  - 有効性 (QIU-11) - 乗客が決めた降りる場所から D_dropoff_gap（30 m）以内で乗車を終える
+  - 効率性 (QIU-12) - 降りる場所に着いてから T_alighting（30 秒）以内に降車を終えられる

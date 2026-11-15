@@ -1,0 +1,1 @@
+{id: QAS-01, title: 開発者は締め切り前の 24 時間も知らせに応じる, status: open, stage: 1, kind: judgment, statement: 開発者は、締め切り前の 24 時間は夜でも提出の失敗の知らせに応じる。, why_unsure: 入力は 30 分を示すが、いつ応じるかは示さない。, breadth: low, severity: medium, rating_note: QIU-04 とそこから導く項目だけが頼る。, answer: null, answered_in: null}

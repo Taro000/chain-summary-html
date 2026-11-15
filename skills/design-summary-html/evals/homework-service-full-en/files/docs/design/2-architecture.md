@@ -1,46 +1,50 @@
 # Architecture: Homework submission service
 
-Status: answers applied · Updated: 2026-09-18 · Stage 2 of 4
+Status: answers applied · Updated: 2026-09-18 · Inputs as of: none · Stage 2 of 4
 
 ## Summary
 
 One API server and two web apps; files go straight to the storage.
 
+## Inputs
+| Source | What it gave |
+|---|---|
+| 1-architecture-drivers.md | The drivers and their ranking |
+
 ## Overall structure
 
-One API server (ELM-03) takes requests from the two web apps (ELM-01, 02). Submitted files go straight to the external storage (ELM-05) through signed URLs (DEC-02).
+One API server (ELM-03) takes requests from the two web apps (ELM-01, ELM-02). Submitted files go straight to the external storage (ELM-05) through signed URLs (DEC-02).
 
+DEC-01 How the system is divided:
 | Driver (rank) | One API server, and web apps for students and teachers | A service per function | Serverless functions |
 |---|---|---|---|
 | DRV-01 (1) | Meets | Meets | Meets |
 | DRV-06 (5) | Meets | Fails | Partly |
 
-## Decisions
+## Design decisions
+<!-- generated: decisions -->
+| DEC | Title | Addresses | Basis |
+|---|---|---|---|
+| DEC-01 | One API server and two web apps | DRV-06, DRV-01, DRV-04 | assumed |
+| DEC-02 | Upload files straight to the storage with signed URLs | DRV-01, DRV-05, DRV-02 | inferred |
+| DEC-03 | Write the record before showing the receipt | DRV-03, DRV-09 | inferred |
+| DEC-04 | Build the nightly report in a batch | DRV-06, DRV-03 | inferred |
+| DEC-05 | The browser creates the trace ID and passes it on | DRV-07 | inferred |
+| DEC-06 | The parents' screens go in the students' web app | DRV-04, DRV-06 | inferred |
+<!-- /generated -->
 
-| DEC | Question | Chosen | Addresses | Rejected | Basis |
-|---|---|---|---|---|---|
-| DEC-01 | How is the system divided, and where does it run? | One API server, and web apps for students and teachers | DRV-06, DRV-01, DRV-04 | A service per function (Two developers cannot run it (DRV-06)). Serverless functions (Does not run the same way locally) | Inferred |
-| DEC-02 | How are submitted files stored without passing through the server? | Direct upload with a signed URL | DRV-01, DRV-05, DRV-02 | The server receives and stores the file (Chokes before deadlines (DRV-01)) | Inferred |
-| DEC-03 | How do receipts stay in line with the submission records? | Write the record in one transaction, then return the receipt | DRV-03, DRV-09 | Return the receipt first and write the record later (Records can go missing (DRV-03 version 2)) | Inferred |
-| DEC-04 | When is the monthly submission report built? | A nightly batch | DRV-06, DRV-03 | Count on every submission (Slows submissions (DRV-02)) | Inferred |
-| DEC-05 | How are the records of one submission linked? | The browser creates the trace ID and passes it in a header | DRV-07 | The server creates the ID (Browser failures are not linked (question 4, FND-02)) | Inferred |
-
-### DEC-02 How files are stored
-
+DEC-02 How files are stored:
 | Driver (rank) | Direct upload with a signed URL | The server receives and stores the file |
 |---|---|---|
 | DRV-01 (1) | Meets | Fails |
 
-- Gains: the server does not choke before deadlines.
-
 ## Design concerns
-
-| Concern | Settled by, or why standard practice is enough |
+| Concern | Settled by, left to a later stage, or why standard practice is enough |
 |---|---|
-| Concurrency | Retried submissions are made one by idempotency keys (DEC-08) |
-| Data persistence | The record and the receipt are written in one transaction (DEC-03). The previous version showed the receipt first. |
+| Concurrency | Retried submissions are made one by idempotency keys (stage 3 decides how) |
+| Data persistence | The record and the receipt are written in one transaction (DEC-03, after FND-01) |
 | Error handling and fault tolerance | On a storage outage, submissions stop and ask to try again |
-| Variability | Standard practice is enough |
+| Variability | The parents' screens are added to the students' web app (DEC-06) |
 
 ## Threat model
 
@@ -57,31 +61,33 @@ flowchart LR
     db[("ELM-04 Database")]
   end
   os[["ELM-05 External storage"]]
-  sa -->|"F1 submission, F2 draft"| api
-  ta -->|"F3 grading and returns"| api
-  sa -->|"F4 file"| os
-  api -->|"F5 reads and writes"| db
+  sa -->|F1 submission, F2 draft| api
+  ta -->|F3 grading and returns| api
+  sa -->|F4 file| os
+  api -->|F5 signed URL| os
+  api -->|F6 reads and writes| db
 ```
 
 | Flow | Crosses | Spoofing | Tampering |
 |---|---|---|---|
-| F1 ELM-01 → ELM-03 submission | device → school cloud | Submitting as someone else: session (DEC-01) | Changing the deadline: the server decides |
-| F2 ELM-01 → ELM-03 draft | device → school cloud | Reading someone else's draft: owner only (DRV-08) | — |
-| F3 ELM-02 → ELM-03 grading and returns | device → school cloud | A teacher who does not teach the class grades: the class is checked (FND-02) | Changing a grade: it is recorded |
-| F4 ELM-01 → ELM-05 file | device → external service | Uploading with a stolen URL: 15-minute expiry (DEC-02 version 2) | — |
-| F5 ELM-03 → ELM-04 reads and writes | inside the school cloud | — | — |
+| F1 | device → school cloud | Submitting as someone else: session (DEC-01) | Changing the deadline: the server decides |
+| F2 | device → school cloud | Reading someone else's draft: owner only (DRV-08) | — |
+| F3 | device → school cloud | A teacher who does not teach the class grades: the class is checked (FND-02) | Changing a grade: it is recorded |
+| F4, F5 | device and school cloud → external service | Uploading with a stolen URL: 15-minute expiry (DEC-02) | — |
+| F6 | inside the school cloud | — | — |
 
 ## Elements
-
-| ELM | Kind | Name | Responsibility | FR | Drivers | Team | As-is | Basis |
-|---|---|---|---|---|---|---|---|---|
-| ELM-01 | Component | Student web app | Opens assignments, uploads files straight to the storage, submits and shows receipts. Saves drafts | FR-01, FR-02, FR-06 | DRV-01, DRV-02, DRV-03 | TEAM-01 | New | Inferred |
-| ELM-02 | Component | Teacher web app | Opens submissions, grades and returns them. Shows the monthly report | FR-03, FR-05, FR-08 | DRV-08 | TEAM-01 | New | Inferred |
-| ELM-03 | Component | API server | Confirms submissions and receipts, issues signed URLs, grading and returns, records trace IDs | FR-01, FR-02, FR-03, FR-04, FR-06, FR-08 | DRV-01, DRV-02, DRV-03, DRV-07, DRV-08 | TEAM-01 | New | Inferred |
-| ELM-04 | Data store | Database | Holds assignments, submission records and grades | — | DRV-03 | TEAM-01 | New | Inferred |
-| ELM-05 | External system | External storage | Keeps the submitted files (ObjectStore) | — | DRV-05 | — | New | Inferred |
-| ELM-06 | Component | Nightly batch | Builds the submission report every night | FR-05 | DRV-06 | TEAM-01 | New | Inferred |
-| ELM-07 | Node | Cloud runtime | Runs the API server and the nightly batch | — | — | TEAM-01 | New | Inferred |
+<!-- generated: elements -->
+| ELM | Name | Kind | Team | As-is |
+|---|---|---|---|---|
+| ELM-01 | Student web app | component | TEAM-01 | new |
+| ELM-02 | Teacher web app | component | TEAM-01 | new |
+| ELM-03 | API server | component | TEAM-01 | new |
+| ELM-04 | Database | data store | TEAM-01 | new |
+| ELM-05 | External storage | data store | — | new |
+| ELM-06 | Nightly batch | component | TEAM-01 | new |
+| ELM-07 | Cloud runtime | node | TEAM-01 | new |
+<!-- /generated -->
 
 ## Views
 
@@ -107,10 +113,10 @@ flowchart LR
   sa -->|"file"| os[["ELM-05"]]
 ```
 
-| Waits | Waited on | Limit |
+| Connector | Style | Who waits for whom |
 |---|---|---|
-| ELM-01 | ELM-03 | 10 s |
-| ELM-03 | ELM-04 | 2 s |
+| ELM-01 → ELM-03 | Request and response | ELM-01, up to 10 s |
+| ELM-03 → ELM-04 | Request and response | ELM-03, up to 2 s |
 
 ### Deployment
 
@@ -124,38 +130,20 @@ flowchart TB
   bat --> db
 ```
 
-| Node | Runs | Count | When | Fails with |
-|---|---|---|---|---|
-| ELM-07 | ELM-03, ELM-06 | 1 | Always | Submissions and grading |
-
 ### Information
 
 ```mermaid
 flowchart LR
-  a["DAT-01 Assignment"] --> s["DAT-02 Submission"]
-  s --> f["DAT-03 Submitted file"]
-  s --> g["DAT-04 Grade"]
+  a["Assignment (ELM-04)"] --> s["Submission (ELM-04)"]
+  s --> f["Submitted file (ELM-05)"]
+  s --> g["Grade (ELM-04)"]
 ```
-
-### Code structure
-
-```mermaid
-flowchart TB
-  web["web"] --> contracts["contracts"]
-  server["server"] --> application["application"]
-  application --> domain["domain"]
-```
-
-Dependency rules (checked in CI):
-
-- `domain` depends on nothing.
 
 ## Walkthroughs
 
 ### CUJs
 
 **CUJ-01 Submit homework**
-
 | Step | FR | Elements | Interactions | Gap |
 |---|---|---|---|---|
 | Open the assignment | FR-01 | ELM-01, ELM-03 | ELM-01 → ELM-03 gets the assignment | none |
@@ -163,7 +151,6 @@ Dependency rules (checked in CI):
 | Submit | FR-01, FR-02 | ELM-01, ELM-03, ELM-04 | ELM-03 writes the record and returns the receipt | none |
 
 **CUJ-02 Grade and return**
-
 | Step | FR | Elements | Interactions | Gap |
 |---|---|---|---|---|
 | Open the submission | FR-03 | ELM-02, ELM-03, ELM-05 | ELM-02 → ELM-03 list and contents | none |
@@ -175,13 +162,11 @@ Dependency rules (checked in CI):
 The developer who gets the notice traces the logs with the trace ID and fixes the cause (DEC-05). Too few steps for a table.
 
 **CUJ-04 Check monthly submissions**
-
 | Step | FR | Elements | Interactions | Gap |
 |---|---|---|---|---|
 | Open the report | FR-05 | ELM-02, ELM-03, ELM-06 | The report up to the previous day | none |
 
 ### Primary drivers
-
 | DRV | Where the stimulus enters | Decisions that shape the response | Meets the measure? | Remaining risk |
 |---|---|---|---|---|
 | DRV-01 | ELM-03 | DEC-01, DEC-02 | Likely | A storage outage |
@@ -190,30 +175,66 @@ The developer who gets the notice traces the logs with the trace ID and fixes th
 | DRV-02 | ELM-03 | DEC-03 | Likely (stage 3 budget) | A slow write |
 
 ## Design parameters
+<!-- generated: parameters -->
+| Parameter | DEC | Decided in |
+|---|---|---|
+| Signed URL expiry | DEC-02 | DEC-02 |
+| Batch start | DEC-04 | DEC-04 |
+<!-- /generated -->
 
-| Parameter | Value | Basis | Decision |
-|---|---|---|---|
-| Signed URL expiry | 15 minutes | Provisional; the time from opening the screen to submitting | DEC-02 |
-| Batch start | Daily at 02:00 | Four hours before NFR-02's 6:00 | DEC-04 |
-
-## Debt and deferred decisions
-
-| DEC | Debt or deferral | Why | Repay or revisit when |
-|---|---|---|---|
-| DEC-04 | Debt: The report only covers up to the previous day | The office reads it monthly (CUJ-04) | When same-day numbers are asked for |
-| DEC-06 | Deferred: Which web app gets the parents' screens, and how? | Whether to build the parents' screens is not decided yet (CHG-01). | When the parents' screens are decided on |
+## Debt and deferrals
+| Item | Debt, or deferral of a full-depth kind | Decided in |
+|---|---|---|
+| DEC-04 | Debt: The report only covers up to the previous day | DEC-04 |
+| HND-02 | Deferral: the layout of the parents' screens | DEC-06 |
 
 ## Cost and team
+| Cost driver | Usage | Price |
+|---|---|---|
+| Runtime | One, always | 10,000 yen a month |
+| Storage | 50 GB a year | 2,000 yen a month |
 
-### Running cost
+- Two developers can build it (PC-03).
 
-| Cost driver | Usage | Price and free tier | Cap |
+## Findings
+<!-- generated: findings -->
+| FND | Title | Severity | Raised by | To | Status | Items changed |
+|---|---|---|---|---|---|---|
+| FND-01 | The receipt is shown before the record is written | major | design-review | architecture-drivers-to-architecture | accepted | DEC-03 |
+| FND-02 | No trace ID is passed on | minor | design-review | architecture-drivers-to-architecture | accepted | DEC-05 |
+<!-- /generated -->
+
+## Hand-offs
+<!-- generated: handoffs -->
+| HND | Title | From | To | Component | Status | Decided in |
+|---|---|---|---|---|---|---|
+| HND-02 | The layout of the parents' screens | architecture-drivers-to-architecture | high-level-design-to-detailed-design | ELM-01 | open | — |
+<!-- /generated -->
+
+## Decisions
+| # | Question | Answer | Items |
 |---|---|---|---|
-| Runtime | One, always | 10,000 yen a month | Budget alert |
-| Storage | 50 GB a year | 2,000 yen a month | None |
+| 1 | Where is the trace ID created? | The browser (as drafted) | DEC-05 |
 
-## Questions and answers
+## Open assumptions
+<!-- generated: assumptions -->
+| ID | Title | Kind | Breadth | Severity | Items that depend on it |
+|---|---|---|---|---|---|
+| DAS-01 | At most 300 students at once | judgment | medium | low | DEC-01 |
+<!-- /generated -->
 
-| # | Question | Drafted answer | Answer | What changed |
-|---|---|---|---|---|
-| 4 | Where is the trace ID created? | The browser | As drafted | DEC-05 |
+## Placeholders
+
+None.
+
+## Open gaps
+
+None.
+
+## Out of scope
+
+The content of the parents' screens (CHG-01).
+
+## Next
+
+Run architecture-to-technical-policy.

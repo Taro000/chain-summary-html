@@ -1,41 +1,35 @@
 id: DEC-07
-title: Return errors as problem details
-status: draft
-version: 1
+title: Keep every component in one repository
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
-stage: high-level-design
-question: In which shape do all APIs return errors?
+premises:
+- PC-03
+stage: technical-policy
+question: How many repositories are there?
 addresses:
-- IFC-01
-- IFC-02
+- DRV-06
 options:
-- name: Problem details (RFC 9457) with a code and a traceId
-  effect: A standard shape that tools understand
-  cost: A few more fields
-- name: Our own {code, message}
-  effect: Simple to build
-  cost: No help from tools
-chosen: Problem details (RFC 9457) with a code and a traceId
-rationale: A standard shape lets the screens and the tools read errors the same way.
+- name: One repository
+  effect: Types and rules are shared in one place
+  cost: The repository grows
+- name: A repository per component
+  effect: Each is released on its own
+  cost: Too much for two developers to keep in line
+chosen: One repository
+rationale: For two developers, one place is the cheapest way to keep types and rules in line (DRV-06).
 rejected:
-- option: Our own {code, message}
-  reason: No help from tools
-gains: []
-costs: []
+- option: A repository per component
+  reason: Too much for two developers (DRV-06)
+gains:
+- Types are shared in one place
+costs:
+- The repository grows
 sensitive_points: []
 trade_offs: []
 assumptions: []
-depends_on: []
+depends_on:
+- DEC-01
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

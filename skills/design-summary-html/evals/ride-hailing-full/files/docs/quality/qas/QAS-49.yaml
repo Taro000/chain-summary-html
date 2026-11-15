@@ -1,0 +1,12 @@
+id: QAS-49
+title: N_regression_days の最初の値
+status: open
+stage: 4
+kind: decision
+statement: N_regression_days を 14 日とする。
+why_unsure: 入力に数値はない。14 日は、公開した変更が既存の機能を壊したことに、少なくとも二度の利用の機会を経て気づける長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QIU-24、QIU-25、QIU-26、FR-36 が依存する。変えるのは容易
+answer: null
+answered_in: null

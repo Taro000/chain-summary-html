@@ -1,23 +1,14 @@
 id: FND-64
-title: ブラウザの地図の鍵の守りを言い過ぎており、Q_maps_day の見込みに地図の表示が入っていない
-status: open
-version: 1
+title: MOD-20 の判断表 A には日々の呼び出しの印を確かめる行がなく、書かれたとおりでは日々の処理の呼び出しが 401 か 403 で退けられる
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-20 の判断表 A と handle の post と errors と verification、MOD-27 の判断表 A、MOD-32 の runDaily の pre、IFC-15 の auth と errors、DEC-40、DEC-43 の actorKind、DEC-18、DEC-20 は入力。日々の呼び出しが退けられる道は、このレビューがそれらを順にたどった推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-21
-- DEC-22
-severity: minor
-evidence: DEC-21 は鍵を「ログインした人にだけ渡す」ことで「参加者でない人が鍵を拾えないようにする」とするが、ログインした人（参加者 2 人、担当、テスト用アカウント、盗まれたアカウント）が一度写せば、鍵はシステムを終えるまで（DEC-36）使え、参照元の制限はブラウザの外では偽れる。脅威のモデルの F7 は「公開される鍵」と書いたまま。Q_maps_day 1,000 回のもと（DEC-21、設計上の値）は経路と到着予定の 198 回と見積もり 100 回だけを数え、報告書の費用の表の「地図の表示は画面を開くごとに 1 回」を Maps JavaScript API の割り当てに対して見込んでいない。漏れた鍵で表示の割り当てを使い切ると、その日は地図が出ない
-suggestion: 得るものを「参加者でない人がログインせずに鍵を得られない」に直す。デモの回 1 回の地図の表示の数を見込み、漏れた鍵で表示の割り当てが尽きうることを失うものに書く。期間ごとに鍵を替えるかを比べる
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A7（F7）、A1（DRV-11）
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-20, MOD-27]
+severity: major
+evidence: IFC-15 と DEC-40 は、日々の処理の呼び出し（POST /internal/jobs/daily）を、想定の本番は Cloud Scheduler の OIDC の印、ローカルは共有の秘密で ELM-03 が確かめ、確かめられなければ 401 NOT_SIGNED_IN で答えるとする。MOD-27 の判断表 A は IFC-15 の本人の確かめを「Cloud Scheduler の印かローカルの共有の秘密（MOD-20 が確かめる）」とし、MOD-32 の runDaily の pre も MOD-20 が確かめてから呼ぶとする。ところが MOD-20 の判断表 A（上から当て、当たった行で答えを決めて下を行わない）には、その印を確かめる行がない。4 行目はセッションのクッキーだけから利用者を決め、なければ anonymous にするので、クッキーを持たない日々の呼び出しは anonymous になり、本人の確かめの要る経路なら 5 行目で 401 NOT_SIGNED_IN、要らない経路として登録しても、Origin のない状態を変える要求なので 6 行目（DEC-40）で 403 NOT_ALLOWED になる。7 行目の MOD-27 の canUse も、IFC-15 の行はどの利用者の種類も「—」（403）で、日々の呼び出しの利用者（DEC-43 の actorKind の system）の列を持たない。MOD-20 の handle の post と errors も、セッションと Origin のほかの確かめを挙げず、verification も日々の呼び出しを挙げない。書かれたとおりでは日々の処理（MOD-32）は毎日退けられ、インスタンスが 0 の間に来た期限の処理（DEC-18。回の終わりの近くの依頼の終わり、結果が分からない試みの確かめ、押さえの解除）、照合（SLI-12、NFR-24）、記録の変換と鍵を捨てること（FR-51）、保持期間を過ぎた記録を消すこと、日々の確かめが行われず、終えた記録を待つアラート（DEC-20）が毎日知らせる
+suggestion: MOD-20 の判断表 A に、IFC-15 の経路では、セッションより前に Cloud Scheduler の OIDC の印か共有の秘密を確かめ、合えば利用者を system にし、合わなければ 401 NOT_SIGNED_IN で答える行を加え、その経路を Origin の行から外す。MOD-27 の判断表 A で IFC-15 を system にだけ許す。MOD-20 の verification に、印のある日々の呼び出しが通り、印のないものと合わない印が 401 になることを加える
+resolution: 受け入れ。MOD-20 の判断表 A に、日々の処理の経路（IFC-15）でセッションより前に呼び出しの印（想定の本番は Cloud Scheduler の OIDC の印、ローカルは共有の秘密）を確かめ、合えば利用者を system にし、合わなければ 401 NOT_SIGNED_IN で答える行を加え、セッションのクッキーを使わないその経路を Origin の行から外した。MOD-27 の判断表 A に system の列を加え、IFC-15 を system にだけ許した。MOD-20 の handle の post と errors と確かめ方（判断表 A の単体の層と、日々の呼び出しの偽物の結合の層）にも加えた

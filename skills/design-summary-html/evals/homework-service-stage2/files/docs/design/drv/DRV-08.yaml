@@ -1,12 +1,9 @@
 id: DRV-08
 title: 生徒の答案と個人情報を守る
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises: []
 kind: security
 statement: 提出と採点は、その生徒と担当の講師だけが開ける
 sources:
@@ -31,8 +28,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

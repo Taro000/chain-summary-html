@@ -1,19 +1,15 @@
 id: NFR-04
 title: 提出の処理のテストの網羅
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: []
 from: [QR-05]
 kind: gate
 cuj: CUJ-01
 statement: 提出と受領の処理の分岐を、自動テストで 80% 以上網羅する。
-conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+conditions: {workload: 締め切り前の 24 時間の集中まで（OPF-01）, users: 生徒と講師。試験用のアカウントを除く, transactions: 提出}
 slo: null
 gate: {where: definition-of-done, check: 提出と受領の処理の分岐の網羅, threshold: 80%}
 audit: null
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

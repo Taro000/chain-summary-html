@@ -1,0 +1,12 @@
+id: DAS-24
+title: 確認コードの長さと、合わない試みで照らし合わせを止める回数と時間を暫定に採る
+status: open
+stage: 4
+kind: decision
+statement: MOD-46 は確認コードを 4 桁の数字とし、続けて 5 回合わなければその依頼の照らし合わせを 60 秒止める。値は MOD-46 の parameters にある
+why_unsure: 乗客が口で伝えやすい長さと、取り違えを見つける強さの釣り合いで、入力は長さを与えない（TC-14、QR-18、HND-13）
+breadth: low
+severity: low
+rating_note: MOD-46 だけが依存する。照らし合わせを呼べるのはその依頼に割り当てたドライバーだけ（MOD-45、DEC-15）なので、推し量りの危険はほかの依頼の乗客との取り違えで、4 桁なら 1 万に 1 つ。値を変えてもコードの作り方は変わらない
+answer: null
+answered_in: null

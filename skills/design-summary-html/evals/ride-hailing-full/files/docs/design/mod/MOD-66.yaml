@@ -1,0 +1,29 @@
+id: MOD-66
+title: SLI の数え
+status: active
+basis: inferred
+basis_note: 各 SLI の数える単位の出来事、項目、方法は、IFC-01〜IFC-06、IFC-10、IFC-11、DAT-07、DAT-11、DAT-13、DAT-14、DAT-21 の sli_bindings、境界の SLI の一つの操作の作り方は DEC-43、本番の環境の記録だけを数え、試験用のアカウントを外すことは第 3 段階の報告の「SLI の出どころ」（どれも入力）。一つの操作のある要求にシステムが答えなかったときの数え方は QCR-07 で品質チェーンに確かめていて、答えが来るまで GOOD の定義を要求ごとに読む。デモの回の間は、想定の本番ではインスタンスが動いている間（DAS-02。第 3 段階のレビューの質問 2 の答えで確認済み）として、記録のある時を数える（推定）。迎車の到着の前に乗車が始まった依頼には SLI-14 の迎車の到着の組がないことは DAT-07 と第 3 段階の報告の SLI-14 の数え方（FND-56 を受けた第 3 段階の変更、入力）
+premises: [QCR-07, DAS-02]
+component: ELM-03
+name: SLI の数え
+depth: bounds
+depth_reason: null
+responsibility: 記録から、SLI ごとの有効なイベントと GOOD のイベントを数える
+visibility: internal
+interface:
+  - operation: "count(sli: SliId, from: Instant, to: Instant) -> SliCount"
+    pre: null
+    post: その SLI の出どころの方法で、本番の環境の、試験用のアカウントを外した有効なイベントの数、GOOD の数、悪いイベントの並び（何がいつ）を返す。境界の SLI は DEC-43 の決まりで要求を操作にまとめ、最初の要求を受けた日に数える
+    errors: []
+invariants: []
+depends_on: [MOD-28, MOD-33, MOD-44, MOD-45, MOD-49, MOD-53, MOD-56, MOD-59]
+functions: []
+realizes: []
+drivers: [DRV-01, DRV-25, DRV-26, DRV-27]
+decisions: [DEC-23, DEC-43]
+behaviour: null
+verification:
+  - checks: SLI ごとの GOOD と悪いイベントの場面（EXT-01 と EXT-02 の失敗を GOOD から外し、拒否の知らせを GOOD に残す、答えのない要求を含む操作、送り直しのまとめ方、示せなかった組、迎車の到着の前に乗車が始まった依頼の組、遅れて書いた確かめ、処理されなかった後の新しい試み、押さえの解除で後で効きうる確定が効いたと分かった決済）
+    how: 結合の層（記録を作る操作をテストが行い、時計の偽物）
+parameters: []
+as_is: new

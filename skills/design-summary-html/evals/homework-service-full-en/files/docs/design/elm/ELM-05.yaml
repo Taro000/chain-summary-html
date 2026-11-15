@@ -1,25 +1,21 @@
 id: ELM-05
 title: External storage
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
-kind: external-system
+premises:
+- EXT-01
+- TC-02
+kind: data-store
 name: External storage
-responsibility: Keeps the submitted files (ObjectStore)
+responsibility: Keeps the submitted files (the external ObjectStore service)
 functions: []
 drivers:
 - DRV-05
-decisions: []
+decisions:
+- DEC-02
 team: null
-technology: null
+technology: ObjectStore (TC-02)
 runs_on: null
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

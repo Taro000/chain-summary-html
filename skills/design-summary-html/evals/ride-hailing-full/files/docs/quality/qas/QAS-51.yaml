@@ -1,0 +1,12 @@
+id: QAS-51
+title: T_noshow_wait の最初の値
+status: open
+stage: 4
+kind: decision
+statement: T_noshow_wait を 5 分とする。
+why_unsure: 入力に数値はない。5 分は、迎車が着いたことを知らされた乗客が乗る場所まで来られる長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: FR-26 と QR-06 が依存する。変えるのは容易
+answer: null
+answered_in: null

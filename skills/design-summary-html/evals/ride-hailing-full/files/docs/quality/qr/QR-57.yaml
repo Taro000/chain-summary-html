@@ -1,0 +1,22 @@
+id: QR-57
+title: 位置情報と乗車の記録は、見ることを許された人だけが見られる
+status: active
+basis: inferred
+basis_note: 個人の情報の扱いに関する法令に従い、位置情報と乗車の記録を見られる人を限ることは質問 1 で確認済み。誰に何を許すかは FR の受け入れ基準から推定。持ち込んだ役割は入力になく、法務の担当と推定した。誰がどの機能を使えるかの区別は FR-49（FRP-02 を第 2 段階が受け入れたもの）。迎車中のドライバーに乗客の現在地を示すのは乗車が始まるまでに限る（FR-24）。最低限守る線とすることは決めたこと 11 で確認済み（QAS-21 への訂正）
+premises: [CON-06, QAS-21]
+model: product
+layer: external
+characteristic: security > confidentiality
+statement: 乗客とドライバーの位置情報と乗車の記録は、見ることを許された人だけが見られる。乗客は自分の乗車と、自分の依頼の迎車と乗車中の車の位置を、ドライバーは自分の乗車と、届いた依頼と許諾した依頼の乗る場所と降りる場所を乗車が終わるまで、許諾した依頼の乗客の現在地を乗車が始まるまで、担当者は苦情と返金の対応に要る乗車を、エンジニアは理由を示したときにその依頼の分だけを見られる。
+applies_to: [FR-08, FR-13, FR-20, FR-24, FR-31, FR-34, FR-35, FR-38, FR-49]
+traces_to: []
+entry_point: {type: law, source: 個人情報保護法, brought_by: 法務の担当}
+stakeholders: [USR-01, USR-02, USR-03, USR-04]
+failure_scenario: ドライバーが過去に乗せた乗客の乗る場所と降りる場所を乗車の後も一覧で見られ、乗客の自宅と勤務先が分かる状態になり、法令に反する。
+score: {impact: 5, likelihood: 2}
+handling: minimum-line
+handling_reason: 個人の情報の扱いに関する法令から来るため、点によらず対象から外さない
+implies_internal: [QR-56]
+conflicts: []
+stated_numbers: []
+placeholders: []

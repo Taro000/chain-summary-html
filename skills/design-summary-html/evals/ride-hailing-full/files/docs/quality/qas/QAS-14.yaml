@@ -1,0 +1,12 @@
+id: QAS-14
+title: CUJ-09 条件の設定の重視は QR-19、QR-32
+status: confirmed
+stage: 3
+kind: decision
+statement: CUJ-09 の重視の組を QR-19（ドライバーの現在地の最新性、質問 9）と QR-32（条件に合う依頼だけを届ける機能正確性）とする。ほかの候補は最低限守る線とする。
+why_unsure: QR-19 は質問 9 で重視になったが、QR-32 を重視にすることは点から下書きした。事業が重く見るかは入力にない。
+breadth: medium
+severity: low
+rating_note: QR-32 と、それをたどる第 4 段階の NFR-35 と NFR-36 が依存する。どちらも届ける先の規則をまとめて見る監視と試験で、重視でなくなっても残る
+answer: 正しい。配車依頼を受ける条件の設定の組は QR-19 と QR-32
+answered_in: 第 3 段階、質問 22

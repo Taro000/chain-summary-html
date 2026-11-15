@@ -1,0 +1,12 @@
+id: DAS-27
+title: 参加者の iPhone の Safari が返す速さで、V_moving_lock の上と下を分けられる
+status: open
+stage: 4
+kind: judgment
+statement: iOS 18.4 以降の Safari でホーム画面に加えた ELM-01 が画面に出ている間、位置の測定（GeolocationCoordinates）は、車が時速 10 km ほどで走っているときに V_moving_lock（時速 5 km）より大きい速さを返し、止まっているときは V_moving_lock より小さい速さか、速さのない位置を返す
+why_unsure: HND-09 がこの確かめを求めたが、この段階は実機で確かめていない。Apple の公開の記述は、速さの確からしさと、止まっているときに速さを返すかを示していない
+breadth: low
+severity: medium
+rating_note: MOD-48 が依存する。違っていれば、止まっているのに走っているとして受け付けない（使いにくさ）か、ゆっくり走っているのに止まっているとして受け付ける（QR-28、安全）。判断表は、速さのない位置と古い位置を分からないとして受け付けず、速さのどれかが V_moving_lock 以上なら走っているとする側に倒すので、後者は速さが実際より小さく出続けるときだけ起き、実機の受け入れの層（POL-03、MOD-48 の verification）がリリースの前に確かめる
+answer: null
+answered_in: null

@@ -1,11 +1,9 @@
 id: IFC-01
 title: 提出の API
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: http
 name: 提出の API
 provider: ELM-03
@@ -14,6 +12,7 @@ consumers:
 functions:
 - FR-01
 - FR-02
+- FR-04
 - FR-06
 operations:
 - name: POST /api/v1/uploads
@@ -40,17 +39,20 @@ errors:
 - case: '共通: 要求の形が違う'
   signal: 400 INVALID_REQUEST
   caller_does: 欄を直す
-idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+idempotency: 状態を変える要求は Idempotency-Key（DEC-10）
 timing:
   timeout: ブラウザ 10 秒
   ordering: null
   delivery: null
 versioning: 経路に v1
 observability: トレース ID をログに書く
-spec: ifc/specs/submissions.openapi.yaml
+sli_bindings:
+- sli: SLI-01
+  events: ELM-03 が受けた POST /api/v1/submissions の要求ごと
+  fields:
+  - route
+  - status
+  - trace_id
+  method: ELM-03 の要求のログ
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

@@ -1,12 +1,10 @@
 id: DRV-01
 title: 締め切り前の集中でも提出を受け付け続ける
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises:
+- TC-02
 kind: quality
 statement: 締め切り前の 1 時間に提出が集中しても、提出を受け付け続ける
 sources:
@@ -22,7 +20,7 @@ scenario:
   artifact: FR-01
   environment: 締め切り前の集中（1 分に 300 件）
   response: 提出が受け付けられ、受領が示される
-  measure: 直近 28 日で、有効な提出の 99.5% が成功する（NFR-01）
+  measure: NFR-01 の SLO（SLI-01 で数える）
 negotiable: null
 derived_from: []
 priority:
@@ -36,8 +34,3 @@ conflicts:
 - with: DRV-02
   note: 受領の前に記録を書くと、確定が遅くなる
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

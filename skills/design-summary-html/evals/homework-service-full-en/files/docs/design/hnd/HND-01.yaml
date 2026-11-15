@@ -1,0 +1,15 @@
+id: HND-01
+title: How fast the storage answers a PUT
+status: decided
+basis: inferred
+basis_note: null
+premises: []
+from: requirements-to-architecture-drivers
+to: architecture-to-high-level-design
+component: null
+origin:
+- QR-02
+what: How long ObjectStore takes to answer a PUT to a signed URL
+bounds: NFR-06's threshold, DRV-02
+trigger: The next run of stage 3
+resolution: 'Confirmed in IFC-03: the PUT is outside the confirmation hops'

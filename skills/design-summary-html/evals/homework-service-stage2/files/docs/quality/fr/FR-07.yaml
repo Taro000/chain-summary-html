@@ -1,11 +1,9 @@
 id: FR-07
 title: 一括ダウンロード
 status: retired
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 statement: システムは、提出をまとめてダウンロードさせる。
 origin: cuj-step
 cuj: CUJ-02
@@ -14,8 +12,6 @@ traces_to: [QIU-03]
 proposal: null
 existing: false
 extends: null
-interface: ['画面: 生徒の Web アプリ']
+interface: ['画面: 講師']
 acceptance_criteria: [—]
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: 作成, reason: 第 2 段階の下書き}

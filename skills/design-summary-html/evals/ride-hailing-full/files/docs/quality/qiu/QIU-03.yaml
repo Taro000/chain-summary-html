@@ -1,44 +1,32 @@
 id: QIU-03
-title: 手軽に配車を手配する
-status: draft
-version: 2
-basis: inferred
-basis_note: ニーズ（手軽に）は入力。T_book、測定量、OUT-01 への結び付きは推定。T_book の値は 2026-11-01 の利用者の回答で決めた
-needs_agreement: true
-approver_candidates:
-  - プロダクトオーナー
+title: 乗客が手配してから長く待たずに乗れる
+status: active
+basis: assumed
+basis_note: ニーズ（出来るだけ早く移動したい）は入力。乗車（乗客）の CUJ に置くことは第 3 段階の決めたこと #8 で確認済み。T_pickup_wait の値（10 分）は第 4 段階が提案した仮の値で、QAS-41 による仮定。早さを迎えまでの待ち時間で測ることと利用状況は推定
+premises: [CON-05, QAS-41]
 user: USR-01
-cuj: CUJ-01
-outcomes: [OUT-01]
-need: 手軽に配車したい
+cuj: CUJ-02
+outcomes: [OUT-02]
+need: 出来るだけ早く目的地に移動したい
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: 乗客
-  task: 乗る場所・降りる場所を決めて配車を手配する
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録した乗客
+  task: 迎えの車を待っての乗車
   environment: null
   other: null
 characteristic: efficiency
-statement: 乗客は、乗る場所と降りる場所を決め、移動時間と料金を確かめて、30 秒（T_book）以内に配車を手配できる。
-failure_scenario: 場所の入力や地図の操作に手間取り、手配までに時間がかかる。急いでいる乗客ほど困り、手配を諦めることもある。
+statement: スマートフォンで配車を手配した乗客は、依頼を出してから長く待たずに、乗る場所で迎えの車に会える。
+failure_scenario: 配車は確定したが車がなかなか来ず、乗客は約束の時間に遅れる、または待ちきれずに取り消してほかの手段で移動する。
 measure:
-  numerator: 手配の画面を開いてから 30 秒（T_book）以内に手配を確定した件数
-  denominator: 手配を確定した件数
-  narrowed_to: スマートフォンのブラウザ。テスト用アカウントを除く
-  denominator_needed_only: 手配を確定した件数だけ。料金を見て手配しなかった人は、手間ではなく価格や待ち時間で決めた可能性があるので含めない
-  contribution: 画面の操作に直接つながる出来事で、A/B で比べられる
+  numerator: 依頼を出してから T_pickup_wait（10 分）以内に迎車が乗車場所に到着した配車依頼
+  denominator: 迎車が乗車場所に到着した配車依頼
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く
+  denominator_needed_only: 迎車が乗車場所に到着したものだけを数え、到着しなかった依頼は QIU-01 で数える
+  contribution: どのドライバーとマッチさせるかが効くが、近くにいるドライバーの数や道路の混み具合にも左右されるため、同じ地域・時間帯の中で比べる
   observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: しきい値 T_book に値を入れた
-    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま

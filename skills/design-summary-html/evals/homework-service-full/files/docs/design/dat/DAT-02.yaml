@@ -1,11 +1,9 @@
 id: DAT-02
 title: 提出
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 entity: 提出
 owner: ELM-03
 store: ELM-04
@@ -18,9 +16,5 @@ consistency: 提出の記録と受領を一つのトランザクションで書�
 retention: 卒業の後 1 年
 classification: personal
 drivers: []
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

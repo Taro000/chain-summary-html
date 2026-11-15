@@ -1,29 +1,22 @@
 id: QR-01
-title: 配車の主要な流れの可用性
-status: draft
-version: 1
+title: 配車の依頼から決済まで、使いたいときに使える
+status: active
 basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。一系統・少人数のデモという前提は質問 2 で確認済み
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+basis_note: 失敗のシナリオと点は推定。まだ作っておらず（第 2 段階の質問 4）止まった記録はないため、起こりやすさは新しく作るシステムとして見積もった。どの部分の停止が配車の流れを止めるかは設計が確かめる。本人であることを確かめて使い始めること（FR-48）と依頼のときの押さえ（FR-54）は、止まると依頼から先に進めないため対象の機能に入れた。扱い（重視）は質問 2 で確認済み（CUJ-01 の組）。CUJ-02、CUJ-08 の組（質問 21）、CUJ-06、CUJ-07 の組（決めたこと 17、16）でもある
+premises: []
 model: product
 layer: external
 characteristic: reliability > availability
-statement: システムは、配車の主要な流れ（手配の確定、依頼の一覧と許諾、乗車場所への到着と運転の開始、乗車の終了と請求）を、乗客とドライバーが使う間受け付け続ける。
-applies_to: [FR-05, FR-18, FR-20, FR-25, FR-26, FR-28, FR-29]
-traces_to: [QIU-01, QIU-13, QIU-15, QIU-16]
+statement: システムは、乗客が配車を依頼し、ドライバーが依頼を受けて迎えに行き、乗車を始め、到着を確認して決済を終えるまでの一連の機能を、乗客とドライバーが使おうとしたときに使える状態に保つ。
+applies_to: [FR-01, FR-03, FR-04, FR-06, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-17, FR-18, FR-20, FR-21, FR-24, FR-27, FR-28, FR-29, FR-48, FR-54]
+traces_to: [QIU-01, QIU-08, QIU-12, QIU-15, QIU-18, QIU-19]
 entry_point: null
 stakeholders: [USR-01, USR-02]
-failure_scenario: サーバーが止まり、乗客は手配できず、迎車中・乗車中の依頼も進まない。乗車の終了で請求できず、運賃を取りはぐれる。
+failure_scenario: システムが止まり、乗客は依頼を出せず、迎車中のドライバーは乗車場所や依頼主の手がかりを見られず、着いた乗車は決済を終えられない。
 score: {impact: 5, likelihood: 3}
 handling: emphasized
 handling_reason: null
-implies_internal: []
+implies_internal: [QR-52]
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

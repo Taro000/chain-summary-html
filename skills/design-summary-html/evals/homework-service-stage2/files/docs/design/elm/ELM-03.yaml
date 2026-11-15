@@ -1,11 +1,9 @@
 id: ELM-03
 title: API サーバー
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: component
 name: API サーバー
 responsibility: 提出の確定と受領、署名付き URL、採点と返却、トレース ID の記録
@@ -14,24 +12,27 @@ functions:
 - FR-02
 - FR-03
 - FR-04
+- FR-05
 - FR-06
 - FR-08
+- FR-09
 drivers:
 - DRV-01
 - DRV-02
 - DRV-03
+- DRV-05
 - DRV-07
 - DRV-08
-decisions: []
+- DRV-09
+decisions:
+- DEC-01
+- DEC-02
+- DEC-03
+- DEC-05
 team: TEAM-01
-technology: null
+technology: Node.js、コンテナで（DEC-01）
 runs_on: ELM-07
 depends_on:
 - ELM-04
 - ELM-05
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

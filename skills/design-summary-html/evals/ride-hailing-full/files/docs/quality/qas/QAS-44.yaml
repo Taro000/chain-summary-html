@@ -1,0 +1,12 @@
+id: QAS-44
+title: T_boarding の最初の値
+status: overturned
+stage: 4
+kind: decision
+statement: T_boarding を 3 分とする。
+why_unsure: 入力に数値も基準となる値もない。3 分は、迎車が着いてから乗客が車を見つけ、確かめの手がかりを伝えて乗るまでの控えめな最初の値で、最初のウィンドウの値から見直す。
+breadth: medium
+severity: low
+rating_note: QIU-09、FR-09、FR-10、FR-12 が依存する。第 1 段階と第 2 段階が次の実行で書く値で、変えるのは容易
+answer: 誤り。迎車が着いてから乗車が始まるまでは 1 分
+answered_in: "第 4 段階、決めたこと #13"

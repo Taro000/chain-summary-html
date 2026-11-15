@@ -1,0 +1,15 @@
+id: HND-01
+title: ストレージが PUT に答えるまでの時間
+status: decided
+basis: inferred
+basis_note: null
+premises: []
+from: requirements-to-architecture-drivers
+to: architecture-to-high-level-design
+component: null
+origin:
+- QR-02
+what: ObjectStore が署名付き URL への PUT にどれだけの時間で答えるか
+bounds: NFR-06 のしきい値、DRV-02
+trigger: 第 3 段階の次の実行
+resolution: IFC-03 で確かめた。PUT は確定の区間の外にある

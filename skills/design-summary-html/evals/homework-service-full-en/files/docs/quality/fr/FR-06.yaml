@@ -1,11 +1,9 @@
 id: FR-06
 title: Draft autosave
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: [EXT-01]
 statement: The system saves attached files as a draft before submission.
 origin: proposal
 cuj: CUJ-01
@@ -14,8 +12,6 @@ traces_to: [QIU-01]
 proposal: FRP-01
 existing: false
 extends: null
-interface: ['Screen: the student web app']
+interface: ['screen: student', EXT-01]
 acceptance_criteria: [Attached files stay in the draft even if the connection drops.]
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

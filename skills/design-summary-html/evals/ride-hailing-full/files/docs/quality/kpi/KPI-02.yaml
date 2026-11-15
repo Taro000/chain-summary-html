@@ -1,21 +1,14 @@
 id: KPI-02
-title: 許諾後の成立率
-status: draft
-version: 1
-basis: confirmed
-basis_note: 中間成果と、この式を全体で数えることは質問 3 で確認済み。中間成果（減らす）の裏返しの比で数えるので、値が上がれば許諾後の取り消しが減ったことになる
-needs_agreement: false
-approver_candidates: []
+title: 合流の成功率
+status: active
+basis: inferred
+basis_note: 式と、事業が全体で数えることは質問 6 の回答。OUT-02 のうち乗車場所での乗客の不在は、この割合の残り（迎車が着いたのに乗車が始まらなかった依頼）にあたる。中間成果への対応づけは推定
+premises: []
 outcome: OUT-02
-numerator: 迎車が乗車場所に到着した依頼
-denominator: ドライバーが許諾した依頼
-counted_over: すべての乗客とドライバー、すべての利用状況。テスト用アカウントを除く
-overlaps_with: [QIU-13]
+numerator: 乗車が始まった依頼
+denominator: 迎車が乗車場所に到着した依頼
+counted_over: すべての利用者とすべての利用状況
+overlaps_with: [QIU-08]
 overlap_note: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

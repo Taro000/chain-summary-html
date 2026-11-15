@@ -1,0 +1,60 @@
+id: MOD-57
+title: 返金
+status: active
+basis: inferred
+basis_note: 担当者が認めた額の返金を作って EXT-01 に送り、済んだこと、拒否とその理由、処理されなかったこと、結果が分からないことを答え、済むと乗客に知らせ、やり直しは済んでいれば最初の結果を、分からなければ同じ試みを確かめた結果を答え、済まなかった返金は返金できる残りの額を確かめ直してから新しい試みを作ることは IFC-13 と DEC-45、認めた返金を書く取引と、やり直しで新しい試みを書く取引で、支払われた額から済んだか結果が分からない返金の合計を引いた残りを確かめ、認めたことを操作の記録と一つの取引で書くことは DAT-12 と FR-40、FR-50、返金の状態は第 3 段階の報告の「要素をまたぐ状態」、済まなかったことも操作の記録に残すことは FR-50 の 3（どれも入力）。残りの額を、返金ごとの今の試みが unknown か succeeded のものの合計で数え（送っている途中の refunding を含む）、書き込みの取引の中で確かめて、重なった返金を分けることは MOD-25 の取引の決まりからの推定
+premises: []
+component: ELM-03
+name: 返金
+depth: full
+depth_reason: 担当者が認めた返金を EXT-01 の試みで一度だけ行い（お金を動かす）、結果が分からない返金を同じ試みのまま確かめ、返金できる残りの額を、同時に作られる返金の間で保つ（同時に動く仕事と状態を分ける）
+responsibility: 担当者が認めた額の返金を、支払われた額までに一度だけ行う
+visibility: public
+interface:
+  - operation: "list(actor: Actor, rideId: RideId) -> RefundList"
+    pre: null
+    post: GET /v1/console/rides/{rideId}/refunds に、返金ごとの認めた担当者、額、状態（済んだ、済まなかったとその理由と処理されなかったか、分からない）と、返金できる残りの額を返す
+    errors: ["NOT_FOUND: 404"]
+  - operation: "create(actor: Actor, rideId: RideId, amount: Money, key: IdempotencyKey) -> RefundAnswer"
+    pre: null
+    post: POST /v1/console/rides/{rideId}/refunds で、判断表 A で答え、作るなら取引 A で残りの額を確かめ、返金（refunding）、試み（refund）、冪等キー（MOD-26）、操作の記録を書いてから MOD-42 の sendWaiting で送り、結果の取引で返金の状態、操作の記録の結果、refund.settled（済んだら乗客と担当者に）を書く
+    errors: ["NOTHING_TO_REFUND: 409", "REFUND_EXCEEDS_PAID: 422 と refundableAmount", "REFUND_DECLINED: 402 と reason", "PAYMENT_SERVICE_UNAVAILABLE: 503 と refundId", "REFUND_PENDING: 202", "NOT_FOUND: 404", "VALIDATION_FAILED: 400（額が 1 円以上の整数でない）"]
+  - operation: "retry(actor: Actor, refundId: RefundId, key: IdempotencyKey) -> RefundAnswer"
+    pre: null
+    post: POST /v1/console/refunds/{refundId}/retry で、判断表 B で答え、済まなかった返金なら取引 A で残りの額を確かめ直して新しい試みを作って送る
+    errors: ["REFUND_EXCEEDS_PAID: 422 と refundableAmount", "REFUND_DECLINED: 402", "PAYMENT_SERVICE_UNAVAILABLE: 503 と refundId", "REFUND_PENDING: 202", "NOT_FOUND: 404"]
+  - operation: "applyResult(tx: Tx, attempt: Attempt, result: AttemptResult) -> none"
+    pre: MOD-42 の持ち主として（refund）
+    post: 返金の状態を試みの結果と同じ取引で移し（refunded、refund_unknown、refund_failed）、操作の記録に結果を足し、分かったら refund.settled を書く
+    errors: []
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 記録してから 3 年を過ぎた返金の認めた担当者を消し、額、状態、時刻を残す
+    errors: []
+invariants:
+  - 一つの乗車か依頼の、今の試みが unknown か succeeded の返金の合計は、支払われた額を超えない
+  - 一つの返金に、unknown か succeeded の試みは一つまで
+  - 認めた返金と操作の記録は同じ取引で書く
+depends_on: [MOD-21, MOD-25, MOD-26, MOD-28, MOD-29, MOD-33, MOD-42, MOD-45, MOD-56]
+functions: [FR-39, FR-40, FR-50]
+realizes:
+  - IFC-13 GET /v1/console/rides/{rideId}/refunds
+  - IFC-13 POST /v1/console/rides/{rideId}/refunds
+  - IFC-13 POST /v1/console/refunds/{refundId}/retry
+  - IFC-11 refund.settled
+drivers: [DRV-07, DRV-30, DRV-32]
+decisions: [DEC-10, DEC-19, DEC-45]
+behaviour: "報告書の節: MOD-57 返金"
+verification:
+  - checks: 判断表 A と B の行ごと（残りのちょうどと 1 円超え、決済が済んでいない、料金を請求した依頼、済んだ、拒否、処理されなかった、分からない、済んだ返金のやり直し）
+    how: 単体の層（NFR-25 の返金の額の上限と一度だけの返金）
+  - checks: 二つの返金を重ねて作っても、合計が支払われた額を超えない（QR-45）
+    how: 結合の層
+  - checks: 結果が分からない返金のやり直しが同じ試みを確かめ、一度だけ返金する（FR-40 の 3）。処理されなかった返金のやり直しが新しい試みで済む
+    how: 結合の層（EXT-01 の偽物）
+  - checks: 返金ごとの記録と済まなかった返金の記録（FR-39 の 5、FR-50 の 3、NFR-32）
+    how: 結合の層
+  - checks: CUJ-15 の返金への対応
+    how: 端から端の層
+parameters: []
+as_is: new

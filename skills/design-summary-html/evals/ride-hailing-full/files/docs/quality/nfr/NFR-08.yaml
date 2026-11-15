@@ -1,38 +1,31 @@
 id: NFR-08
-title: 決済・請求・返金の自動テストで配備を止める
-status: draft
-version: 2
-basis: inferred
-basis_note: 配備を止めるゲートにすることは質問 2 で確認済み。確かめる場合の一覧は推定。押さえ直し、結果の分からない押さえ、システムの取り消し、失敗の後の新しいキーを確かめる場合に足したことは、QR-09 版 5・QR-17 版 3 への追随（推定）
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-09
-- QR-17
-- QR-32
-- QR-43
-kind: gate
-cuj: CUJ-08
-statement: 配備（FR-41）の前に、決済・請求・返金の流れの自動テストを実行し、一つでも落ちたら配備を止める。
+title: 乗車してからの到着の見込みの当たりの SLO
+status: active
+basis: assumed
+basis_note: 目標値 90% としきい値 T_arrival_estimate_gap（5 分）は暫定の決定（QAS-26）。SLO として置くことと方針は質問 9 の回答。手配のときに示す到着予定時刻の当たりは QIU-05 が数えるため、乗車を始めてからの見込みに絞った（質問 22 の回答）。乗車を始めてからの見込みの時間を記録する機能（FRP-14）を待ち、それまでは乗車中に降りる場所を変えた乗車だけを数える。アラートの予算の消費は、使う時間がウィンドウの 3〜12 時間（OPF-01）に集まるものとして計算した。どの規則も予算を使い切った後に鳴るため、悪いイベントのたびのチケットを加えた
+premises: [OPF-01, OPF-02, OPF-03, EXT-02, QAS-26]
+from: [QR-08]
+kind: slo
+cuj: CUJ-01
+statement: 直近 28 日で、乗車中に降りる場所を変えて到着を確認した乗車の 90% が、乗客が最後に承認した到着予定の時刻の前後 T_arrival_estimate_gap（5 分）以内に着く。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
-slo: null
-gate:
-  where: CI
-  check: 決済のサービスの代わりとテスト環境を使い、押さえの額が確定した料金と同じこと、応答のない請求を同じキーで確かめて二度請求しないこと（FR-29、FR-30）、降車場所の変更後の料金で請求すること（FR-12）、請求の失敗で未払いになること（FR-31）、返金が残りの額を超えず二度行われないこと（FR-50）、押さえ直しの後に古い押さえを残さないこと（FR-12）、押さえの結果が分からないとき T_hold_wait の後に押さえを残さず手配をやめること（FR-05、FR-12）、システムが取り消した依頼にキャンセル料をかけないこと（FR-08）、失敗と分かった後の払い直しと返金のやり直しが新しいキーで行われること（FR-30、FR-50）を確かめる
-  threshold: すべて通る。一つでも落ちたら配備を止める
+  workload: デモの回の間（OPF-01）。参加者と依頼の量は OPF-02 と OPF-03
+  users: 登録した乗客。試験用のアカウントを除く
+  transactions: 乗車中に降りる場所を変えた乗車。FRP-14 が受け入れられたら、降りる場所を変えなかった乗車を、乗車を始めてからの見込みで加える
+slo:
+  sli: SLI-08
+  target: 90%
+  target_status: provisional
+  target_rationale: 入力の数値も基準となる値もない。到着の見込みは道の混み方と EXT-02 の見込みに左右されるため、目標は他の SLO より低い控えめな値にした。T_arrival_estimate_gap（5 分）は予定の外れの許容として置いた最初の値（QAS-26）で、QIU-05 が使う 5 分と同じ。KPI と KGI からは導いていない
+  window: 直近 28 日
+  error_budget: 数える乗車の 10% まで、見込みから T_arrival_estimate_gap（5 分）を超えて外れてよい
+  error_budget_volume: 許される外れは、ウィンドウの数える乗車の数 × 10% 件。28 日に入る乗車は 2〜6 回（OPF-01、OPF-02）で、そのうち降りる場所を変えたものだけを数えるため、全部を数えても 0.2〜0.6 件。1 件で予算を使い切る
+  policy: EBP-01
+  alerts:
+    - {notify: page, long_window: 1h, short_window: 5m, burn_rate: 14.4, budget_spent_at_alert: 120〜480%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: page, long_window: 6h, short_window: 30m, burn_rate: 6, budget_spent_at_alert: 150〜600%, condition: 長いウィンドウの有効なイベントが 20 件以上のときだけ}
+    - {notify: ticket, long_window: 3d, short_window: 6h, burn_rate: 1, budget_spent_at_alert: 50〜100%, condition: null}
+    - {notify: ticket, long_window: null, short_window: null, burn_rate: null, budget_spent_at_alert: 1 件で 100% 以上, condition: ウィンドウに許される失敗が 1 件に満たない間は、悪いイベントのたびに（EBP-01 の最後の規則）}
+gate: null
 audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。確かめる場合に、押さえ直し、結果の分からない押さえ、システムの取り消し、失敗の後の払い直しと返金のやり直しを足した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。第 3 段階の再実行（2026-11-03）の QR-09・17 への追随

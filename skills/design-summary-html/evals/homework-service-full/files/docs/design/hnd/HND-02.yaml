@@ -1,0 +1,15 @@
+id: HND-02
+title: 保護者の画面の並び
+status: open
+basis: inferred
+basis_note: null
+premises: []
+from: architecture-drivers-to-architecture
+to: high-level-design-to-detailed-design
+component: ELM-01
+origin:
+- DEC-06
+what: 保護者の画面の並びと、生徒の画面との分け方
+bounds: DEC-06、DRV-04
+trigger: 保護者の画面を作ると決めたとき
+resolution: null

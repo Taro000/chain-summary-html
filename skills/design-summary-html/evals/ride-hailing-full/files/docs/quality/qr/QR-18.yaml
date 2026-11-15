@@ -1,29 +1,22 @@
 id: QR-18
-title: 場所の取り違えを防ぐ
-status: draft
-version: 1
+title: 乗車を始めるのは、同じ依頼の相手であることが確かめられたときだけ
+status: active
 basis: inferred
-basis_note: 失敗のシナリオ、点、扱いは推定。扱いは要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+basis_note: 確かめの手がかりを乗客がドライバーに伝え、一致したときだけ乗車を始めることは第 2 段階の質問 2 で確認済み（FR-12）。失敗のシナリオは推定。デモの参加者は顔の分かる乗客 1 人とドライバー 1 人で、装う人はいない（OPF-03、第 4 段階の決めたこと 20）ため、起こりやすさを 1 とした。手がかりの作り方は設計への申し送り（第 2 段階の DIN-02）で、ここでは選ばない。扱い（最低限守る線）は点による
+premises: [OPF-03]
 model: product
 layer: external
-characteristic: usability > user error protection
-statement: システムは、乗客が場所を探して選ぶとき、選んだ候補の位置を地図のピンで示し、同じ名前の候補を住所などで区別できるように示して、取り違えを防ぐ。
-applies_to: [FR-02, FR-12]
-traces_to: [QIU-06]
+characteristic: security > authenticity
+statement: 確かめの手がかりはその依頼にだけ合い、その依頼の乗客のほかには示されず、ほかの人が推し量れない。システムは、ドライバーが入れた手がかりがその依頼のものと一致したときだけ乗車を始める。
+applies_to: [FR-12, FR-27]
+traces_to: [QIU-10, QIU-18]
 entry_point: null
-stakeholders: [USR-01, 地図・経路・渋滞の情報の外部サービス]
-failure_scenario: 同じ名前の別の施設を選んでも気づかず、ドライバーが違う場所に乗客を降ろす。
-score: {impact: 3, likelihood: 3}
-handling: emphasized
+stakeholders: [USR-01, USR-02]
+failure_scenario: 駅前で別の車のドライバーが当て推量で入れた手がかりが一致してしまい、乗客の画面が乗車中に変わって、乗客は手配していない車に乗る。
+score: {impact: 5, likelihood: 1}
+handling: minimum-line
 handling_reason: null
-implies_internal: []
+implies_internal: [QR-55]
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

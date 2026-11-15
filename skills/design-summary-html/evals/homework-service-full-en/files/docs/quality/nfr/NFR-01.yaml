@@ -1,23 +1,21 @@
 id: NFR-01
 title: Submission availability SLO
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: confirmed
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: [OPF-01]
 from: [QR-01, QR-06]
 kind: slo
 cuj: CUJ-01
-statement: Over a rolling 28 days, 99.5% of valid submission requests are answered without a server error.
-conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+statement: Over a rolling 28 days, 99.5% of valid submissions are accepted without a failure of the system.
+conditions: {workload: Up to the rush in the 24 hours before a deadline (OPF-01), users: 'Students and teachers, test accounts excluded', transactions: Submissions}
 slo:
   sli: SLI-01
   target: 99.5%
-  target_status: provisional
-  target_rationale: Set conservatively, as there is no operating history
+  target_status: confirmed
+  target_rationale: Confirmed by the office and the teachers in stage 4, question 1
   window: 28-day rolling
-  error_budget: Up to 0.5% of valid submission requests may fail
+  error_budget: Up to 0.5% of valid submissions may fail
   error_budget_volume: Submissions in 28 days × 0.005
   policy: EBP-01
   alerts:
@@ -26,5 +24,3 @@ slo:
 gate: null
 audit: null
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

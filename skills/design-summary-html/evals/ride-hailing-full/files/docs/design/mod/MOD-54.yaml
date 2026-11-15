@@ -1,0 +1,43 @@
+id: MOD-54
+title: 乗客の閾値とドライバーの条件
+status: active
+basis: inferred
+basis_note: 乗客の評価の閾値と、ドライバーの最低の金額と最大の距離の、読む、置く、解く操作と、範囲の誤りの答えは IFC-08 と FR-16、FR-32、その値は届けるとき、示すとき、許諾を受けるときにその時点の値で読まれることは DEC-24 と DAT-04、距離は直線の距離（QCR-01）（どれも入力）
+premises: [QCR-01]
+component: ELM-03
+name: 乗客の閾値とドライバーの条件
+depth: bounds
+depth_reason: null
+responsibility: 乗客の評価の閾値と、ドライバーが依頼を受ける条件を持つ
+visibility: public
+interface:
+  - operation: "getThreshold(actor: Actor) -> integer or none; putThreshold(actor: Actor, value: integer, key: IdempotencyKey) -> integer; deleteThreshold(actor: Actor, key: IdempotencyKey) -> none"
+    pre: null
+    post: その後の依頼に使う閾値を読む、置く、解く（DAT-04）。冪等キーの答えと一つの取引で書く
+    errors: ["VALIDATION_FAILED: 400（threshold の OUT_OF_RANGE）"]
+  - operation: "getConditions(actor: Actor) -> Conditions; putConditions(actor: Actor, value: Conditions, key: IdempotencyKey) -> Conditions; deleteConditions(actor: Actor, key: IdempotencyKey) -> none"
+    pre: null
+    post: その後に届ける依頼に使う最低の金額と最大の距離（m の整数）を読む、置く、解く
+    errors: ["VALIDATION_FAILED: 400（minFare か maxPickupDistance の OUT_OF_RANGE か INVALID_FORMAT）"]
+  - operation: "removeForAccount(tx: Tx, accountId: AccountId) -> none"
+    pre: 呼ぶのは MOD-68 だけ（アカウントが使えなくなったとき）
+    post: その人の受付の状態、閾値、条件（DAT-04）を消す
+    errors: []
+invariants: []
+depends_on: [MOD-25, MOD-26, MOD-27]
+functions: [FR-16, FR-32]
+realizes:
+  - IFC-08 GET /v1/passengers/me/rating-threshold
+  - IFC-08 PUT /v1/passengers/me/rating-threshold
+  - IFC-08 DELETE /v1/passengers/me/rating-threshold
+  - IFC-08 GET /v1/drivers/me/conditions
+  - IFC-08 PUT /v1/drivers/me/conditions
+  - IFC-08 DELETE /v1/drivers/me/conditions
+drivers: [DRV-08]
+decisions: [DEC-24]
+behaviour: null
+verification:
+  - checks: 範囲の誤り（FR-16 の 3、FR-32 の 3）と、置いた後と解いた後の依頼に使われる（FR-16 の 1、2、FR-32 の 1、2）
+    how: 結合の層
+parameters: []
+as_is: new

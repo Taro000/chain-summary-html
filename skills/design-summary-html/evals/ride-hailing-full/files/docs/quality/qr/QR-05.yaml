@@ -1,29 +1,23 @@
 id: QR-05
-title: 混雑時の手配と許諾
-status: draft
-version: 1
+title: 乗る場所の位置が、乗客が実際に待つ場所を表す
+status: active
 basis: inferred
-basis_note: 一系統・少人数の前提は質問 2 で確認済み。点と除外は推定で、除外は要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-model: product
-layer: external
-characteristic: performance efficiency > capacity
-statement: システムは、多くの乗客とドライバーが同時に手配・許諾しても、手配の確定と許諾を失敗させない。
-applies_to: [FR-05, FR-20]
-traces_to: [QIU-01, QIU-13]
+basis_note: 失敗のシナリオと点は推定。乗客の現在地は乗客の端末から得る（FR-02）。場所の名前や住所に結び付く位置は EXT-02 が作る（質問 3 で確認済み）。降りる場所と到着を確認した場所の位置は QR-70 に分けた（決めたこと 16）。乗る場所の許容を D_pickup_position_gap（50 m）として D_place_position_gap から分けることとその値は、第 4 段階の決めたこと 3。扱い（重視）は決めたこと 16、17、20 で確認済み（CUJ-06 と CUJ-07 の組。CUJ-01 と CUJ-02 にもたどるが、ほかの CUJ の組からたどる分は数えない）
+premises: [EXT-02]
+model: data
+layer: data-inherent
+characteristic: accuracy
+statement: 配車依頼に乗る場所として入る位置は、乗客が実際に待つ場所（乗客が現在地や場所の名前・住所で決めた建物の入口など）から D_pickup_position_gap（50 m）以上離れない。
+applies_to: [FR-01, FR-02, FR-20, FR-24]
+traces_to: [QIU-01, QIU-08, QIU-15, QIU-18]
 entry_point: null
-stakeholders: [USR-01, USR-02]
-failure_scenario: 多くの依頼が同時に来ると、手配の確定と許諾が失敗する。
-score: {impact: 4, likelihood: 1}
-handling: excluded
-handling_reason: "今期は対象外: 事業化しないデモで、利用はデモの参加者だけ（質問 2）。多くの利用が同時に来ることは想定しない"
+stakeholders: [USR-01, USR-02, EXT-02]
+failure_scenario: EXT-02 が場所の名前に結び付ける位置が建物の裏口を指している、または乗客の現在地がずれて示されたまま依頼され、迎車は乗客のいない場所に着き、ドライバーは依頼主を見つけられずに取り消す。
+score: {impact: 4, likelihood: 3}
+handling: emphasized
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+placeholders:
+  - {name: D_pickup_position_gap, meaning: "依頼に入る乗る場所の位置が、乗客が実際に待つ場所からずれる距離の許容。迎車が乗る場所に着いたとみなす範囲も同じ値", from: "第 4 段階の決めたこと 3（D_place_position_gap から分けた）"}

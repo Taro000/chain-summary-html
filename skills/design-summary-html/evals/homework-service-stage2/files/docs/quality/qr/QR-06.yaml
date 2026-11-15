@@ -1,15 +1,13 @@
 id: QR-06
 title: ストレージの障害への耐性
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: [EXT-01]
 model: product
 layer: external
 characteristic: reliability > fault tolerance
-statement: 外部のストレージが一時的に失敗しても、添付したファイルを失わない。
+statement: 外部のストレージ（EXT-01）が一時的に失敗しても、添付したファイルを失わない。
 applies_to: [FR-01, FR-06]
 traces_to: [QIU-01]
 entry_point: null
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

@@ -1,23 +1,14 @@
 id: FND-57
-title: '押さえ直し（DEC-11）の端の所が二つ決まっていない: 新しい押さえを確かめている間の乗車の終了と、料金が下がるときの結果が分からない押さえ直し'
-status: open
-version: 1
+title: IFC-03 の依頼の支払い方法の変更が、決済の結果が分からない依頼（payment_pending）への答えを持たない
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
-raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-11
-- DEC-12
+basis_note: IFC-03 の PUT …/payment-method の does と誤りの表、IFC-17 の ordering（一つの依頼の押さえ、押さえ直し、確定、解除は、前の試みが終わってから次を送る）、DAT-07 の状態は入力。答えの欠けは MOD-56 の判断表 B をこの段階が書いて分かった
+premises: []
+raised_by: high-level-design-to-detailed-design
+raised_in: 4-detailed-design/ELM-03.md
+to: architecture-to-high-level-design
+targets: [IFC-03]
 severity: minor
-evidence: DEC-11 の選んだ案は、料金が上がるときに新しい押さえの結果が分からなければ「降車場所を変えずに確かめ中と示し、T_hold_wait までに押さえたと分かれば変え」るとするが、その間に乗車が終わったとき、どちらの押さえを確定し、後から見つかった新しい押さえをどう解放するかがない（CUJ の通し確認の降車場所の変更の行は残る危険を「なし」とする）。第 3 段階は DEC-52（FND-33）でこれを扱うが、第 2 段階には決めがない。また「料金が下がるときは新しい額で押さえ直し、できなければ古い押さえのまま下がった額だけを確定する」とするが、新しい押さえの結果が分からないときの扱いがない。QR-09 版 5 と NFR-07 版 3 が二重の押さえから除くのは「料金が上がる降車場所の変更での押さえ直し」だけで、下がるときの押さえ直しは含まれない（品質チェーンへの課題 1）
-suggestion: 乗車の終了が確かめ中の押さえ直しより先に来たときの扱い（変更を取りやめて古い押さえを確定し、新しい押さえは見つかれば解放する、など）と、料金が下がるときの結果が分からない押さえ直しの扱いを DEC-11 に書く
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A1（DRV-04）、A2（CUJ の降車場所の変更）
+evidence: 乗客は進んでいる依頼の支払い方法を変えられ（IFC-03 の PUT …/payment-method）、決済が拒否された依頼ではそれで押さえ直してドライバーがやり直せる。決済の結果が分からない依頼（payment_pending）では、その決済の試みが終わるまで押さえ直しを送れない（IFC-17 の ordering）が、IFC-03 の誤りの表はそのときの符号と利用側のすることを挙げない。MOD-56 は今、到着を確認した後の変更として 409 RIDE_ALREADY_ARRIVED（IFC-03 の降りる場所の変更の符号）で答えている。決済の結果が分かれば、拒否なら乗客は改めて変えられ、済めば変える要がないので、何も失われないため軽微とした
+suggestion: IFC-03 の PUT …/payment-method の誤りの表に、決済の結果を確かめている依頼の支払い方法の変更（たとえば 409 PAYMENT_PENDING_CONFIRMATION、利用側は流れの ride.charge_settled を待ってから決め直す）を加えるか、RIDE_ALREADY_ARRIVED をこの場合にも使うと書く
+resolution: 受け入れ。IFC-03 の誤りの表に、決済の試みが動いているか結果が分からない（payment_pending）依頼の支払い方法の変更への 409 PAYMENT_PENDING_CONFIRMATION（利用側は ride.charge_settled を待ってから決め直す。IFC-17 の ordering）を加え、PUT …/payment-method の does と IFC-22 の誤りの表にも書いた。RIDE_ALREADY_ARRIVED は降りる場所の変更の符号のまま

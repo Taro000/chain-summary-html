@@ -1,0 +1,45 @@
+id: MOD-49
+title: 現在地の新しさの確かめ
+status: active
+basis: inferred
+basis_note: デモの回の間 1 分ごとに、受付をしている、迎車中、乗車中のドライバーと、配車が確定してから乗車が始まるまでの乗客について、最新の位置の測った時刻を写して書き、同じ分と同じ人は一行だけ書き、どのインスタンスも動いていなかった分を起き直した ELM-03 が要求を受け始める前に書き、止まる合図の後の分を書かず、抜けた分を書くのは一回の回の長さまでに限ることは DAT-21（OPF-01）と SLI-10 の出どころ（入力）。対象の人を受付の状態から読む口を MOD-52 が渡すことは推定。デモの回の間は、想定の本番ではインスタンスが動いている間（DAS-02。第 3 段階のレビューの質問 2 の答えで確認済み）で、対象の人がいるのも回の間だけなので、対象の人がいるときに書くとして読んだ（推定）
+premises: [DAS-02]
+component: ELM-03
+name: 現在地の新しさの確かめ
+depth: bounds
+depth_reason: null
+responsibility: 1 分ごとに、位置を持つべき参加者の最新の位置の古さを書く
+visibility: internal
+interface:
+  - operation: "checkMinute(minute: Instant) -> integer"
+    pre: MOD-31 の position_check の受け持ちが、分の始まりごとに呼ぶ
+    post: その分の対象の人ごとに、最新の位置（MOD-47）の直した測った時刻と古さを一行書く（分と人で一つ。重なって書いても一行）
+    errors: []
+  - operation: "backfillOnStart(now: Instant) -> integer"
+    pre: 起動のとき、要求を受け始める前
+    post: 最後に書いた確かめの次の分から今の前の分まで、止まる合図の後の分を除き、最後の確かめから 3 時間までの分を、その時の対象の人と最後に受けた位置で writtenLate として書く
+    errors: []
+  - operation: "markStopping(at: Instant) -> none"
+    pre: 止まる合図を受けたとき
+    post: 止まる合図の時刻を書く
+    errors: []
+  - operation: "purgeBefore(at: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 28 日（SLO のウィンドウ）を過ぎた確かめを消す
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-25, MOD-31, MOD-45, MOD-47]
+functions: []
+realizes: []
+drivers: [DRV-04, DRV-27]
+decisions: [DEC-07, DEC-23]
+behaviour: null
+verification:
+  - checks: 二つのインスタンスが同じ分を書いても一行で、対象の人の分け方（受付、迎車中、乗車中、乗客の段階）
+    how: 結合の層（時計の偽物）
+  - checks: 起き直したときの抜けた分の書き方（止まる合図の後は書かない、3 時間まで、writtenLate）
+    how: 結合の層と運用の予行の層（NFR-16 の止めて再開する予行）
+  - checks: SLI-10 の項目がそろう
+    how: 結合の層
+parameters: []
+as_is: new

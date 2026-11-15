@@ -1,19 +1,15 @@
 id: NFR-09
-title: Trace ID in the Definition of Done
-status: draft
-version: 1
-basis: inferred
+title: Traceability in the Definition of Done
+status: active
+basis: assumed
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: [QAS-01]
 from: [QR-10]
 kind: gate
 cuj: CUJ-03
-statement: A component on the submission path is not done until it writes the trace ID to its logs.
-conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+statement: A step on the submission path is not done until it leaves a record that lets a failed submission be followed.
+conditions: {workload: Up to the rush in the 24 hours before a deadline (OPF-01), users: 'Students and teachers, test accounts excluded', transactions: Submissions}
 slo: null
-gate: {where: definition-of-done, check: The trace ID appears in the logs, threshold: All components}
+gate: {where: definition-of-done, check: A failed submission can be followed to that step, threshold: Every step on the submission path}
 audit: null
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

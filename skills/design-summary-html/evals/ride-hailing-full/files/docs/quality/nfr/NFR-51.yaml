@@ -1,0 +1,21 @@
+id: NFR-51
+title: デモの回の前の通しの確認
+status: retired
+basis: confirmed
+basis_note: SLO を一件ごとの監視に変える下書き（質問 9 の選択肢 A）とともに置いたが、質問 9 の回答で SLO に戻したため廃止した
+premises: [OPF-01, EXT-01, EXT-02]
+from: [QR-01, QR-29]
+kind: gate
+cuj: CUJ-01
+statement: 各デモの回（OPF-01）の前に、試験用のアカウントで、配車の依頼から許諾、迎車の到着、確かめの手がかりによる乗車の開始、降りる場所の変更、到着の確認、決済、評価、担当者による返金までを通して行い、どの手順もシステムの失敗なく終わり、EXT-01 と EXT-02 とのやり取りが結果どおりに結び付くことを確かめる。
+conditions:
+  workload: null
+  users: 試験用の乗客、ドライバー、運営・サポートの担当者のアカウント
+  transactions: 配車の依頼から決済、評価、返金まで
+slo: null
+gate:
+  where: release-check
+  check: 試験用のアカウントで主要な流れを通して行う確認（模擬の利用）
+  threshold: すべての手順が失敗なく終わること。終わらなければ、直すまでデモの回を始めない
+audit: null
+monitor: null

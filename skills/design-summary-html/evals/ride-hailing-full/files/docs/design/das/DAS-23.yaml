@@ -1,0 +1,12 @@
+id: DAS-23
+title: 確かめられない支払い方法の登録を見捨てるまでの時間と、降りる場所の変更の見積もりの有効期間を暫定に採る
+status: open
+stage: 4
+kind: decision
+statement: MOD-43 は、始めたが乗客が入力部品で確かめないままの登録を、始めてから 24 時間で見捨てる（abandoned）。MOD-59 は、見積もった降りる場所の変更を見積もってから 5 分のうちだけ承認できる。値は MOD-43 と MOD-59 の parameters にある
+why_unsure: 乗客が登録を確かめるまでと、新しい降りる場所の料金を見て承認するまでの時間は、入力にない
+breadth: medium
+severity: low
+rating_note: MOD-43 と MOD-59 の二つが依存するため、影響の広さは中（第 3 段階のレビューの E3）。見捨てた登録の取引ではお金は動かず（DEC-45）、見積もりが切れても乗客は求め直すだけ（QUOTE_EXPIRED）
+answer: null
+answered_in: null

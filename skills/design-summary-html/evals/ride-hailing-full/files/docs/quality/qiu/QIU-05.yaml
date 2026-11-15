@@ -1,39 +1,32 @@
 id: QIU-05
-title: 手配した車以外に乗らない
-status: draft
-version: 1
+title: 乗客が示された到着予定時刻を信じて手配できる
+status: active
 basis: inferred
-basis_note: 確認の手間を省くニーズは入力。なりすましの危険を防ぐ目的は質問 8 で確認済み。測定量は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: 移動時間の確認とニーズは入力。「示された移動時間」が、手配のときに示す目的地への到着予定時刻（ドライバーが見つかるまでの時間と迎車の時間を含む）を指すことは第 3 段階の決めたこと #8 で、乗客に尋ねずに記録から数えること（5 分以内に降車した乗車の割合）は第 4 段階の決めたこと #21 で確認済み（QAS-42）。信用性として扱うこと、分母と利用状況は推定
+premises: [CON-05, EXT-02, QAS-42]
 user: USR-01
-cuj: CUJ-02
-outcomes: []
-need: 手配した車かどうかを確かめたい。変なドライバーに当たりたくない
+cuj: CUJ-01
+outcomes: [OUT-01]
+need: 出来るだけ早く目的地に移動したい。手配する前に移動時間を確かめて決めたい
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: 乗客
-  task: 迎車に乗る
-  environment: 乗車場所（路上）
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録した乗客
+  task: 配車の手配
+  environment: null
   other: null
-characteristic: freedom from risk > health and safety risk mitigation
-statement: 乗客は、手配した車以外（手配したドライバーを装った車を含む）に乗ってしまうことがない。
-failure_scenario: 乗客が手配した車と取り違えて、またはドライバーを装った者の車に乗り、危険な目に遭う。
+characteristic: satisfaction > trust
+statement: スマートフォンで配車を手配する乗客は、手配時に示された目的地への到着予定時刻（ドライバーが見つかるまでの時間と迎車の時間を含む）を信じて、手配するかどうかを決められる。
+failure_scenario: 示された到着予定時刻より大幅に遅れて着くことが重なり、乗客は時間に間に合わせたい移動ではこのサービスを使わなくなる。
 measure:
-  numerator: 手配した車と違う車に乗ったと報告された乗車
-  denominator: 乗車が始まった乗車
-  narrowed_to: スマートフォンのブラウザ
-  denominator_needed_only: 乗車が始まった乗車だけ
-  contribution: 乗車時の確認の仕組み（車両の番号の表示など）に直接つながるが、件数が少ないため A/B で比べるのは難しい
-  observable: false
+  numerator: 降車した時刻が、手配時に示した目的地への到着予定時刻から 5 分以内だった乗車（5 分は第 4 段階の決めたこと #21）
+  denominator: 降車まで終えた乗車
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く。乗車中に降りる場所を変えた乗車は、手配時の到着予定時刻と比べられないため除く
+  denominator_needed_only: 降車まで終えた乗車だけを数え、取り消された依頼や乗車に至らなかった依頼は含めない（QIU-01、QIU-08 で数える）
+  contribution: 示す到着予定時刻の見込みと、ドライバーが見つかるまで・迎車にかかる時間にプロダクトが効くが、道路の混み具合と、道と移動時間の見込みのもとになるデータ（EXT-02）にも左右される
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

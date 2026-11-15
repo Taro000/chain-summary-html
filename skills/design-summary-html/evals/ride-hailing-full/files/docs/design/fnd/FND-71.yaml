@@ -1,25 +1,14 @@
 id: FND-71
-title: 確定・取り消し・返金で Stripe が 5xx を返した後の出口が項目ごとに違い、押さえを残したまま未払いにしうる
-status: open
-version: 1
+title: 確定のモジュールの値のうち四つが、parameters にも DAS にもない
+status: accepted
 basis: inferred
-basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: 報告の MOD-23 の判断表 A、MOD-32 の判断表 B、「キャッシュ」のメモリの構造、「設計上の値」の文、各 MOD の parameters、DAS-17、DAS-18、DAS-20、DAS-21 は入力
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-13
-- DAT-13
-- IFC-03
-- IFC-06
-severity: major
-evidence: 活動 B3、B9。DEC-52 版 2 と IFC-13 は、5xx の後に「照らして起きていないと確かめ、試みの番号を進めた新しいキーで送る」を押さえ（手配と押さえ直し）にだけ書き、確定と取り消しのキーは押さえごと（<PaymentIntent>_capture、_cancel）で試みの番号がない。IFC-13 の 5xx の caller_does は「送り直さず、確かめ中にする」。一方、DRV-04 の毎日の処理の流れは「5xx の後なら起きていないと確かめてから新しいキー」とどの操作にも書き、CUJ-08 は「3 回とも応答がない、5xx」を一つの枝にして同じキーの送り直しに 5xx を含めうる。支払いの状態遷移図は checking → unpaid を「確定していないと確かめた」とするので、確定に 5xx が返ると、押さえ（PaymentIntent は requires_capture のまま）が有効なのに未払いになり、乗客は別の支払い手段で新しい PaymentIntent を払わされ（FR-31 AC2）、元の押さえは期限（7 日）まで残る。次の手配も UNPAID_RIDE_EXISTS で断られる。取り消しに 5xx が返ると release_checking が押さえの期限まで続き、デモの期間を終える条件の (A) が 7 日 0 にならない
-suggestion: 確定・取り消し・返金の 5xx の後を、押さえと同じ形（照らして起きていないと確かめ、T_op_stale を過ぎたら試みの番号を進めた新しいキーで同じ操作をやり直す）にするか、それができないなら確かめ中のまま人に知らせるかを決め、支払いの状態遷移図（checking → unpaid は「Stripe が失敗と答えたか押さえが期限で消えた」ときだけ）、お金の操作の図、IFC-13 の errors、CUJ-08 の枝、毎日の処理の流れをそろえる。キーの形の変更が要るなら FND-72 の答えに合わせる
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: 出した
-  reason: 第 3 段階のレビュー（再実行分）
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-20, MOD-23, MOD-32, MOD-33]
+severity: minor
+evidence: 報告は「どの値も確定の深さのモジュールのもので、運用の中で直す暫定の決定（DAS-17〜DAS-26、DAS-28）」とするが、MOD-23 の判断表 A の作りかけを読み直す 200 ミリ秒と 3 回、MOD-32 の判断表 B の期限を過ぎた処理を拾う終わり（時間の上限から 5 分を引いた時刻）、メモリの構造の MOD-33 の流れの組のタイマーの上限 1000 と MOD-20 の送り元の上限 10000 は、それぞれのモジュールの parameters になく、DAS-17、DAS-18、DAS-20、DAS-21 の statement にもない
+suggestion: 四つの値を、もとと一緒にそれぞれのモジュールの parameters に置き、DAS-17、DAS-18、DAS-20、DAS-21 の statement に加える（FND-63 を受けて MOD-23 の読み直しが変われば、その値を置く）
+resolution: 受け入れ。MOD-32 の期限を過ぎた処理を拾い続ける終わり（取ってから 15 分）、MOD-33 の流れに書いた組の 2 秒のタイマーの上限（1000）、MOD-20 の入口の回数を数える送り元の上限（10000）を、それぞれの parameters と DAS-20、DAS-21、DAS-17 に置いた。MOD-23 の作りかけを読み直す 200 ミリ秒と 3 回は、FND-63 を受けて読み直しの行がなくなり、値もなくなった。同じ種類の値として、MOD-67 の答えのない要求を異常にするまでの余裕（答えの期限から 1 分）も parameters と DAS-28 に置き、DAS-21 の statement に MOD-33 の流れのない相手と決めるまでの待ち（2 秒）を加えた

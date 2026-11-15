@@ -1,40 +1,32 @@
 id: QIU-10
-title: しきい値を設定した乗客がドライバーと車に満足する
-status: draft
-version: 1
+title: 乗客が手配した車以外に乗らない
+status: active
 basis: inferred
-basis_note: ニーズは入力。乗車後の評価を測定量に使うことと L_rating_ok は推定。乗車中の危険を対象にしないことは質問 8 で確認済み
-needs_agreement: true
-approver_candidates:
-  - プロダクトオーナー
+basis_note: CUJ の手順（手配した車かどうかを確認する）は入力。別の車に乗ることを健康・安全の問題として扱うことは推定
+premises: [CON-05]
 user: USR-01
-cuj: CUJ-05
-outcomes: []
-need: 変なドライバーや汚い車に当たりたくない
+cuj: CUJ-02
+outcomes: [OUT-02]
+need: 手配した車に乗りたい。変なドライバーに当たりたくない
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: しきい値を設定した乗客
-  task: 乗車を終えて評価する
-  environment: null
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録した乗客
+  task: 手配した車への乗車
+  environment: 屋外の乗る場所
   other: null
-characteristic: satisfaction > usefulness
-statement: しきい値を設定した乗客は、ドライバーの振る舞いと車の清潔さに満足して乗車を終えられる。
-failure_scenario: しきい値を設定したのに、態度の悪いドライバーや汚い車に当たり、乗客はしきい値もサービスも当てにしなくなる。
+characteristic: freedom from risk > health and safety risk mitigation
+statement: 乗る場所で待つ乗客は、手配した車以外の車に乗らない。
+failure_scenario: 乗客が手配した車だと思い込んで別の車に乗り、知らない人の車で違う場所へ連れて行かれる、または危険な目に遭う。手配した車のドライバーは乗る場所で乗客を待ち続ける。
 measure:
-  numerator: 乗客の評価が L_rating_ok 以上だった乗車
-  denominator: 乗客が評価した乗車
-  narrowed_to: しきい値を設定した乗客、スマートフォンのブラウザ。順序尺度なので平均せず、水準以上の割合を数える
-  denominator_needed_only: 評価された乗車だけ。評価しない乗客の満足は分からないため、評価する乗客に偏る
-  contribution: しきい値を設定する乗客としない乗客は性質が違うため、同じ乗客の設定前後で比べる
-  observable: true
+  numerator: 乗客が手配された車以外の車に乗った乗車
+  denominator: 乗客が乗った乗車
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く
+  denominator_needed_only: 乗客が車に乗ったものだけを数える
+  contribution: 手配した車かどうかを確かめる手がかりにプロダクトが効く
+  observable: false
   compared_with: null
-  scale: ordinal
+  scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

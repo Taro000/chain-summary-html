@@ -1,0 +1,12 @@
+id: QAS-02
+title: 乗客によるドライバーの評価には車の状態も含む
+status: open
+stage: 1
+kind: judgment
+statement: 乗客がドライバーに付ける評価には、ドライバーの振る舞いに加えて車の状態（清潔さなど）も含む。
+why_unsure: 入力は「ドライバーを評価する」と「変なドライバーや汚い車に当たりたくない」を挙げているが、評価が車の状態を含むかを書いていない。
+breadth: medium
+severity: low
+rating_note: QIU-06 と FR-15 が依存する。違っていても評価の対象を分け直せばよく、乗客への害は増えない
+answer: null
+answered_in: null

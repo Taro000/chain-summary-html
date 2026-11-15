@@ -1,0 +1,21 @@
+id: NFR-49
+title: 画面のアクセシビリティの自動の検査
+status: active
+basis: inferred
+basis_note: WCAG 2.2 のレベル AA のうち自動で検査できる達成基準を CI で確かめる（推定）。人が確かめる達成基準は NFR-50 が受け持つ
+premises: [CON-05]
+from: [QR-64]
+kind: gate
+cuj: null
+statement: 乗客とドライバーの画面を変えるたびに、WCAG 2.2 のレベル AA の達成基準のうち自動で検査できるものを、すべての画面で検査する。
+conditions:
+  workload: null
+  users: 乗客、ドライバー
+  transactions: 乗客とドライバーのすべての画面
+slo: null
+gate:
+  where: CI
+  check: WCAG 2.2 のレベル AA の、自動で検査できる達成基準の検査
+  threshold: 違反が一つもないこと。違反のある変更は公開しない
+audit: null
+monitor: null

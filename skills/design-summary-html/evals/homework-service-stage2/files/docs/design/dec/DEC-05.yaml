@@ -1,11 +1,9 @@
 id: DEC-05
 title: トレース ID をブラウザで作って引き継ぐ
-status: draft
-version: 2
+status: active
 basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+basis_note: FND-02 を受けて足した
+premises: []
 stage: architecture
 question: 一つの提出の記録をどうつなぐか
 addresses:
@@ -18,10 +16,10 @@ options:
   effect: 作りが単純
   cost: ブラウザで起きた失敗がつながらない
 chosen: ブラウザがトレース ID を作り、見出しで渡す
-rationale: 2 回目の再実行で足した。CUJ-03 の調べを一つの ID から始められる。
+rationale: CUJ-03 の調べを一つの ID から始められる（FND-02 を受けて足した）。
 rejected:
 - option: サーバーが ID を作る
-  reason: ブラウザの失敗がつながらない（質問 4、FND-02）
+  reason: ブラウザの失敗がつながらない（FND-02）
 gains:
 - 通知から原因まで一つの ID でたどれる
 costs:
@@ -33,15 +31,4 @@ depends_on:
 - DEC-01
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き
-- version: 2
-  date: '2026-09-25'
-  change: 理由を足した
-  reason: 第 2 段階の再実行（FND-02）

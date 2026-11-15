@@ -1,16 +1,14 @@
 id: QIU-05
 title: 月次の数字が提出と合う
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 user: USR-04
 cuj: CUJ-04
 outcomes: [OUT-01]
 need: 塾の事務は、月次のレポートの件数が実際の提出の記録と一致していると信じて使える。
-context_of_use: {device: スマートフォンのブラウザ, network: null, user_type: null, task: 月次の数字が提出と合う, environment: null, other: null}
+context_of_use: {device: スマートフォン, network: null, user_type: null, task: 月次の数字が提出と合う, environment: null, other: null}
 characteristic: freedom from risk > economic risk mitigation
 statement: 塾の事務は、月次のレポートの件数が実際の提出の記録と一致していると信じて使える。
 failure_scenario: 未提出の生徒を取り違え、提出した生徒に催促する。
@@ -18,5 +16,3 @@ measure: {numerator: 提出の記録と一致した月次の件数, denominator:
 kpi: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: 作成, reason: 第 1 段階の下書き}

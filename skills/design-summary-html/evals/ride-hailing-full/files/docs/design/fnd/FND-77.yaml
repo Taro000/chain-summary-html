@@ -1,23 +1,14 @@
 id: FND-77
-title: not_booked の依頼に理由がなく、SLI-05 が数える「手配をやめた依頼」を見分けられない
+title: 押さえの期限の後の答えが依頼を not_accepted にした後、MOD-26 がキーを書く前に受けたインスタンスの遅れた結果の取引が確定すると、押さえが済んだその取引の 201 がキーに残り、受け付けなかった依頼に 201 と答える
 status: open
-version: 1
 basis: inferred
-basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-26 の answerOverdue と registerRoute の契約と報告の MOD-26 の並行性とエラー（持ち主を answerOverdue の一つの取引の中で呼ばない）、FND-75 の resolution、MOD-58 の request と overdueAnswer の post と報告の MOD-58 の順序図、MOD-45 の settleHold の post と判断表 C、MOD-56 の判断表 B と MOD-59 の判断表 A の印がこの試みでない行、報告の「確かめ方」の「遅れた結果の取引と期限の後の答え」、IFC-03、FR-04、FR-54、DRV-02、SLI-01 の出どころは入力。持ち主の取引と MOD-26 のキーの書き込みの間に遅れた結果の取引が確定する順は、このレビューがそれらの決まりをスクリプトでたどった推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- DAT-06
-- DAT-07
-severity: minor
-evidence: 活動 B7。SLI-05 版 2 の counting_rule は取り消しに「押さえの結果が分からないまま手配をやめた依頼（FR-05）」を含める。設計の測定点の表は「手配をやめた依頼（not_booked）を含める」とするが、not_booked には 402 の断り、429 と届かなかったときの起きていないもの（503 の後の送り直しで一人に何行もできうる）、確かめ中の取り消し、T_hold_wait の超えが混ざる。DAT-06 に not_booked の理由の欄がなく、DAT-07 の not_booked の行は確かめ中から出た二つの道でしか書かれない（CUJ-01-B の 402 と 503 の枝は履歴を書かない）。SLI-05 の分母が品質チェーンの定めより広くなるか、履歴のない not_booked の依頼を欠けと数えうる
-suggestion: DAT-06（か DAT-07 の not_booked の行）に理由（declined、not_happened、hold_timeout、cancelled_while_checking）を持たせ、測定点の表で SLI-05 に含めるものを hold_timeout と cancelled_while_checking に絞る
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-58, MOD-26]
+severity: major
+evidence: FND-75 を受けた変更で、MOD-26 は持ち主の期限の後の答え方を answerOverdue の一つの取引の中で呼ばない形に決めた（報告の MOD-26 の並行性とエラー、FND-75 の resolution）。持ち主は自身の書き込みの取引で書いて答えを返し、MOD-26 はその後でキーがまだ in_progress のときだけ書く（answerOverdue の post）。同じ変更で MOD-58 の overdueAnswer は、一つの書き込みの取引で依頼と押さえの試みを読んでから、holding なら not_accepted にして試みの状態で答える（unknown なら 503 HOLD_UNCONFIRMED）。そのため、受けたインスタンスの押さえの結果の取引が答えの期限（8.8 秒）を過ぎて遅れ、同じキーの送り直しの持ち主の取引（not_accepted を書く）と MOD-26 のキーの書き込みの間に確定する順がある。その取引は試みを succeeded に移し（unknown のときだけの書き込み）、MOD-45 の settleHold は holding でないので依頼を変えず（判断表 C の「押さえた（遅れて分かった）、holding でない」の行。MOD-56 が解く試みを作る）、キーはまだ in_progress なので自身の答えを書く。その答えを決める行はどの項目にもなく、MOD-58 の request の post と報告の順序図は押さえたら 201（探している依頼）と答える。後の MOD-26 のキーの書き込みは先の答えを返すので、送り直しと受けたインスタンスはどちらも 201 を受け、依頼は not_accepted のまま押さえは解かれる。このレビューのスクリプトで、押さえ、支払い方法の変更、降りる場所の変更の承認の三つの経路の、四つの結果（済んだ、拒否、処理されなかった、分からない）と三つの順（遅れた結果の取引が持ち主の取引の前、持ち主の取引とキーの書き込みの間、キーの書き込みの後）を項目の決まりでたどると、食い違うのはこの一つだけ（押さえ直しは、MOD-56 の判断表 B と MOD-59 の判断表 A の「印がこの試みでない」行が 503 REHOLD_UNCONFIRMED と答えるので合う）。乗客は受け付けなかった依頼にドライバーを探していると示され（FR-04 の 1、FR-54 の 3、IFC-03 の 201 の答え、DRV-02）、SLI-01 はそれを GOOD と数える。お金は動かない。報告の「確かめ方」の「遅れた結果の取引と期限の後の答え」は、押さえでも逆の順（期限の後の答えが先）で受けたインスタンスが同じ受け付けなかった答えを返すとするが、それを支える行はなく、MOD-58 の確かめ方もこの順を持たない
+suggestion: MOD-58（と MOD-45 の判断表 C の行）に、受けたインスタンスの押さえの結果の取引が、押さえが済んでも依頼が holding でない（期限の後の答えが先に受け付けなかった）ときは、MOD-56 の判断表 B の行と同じく依頼を変えずに押さえを解く試みを作り、DEC-45 のとおり 503 HOLD_UNCONFIRMED と答える（キーに答えがあればその答え）と書く。または、外部を呼ばない持ち主の期限の後の答え方（MOD-56、MOD-58、MOD-59）は、自身の書き込みの取引の中で MOD-26 の finishExternal でキーの答えを書き、間に遅れた結果の取引が入らないようにする。どちらでも、持ち主の取引とキーの書き込みの間に遅れた結果の取引を確定させる順を MOD-58 の結合の層の確かめに加える（POL-03 の差し込みは依頼の状態の条件つきの書き込みの直前で止めるので、前の案ではキーの書き込みの前で止める差し込みが要り、後の案では要らない）。期限の後の答え方を登録する MOD-43 と MOD-57 も、同じ順で受けたインスタンスの答えが期限の後の答えの書いたものと合うかを確かめる
 resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: 出した
-  reason: 第 3 段階のレビュー（再実行分）

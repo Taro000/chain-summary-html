@@ -1,11 +1,11 @@
 id: DEC-02
 title: Upload files straight to the storage with signed URLs
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- EXT-01
+- TC-02
 stage: architecture
 question: How are submitted files stored without passing through the server?
 addresses:
@@ -41,11 +41,4 @@ parameters:
   value: 15 minutes
   basis: Provisional; the time from opening the screen to submitting
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

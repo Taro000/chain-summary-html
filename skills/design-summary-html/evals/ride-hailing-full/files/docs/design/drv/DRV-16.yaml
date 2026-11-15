@@ -1,47 +1,24 @@
 id: DRV-16
-title: 版の入れ替えと戻しで進行中の依頼と記録を失わない
-status: draft
-version: 2
-basis: inferred
-basis_note: シナリオは QR-25・26・46 と NFR-34・35・36 から（入力）。本番がデモの回の Cloud Run と Turso であることは質問 9 で確認済み。本番に出すまでの時間の測り方は QIU-28〜30 版 3 と FR-41 版 4（入力）。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-kind: change
-statement: 配備は自動の手順の一つの操作で行い、前の版に戻しても進行中の依頼と記録を使い続けられる
-sources: [QR-25, QR-26, QR-46, NFR-34, NFR-35, NFR-36, FR-41, FR-42, QIU-28, QIU-29, QIU-30, TC-07]
-concern_of: [USR-03, USR-01, USR-02]
-scenario:
-  source: 開発者本人（TEAM-01）
-  stimulus: 新しい版をデモの環境に配備する、前の版に戻す（データベースの構造の変更を含む）。進行中の依頼がある
-  artifact: 配備（FR-41）、戻し（FR-42）、データベースの構造
-  environment: 本番はデモの回に Cloud Run と Turso で動く環境（質問 9）
-  response: 配備は自動の手順の一つの操作で終わる。戻すと前の版の動きに戻り、進行中の依頼は続き、記録は残る。構造の変更は一つ前の版でも動く
-  measure: 進行中の依頼がある状態で戻す訓練が通る（NFR-34）。新しい構造の上で一つ前の版のテストが通る（NFR-35）。配備の記録のない本番の変更 0 件（NFR-36）。背景は T_lead_feature 24 時間、T_lead_fix 8 時間、T_lead_upgrade 40 時間で、最初のコミットから main に入って CI が通るまでを測る（次のデモの回を待つ時間は含めない。QIU-28〜30 版 3）。その時刻は配備の記録に残る（FR-41）
-negotiable: null
+title: 開発者 1 人が、個人で払える費用で作り、動かし、保守する
+status: active
+basis: assumed
+basis_note: 費用、納期、人数は利用者が与えた設計の与件（入力）。開発者が使いこなす技術は入力になく、DAS-01 で仮定した。交渉できないことは、個人の開発者の事情という出どころから下書きした。事業化しないデモであること（CON-02）が規模と費用の見方を支える。順位は質問 6 で確認済み
+premises: [PC-01, PC-02, PC-03, TEAM-01, CON-02, DAS-01]
+kind: constraint
+statement: システムは開発者 1 人が作り、動かし、保守する。費用は個人が自分で支払える程度に収める。納期は決まっていない
+sources: [PC-01, PC-02, PC-03, TEAM-01, CON-02]
+concern_of: [STK-01]
+scenario: null
+negotiable: false
 derived_from: []
 priority:
-  business: medium
-  business_reason: QR-25、26、46 は最低限守る線（CUJ-11〜13 は今期重視しない）
+  business: high
+  business_reason: 利用者が与えた交渉できない制約（下書き）
   difficulty: medium
-  difficulty_reason: 前の版と両立する構造の変更、進行中の依頼をデータベースに持つ作り。本番がデモの回にしかない
-  rank: 24
-primary: false
+  difficulty_reason: 品質チェーンのすべての機能、SLO、監視、ゲート、監査を 1 人で作って回し、デモの回の間の知らせも 1 人で受ける。個人で払えない有償のサービスと冗長な置き方は使えない
+  rank: 7
+primary: true
 conflicts:
-  - with: DRV-18
-    note: 解いた（品質チェーンへの課題 1、回答の設計 1-1）。本番がデモの回にしかなく、本番に出すまでの時間が次のデモまでの待ちを含んでいた。品質チェーンが main に入って CI が通るまでで測る形に直した（QIU-28〜30 版 3）
-placeholders:
-  - name: T_lead_feature
-    meaning: 新しい機能の変更を、最初のコミットから次のデモの回に配備できる状態（main に入って CI が通った状態）にするまでの時間（24 時間）
-    from: QIU-28
-  - name: T_lead_fix
-    meaning: 既存の機能を直す変更を、最初のコミットから次のデモの回に配備できる状態にするまでの時間（8 時間）
-    from: QIU-29
-  - name: T_lead_upgrade
-    meaning: 利用技術の版を上げる変更を、最初のコミットから次のデモの回に配備できる状態にするまでの時間（40 時間）
-    from: QIU-30
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
-  - version: 2
-    date: 2026-11-03
-    change: 本番に出すまでの時間の測り方（main に入って CI が通るまで。時刻は FR-41 が残す）を測定量と未定の値の意味に書き、DRV-18 との競合を解いたと記録した
-    reason: 品質チェーンの再実行（QIU-28〜30 版 3、FR-41 版 4。回答の設計 1-1）で課題 1 が決着した（第 1 段階の再実行、3 回目）
+  - with: DRV-01
+    note: 冗長な置き方や常に見守る体制は費用ともう一人を要する。1 人の開発者が個人で払える範囲で、悪いイベントを出さない作りにする
+placeholders: []

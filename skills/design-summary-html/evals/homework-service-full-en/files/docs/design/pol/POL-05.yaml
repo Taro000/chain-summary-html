@@ -1,0 +1,23 @@
+id: POL-05
+title: How the spec of each kind of interface is made
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: specs
+addresses:
+- DRV-06
+decisions:
+- DEC-08
+rules: []
+specs:
+- interfaces: The HTTP operations ELM-03 provides (IFC-01, IFC-02)
+  made: from-code
+  how: An OpenAPI document generated from the Hono routes
+- interfaces: Files in the storage (IFC-03)
+  made: owner
+  how: The IFC cites ObjectStore's documentation
+- interfaces: The nightly batch (IFC-04)
+  made: none
+  how: The IFC is the contract
+as_is: new

@@ -1,11 +1,9 @@
 id: IFC-04
 title: 夜間の提出状況レポート
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: batch
 name: 夜間の提出状況レポート
 provider: ELM-06
@@ -13,6 +11,7 @@ consumers:
 - ELM-02
 functions:
 - FR-05
+- FR-09
 operations:
 - name: nightly-report ジョブ
   does: 前の日までの提出を数えて書く
@@ -23,17 +22,19 @@ errors:
 - case: 前の日の分が終わっていない
   signal: 終わっていない日から続ける
   caller_does: なし
-idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+idempotency: 状態を変える要求は Idempotency-Key（DEC-10）
 timing:
   timeout: ブラウザ 10 秒
   ordering: null
   delivery: null
 versioning: 経路に v1
 observability: トレース ID をログに書く
+sli_bindings:
+- sli: SLI-02
+  events: nightly-report ジョブの一回の実行ごと
+  fields:
+  - finished_at
+  - status
+  method: ELM-06 の終わりの記録
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

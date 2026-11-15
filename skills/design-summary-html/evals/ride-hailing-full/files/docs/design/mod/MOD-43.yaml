@@ -1,0 +1,67 @@
+id: MOD-43
+title: 支払い方法
+status: active
+basis: assumed
+basis_note: カードの情報を EXT-01 の入力部品から直接 EXT-01 に渡し、サーバーは登録の結果を EXT-01 から読むことは DEC-12 と TC-11、登録の取引を作る前に登録の記録を書き、結果を読み直してから使える支払い方法にし、使える支払い方法を乗客ごとに一つ（最後に登録できたもの）にし、カードの情報を持たないことは DAT-05、登録の状態（始めた、確かめている、使える、拒否、分からない、見捨てた、置き換えた）は第 3 段階の報告の「要素をまたぐ状態」、操作と答えと、client secret をどこにも書かないことは IFC-07、読み出しが処理されなかったときも登録の結果は分からないとして確かめ続けることは DEC-45、顧客を乗客ごとに一度作ってこのシステムの不透明な ID だけを渡すことは IFC-17 と DEC-12（どれも入力）。顧客を作る呼び出しに乗客ごとのキーを使い、先に DAT-05 に書くことは推定。冪等キーの送り直しに client secret を EXT-01 から読み直して答えることは MOD-26 の決まりからの推定。確かめられない登録を見捨てるまでの時間は、第 3 段階の状態遷移図が第 4 段階に任せた値で、DAS-23 による暫定の決定。登録の取引の読み直しの requires_payment_method を、確かめの失敗（last_setup_error）を持つときだけ拒否（402 PAYMENT_METHOD_DECLINED、declined）とし、持たないとき（端末がまだ確かめていない）は requires_confirmation と requires_action と同じに 409 PAYMENT_METHOD_NOT_CONFIRMED で started のままにすることと、ほかのキーの completion の読み直しが動いている（確かめている）間の completion に、その待ちのうちなら何も書かずに 409 OPERATION_IN_PROGRESS と Retry-After 1 秒で、待ちを過ぎていれば確かめを早めて 202 PAYMENT_METHOD_PENDING で答えることと、確かめで分かった registration_unknown の端末がまだ確かめていない読み直しを、第 3 段階の DAT-05 の「確かめて拒否か、取引がなかった」として理由 not_confirmed の declined にすることは FND-67 を受けた（推定。拒否を確かめた後の requires_payment_method とすることは IFC-17、確かめている状態は第 3 段階の報告の DAT-05 の状態遷移、OPERATION_IN_PROGRESS の利用側のすることは DEC-42 で入力。EXT-01 の登録の取引が確かめる前と確かめの失敗の後のどちらも requires_payment_method を示し、失敗のときだけ last_setup_error を持つことは EXT-01 の決まり。ほかのキーの操作にも OPERATION_IN_PROGRESS で答えることは FND-74 で第 3 段階に出した）
+premises: [DAS-23, EXT-01]
+component: ELM-03
+name: 支払い方法
+depth: full
+depth_reason: 支払い方法の登録の結果が分からないとき、分かるまで確かめ続け、その間その支払い方法で押さえさせない（結果が分からない状態を確かめる）。EXT-01 に顧客と登録の取引を作る（外部の状態を変える呼び出し）
+responsibility: 乗客の支払い方法を EXT-01 で登録し、使える支払い方法を一つに定める
+visibility: public
+interface:
+  - operation: "list(actor: Actor) -> PaymentMethodsView"
+    pre: null
+    post: GET /v1/payment-methods に、使える支払い方法があるか、登録の途中か結果が分からない登録があるか、登録した時刻を返す。カードの情報（番号、下 4 桁、種類、期限）は返さない
+    errors: []
+  - operation: "startSetup(actor: Actor, key: IdempotencyKey) -> SetupStarted"
+    pre: null
+    post: POST /v1/payment-method-setups で、判断表 A のとおり、顧客がなければ乗客ごとのキーで作り（キーを先に DAT-05 に書く）、取引 A で登録の記録（started）と試み（setup_intent）と冪等キー（MOD-26 の startExternal）を書いてから EXT-01 に登録の取引を作り（MOD-42 の sendWaiting）、登録の ID と client secret を返す（client secret は書かない）
+    errors: ["PAYMENT_SERVICE_UNAVAILABLE: 503。登録の取引を作らなかった（処理されなかった）か、待ちのうちに作れたか分からない（登録を見捨て、作れていれば使わない）"]
+  - operation: "complete(actor: Actor, setupId: PaymentMethodSetupId, key: IdempotencyKey) -> Usable"
+    pre: null
+    post: POST …/completion で、取引 A で読み直しの試み（setup_result）とキーを書き、EXT-01 の登録の取引を読み直して判断表 B で状態を決め、使えるなら前の支払い方法を置き換えて使える支払い方法にする。ほかのキーの completion の読み直しの試みが開いていれば（setup:登録 の一意の決まりで二つ目を作れない）、取引 A を止めて判断表 B の確かめている行で答える
+    errors: ["PAYMENT_METHOD_DECLINED: 402 と reason（確かめの失敗を持つ requires_payment_method）", "PAYMENT_METHOD_PENDING: 202（分かるまで使える支払い方法にしない。分かったら payment_method.settled）", "PAYMENT_METHOD_NOT_CONFIRMED: 409（端末がまだ入力部品で確かめていない。確かめの失敗のない requires_payment_method、requires_confirmation、requires_action）", "OPERATION_IN_PROGRESS: 409 と Retry-After 1 秒（ほかのキーの completion の読み直しがその待ちのうちに動いている。何も書かず、同じキーの送り直しが初めから行う）", "NOT_FOUND: 404"]
+  - operation: "usableMethod(passenger: AccountId) -> PaymentMethodRef or none"
+    pre: null
+    post: 押さえに使える支払い方法（結果が分からない登録の支払い方法は含まない）
+    errors: []
+  - operation: "applyResult(tx: Tx, attempt: Attempt, result: AttemptResult) -> none"
+    pre: MOD-42 の持ち主として（setup_intent、setup_result）
+    post: 判断表 B の行のとおり、登録の状態と使える支払い方法を、試みの結果と同じ取引で変え、分かったら payment_method.settled を MOD-33 に書く
+    errors: []
+  - operation: "removeForAccount(tx: Tx, accountId: AccountId) -> none"
+    pre: 呼ぶのは MOD-68 だけ（アカウントが使えなくなったとき）
+    post: その乗客の支払い方法と登録の記録を消す（EXT-01 の顧客の ID を含む）
+    errors: []
+invariants:
+  - 乗客ごとに使える支払い方法は一つ
+  - 結果が分からない登録の支払い方法は、使える支払い方法にならない
+  - カードの情報と client secret はどこにも書かない
+depends_on: [MOD-21, MOD-25, MOD-26, MOD-28, MOD-31, MOD-33, MOD-41, MOD-42]
+functions: [FR-04, FR-29, FR-46]
+realizes:
+  - IFC-07 GET /v1/payment-methods
+  - IFC-07 POST /v1/payment-method-setups
+  - IFC-07 POST /v1/payment-method-setups/{setupId}/completion
+  - IFC-11 payment_method.settled
+drivers: [DRV-07, DRV-18]
+decisions: [DEC-10, DEC-12, DEC-45]
+behaviour: "報告書の節: MOD-43 支払い方法"
+verification:
+  - checks: 判断表 A と B の行ごと（作れた、処理されなかった、分からない、確かめを待っている（確かめの失敗のない requires_payment_method、requires_confirmation、requires_action）、済んだ、拒否（確かめの失敗のある requires_payment_method）、読み出しが処理されなかった、ほかのキーの completion が動いている間と期限の後、見捨てる時間の前と後）
+    how: 単体の層（MOD-41 の答えを与える）
+  - checks: 端末が確かめる前に届いた completion が登録を拒否で終えず 409 PAYMENT_METHOD_NOT_CONFIRMED を答え、端末が確かめた後の completion で使える支払い方法になる。二つのキーの completion を重ねると、二つ目は 409 OPERATION_IN_PROGRESS の後の送り直しで一つ目の結果を受ける（FR-46 の 1、3、FND-67）
+    how: 結合の層（EXT-01 の偽物の登録の取引が、確かめる前の requires_payment_method と、確かめの失敗のある requires_payment_method を返す。偽物が読み出しに遅れて答える）
+  - checks: 結果が分からない登録を、偽物が後で済んでいたと見せ、payment_method.settled が届き、その間その支払い方法で依頼できない（FR-46 の 4、FND-16 で加えた偽物の登録）
+    how: 結合の層（EXT-01 の偽物）
+  - checks: 冪等キーの送り直しに同じ登録の取引の client secret が答えられ、どこにも書かれない
+    how: 結合の層
+  - checks: カードの情報がシステムを通らない（FR-46 の 2、NFR-47）
+    how: 端から端の層と契約の層（試験の環境の本物の外部サービスの設定）
+parameters:
+  - name: 確かめられないまま登録を見捨てるまでの時間
+    value: 始めてから 24 時間
+    basis: 第 3 段階の状態遷移図（始めた → 見捨てた）が第 4 段階に任せた値。乗客が入力部品で確かめるまでの時間を見込んだ暫定の値（DAS-23）。見捨てた登録の取引ではお金は動かない
+as_is: new

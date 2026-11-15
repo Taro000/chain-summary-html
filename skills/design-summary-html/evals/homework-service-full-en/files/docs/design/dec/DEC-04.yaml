@@ -1,12 +1,9 @@
 id: DEC-04
 title: Build the nightly report in a batch
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 stage: architecture
 question: When is the monthly submission report built?
 addresses:
@@ -42,11 +39,4 @@ debt:
   what: The report only covers up to the previous day
   why_accepted: The office reads it monthly (CUJ-04)
   repay_when: When same-day numbers are asked for
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

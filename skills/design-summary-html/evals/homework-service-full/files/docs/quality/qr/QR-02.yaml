@@ -1,11 +1,9 @@
 id: QR-02
 title: 提出の応答の速さ
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: []
 model: product
 layer: external
 characteristic: performance efficiency > time behaviour
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

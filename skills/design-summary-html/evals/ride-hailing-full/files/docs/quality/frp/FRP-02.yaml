@@ -1,25 +1,14 @@
 id: FRP-02
-title: 応答のない請求を失敗と扱わない
+title: 利用者の種類ごとに使える機能を分ける
 status: accepted
-version: 2
 basis: inferred
-basis_note: 確かめている間も降りられることは質問 9 で確認済み。ほかは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: QR-13、QR-34、QR-57 からの推定。第 2 段階の報告の未解決の点が見込んでいた提案。セキュリティのリスク分析の分類（役割ごとの権限）にも当たる（第 3 段階の質問 1）
+premises: []
 proposed_by: functional-requirements-to-product-quality
-origin: [QR-09, QR-32]
-changes: FR-29
-reason: FR-29 は請求に失敗すると FR-31（別の支払い手段での支払い）に移るが、決済のサービスが応答しないときを分けていない。失敗と扱えば、実は成功していた請求に加えて別の支払い手段でも払わせ、二重に請求する。
-suggested_statement: システムは、降車時の請求に決済のサービスが応答しないとき、失敗と扱わず、同じキー（FR-30）で結果を確かめ、失敗と分かったときだけ未払いの扱い（FR-31）に移り、確かめている間は乗客を降ろして「請求を確かめています」と示す。
-affects: [FR-29, QR-09, QR-32]
+origin: [QR-13, QR-34, QR-57]
+changes: null
+reason: 乗客、ドライバー、担当者、エンジニアのそれぞれがどの機能を使えるかを分ける機能がどの FR にもなく、確定額や評価を決める操作を許された人に限ること、エンジニアに隠した個人の情報を見せないこと、位置情報と乗車の記録を見ることを許された人に限ること（個人の情報の扱いに関する法令）が成り立たない。
+suggested_statement: システムは、乗客、ドライバー、運営・サポートの担当者、エンジニアのそれぞれに、その種類の利用者に許した機能だけを使わせる。
+affects: [NFR-27]
 placeholders: []
-resolution: FR-29 を版 2 に変えて受け入れた。応答のない請求は失敗と扱わず、同じキー（FR-30）で結果を確かめる（第 2 段階の質問 13）
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 提案
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 受け入れ
-    reason: 第 2 段階の再実行
+resolution: 受け入れ。FR-49 として今期作る。位置情報と乗車の記録を見られる人を限ることは個人の情報の扱いに関する法令による（CON-06）。

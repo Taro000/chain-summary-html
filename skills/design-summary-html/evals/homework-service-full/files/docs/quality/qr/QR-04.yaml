@@ -1,11 +1,9 @@
 id: QR-04
 title: 返却の通知の分かりやすさ
-status: draft
-version: 1
-basis: inferred
-basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+status: active
+basis: confirmed
+basis_note: 今期は対象外とすることは第 3 段階の質問 2 で決めた（QAS-04 は覆った）
+premises: []
 model: product
 layer: external
 characteristic: usability > operability
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

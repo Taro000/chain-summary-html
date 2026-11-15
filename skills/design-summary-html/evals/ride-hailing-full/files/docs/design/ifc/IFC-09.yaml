@@ -1,61 +1,52 @@
 id: IFC-09
-title: アプリの構造化ログ
-status: draft
-version: 2
+title: 乗車の履歴、評価、苦情と返金の求め
+status: active
 basis: inferred
-basis_note: DEC-16（Cloud Logging、URL に個人情報を入れない）、DEC-18（トレース ID）と Cloud Run の文書（logging.googleapis.com/trace で入口のログに結び付く）は入力。欄、出来事の種類、入口のログと結ぶ鍵は推定（DEC-44）。ELM-05 も同じモジュールで同じ形を書く
-needs_agreement: false
-approver_candidates: []
-kind: event
-name: アプリの構造化ログ
-provider: ELM-04
-consumers:
-- ELM-05
-- USR-03
-functions:
-- FR-36
-- FR-37
-- FR-38
+basis_note: 乗車の履歴に日時、区間、支払った額、返金の額、キャンセル料と不在の料金、済んでいない決済を示すことは FR-31（入力）。評価を 1〜5 で一つの乗車に一つだけ受け、乗車が始まらなかった依頼には受けないことは FR-15（入力）。評価とまとめた評価を同じ取引で書き、新しい評価をその時から規則に使うことは DEC-24（入力）で、NFR-34 の T_rating_reflect にその取引の時間で収まる（報告の「遅延の予算とタイムアウト」）。苦情と返金の求めを自分の乗車についてだけ受けることは FR-37（入力）。操作と誤りの符号は DEC-35、DEC-42 による推定。過去の乗車の一覧の経路を DEC-44 の複数形の名詞にしたことは FND-31 を、評価を始めたことを端末からの報告（IFC-10）で受け、ここでは評価を記録したことを依頼の経過に残すことは FND-24 を受けた
+premises: []
+kind: http
+name: 乗車の履歴、評価、苦情と返金の求め
+provider: ELM-03
+consumers: [ELM-01]
+functions: [FR-15, FR-31, FR-37]
 operations:
-- name: request.completed
-  does: 要求ごとに一行（route_id、状態の符号、時間、account_kind、トレース）。route_id は仕様書の x-route-id と同じ名前（DEC-47）、account_kind は participant、staff、test（DEC-44）。SLI-01 のテスト用アカウントの除外に使う
-- name: external.call
-  does: Stripe、地図、チャット、Cloud Logging の呼び出しごとに一行（相手、操作、結果、時間、相手の要求の ID）。FR-37 AC2、NFR-28
-- name: money.op
-  does: お金の操作の段ごと（処理中、結果、確かめ中、片付け）
-- name: client.error
-  does: ブラウザのエラー（IFC-05 で届いたもの）
-- name: notification.sent / notification.failed
-  does: 知らせを送った、送れなかった（FR-36 AC2・3）
-- name: job.task
-  does: 毎日の処理の処理ごとと、運用のコマンド（IFC-10）ごとの始まりと終わり
-- name: auth.* / stream.* / app.error
-  does: 認証の結果、流れの開け閉め、想定外の誤り
-format: 標準出力に 1 行 1 JSON（Cloud Logging の構造化ログ）。欄は DEC-44
-protocol: 標準出力 → Cloud Run → Cloud Logging（ELM-08）
-auth: 書くのはコンテナだけ。読むのは GCP の権限を持つ開発者（Logs Explorer）と、毎日の処理のサービスアカウント（IFC-20）
+  - name: GET /v1/past-rides
+    does: 乗客の過去の乗車と、キャンセル料か不在の料金を請求した依頼を、日時、区間、支払った額、返金の額、請求した額とその種類、決済が済んでいるかとともに新しい順に返す（FR-31 の 2〜4、DEC-39）
+  - name: GET /v1/past-rides/{rideId}
+    does: 一つの乗車の支払った額、確定した料金、乗った区間（降りる場所を変えたときは変えた後の区間と承認した料金）、返金、評価を返す（FR-31 の 1）
+  - name: POST /v1/rides/{rideId}/rating
+    does: 乗り終えた乗客の評価（1〜5、ドライバーの振る舞いと車の状態の選んだ項目、任意の短い文）を記録し、同じ取引でドライバーのまとめた評価（すべての評価の平均と件数）を書き直す（FR-15、DEC-24）
+  - name: POST /v1/rides/{rideId}/complaints
+    does: 乗客が自分の乗車について苦情か返金の求めを寄せる。乗車と結び付けて受け付け、担当者に流れ（IFC-11 の complaint.received）で知らせる（FR-37 の 1）
+format: JSON（UTF-8）。額は DEC-38、時刻は DEC-37
+protocol: HTTPS の要求と応答
+auth: 乗客のセッション（DEC-40）。その乗客の乗車と依頼だけを返し、ほかは存在を明かさず 404 NOT_FOUND（FR-49 の 2、FR-37 の 3）
 errors:
-- case: JSON として読めない行
-  signal: Cloud Logging が文字のまま残す
-  caller_does: 集計から外れる。CI のゲート（NFR-32、NFR-40）でそういう行を出さない
-- case: 取り込みの欠け
-  signal: —
-  caller_does: 0.1% 未満と仮定する（SLI-01）。お金と状態は Turso の記録が正で、ログは調べるための写し
-idempotency: 一度だけ書く。送り直さない
+  - case: どの操作にも共通する誤りと、冪等キーの誤り
+    signal: DEC-35 と DEC-42 の符号
+    caller_does: DEC-35 と DEC-42 のとおり
+  - case: 乗車が始まらなかった依頼（取り消し、乗客の不在、許諾のないまま終わった）か、終わっていない乗車を評価しようとした
+    signal: 409 with code RATING_NOT_ALLOWED
+    caller_does: 評価できないことを示す（FR-15 の 4）
+  - case: すでに評価した乗車にもう一度評価しようとした
+    signal: 409 with code ALREADY_RATED
+    caller_does: 評価済みであることを示し、二つ目を記録しない（FR-15 の 5）
+  - case: 評価が 1〜5 の範囲にない
+    signal: 400 with code VALIDATION_FAILED (details score OUT_OF_RANGE)
+    caller_does: 1〜5 で選ばせる
+  - case: 自分の乗っていない乗車について寄せようとした
+    signal: 404 with code NOT_FOUND
+    caller_does: 受け付けないことを示す（FR-37 の 3）
+  - case: 履歴が一件もない
+    signal: 200 で空の items
+    caller_does: 乗車がまだないことを示す
+idempotency: GET は繰り返してよい。評価と苦情は冪等キー（DEC-42）を付ける。評価は一つの乗車に一つだけ記録するので、新しいキーでの二度目も ALREADY_RATED を受ける
 timing:
-  timeout: null
-  ordering: 保証しない。timestamp で並べる
-  delivery: 最善の努力（Cloud Logging の取り込み）
-versioning: 各行に schema_version。欄は足すだけ
-observability: このインタフェースそのものが観測の道。trace と spanId で入口の要求のログ（DAT-28）に結び付く
-spec: ifc/specs/app-logs.asyncapi.yaml
+  timeout: 評価（POST /v1/rides/{rideId}/rating）は NFR-34 の道にあり、外部を呼ばないため ELM-03 の答えの期限は 2 秒、ELM-01 のタイムアウトは 10 秒（DEC-46）。履歴と苦情は枠だけを決め、ELM-03 の期限は自身の取引の最悪より長く、ELM-01 のタイムアウトはその期限に通信の余裕を足したものより長い。値は第 4 段階が決める（ELM-01 は HND-17、ELM-03 の期限は HND-19）
+  ordering: null
+  delivery: null
+versioning: DEC-41
+observability: 境界の出来事（DAT-19）と依頼の経過（DAT-09。評価を記録したこと、FR-45 の 4。評価を始めたことは端末からの報告で IFC-10 が受ける）に残す。苦情の中身と評価の文は暗号にして持ち（DEC-16）、ログに書かない
+sli_bindings: []
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: request.completed の route_id を仕様書の x-route-id と同じ名前にし、account_kind の値を書いた。job.task に運用のコマンドを含めた
-  reason: '第 3 段階の再実行（2026-11-04）: DEC-44 版 2、DEC-53 版 2、FND-35・41'

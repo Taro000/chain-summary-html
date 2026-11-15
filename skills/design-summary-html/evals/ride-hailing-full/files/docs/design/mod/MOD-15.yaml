@@ -1,0 +1,37 @@
+id: MOD-15
+title: ドライバーの停止と再開
+status: active
+basis: inferred
+basis_note: 担当者がドライバーを停止し、迎車中か乗車中の依頼があればそれを担当者に示し、すでに停止していればそのことを示し、停止を解いて再開させることは FR-44（入力）。停止と再開の操作、activeRides の答え、DRIVER_ALREADY_SUSPENDED は IFC-12、探した一覧から選んだドライバーが停止しているかと進んでいる依頼を示してから停止と再開を行うことは IFC-24（入力）。停止したドライバーに依頼を示さず許諾させないのは ELM-03 と ELM-01 で、ここは停止を送ることだけを受け持つ（推定）
+premises: []
+component: ELM-02
+name: ドライバーの停止と再開
+depth: bounds
+depth_reason: null
+responsibility: 選んだドライバーを停止し、停止を解いて再開させる
+visibility: public
+interface:
+  - operation: "DriverSuspension(accountId: AccountId) -> 停止の画面"
+    pre: null
+    post: MOD-14 の readDriver で停止しているかと迎車中か乗車中の依頼を示し、停止（POST /v1/console/drivers/{accountId}/suspension）と再開（DELETE /v1/console/drivers/{accountId}/suspension）を MOD-01 で送り、停止の答えの activeRides を示して読み直す（FR-44 の 1、5、7）。ドライバーは MOD-13 の AccountSearch で選ぶ
+    errors:
+      - "DRIVER_ALREADY_SUSPENDED: 停止していることを示す（FR-44 の 6）"
+      - "NOT_FOUND: 見つからないことを示し、探し直させる"
+      - "答えがない、5xx: 停止か再開をしたかどうか分からないことを示し、同じ操作として送り直させる（MOD-01）"
+invariants: []
+depends_on: [MOD-01, MOD-08, MOD-13, MOD-14]
+functions: [FR-44, FR-50]
+realizes:
+  - IFC-24 ドライバーの停止と再開
+  - IFC-12 POST /v1/console/drivers/{accountId}/suspension
+  - IFC-12 DELETE /v1/console/drivers/{accountId}/suspension
+drivers: [DRV-30]
+decisions: [DEC-19]
+behaviour: null
+verification:
+  - checks: activeRides と DRIVER_ALREADY_SUSPENDED の示し方と、再開（FR-44 の 5〜7）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: 停止したドライバーの一覧から許諾していない依頼が除かれ、受付と許諾を受け付けず、進んでいる依頼は続き、再開すると受付を始められる（CUJ-18、FR-44 の 1〜4、7）
+    how: 端から端の層（試験の環境の偽物の設定。ELM-02 から停止し、ドライバーの ELM-01 を見る）
+parameters: []
+as_is: new

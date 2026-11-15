@@ -1,37 +1,18 @@
 id: DAT-04
-title: ドライバーの受付と停止
-status: draft
-version: 1
+title: 受付の状態と、乗客の閾値とドライバーの条件
+status: active
 basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: ドライバーの受付と停止（今の状態と変化の記録）
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- driver_id
-- reception（off、receiving）
-- suspended
-- version
-- '変化の記録: seq（配信のカーソル）、kind（reception_started、reception_stopped、suspended、resumed）、at、actor、reason_ref（DAT-18）'
+basis_note: ドライバーの受付（FR-17）、乗客の評価の閾値（FR-16）、ドライバーの条件（FR-32）は入力。届けるとき、示すとき、許諾を受けるときにその時点の値で規則に当てることは DEC-24（入力。距離が直線か道のりかは QCR-01 を待つ）。属性と扱いの区分は推定
+premises: [QCR-01]
+entity: ドライバーの受付の状態と、マッチに使う設定
+owner: ELM-03
+store: ELM-04
+key_attributes: [accountId, accepting, ratingThreshold, minFare, maxPickupDistanceMeters, updatedAt]
 relations:
-- to: DAT-03
-  kind: one-to-one
-  note: ドライバー
-- to: DAT-18
-  kind: one-to-many
-  note: 停止と再開の管理の操作
-consistency: 配車のモジュールだけが書く。受付の開始と停止、停止と再開は version の条件付きの書き込みで、同じトランザクションで変化の記録を追記する。停止は管理のモジュールが配車のモジュールの操作を呼ぶ（二人目の書き手を作らない）。許諾は同じトランザクションで停止を確かめ直す（DEC-09）。変化の記録は配信（IFC-08 driver.status、driver.requests）の出どころ
-retention: 変化の記録は T_pii_retention（FR-17 の受付の時間、FR-47 AC4）を過ぎたら、毎日の処理が配車のモジュールを通して消す（FR-53）。今の状態はシステムを終えるとき
-classification: personal
-drivers:
-- DRV-05
-- DRV-02
-- DRV-27
+  - {to: DAT-01, kind: one-to-one, note: アカウント}
+consistency: ELM-03 だけが書き、届けるとき、一覧と内容を示すとき、許諾を受けるときに、その時点の値を読む（DEC-24）。受付をやめても許諾した依頼は続く（FR-17 の 2）
+retention: アカウントが使えなくなるまで（FR-51 の 4 で消す）
+classification: internal
+drivers: [DRV-08, DRV-35]
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成。保持期間を過ぎた記録を誰が消すかを書いた
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

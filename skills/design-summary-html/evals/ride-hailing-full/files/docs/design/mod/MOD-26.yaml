@@ -1,0 +1,66 @@
+id: MOD-26
+title: 冪等キー
+status: active
+basis: inferred
+basis_note: キーをアカウントと操作（経路）をまたいで一つと数え、それを最初に受けたアカウントと経路を持ち、ほかのアカウントか経路で受けたキーと、同じアカウントの同じ経路で中身の違う要求に、行わずに 422 IDEMPOTENCY_KEY_REUSED を返すことは DEC-42 と DAT-26（FND-50 を受けた第 3 段階の変更）、同じアカウントの同じ経路の同じ要求に最初の答えを X-Idempotent-Replayed とともに返すこと、外部を呼ばない操作は結果とキーと答えを一つの取引で書いて動いている印を書かないこと、外部を呼ぶ操作は呼ぶ前の取引でキーを答えの期限とともに動いているとして書き、期限のうちの送り直しに 409 OPERATION_IN_PROGRESS と Retry-After 1 秒、期限の後は試みの状態から DEC-45 の答えを書き、答えはキーが動いているときだけ書くこと、キーと最初の答えを 24 時間持つことは DEC-42 と DAT-26（どれも入力）。結果が分からないと 202 で答えたお金の操作の送り直しにそのときの結果を答えて確かめを早めることは DEC-42 と DEC-45（入力）。答えの中の秘密（設定の符号、client secret）をキーの記録に書かず、送り直しのときに持ち主が作り直すことは、DAT-02 と IFC-07 の書かない決まりと DEC-42 の最初の答えを返す決まりをともに守る道として推定（MOD-36 は符号を作り直せ、MOD-43 は client secret を EXT-01 から読み直す）。期限の後の答えと 202 の送り直しへの答えを経路ごとに持ち主に作らせることは推定。check が overdue を読んでから answerOverdue が答えるまでの間に、受けたインスタンスの遅れた結果の取引が確定しうるので、持ち主の期限の後の答え方は試みと自身の記録を一つの書き込みの取引で読んでから、読んだ状態を条件に書き、その取引が書いたもの（依頼の今の押さえ、受け付けた依頼、当てた変更）を覆さないことを registerRoute の事前条件にしたことは FND-75 を受けた（推定。先に書いた答えを残すことは DEC-42 で入力）。answerOverdue の一つの書き込みの取引の中で持ち主を呼ぶ形は採らない（登録を始める操作の期限の後の答え（MOD-43）は EXT-01 に同じキーで送り直し、呼び出しをまたぐ取引を作らない決まり（DEC-10、DAT-11）に反するため）
+premises: []
+component: ELM-03
+name: 冪等キー
+depth: full
+depth_reason: 同じ冪等キーの要求が重なったとき、どれが効くかをキーの記録（DAT-26）が決め（同時に動く仕事と状態を分ける）、外部を呼ぶ操作のキーは答えの期限の後に試みの状態から答えを定める（結果が分からない状態の答え）
+responsibility: 状態を変える要求を冪等キーごとに一度だけ、それを最初に受けたアカウントと操作で効かせ、送り直しに最初の答えを返す
+visibility: internal
+interface:
+  - operation: "check(request: KeyRequest, requestHash: Digest, now: Instant) -> KeyCheck"
+    pre: MOD-20 が、冪等キーの要る経路の操作を呼ぶ前に呼ぶ。request はキーと、送ったアカウント（セッションのアカウント）と経路
+    post: 判断表 A で、proceed（記録がないか 24 時間を過ぎた）、replay(answer)、replayPending(attemptId)（202 で答えたお金の操作）、reused（ほかのアカウントか経路で受けたキーか、同じアカウントの同じ経路で中身が違う）、inProgress(retryAfter 1 秒)、overdue(attemptId) のどれかを返す。replay の答えに秘密の項目があれば、その経路の持ち主の rebuild で作り直してから返す
+    errors: ["DatabaseUnavailable: 読めない（MOD-20 は 503 SERVICE_UNAVAILABLE にする）"]
+  - operation: "recordAnswer(tx: Tx, request: KeyRequest, requestHash: Digest, answer: StoredAnswer) -> none"
+    pre: 外部を呼ばない操作が、その操作の結果を書く同じ取引の中で、答えを決めた後に呼ぶ
+    post: キーを、送ったアカウントと経路と答えとともに answered として書く（秘密の項目は書かない）。同じキーの記録があれば KeyTaken で、呼ぶ側はその取引を止め、check からやり直してその答えを返す
+    errors: ["KeyTaken: 同じキーの記録が先に確定した（キーの主キー）"]
+  - operation: "startExternal(tx: Tx, request: KeyRequest, requestHash: Digest, attemptId: AttemptId, answerDueAt: Instant) -> none"
+    pre: 外部を呼ぶ操作が、試みを書く取引 A の中で呼ぶ。answerDueAt はその経路の IFC の timing の答えの期限
+    post: キーを、送ったアカウントと経路とともに in_progress として試みの ID と answerDueAt とともに書く
+    errors: ["KeyTaken: 同じキーの記録が先に確定した（呼ぶ側は取引 A を止めて check からやり直す）"]
+  - operation: "finishExternal(tx: Tx, key: IdempotencyKey, answer: StoredAnswer) -> written or alreadyAnswered(StoredAnswer)"
+    pre: 結果を書く取引の中で呼ぶ
+    post: キーがまだ in_progress のときだけ答えを書く。先に答えが書かれていれば alreadyAnswered と先の答えを返し、呼ぶ側はその答えで答える
+    errors: []
+  - operation: "answerOverdue(key: IdempotencyKey, attemptId: AttemptId) -> StoredAnswer"
+    pre: check が overdue を返したとき
+    post: その経路の持ち主が registerRoute で渡した答え方で試みの今の状態から答えを決め、キーがまだ in_progress のときだけ書き、書けた答えか先の答えを返す。受けたインスタンスの遅れた結果の取引が check の後に確定していれば、先の答え（その取引の答え）を返し、持ち主の答え方はその取引が書いたものを覆さない
+    errors: ["DatabaseUnavailable"]
+  - operation: "registerRoute(route: RouteName, owner: KeyOwner) -> none"
+    pre: 起動のときだけ。外部を呼ぶ経路は overdueAnswer を、秘密を答える経路は rebuild を必ず渡す。overdueAnswer は、受けたインスタンスの遅れた結果の取引の後にも呼ばれうるので、書くものがあれば、試みと自身の記録を一つの書き込みの取引で読んでから、読んだ状態を条件に書き、その取引が書いたものを覆さない（EXT-01 を呼ぶなら、その取引の外で呼ぶ）
+    post: 経路ごとの、期限の後と 202 の送り直しへの答え方（overdueAnswer、DEC-45）と、秘密の項目の作り直し方を持つ
+    errors: []
+  - operation: "purgeBefore(at: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 最初に受けてから 24 時間を過ぎた記録を消し、消した数を返す
+    errors: []
+invariants:
+  - キーごとにキーの記録は一つで、それを最初に受けたアカウントと経路を持ち、それは変わらない
+  - ほかのアカウントか経路で受けたキーでは、何も行わない（reused）
+  - 外部を呼ばない操作のキーは、その操作の結果と同じ取引で答えとともに書かれ、in_progress を持たない
+  - 外部を呼ぶ操作のキーの答えは一度だけ書かれ、先に書かれた答えを置き換えない
+  - キーの記録は秘密（設定の符号、client secret、パスワード）を持たない
+depends_on: [MOD-21, MOD-23, MOD-25]
+functions: [FR-30, FR-40]
+realizes: []
+drivers: [DRV-02, DRV-07, DRV-32]
+decisions: [DEC-08, DEC-42, DEC-45]
+behaviour: "報告書の節: MOD-26 冪等キー"
+verification:
+  - checks: 判断表 A の行ごと（記録なし、ほかのアカウントのキー、ほかの経路のキー、同じハッシュ、違うハッシュ、in_progress の期限の前と後、202 の答え、24 時間を過ぎた記録）
+    how: 単体の層（時計の偽物）
+  - checks: 同じキーの外部を呼ばない操作を重ね、一つだけが効き、ほかが同じ答えを X-Idempotent-Replayed で受ける。同じキーをほかのアカウントのセッションで送ると、何も行わずに 422 IDEMPOTENCY_KEY_REUSED を受ける（DEC-42）
+    how: 結合の層（依頼の状態を書くポートの差し込みで重ねる）
+  - checks: 外部を呼ぶ操作の answerDueAt の前の 409 と、期限の後に試みの状態から DEC-45 の答えを受け、遅れた結果の取引が先の答えを置き換えない。遅れた結果の取引が同じキーの送り直しの check と answerOverdue の間に確定しても、送り直しはその取引の答えを受け、持ち主の期限の後の答えはその取引が書いたものを覆さない（FND-75。押さえ直しは MOD-56 と MOD-59、押さえは MOD-58 の場面）
+    how: 結合の層（EXT-01 の偽物が答えない、遅れて答える。依頼の状態を書くポートの差し込みで結果の取引を止める。時計の偽物）
+  - checks: 書き終えた後の応答を落とし、同じキーの送り直しが最初の答えを受ける（NFR-11）
+    how: 結合の層（端末とのつながりの偽物）
+  - checks: キーの記録に設定の符号と client secret が書かれず、送り直しに同じものが答えられる
+    how: 結合の層
+parameters: []
+as_is: new

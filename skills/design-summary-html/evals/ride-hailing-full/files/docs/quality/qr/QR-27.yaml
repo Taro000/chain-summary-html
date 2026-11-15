@@ -1,37 +1,22 @@
 id: QR-27
-title: 現在地と受付の状態の最新性
-status: draft
-version: 2
-basis: inferred
-basis_note: 参加者が端末を持って動き、位置情報は本物であることは質問 10 で確認済み。データを作るのは乗客とドライバーの端末。点と扱いは推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 評価は、その乗車に乗った乗客からだけ付く
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。アカウントは担当者が作り（FR-41）、評価は乗り終えた乗車に一つだけ付く（FR-15）ため、偽の評価を作る道は細いとみた。今期は対象外とすることは QAS-19 による暫定の決定
+premises: [QAS-19]
 model: data
 layer: data-inherent
-characteristic: currentness
-statement: 画面に示すドライバーと乗客の現在地と、受付中として数えるドライバーは、実際の位置と状態から遅れず、遅れているときはその古さが分かる。
-applies_to: [FR-10, FR-17, FR-24, FR-34, FR-51, FR-52]
-traces_to: [QIU-04, QIU-11, QIU-15, QIU-17]
+characteristic: credibility
+statement: ドライバーの評価に加わる評価は、どれも実際に乗車が始まって終わった乗車について、その乗車の乗客が付けたもので、一つの乗車に一つだけである。
+applies_to: [FR-15]
+traces_to: [QIU-06, QIU-14]
 entry_point: null
 stakeholders: [USR-01, USR-02]
-failure_scenario: ドライバーの画面が消えて現在地が止まっても、乗客には古い位置が示される。近くのドライバーの数（FR-51）に、依頼を見られないドライバーまで数えられる。ブラウザの制約を受け入れたので日々起こる。
-score: {impact: 4, likelihood: 4}
-handling: emphasized
-handling_reason: null
+failure_scenario: ドライバーが知り合いに乗客として依頼させ、乗らずに終えた乗車に高い評価を付けさせて、自分の評価を閾値より上げる。
+score: {impact: 3, likelihood: 1}
+handling: excluded
+handling_reason: 今期は対象外。アカウントは担当者が作り（FR-41）、評価は乗り終えた乗車に一つだけ付く（FR-15）ため、偽の評価を作る道が細く、事業化しないデモ（CON-02）で評価を操作する動機も小さい
 implies_internal: []
-conflicts:
-  - with: QR-06
-    note: 現在地を細かく送るほど、画面を点け続けるほど（FR-52）電池が減る。送る間隔は最新性のしきい値が求める細かさを超えない
-  - with: QR-38
-    note: 乗客の現在地をドライバーに見せることと見る人を限ること。迎車中だけ、乗客が許可したときだけ見せる（FR-24）
+conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: FRP-04 が FR-52 として受け入れられたので対象に加えた
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）

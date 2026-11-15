@@ -1,0 +1,14 @@
+id: HND-12
+title: 本人の確かめの失敗を止めるまでの回数、セッションの長さ、設定の符号の有効期間
+status: decided
+basis: inferred
+basis_note: DEC-14 の応答を左右する点。時間のしきい値の SLO とお金の道にないため、第 4 段階の ELM-03 の実行に送る
+premises: []
+from: architecture-drivers-to-architecture
+to: high-level-design-to-detailed-design
+component: ELM-03
+origin: [DEC-14]
+what: 本人の確かめに続けて失敗したときにアカウントを止めるまでの回数と止める時間、セッションの長さ、設定の符号の有効期間の値
+bounds: QR-10、FR-48、DEC-14（設定の符号でパスワードを決め、サーバーがセッションを持つ）
+trigger: 第 4 段階の ELM-03 の実行
+resolution: "MOD-36 の parameters で決めた（続けて 5 回の失敗で 15 分止める、セッションは最後に使ってから 14 日で作ってから 30 日まで、設定の符号は 12 文字で 72 時間。DAS-22）"

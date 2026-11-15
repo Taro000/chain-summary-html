@@ -1,75 +1,80 @@
 id: IFC-23
-title: 乗客のアカウントと支払い手段の画面
-status: draft
-version: 2
+title: ドライバーの画面
+status: active
 basis: inferred
-basis_note: FR の受け入れ基準は入力（FR-01 版 3。乗客が自分でアカウントを作る画面はなく、ログインと設定の符号でパスワードを決める画面だけ）。画面の分け方、移り先、空のときの示し方は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: 画面の機能と、受け入れ基準が挙げる誤りと空の状態は FR-07、FR-11、FR-12、FR-17〜FR-30、FR-32、FR-36、FR-44、FR-47〜FR-49、FR-52、FR-53（入力）。ドライバーは受付をしている間から乗車中まで画面に出したままにすることは TC-13、TC-18（入力）。走っている間は依頼を選ぶ操作と許諾を受け付けないことを端末も同じ値で見せるが、受け付けるかは ELM-03 が決めることは DEC-22（入力）。走っている間はメッセージの中身を示さないことは DEC-27（入力）。画面の作りの細部は第 4 段階か実装が決める。画面の移り変わりは報告の「画面」。決済が拒否された後に乗客が押さえ直したことを示す信号を ride.payment_method_changed と今の状態の決済の状態にしたことは FND-30 を受けた。決済サービスが処理しなかった決済（結果が分からなかった決済を確かめて分かったときを含む）を示す行を加えたことは FND-55 を受けた（DEC-45、IFC-03）
+premises: [TC-13, TC-18]
 kind: screen
-name: 乗客のアカウントと支払い手段の画面
+name: ドライバーの画面（ELM-01）
 provider: ELM-01
-consumers:
-- USR-01
-functions:
-- FR-01
-- FR-04
-- FR-31
+consumers: [USR-02]
+functions: [FR-07, FR-11, FR-12, FR-17, FR-18, FR-19, FR-20, FR-21, FR-22, FR-23, FR-24, FR-25, FR-26, FR-27, FR-28, FR-29, FR-30, FR-32, FR-36, FR-44, FR-47, FR-48, FR-49, FR-52, FR-53]
 operations:
-- name: ログイン
-  does: CUJ-01 の前。メールアドレスとパスワード → 手配（未払いがあれば未払いの支払い）。「設定の符号でパスワードを決める」→ パスワードの設定。ログインしていない人にはこの二つの画面だけを示し、自分でアカウントを作る画面はない（FR-01 AC3）
-- name: パスワードの設定
-  does: 運営・サポート担当から受けた設定の符号と新しいパスワード（IFC-01 POST /api/v1/auth/setup）→ 決められたらログインした状態で支払い手段（なければ）か手配（FR-01 AC1）。パスワードを忘れたときも、出し直してもらった符号でここから決め直す（FR-48 AC6）
-- name: 支払い手段
-  does: 登録した支払い手段（種類と下 4 桁）、追加（Stripe の入力部品。IFC-14）、既定の変更、削除（FR-04）
-- name: 未払いの支払い
-  does: 未払いの依頼、額、理由。支払い手段を選んで払う（FR-31 AC1・2）
-format: React の SPA の画面（DEC-23）。文言は日本語（DEC-46）。WCAG 2.2 AA（DRV-24）
-protocol: iOS の Safari（ELM-15）。IFC-01、IFC-02、IFC-14 を呼ぶ
-auth: ログインとパスワードの設定のほかは乗客のセッション
+  - name: 使い始め
+    does: サインインの ID と設定の符号でパスワードを決め、サインインする（FR-48）。ホーム画面に加える案内、知らせと位置と画面を消さない仕組みの許しを求める（DEC-02、DEC-21）
+  - name: 配車受付
+    does: 受付の切り替え（FR-17）、届いた依頼の一覧（FR-18）、依頼の内容（FR-20）、許諾（FR-21）。走っている間は選ぶ操作と許諾を止めて見せ、止まってから操作するよう示す（FR-22）
+  - name: 迎車
+    does: 乗車場所と乗客の現在地と名前（FR-24、FR-25）、地図（IFC-20）、乗客との連絡（FR-11）、確認コードの入力と乗車の開始（FR-12、FR-27）、乗客の不在として終える（FR-26）、取り消し（FR-23）
+  - name: 乗車中
+    does: 降りる場所と変わった降りる場所（FR-24 の 3、4、FR-47）、到着の確認（FR-28）、決済とその結果（FR-29、FR-30）
+  - name: 設定
+    does: 依頼を受ける条件（最低の金額と最大の距離、FR-32）
+  - name: 知らせ
+    does: アプリが画面に出ていない間に Web Push で示す知らせ（FR-07、FR-18、FR-22 の 1、FR-44、FR-47、IFC-21）。押すと対応する画面を開き、今の状態を読み直す
+format: HTML と CSS（ホーム画面に加えた Web アプリ、DEC-02）。文言は日本語で文言のファイルから引き、日時、数、額は ja-JP、Asia/Tokyo、円で示す（POL-04）
+protocol: iOS 18.4 以降の Safari の、ホーム画面に加えた Web アプリ（DEC-02）。ELM-03 とは IFC-01、IFC-03〜IFC-06、IFC-08、IFC-10、IFC-11 で話す
+auth: サインインしたセッション（DEC-40）。止めた機能と許されていない機能は示さない（FR-36 の 3、FR-49 の 1）
 errors:
-- case: 'ログイン: 資格情報が違う'
-  signal: IFC-01 INVALID_CREDENTIALS
-  caller_does: その旨を示す（FR-01 AC5）
-- case: 'ログイン: 一時の停止'
-  signal: IFC-01 ACCOUNT_LOCKED
-  caller_does: 再開の時刻を示す
-- case: 'パスワードの設定: 符号が違う、期限切れ、使用済み、出し直す前のもの'
-  signal: IFC-01 SETUP_CODE_INVALID
-  caller_does: パスワードを決めさせず、運営・サポート担当に符号の出し直しを頼むよう示す（FR-01 AC2）
-- case: 'パスワードの設定: パスワードが短いなど、形が違う'
-  signal: IFC-01 INVALID_REQUEST
-  caller_does: 欄ごとに理由を示す
-- case: '支払い手段: ない'
-  signal: 空の一覧
-  caller_does: 「支払い手段がありません」と追加の操作を示す
-- case: '支払い手段: カードが受け付けられない'
-  signal: 入力部品のエラー、IFC-02 PAYMENT_METHOD_REJECTED
-  caller_does: 理由を示す（FR-04 AC2）
-- case: '支払い手段: 進行中の依頼で使っている'
-  signal: IFC-02 PAYMENT_METHOD_IN_USE
-  caller_does: 削除しない旨を示す（FR-04 AC3）
-- case: '未払いの支払い: 断られた'
-  signal: IFC-02 CARD_DECLINED
-  caller_does: 理由を示し、別の支払い手段を選ばせる
-- case: '未払いの支払い: 結果が分からない'
-  signal: IFC-02 PAYMENT_PENDING
-  caller_does: 「確かめています」と示し、配信で待つ
-idempotency: 画面は操作ごとに冪等キーを一つ作り、応答が分からないときは同じキーでだけ送り直す（API の呼び出しのモジュール。DEC-48）。二度押しは同じキーにまとまる
+  - case: 停止されている
+    signal: IFC-04 の DRIVER_SUSPENDED と流れの driver.suspended
+    caller_does: 停止されていることを示し、受付と許諾をさせない（FR-17 の 3、FR-44）
+  - case: 現在地が分からない
+    signal: IFC-04 の positionUnknown
+    caller_does: 現在地が分からないことを示す（FR-19 の 4）
+  - case: 走っている
+    signal: IFC-04 と IFC-06 の DRIVER_MOVING
+    caller_does: 止まってから操作するよう示す（FR-22 の 2、DEC-27）
+  - case: 依頼がもう受けられない、取り消された
+    signal: IFC-04 の OFFER_NO_LONGER_AVAILABLE と流れの offer.removed、ride.cancelled
+    caller_does: もう受けられないこと、取り消されたことを示し、一覧と迎車の画面から除く（FR-18 の 3、FR-20 の 3、FR-21 の 2、3、FR-24 の 5、FR-25 の 2）
+  - case: 乗客の現在地が分からなくなった
+    signal: 流れの position.updated の測った時刻が古い
+    caller_does: 最後に分かった現在地とその時刻を示し、今の現在地が分からないことを伝える（FR-24 の 2）
+  - case: 確認コードが合わない、照らし合わせを止めている
+    signal: IFC-03 の CONFIRMATION_CODE_MISMATCH、CONFIRMATION_CODE_LOCKED
+    caller_does: 一致しないことを示して乗車を始めない、待つ時間を示す（FR-12 の 3）
+  - case: 不在として終えるには早い、迎車が着く前
+    signal: IFC-03 の NO_SHOW_TOO_EARLY、PICKUP_NOT_ARRIVED
+    caller_does: 待つ残りの時間を示す、着く前は終えられないことを示す（FR-26 の 2、3）
+  - case: 乗車が始まっていない、乗車が始まっている
+    signal: IFC-03 の RIDE_NOT_STARTED、RIDE_ALREADY_STARTED
+    caller_does: 到着の確認を受け付けないことを示す、取り消せないことを示す（FR-28 の 2、FR-23 の 4）
+  - case: 決済が拒否された、決済の結果が分からない、済んだ決済をやり直した
+    signal: IFC-03 の PAYMENT_DECLINED、PAYMENT_PENDING、最初の結果
+    caller_does: 済んでいないことと理由を示して乗客の支払い方法の変更を待つ、分からないことを示して結果を待つ、最初の結果を示す（FR-29 の 4、5、FR-30 の 1、2）
+  - case: 決済サービスが決済を処理せず、済んでいない（結果が分からなかった決済を確かめて分かったときを含む）
+    signal: IFC-03 の PAYMENT_SERVICE_UNAVAILABLE、流れの ride.charge_settled と、IFC-03 の今の状態の決済の状態
+    caller_does: 済んでいないことを示し、新しい冪等キーで決済をやり直させる。乗客の支払い方法の変更は待たない（FR-29 の 1、5、FR-30 の 2、DEC-45）
+  - case: 決済が拒否された乗車で、乗客が支払い方法を変えて押さえ直した
+    signal: 流れの ride.payment_method_changed と、IFC-03 の今の状態の決済の状態
+    caller_does: 決済をやり直せることを示す（FR-29 の 4）
+  - case: 条件の値が正しくない
+    signal: IFC-08 の VALIDATION_FAILED
+    caller_does: 正しい値を求める（FR-32 の 3）
+  - case: 本人を確かめられない、使えない機能
+    signal: IFC-01 の答え、DEC-35 の 401 と 403
+    caller_does: 確かめられなかったことを示す、その機能を使えないことを示す（FR-48 の 2、FR-49 の 1）
+  - case: ELM-03 とつながらない
+    signal: 呼び出しのタイムアウトと流れの切れ
+    caller_does: 送っていることを示し、送り直す操作を持って、つながったら同じ冪等キーで送り、今の状態を読み直す（DEC-08、QR-02）
+idempotency: 画面は利用者の一回の操作ごとに冪等キーとたどる ID を作り、答えを受けるまで同じもので送り直し、その間は送っていることを示す（DEC-08、DEC-42、DEC-43）
 timing:
-  timeout: API の 15 秒を待つ間は進み具合を示す
+  timeout: 相手の変化を示すまでの端末の分は NFR-07 の予算のホップ（DEC-46）。呼び出しのタイムアウトは各 IFC。画面の細部の時間は第 4 段階が決める（HND-17）
   ordering: null
   delivery: null
-versioning: SPA の版を X-App-Version と比べ、操作の途中でないときに読み直す（DEC-49）。読み直した後は GET で今の状態を取り直す
-observability: ブラウザのエラーの記録（IFC-05）
+versioning: 起動の値の buildId が自身の版と違えば読み直す（DEC-41）
+observability: 予期しない失敗を端末のエラーとして ELM-03 に送り（FR-52、IFC-10）、相手の変化を示した時刻を送る（FR-53、IFC-10）
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 自分でアカウントを作る画面とその二つのエラーの行を外し、ログインと設定の符号でパスワードを決める画面だけにした（IFC-01 POST /api/v1/auth/setup）。符号が違うときは運営・サポート担当に出し直しを頼むよう示す行を足した。FR-01 の受け入れ基準の番号を版 3 に合わせた
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-01 版 3、FR-48 版 2）'

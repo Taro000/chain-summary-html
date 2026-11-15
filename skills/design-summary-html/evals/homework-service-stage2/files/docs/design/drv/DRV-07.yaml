@@ -1,12 +1,9 @@
 id: DRV-07
 title: 一つのトレース ID で提出の失敗をたどる
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises: []
 kind: observability
 statement: 提出の失敗を、ブラウザからストレージまで一つのトレース ID でたどれる
 sources:
@@ -14,7 +11,13 @@ sources:
 - FR-04
 - NFR-09
 concern_of: []
-scenario: null
+scenario:
+  source: 開発者（USR-03）
+  stimulus: 提出の失敗の知らせを受ける
+  artifact: FR-04
+  environment: ふだん
+  response: 一つの ID で原因までたどれる
+  measure: NFR-09 の完成の定義
 negotiable: null
 derived_from: []
 priority:
@@ -26,8 +29,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

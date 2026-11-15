@@ -1,0 +1,67 @@
+id: MOD-31
+title: 期限の来た処理
+status: active
+basis: assumed
+basis_note: 期限のある処理を期限とともにデータベースに書き、サーバーの中の繰り返しが期限の来たものを一つずつ取って行うことは DEC-18、拾う間隔 5 秒は DEC-46、インスタンスが 0 の間の処理を日々の処理が拾うことは DEC-18、IFC-15、DAS-02、テストが時計を進めて一回ずつ回すことは POL-03（どれも入力）。処理を (種類, 対象) ごとに一行の表に書き、取った印と取った時の終わりを条件つきで書いて取り、受け持ちが Done を返すまで消さないこと（少なくとも一度行い、受け持ちが今の状態を条件に書いて二度目を害のないものにする）は推定（この表は第 3 段階が第 4 段階に任せた ELM-03 の中の仕組みで、データの実体ではない）。取る長さ、一度に取る数、失敗の後の間は DAS-19 による暫定の決定
+premises: [DAS-19]
+component: ELM-03
+name: 期限の来た処理
+depth: full
+depth_reason: 期限の来た処理を、いくつものインスタンスの間で一つずつ取って行う（同時に動く仕事と状態を分ける）。許諾のない依頼の知らせと終わり、結果が分からないお金の操作の確かめ、押さえの解除と料金の請求、流れの後の Web Push の控えがここから起きる
+responsibility: 期限とともに書いた処理を、期限が来たら一つずつ取り、その種類の受け持ちに行わせる
+visibility: internal
+interface:
+  - operation: "schedule(tx: Tx, kind: WorkKind, ref: string, dueAt: Instant) -> none"
+    pre: kind は register で受け持ちのある種類
+    post: その取引で (kind, ref) の処理を dueAt に書く。同じ (kind, ref) がすでにあれば、早い方の期限にする
+    errors: []
+  - operation: "cancel(tx: Tx, kind: WorkKind, ref: string) -> none"
+    pre: null
+    post: その取引で (kind, ref) の処理を消す（なければ何もしない）
+    errors: []
+  - operation: "register(kind: WorkKind, handler: WorkHandler) -> none"
+    pre: 起動のときだけ。一つの種類に受け持ちは一つ
+    post: 種類の受け持ちを持つ。受け持ちは (ref, now) を受けて Done か Again(at) を返し、今の状態を条件に書く（二度行われても二度効かない）
+    errors: []
+  - operation: "runDue(now: Instant, limit: integer) -> integer"
+    pre: null
+    post: 判断表 A で、期限が来て誰も取っていないか取った時が過ぎた処理を一つずつ取り（取った印と取った時の終わりを条件つきで書く）、受け持ちに行わせ、Done なら消し、Again なら次の期限にし、投げた失敗なら間を置いて期限を延ばしてたどる記録に残す。行った数を返す
+    errors: []
+  - operation: "drain(until: Instant) -> integer"
+    pre: 呼ぶのは MOD-32 の最初の仕事だけ
+    post: 期限の来た処理がなくなるか until まで runDue を繰り返す
+    errors: []
+  - operation: "start(instanceId: string) -> none; stop() -> none"
+    pre: 起動のときと止まる合図を受けたとき（MOD-20 の組み立て）
+    post: DEC-46 の 5 秒ごとに runDue を回し、止まる合図で新しく取るのをやめ、取っている処理を終えてから止まる
+    errors: []
+invariants:
+  - (種類, 対象) ごとに書かれた処理は一つ
+  - 取った処理は、取った時の終わりまでほかのインスタンスに取られない
+  - 処理は受け持ちが Done を返すまで消えない（少なくとも一度行われる）
+depends_on: [MOD-21, MOD-25, MOD-28]
+functions: [FR-04]
+realizes: []
+drivers: [DRV-02, DRV-07, DRV-23, DRV-32]
+decisions: [DEC-18, DEC-46]
+behaviour: "報告書の節: MOD-31 期限の来た処理"
+verification:
+  - checks: 判断表 A の行ごと（期限の前、来た、取られている、取った時が過ぎた、受け持ちの Done、Again、失敗）
+    how: 単体の層（時計の偽物）
+  - checks: 二つのインスタンスが同じ処理を同時に取らず、取ったインスタンスが止まると取った時の後にほかが取る
+    how: 結合の層（二つの作業者を同じデータベースに、時計の偽物）
+  - checks: テストが時計を進めて一回ずつ回し、T_wait_prompt と T_no_accept と試みの確かめが起きる（POL-03）
+    how: 結合の層
+  - checks: インスタンスが 0 の間の期限を日々の処理が拾う
+    how: 結合の層（日々の呼び出しの偽物）
+parameters:
+  - name: 取った処理を取ったままにする長さ
+    value: 60 秒
+    basis: 受け持ちの最悪の時間（EXT-01 の一回の呼び出し 4 秒、Web Push を送る呼び出しの最悪 11 秒、IFC-21）より長く、止まったインスタンスの処理を 1 分のうちに取り直せる暫定の値（DAS-19）
+  - name: 一回に取る処理の数
+    value: 20
+    basis: デモの量（OPF-02、OPF-03）では一回に数件で、5 秒の間に終わる数として選んだ暫定の値（DAS-19）
+  - name: 受け持ちが失敗した処理の次の期限
+    value: 30 秒後、続けて失敗するごとに倍にして 10 分まで
+    basis: 結果が分からない試みの確かめの間隔（IFC-17）と同じ長さに収め、失敗し続ける処理で作業を埋めない暫定の値（DAS-19）
+as_is: new

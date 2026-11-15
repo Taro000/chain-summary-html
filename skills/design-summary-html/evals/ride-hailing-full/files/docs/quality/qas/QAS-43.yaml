@@ -1,0 +1,12 @@
+id: QAS-43
+title: N_ride_rating_ok の最初の値
+status: open
+stage: 4
+kind: decision
+statement: N_ride_rating_ok を 4 以上とする（乗客がドライバーに付ける 1〜5 の 5 段階の評価の上位 2 段階）。
+why_unsure: 評価は 1〜5 の 5 段階に決まった（第 2 段階の質問 9）が、どの評価から変なドライバーや汚い車ではなかったとみなすかは入力にない。上位 2 段階を、乗ってよかったと感じた評価として置いた最初の値。
+breadth: low
+severity: low
+rating_note: QIU-06 だけが依存する。第 1 段階が次の実行で「4 以上」と書き直す。値は変えるのが容易
+answer: null
+answered_in: null

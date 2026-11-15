@@ -1,44 +1,28 @@
 id: DRV-08
-title: 乗る場所・降りる場所を正しく決める
-status: draft
-version: 1
-basis: inferred
-basis_note: シナリオは QR-18・QR-28・NFR-13・NFR-14 から（入力）。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
+title: 依頼は、その時点で届けてよいドライバーにだけ届き、示され、許諾できる
+status: active
+basis: assumed
+basis_note: QR-16、QR-32、QR-49、QR-66（重視）は、同じ規則（依頼を届ける相手を決める規則と評価のまとめ方）に対する応答のため、一つのシナリオにまとめた（入力から推定）。登録されたドライバーだけが受付できること（QR-63）は DRV-20、規則を一か所に置くこと（QR-54）は DRV-35 にある。NFR-34 のしきい値と目標は QAS-36 による。現在地から乗車場所までの距離が道のりか直線かは QCR-01 で品質チェーンに求めている。順位は質問 6 で確認済み
+premises: [OPF-03, QAS-36, QCR-01]
 kind: quality
-statement: 乗客が選ぶ乗る場所と降りる場所は、取り違えがなく、乗客が実際に待つ場所を表す
-sources: [QR-18, QR-28, NFR-13, NFR-14, FR-02, FR-12]
-concern_of: [USR-01, USR-02]
+statement: 依頼は、受付をしていて、停止されておらず、乗客の閾値と自分の条件にその時点の値で合うドライバーにだけ届き、示され、許諾できる。停止した時から、そのドライバーはまだ許諾していない依頼を、停止の前に一覧に届いていたものも含めて受けられない
+sources: [QR-16, QR-32, QR-49, QR-66, NFR-34, SLI-13, NFR-35, NFR-36, FR-05, FR-15, FR-16, FR-17, FR-18, FR-19, FR-20, FR-32, FR-44]
+concern_of: [USR-01, USR-02, USR-04]
 scenario:
-  source: 乗客（USR-01）
-  stimulus: 場所を探して選ぶ。建物の中などで現在地の誤差が大きい
-  artifact: 場所の指定（FR-02、FR-12）
-  environment: デモの回。本物の現在地。同じ名前の施設がある
-  response: 選んだ候補をピンで示し、同じ名前の候補を住所などで区別する。誤差が D_pickup_accuracy を超えるときはピンで確かめさせる
-  measure: 場所の候補の示し方の画面の自動テストが通る（NFR-13）。運転を始めた位置が乗る場所から 50 m（D_pickup_match）を超えた乗車を知らせる（NFR-14）
+  source: 乗客（USR-01）、ドライバー（USR-02）、運営・サポートの担当者（USR-04）
+  stimulus: 乗客が依頼する。乗客が閾値を変え、ドライバーが条件を変え、乗客が評価を付け、担当者がドライバーを停止する
+  artifact: 依頼を届ける相手を決める規則と、閾値と比べるドライバーの評価のまとめ方（FR-05、FR-15、FR-17、FR-19、FR-44）
+  environment: デモの回の間（OPF-01）。ドライバーは 1 人（OPF-03）
+  response: 依頼は、その時点の規則に合うドライバーにだけ届き、示され、許諾できる。停止の前に一覧に届いていた依頼も、停止した時から示されず許諾できない
+  measure: NFR-35 の監視、NFR-36 のゲート、NFR-34 の SLO（SLI-13 で数える）
 negotiable: null
 derived_from: []
 priority:
   business: high
-  business_reason: QR-18、QR-28 が重視（CUJ-03、06、07）
+  business_reason: QR-16 と QR-66 は CUJ-05 の組で、QR-32 は CUJ-09 の組で、QR-49 は CUJ-14 と CUJ-18 の組で重視
   difficulty: low
-  difficulty_reason: 画面と、位置の誤差を持つデータの扱いで済む
-  rank: 18
+  difficulty_reason: 規則を一か所に置き（DRV-35）、一覧の変化を DRV-03 で届ければ、どの妥当な作りでも満たせる
+  rank: 23
 primary: false
-conflicts:
-  - with: DRV-11
-    note: 品質チェーンで解き済み。誤差が D_pickup_accuracy を超えるときだけピンで確かめさせ、手配の手間を抑える（FR-02）
-  - with: DRV-04
-    note: 品質チェーンで解き済み。誤差の大きい場所での到着は受け付けて印を付け、料金を取らない（FR-25、FR-27）
-  - with: DRV-24
-    note: ピンを動かして場所を決める操作は、WCAG 2.2 AA のドラッグに代わる操作の求めに当たる（第 2・3 段階）
-placeholders:
-  - name: D_pickup_accuracy
-    meaning: 現在地の誤差が何メートルを超えたらピンで乗る場所を確かめさせるか
-    from: FR-02
-  - name: D_pickup_match
-    meaning: 運転を始めた位置と乗る場所のずれの許容（50 m、D_arrival と同じ値）
-    from: NFR-14
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+conflicts: []
+placeholders: []

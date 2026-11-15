@@ -1,27 +1,14 @@
 id: FND-29
-title: DEC-12 のお金の操作の表に、未払いを別の支払い手段で払う操作がない
+title: 位置の送りのタイムアウト 5 秒は DEC-46 の決め方に合わず、流れのつなぎ直しの 35 秒は報告が書く順を満たさない
 status: accepted
-version: 2
 basis: inferred
-basis_note: FR-31 AC2（乗客が別の支払い手段で払うと未払いを解消する）、DEC-12 のキーの表（押さえ、確定、押さえの取り消し、返金）、DEC-13 の突き合わせは入力。この操作が新しい PaymentIntent を自動で確定することと、そのキーの決め方はこの段の推定
-needs_agreement: false
-approver_candidates: []
-raised_by: architecture-to-high-level-design
-raised_in: 3-high-level-design.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-12
-- DEC-13
+basis_note: IFC-05、IFC-11、DEC-46 の値と報告の文は入力。計算はこのレビューのスクリプト
+premises: []
+raised_by: design-review
+raised_in: reviews/3-high-level-design.md
+to: architecture-to-high-level-design
+targets: [IFC-05, DEC-46]
 severity: minor
-evidence: FR-31 AC2 は、請求に失敗した依頼を乗客が別の支払い手段で払うと未払いを解消するとする。押さえは失敗した請求で使えなくなっているので、この支払いは新しい PaymentIntent（自動で確定）になる。DEC-12 の表は、押さえ、確定、押さえの取り消し、返金の四つのキーの決め方だけを持ち、この操作がない。この操作は一つの依頼で何度も試されうる（断られたら別の支払い手段で）が、成功は一度だけでなければならない（DRV-30）。また DEC-13 の突き合わせは、依頼ごとの押さえと確定を比べる形で、この支払い（押さえを経ない請求）の比べ方を書いていない。この段は IFC-02 と IFC-13 で、キーを ride_<依頼 ID>_unpaid_<何回目か>、何回目かは前の試みが失敗と確定したときだけ進め、確かめ中か成功の試みがあれば新しい試みを受け付けない（409 PAYMENT_IN_PROGRESS）形にした。決まりは DEC-12 の表に置くもの
-suggestion: 'DEC-12 のキーの表に「未払いの支払い（自動で確定する PaymentIntent）: 一つの依頼に成功は一度、試みは失敗と確定するたびに一つ。キーは依頼の ID と何回目か。確かめで照らすものは顧客の PaymentIntent の一覧の、メタデータの依頼の ID と何回目か」を足す。DEC-13 の突き合わせの比べ方に、この支払いを依頼の請求として数えることを足す'
-resolution: 受け入れた。DEC-12（版 3）のキーの表に、未払いの支払い（自動で確定する PaymentIntent。成功は一度、試みは失敗と確定するたびに一つ。キーは依頼の ID と「未払い」と何回目か。確かめで照らすものは顧客の PaymentIntent の一覧の、メタデータの依頼の ID と何回目か）を足した。DEC-13（版 3）の突き合わせに、これを押さえを経ない依頼の請求として数えることを足した
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階の下書き（インタフェースの設計で見つけた）
-- version: 2
-  date: '2026-11-03'
-  change: 受け入れた（DEC-12、DEC-13 を直した）
-  reason: architecture-drivers-to-architecture の再実行（第 2 段階の再実行、3 回目）
+evidence: DEC-46 は、時間のしきい値の SLO の道の上の ELM-01 の呼び出しのタイムアウトを、ELM-03 の答えの期限に通信の余裕（5 秒）を足したものより長くするとする。IFC-05 の位置の送りは NFR-19 の道の上にあり、期限 2 秒に 5 秒を足すと 7 秒だが、タイムアウトは 5 秒。送り直さず次の送りが替わるという IFC-05 の理由は成り立つが、DEC-46 はその例外を書いていない。また報告のタイムアウトの表とスクリプトの出力は、流れの 35 秒が生存の確かめの 2 回分と余裕 5 秒より長いとするが、2 × 15 + 5 は 35 で等しい
+suggestion: DEC-46 の決め方に、送り直さずに次の送りが替わる呼び出し（位置）の例外を書くか、IFC-05 のタイムアウトを決め方に合わせる。報告の 35 秒の文を値に合わせる
+resolution: DEC-46 に、送り直さずに次の送りが替わる呼び出し（IFC-05 の位置）は余裕を足さず、ELM-03 の期限と通信の往復の予算の和より長く、送る間隔を超えない長さにすることを書き、IFC-05 の 5 秒がそれに合うことを書いた。報告のタイムアウトの表とスクリプトの出力の流れの 35 秒を、生存の確かめ 2 回分と余裕 5 秒の和に等しい、に直した

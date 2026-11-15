@@ -1,0 +1,26 @@
+id: POL-02
+title: One repository and its dependency rules
+status: active
+basis: inferred
+basis_note: null
+premises:
+- PC-03
+scope: repository
+addresses:
+- DRV-06
+decisions:
+- DEC-07
+rules:
+- rule: Each app's directories are split by business capability
+  check: The review of the pull request
+repositories:
+- name: homework-service (one repository holding docs and apps/)
+  holds:
+  - ELM-01
+  - ELM-02
+  - ELM-03
+  - ELM-06
+dependency_rules:
+- rule: The apps under apps/ never import each other
+  check: The linter rule no-restricted-imports in the check step
+as_is: new

@@ -1,30 +1,28 @@
 id: DRV-25
-title: 役割ごとの権限
-status: draft
-version: 2
+title: 配車の流れの操作と知らせが、システムの境界で結果とともに見える
+status: active
 basis: inferred
-basis_note: 要求は QR-47（入口はセキュリティのリスク分析。中身は未確認）。交渉できないことは質問 9 で確認済み。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-kind: constraint
-statement: 管理の画面（参加者のアカウントの作成と設定の符号の出し直し、ドライバーと車両の登録、停止と再開、対処、返金）とエンジニアの画面（ログと履歴の検索）の操作は、その役割のアカウントだけに許す
-sources: [QR-47, NFR-31, FR-40, FR-45, FR-46, FR-47, FR-48, FR-49, FR-50]
-concern_of: [USR-03, USR-04]
-scenario: null
-negotiable: false
+basis_note: SLI-01〜SLI-06 の見る位置（システムの境界）と数え方の規則と、QR-47 の試験用の区別（入力）から。どのインタフェースが数える出来事を出すかは第 3 段階が決める（SLI の出どころ）。順位は質問 6 で確認済み
+premises: [OPF-01]
+kind: observability
+statement: 配車の手配、迎車中と乗車中の乗客の画面、配車受付、乗車の開始、到着の確認と決済の一つ一つの操作と知らせが、システムの境界で、その結果、失敗の出どころ（システム自身か EXT-01 か EXT-02 か）、送り直しかどうか、試験用のアカウントや模擬の利用によるものかとともに見える
+sources: [SLI-01, SLI-02, SLI-03, SLI-04, SLI-05, SLI-06, QR-47, NFR-18, FR-42]
+concern_of: [USR-03]
+scenario:
+  source: デモの回の後に SLO を数えるエンジニア（USR-03）
+  stimulus: 乗客とドライバーが操作し、システムが知らせを送る
+  artifact: システムの境界で受ける操作と送る知らせ（SLI-01、SLI-02、SLI-03、SLI-04、SLI-05、SLI-06 の数える単位の出来事）
+  environment: デモの回の間（OPF-01）。試験用のアカウントの操作、模擬の利用、負荷試験が混ざる
+  response: 一つ一つの出来事が、その結果、失敗の出どころ、送り直しかどうか、試験用か模擬の利用かとともに数えられる
+  measure: SLI-01、SLI-02、SLI-03、SLI-04、SLI-05、SLI-06 を定義どおりに数えられること（NFR-01、NFR-02、NFR-03、NFR-04、NFR-05、NFR-06 の SLO）、NFR-18 の監視
+negotiable: null
 derived_from: []
 priority:
   business: high
-  business_reason: 交渉できない制約。入口（セキュリティのリスク分析）から来た要求
+  business_reason: 重視の QR-01 の SLO を数える
   difficulty: low
-  difficulty_reason: 役割の判定を一か所に置けば満たせる
-  rank: 17
-primary: true
+  difficulty_reason: システムの境界で受ける操作とその結果は、どの妥当な作りでも記録できる
+  rank: 20
+primary: false
 conflicts: []
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
-  - version: 2
-    date: 2026-11-03
-    change: 役割で限る管理の操作に、参加者のアカウントの作成と設定の符号の出し直しを足した
-    reason: 品質チェーンの再実行（FR-48 版 2、QR-47 版 2。回答の設計 2-9）に追随した（第 1 段階の再実行、3 回目）

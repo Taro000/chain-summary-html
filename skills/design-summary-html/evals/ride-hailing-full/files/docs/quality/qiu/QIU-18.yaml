@@ -1,39 +1,32 @@
 id: QIU-18
-title: 障害の原因を特定できる
-status: draft
-version: 1
+title: ドライバーが依頼主本人を乗せて運転を始める
+status: active
 basis: inferred
-basis_note: ニーズは入力。障害の記録が今はないことは質問 9 で確認済み。測定量は推定
-needs_agreement: false
-approver_candidates: []
-user: USR-03
-cuj: CUJ-10
-outcomes: []
-need: 障害・不具合の原因を特定したい。システムのログとデータを確認したい
+basis_note: CUJ の手順（依頼主かどうかを確認する、運転を始める）は入力。ニーズは手順からの推定。測定量と利用状況も推定。依頼主本人を乗せたかは、乗車を始める前の確かめの記録（第 2 段階の FR-12）から数える（推定）
+premises: [CON-05]
+user: USR-02
+cuj: CUJ-07
+outcomes: [OUT-02]
+need: 依頼主かどうかを確かめて、依頼主を乗せたい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: エンジニア
-  task: 通知を受けた障害の調査
-  environment: 本番環境
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録したドライバー
+  task: 依頼主の乗車
+  environment: 車内。乗る場所に止まっている間
   other: null
 characteristic: effectiveness
-statement: エンジニアは、通知を受けた本番の異常・エラーについて、ログとデータから原因を特定できる。
-failure_scenario: ログやデータが足りず原因が分からないまま同じ障害が繰り返し起き、そのたびに乗客が配車できない。
+statement: 乗る場所に着いたドライバーは、依頼主かどうかを確かめ、依頼主本人を乗せて運転を始める。
+failure_scenario: ドライバーが乗る場所にいた別の人を依頼主と取り違えて乗せ、依頼主は取り残されて配車は取り消しになり、運賃の支払いをめぐって揉める。
 measure:
-  numerator: 原因を特定できた障害
-  denominator: 通知を受けて調査した障害（誤報を除く）
-  narrowed_to: 本番環境の障害
-  denominator_needed_only: 調査が必要だった障害だけ。誤報は除く
-  contribution: ログとデータの揃い方につながる。原因が外部サービス（地図・決済）にある障害も含む
-  observable: false
+  numerator: 依頼主本人を乗せて運転を始めた乗車
+  denominator: 運転を始めた乗車
+  narrowed_to: 登録したドライバー。試験用のアカウントを除く
+  denominator_needed_only: 運転を始めた乗車だけを数える
+  contribution: 依頼主かどうかを確かめる手がかりにプロダクトが効く
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）

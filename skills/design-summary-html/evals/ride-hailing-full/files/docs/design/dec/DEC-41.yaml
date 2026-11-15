@@ -1,53 +1,32 @@
 id: DEC-41
-title: お金
-status: draft
-version: 1
+title: ELM-03 の操作は経路に /v1 を持って足すだけで変え、流れと知らせは種類ごとの版を持ち、Web アプリは ELM-03 の版が変われば読み直す
+status: active
 basis: inferred
-basis_note: DRV-30（額はサーバーだけが決める）と DEC-10（円）は入力。円が Stripe のゼロ小数通貨であることは Stripe の決まり。R_fare の端数は未定（context.yaml）
-needs_agreement: false
-approver_candidates: []
+basis_note: インタフェースの版の扱いは、第 3 段階の確定の種類（推定）。二つの Web アプリと ELM-03 を一緒に配備し、前の版に戻すときは前の版を配備し直すこと（DEC-05、DEC-26、POL-04）と、壊す変更を最後のリリースの文書と比べて見つけること（DEC-33、POL-05 の oasdiff）は入力。EXT-01 の API の版を固定することは POL-05（入力）
+premises: []
 stage: high-level-design
-question: 額をどう表し、誰が決めるか
-addresses:
-- IFC-02
-- IFC-03
-- IFC-06
-- IFC-13
-- DRV-30
+question: ELM-03 の HTTP の操作、流れの出来事、Web Push の中身を、利用側を壊さずにどう変えるか。新しい版の配備と前の版への戻しをまたいで開いたままの Web アプリをどう扱うか
+addresses: [DRV-12, DRV-13, FR-36]
 options:
-- name: "円の整数と通貨の符号。額はサーバーだけが決める。{amount: 1234, currency: \"jpy\"}。画面から送られた額は使わない（取り消しの expectedFee は確かめのためだけで、違えば 409）"
-  effect: Stripe の円（ゼロ小数通貨）と同じ単位で、丸めは料金のモジュール一か所
-  cost: なし
-- name: 小数の文字
-  effect: どの通貨にも使える
-  cost: 市場は日本だけで要らない
-- name: 浮動小数
-  effect: —
-  cost: 誤差が出る
-chosen: '円の整数と通貨の符号。額はサーバーだけが決める。{amount: 1234, currency: "jpy"}。画面から送られた額は使わない（取り消しの expectedFee は確かめのためだけで、違えば 409）'
-rationale: DRV-30（額はサーバーが確定した料金だけから求める）と Stripe の円の単位
+  - name: 経路に /v1 を持ち、その中では足す変更だけを行い、流れと知らせは種類ごとの版を持ち、Web アプリは起動の値の buildId が自身と違えば読み直す
+    effect: 開いたままの Web アプリが、配備と戻しの後も同じ版の ELM-03 と話す
+    cost: 消す変更は /v2 を並べるか、後のリリースに回す
+  - name: 版を持たず、Web アプリと ELM-03 を一緒に配備するので、どの変更もそのまま行う
+    effect: 版の決まりがない
+    cost: 配備と戻しをまたいで開いたままの Web アプリが、合わない ELM-03 と話して壊れる
+chosen: ELM-03 の HTTP の操作は経路に版（/v1）を持ち、v1 のうちは足す変更（省ける要求の項目、応答の項目、操作、誤りの符号）だけを行う。利用側は知らない項目を捨て、知らない符号を状態の組で扱う（DEC-35）。壊す変更は /v2 を v1 と並べて出し、どの利用側も移ってから v1 を外す。流れの出来事（IFC-11）と Web Push の中身（IFC-21）は種類ごとの版 v を data に持ち、利用側は知らない種類を捨てる。Web アプリは起動のときと流れをつなぎ直すときに client-config（IFC-01）の buildId を自身の版と比べ、違えば読み直す。壊す変更の見つけ方は POL-05（oasdiff）。EXT-01 の API の版は Stripe-Version のヘッダーで固定し、上げるときは契約の層（POL-03）で確かめてから上げる
+rationale: 二つ目は、新しい版を配備した後も前の版の画面を開いたままの Web アプリと、前の版に戻した後の新しい版の Web アプリが、合わない ELM-03 と話して壊れ、DRV-13 の前の版に戻しても使い続けることを外す。一つ目は、足すだけの変更なら古い Web アプリも新しい ELM-03 と話せ、buildId を比べて読み直すので新しい Web アプリが古い ELM-03 と話し続けることもない。切り替え（DEC-26、FR-36）は版を変えずに振る舞いを止め、流れの switch.changed で Web アプリに伝える
 rejected:
-- option: 小数の文字
-  reason: 市場が一つで要らない（第 2 段階の可変性）
-- option: 浮動小数
-  reason: 誤差が出る
+  - option: 版を持たず、Web アプリと ELM-03 を一緒に配備するので、どの変更もそのまま行う
+    reason: 配備と戻しをまたいで開いたままの Web アプリが壊れ、DRV-13 を外す
 gains:
-- Stripe にそのまま渡せる
-costs: []
-sensitive_points:
-- R_fare の km と分の刻み、端数、消費税は未定（context.yaml）。丸めは料金のモジュールだけに置く
+  - 配備と戻しの後も、開いたままの Web アプリが同じ版の ELM-03 と話す
+costs:
+  - 消す変更は /v2 を並べるか、前の版に戻す見込みがなくなった後に回す
+sensitive_points: []
 trade_offs: []
-assumptions:
-- 請求は円だけ（DEC-10）
-depends_on:
-- DEC-10
+assumptions: []
+depends_on: [DEC-26, DEC-33]
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

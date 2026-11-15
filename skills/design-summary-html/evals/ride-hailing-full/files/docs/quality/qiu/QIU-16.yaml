@@ -1,43 +1,32 @@
 id: QIU-16
-title: 運んだ乗車の決済を終える
-status: draft
-version: 2
-basis: inferred
-basis_note: CUJ の手順（決済を行う）は入力。決済の仕組みは質問 5 で、有効性として扱うことは質問 18 で確認済み。測定量は推定
-needs_agreement: false
-approver_candidates: []
+title: ドライバーが手間をかけずに短い時間で依頼を受けられる
+status: active
+basis: assumed
+basis_note: ニーズ（配車受付までの手間を省きたい）は入力。手間を時間で測ることと利用状況は推定。T_accept の値（30 秒）は第 4 段階が提案した仮の値で、QAS-47 による仮定
+premises: [CON-05, QAS-47]
 user: USR-02
-cuj: CUJ-08
-outcomes: []
-need: できるだけ高い依頼を受けたい（運んだ分の運賃は確実に受け取りたい）。デモでは、運んだ乗車の決済が終わること
+cuj: CUJ-06
+outcomes: [OUT-01]
+need: 配車受付までの手間を省きたい（乗客の検索・交渉）
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: ドライバー
-  task: 到着の確認と決済
-  environment: null
-  other: Web アプリ内の決済（料金は手配時に確定。決済のサービスのテスト環境）
-characteristic: effectiveness
-statement: ドライバーは、乗客を目的地まで運んだ乗車の決済を、到着の確認のあとに終えられる。
-failure_scenario: 降車時の決済が失敗したまま乗車が終わり、ドライバーの受取額にその乗車が入らない。
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録したドライバー
+  task: 配車依頼の受付
+  environment: 車内
+  other: null
+characteristic: efficiency
+statement: 配車依頼を受け付けるドライバーは、乗客を探したり料金を交渉したりせずに、依頼を選んでから短い時間で許諾を終えられる。
+failure_scenario: 依頼の金額や乗る場所を確かめるのに手間取り、許諾が遅れる間に乗客が待ちきれずに依頼を取り消し、ドライバーは自分で乗客を探すやり方に戻る。
 measure:
-  numerator: 決済が完了し、ドライバーの受取額に入った乗車
-  denominator: 完了した乗車
-  narrowed_to: Web アプリ内の決済（テスト環境）
-  denominator_needed_only: 完了した乗車だけ
-  contribution: 決済の処理と、手配時の支払い手段の確認に直接つながる
+  numerator: 依頼を選んでから T_accept（30 秒）以内に許諾を終えた依頼
+  denominator: ドライバーが許諾した依頼
+  narrowed_to: 登録したドライバー。試験用のアカウントを除く
+  denominator_needed_only: 許諾まで進んだ依頼だけを数える
+  contribution: 依頼の内容の示し方と許諾の手順にプロダクトが直接効く
   observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 経済リスク緩和性から有効性に変えた。測定量を、決済を終えた乗車を数える比にした
-    reason: 第 1 段階の再実行。運送も決済も模擬で、誰も実際のお金を失わない（質問 18）

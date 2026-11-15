@@ -1,0 +1,14 @@
+id: HND-13
+title: 確認コードの長さと、合わない試みを止めるまでの回数
+status: decided
+basis: inferred
+basis_note: DEC-25 の応答を左右する点。時間のしきい値の SLO とお金の道にないため、第 4 段階の ELM-03 の実行に送る
+premises: []
+from: architecture-drivers-to-architecture
+to: high-level-design-to-detailed-design
+component: ELM-03
+origin: [DEC-25]
+what: 確認コードの長さと文字の種類、一つの依頼で合わない試みを止めるまでの回数と止める時間の値
+bounds: QR-18、FR-12、NFR-21、DEC-25（依頼ごとにサーバーが作り、試せる回数を限る）
+trigger: 第 4 段階の ELM-03 の実行
+resolution: "MOD-46 の parameters で決めた（4 桁の数字、続けて 5 回合わなければ 60 秒止める。DAS-24）"

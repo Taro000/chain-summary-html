@@ -1,30 +1,14 @@
 id: FND-42
-title: エラーに添えるとした値を仕様書の Problem で運べず、ログインのない状態を変える操作に Origin の 403 がない
-status: accepted
-version: 2
+title: Web アプリが端末の保存（localStorage、sessionStorage、IndexedDB、Cache Storage）に何を書いてよいかの決まりがなく、それを使う所を限る依存の規則もない
+status: open
 basis: inferred
-basis_note: IFC-01・03・06 の errors と auth、報告書の CUJ-01-C の流れ、DEC-38 の形、FR-27 AC2、仕様書の Problem と auth.openapi.yaml の応答は入力
-needs_agreement: false
-approver_candidates: []
-raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-01
-- IFC-02
-- IFC-03
-- IFC-06
-- DEC-38
+basis_note: null
+premises: []
+raised_by: high-level-design-to-detailed-design
+raised_in: 4-detailed-design/ELM-02.md
+to: architecture-to-technical-policy
+targets: [POL-02, POL-04]
 severity: minor
-evidence: IFC-03 は TOO_FAR_FROM_PICKUP と FAR_FROM_DROPOFF に距離を、CONFIRMATION_CODE_MISMATCH に残りの回数を、NO_SHOW_TOO_EARLY に残りの秒数を添えるとし、報告書の流れは CANCELLATION_FEE_CHANGED で新しい額を返し、IFC-06 は REFUND_EXCEEDS_REMAINING で残りの額を示すとする。仕様書の Problem は type、title、status、code、detail、traceId、errors、retryAfterSeconds だけで、これらの値の欄がない。FR-27 AC2 は「あとどれだけ待つかを示す」ことを求めるが、残りの秒数を retryAfterSeconds で運ぶのかも書かれていない。DEC-38 の形では detail は省けない欄だが、仕様書の Problem は detail を必須にしていない。IFC-01 は状態を変える要求で Origin を確かめるとするが、ログインのない signup、login、driver-setup、staff-bootstrap の仕様書の応答に 403 がない（ログインの CSRF を防ぐ所）。202 の保留の符号（HOLD_PENDING など）は説明の文にだけあり、4 か所の 202 の説明からは呼ぶ側の扱い（新しい冪等キーで送り直さない、など）が抜けている
-suggestion: Problem に場合ごとの拡張の欄（距離、残りの回数、今の額、残りの額。残りの秒数に retryAfterSeconds を使うならそう書く）を決めて仕様書に書き、detail の必須を DEC-38 とそろえ、ログインのない状態を変える操作に 403 を足し、202 の本文で保留の符号を示す形と呼ぶ側の扱いを書く
-resolution: "受け入れた。エラーの形に場合ごとの拡張の欄（distanceMeters、remainingAttempts、currentFee、remainingRefundable、retryAfterSeconds）を決め、detail を任意にして DEC-38 版 2 とそろえた。ログインのない状態を変える操作（login、setup、staff-bootstrap）に 403 を足した。202 の本文は {code, …資源} で保留の符号を示し、呼ぶ側は配信か GET で待つと書いた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B3、B8、B10）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: POL-02 の依存の規則は、ブラウザの位置、画面を消さない仕組み、Web Push の登録、知らせの許し、流れのつながり、外への呼び出しを ELM-01 と ELM-02 の src/platform/ だけに使わせるが、端末の保存（localStorage、sessionStorage、IndexedDB、Cache Storage）は挙げず、POL-04 のコードの中の約束事も、Web アプリが端末に何を書いてよいかを決めていない。ELM-02 の画面は、参加者の名前、連絡先、場所（DAT-01、DAT-03、DAT-07 は個人の情報）、エンジニアが理由を示して見た隠した情報（FR-35）、担当者が渡す設定の符号（DEC-14）を受けて示す。どれかのモジュールが読んだものの記憶を端末の保存に写す書き方（TanStack Query の記憶を残す仕組みなど）を選ぶと、担当者とエンジニアのコンピューターに ELM-04 の外の写しが残り、3 年を過ぎた記録を個人を特定できない形に変えること（FR-51、QR-59）と記録した日の鍵を捨てること（DEC-16）が届かず、使い終えた後（FR-48 の 4）も同じブラウザで読める。第 4 段階の ELM-02 の実行は、端末の保存を MOD-01 の答えのない返金の操作（乗車か返金の ID、額、冪等キー、たどる ID）だけに使い、ほかのモジュールはそれぞれの契約で書かないとしたが、どの検査もそれを守らず、開発者のレビューだけが見る
+suggestion: POL-02 に、Web アプリの端末の保存（localStorage、sessionStorage、indexedDB、caches）を src/platform/ だけが使う依存の規則を、Oxlint の no-restricted-globals と no-restricted-properties で加える。POL-04 に、Web アプリが端末の保存に個人の情報、設定の符号、パスワード、理由を示して見た情報を書かないこと（書いてよいのは、送り直すための操作の冪等キーとたどる ID と、個人の情報を持たない本文など）を加える。ELM-01 が端末のエラーと示した時刻の報告をためる所も、この決まりに入れる
+resolution: null

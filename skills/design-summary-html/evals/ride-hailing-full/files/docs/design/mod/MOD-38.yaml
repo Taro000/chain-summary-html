@@ -1,0 +1,57 @@
+id: MOD-38
+title: 場所と見積もり
+status: active
+basis: inferred
+basis_note: 入れた名前か住所から所在地で区別した候補を返し、選んだ候補の位置と住所を返し、現在地から住所を返し、乗る場所と降りる場所からドライバーが見つかるまでの時間と迎車の時間を含めた到着予定時刻と模擬の運賃表で求めた料金の見積もりを作り、見積もりの ID と有効期限を返すことは IFC-02 と FR-01〜FR-03、見積もりを作ったら変えず、使った運賃表の版を持ち、乗る場所と降りる場所を記録した日の鍵で暗号にすることは DAT-06、その料金が依頼の確定額になることは CON-01 と FR-03 の 2、EXT-02 の失敗で場所と見積もりを示せないとし、決めた場所を残すことは FR-01 の 5、FR-03 の 5、QR-65（どれも入力）。到着予定時刻の求め方（ドライバーが見つかるまでと迎車の時間の見込み）は、枠の深さのこのモジュールの中で実装が決める
+premises: []
+component: ELM-03
+name: 場所と見積もり
+depth: bounds
+depth_reason: null
+responsibility: 乗客が決める場所の候補と位置を求め、到着予定時刻と料金の見積もりを作る
+visibility: public
+interface:
+  - operation: "searchPlaces(actor: Actor, text: string, near: Position or none) -> Candidate[]"
+    pre: null
+    post: POST /v1/places/search に、同じ名前と似た名前を所在地で区別した候補を返す。当てはまる場所がなければ空
+    errors: ["MAP_SERVICE_UNAVAILABLE: 503"]
+  - operation: "getPlace(actor: Actor, placeId: string) -> Place; reverseGeocode(actor: Actor, position: DevicePosition) -> Place"
+    pre: null
+    post: 選んだ候補の位置と住所、現在地に当たる住所と位置を返す
+    errors: ["NOT_FOUND: 404（候補がもうない）", "PLACE_NOT_FOUND_AT_LOCATION: 422", "MAP_SERVICE_UNAVAILABLE: 503"]
+  - operation: "quote(actor: Actor, pickup: Place, dropoff: Place) -> Quote"
+    pre: null
+    post: POST /v1/quotes で、道の長さと時間（MOD-40）から料金（MOD-39 の fareFor、その時の運賃表の版）と、ドライバーが見つかるまでの時間と迎車の時間を含めた到着予定時刻を求め、見積もり（DAT-06）を書いて ID と有効期限とともに返す
+    errors: ["SAME_PICKUP_AND_DROPOFF: 422", "ROUTE_NOT_FOUND: 422", "MAP_SERVICE_UNAVAILABLE: 503"]
+  - operation: "estimate(from: Place, to: Place, at: Instant) -> Estimate"
+    pre: MOD-59 だけが、降りる場所の変更の見積もりに呼ぶ
+    post: 見積もりを書かずに、料金と、今いる所から新しい降りる場所までの到着予定時刻を返す
+    errors: ["ROUTE_NOT_FOUND", "MAP_SERVICE_UNAVAILABLE"]
+  - operation: "readQuote(quoteId: QuoteId, passenger: AccountId, at: Instant) -> Quote | expired | none"
+    pre: null
+    post: その乗客の見積もりと、有効期限を過ぎたか
+    errors: []
+  - operation: "anonymizeRecordedThrough(date: LocalDate) -> integer; purgeUnreferencedBefore(at: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 依頼か降りる場所の変更が名指した見積もりの、記録してから 3 年を過ぎた乗る場所と降りる場所を消し、名指されずに有効期限を過ぎた見積もりを消す（DAT-06）
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-27, MOD-28, MOD-39, MOD-40]
+functions: [FR-01, FR-02, FR-03, FR-47]
+realizes:
+  - IFC-02 POST /v1/places/search
+  - IFC-02 GET /v1/places/{placeId}
+  - IFC-02 POST /v1/places/reverse-geocoding
+  - IFC-02 POST /v1/quotes
+drivers: [DRV-05, DRV-06, DRV-10, DRV-20]
+decisions: [DEC-13, DEC-38]
+behaviour: null
+verification:
+  - checks: EXT-02 の正常な答え、失敗、無応答での候補と見積もり、到着予定時刻の決まり（ドライバーが見つかるまでと迎車の時間の見込み）、場所が同じ、道がない、住所がない（FR-01〜FR-03、NFR-09）
+    how: 単体の層と結合の層（EXT-02 の偽物、時計の偽物。NFR-09 の出どころ）
+  - checks: 同じ名前と似た名前の候補を所在地で区別し、乗客が決めた場所がドライバーに示す場所と一致する（NFR-13、NFR-31）
+    how: 端から端の層と契約の層
+  - checks: 見積もりの料金が依頼の確定額になる（FR-03 の 2）
+    how: 結合の層
+parameters: []
+as_is: new

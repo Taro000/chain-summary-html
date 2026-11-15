@@ -1,0 +1,21 @@
+id: NFR-47
+title: カードの情報がシステムを通らないことを確かめるリリース前の確認
+status: active
+basis: inferred
+basis_note: 最低限守る線で、公開の前に確かめられるためリリース前の確認にした（推定）。支払い方法を乗客が EXT-01 に直接入れることは FR-46（FRP-06 の受け入れ）
+premises: [CON-04, EXT-01]
+from: [QR-60]
+kind: gate
+cuj: CUJ-01
+statement: 支払い方法の登録と決済に関わる変更を公開する前に、試験用のカードの情報で支払い方法を登録して決済し、カードの情報がこのシステムのサーバー、ログ、データのどこにも届かず残らず、システムが受け取るのは EXT-01 が返す登録の結果だけであることを確かめる。
+conditions:
+  workload: null
+  users: 乗客
+  transactions: 支払い方法の登録、決済
+slo: null
+gate:
+  where: release-check
+  check: 試験用のカードの情報が、サーバーが受けたもの、ログ、保存したデータのどこにも現れないことの確かめ
+  threshold: どこにも一つも現れないこと
+audit: null
+monitor: null

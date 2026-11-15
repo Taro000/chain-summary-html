@@ -1,29 +1,14 @@
 id: FND-35
-title: 監視の NFR-24 と NFR-25 の出どころが、数え方に要る対象と欄を欠く
-status: accepted
-version: 2
+title: ELM-01 の functions に、乗客の画面が担う FR-05 と FR-45 がない
+status: open
 basis: inferred
-basis_note: NFR-24 と NFR-25 の文、報告書の測定点の表と経路の表と遅延の予算、DAT-07 と DAT-28 の欄、DEC-47 と仕様書の x-route-id は入力。数えから落ちるものは推定
-needs_agreement: false
-approver_candidates: []
-raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- DAT-07
-- DAT-28
-- IFC-02
-- IFC-09
+basis_note: ELM-01 の functions、FR-05 の 4、FR-45 の 1 と 4 の受け入れ基準は入力。乗客の画面（IFC-22）がこの二つを担うことは、第 3 段階が FND-24 と FND-30 を受けて決めた
+premises: []
+raised_by: architecture-to-high-level-design
+raised_in: 3-high-level-design.md
+to: architecture-drivers-to-architecture
+targets: [ELM-01]
 severity: minor
-evidence: NFR-25 は「乗車の終了から請求の結果の記録まで」を数えるが、測定点の表の出どころは「状態の履歴の ended と charged の時刻の差（DAT-07）」で、DAT-07 にある charge_failed を見ない。確かめ中のまま残った乗車は charged が後になるか来ないので、差を求められずに落ちる。10 秒を超える乗車はまさにその側に出る（遅延の予算の NFR-25）。NFR-24 の出どころは「入口の要求のログの route_id が places.search、places.resolve、estimates.create、rides.create のもの」だが、入口のログ（DAT-28）は route_id を持たず、経路を route_id に当てる表は SLI-01 の六つの操作だけを持つ。名前も DEC-47 と仕様書の x-route-id（passenger.places.search など）と違う。遅延の予算は場所の検索、見積もり、手配の確定の三つで、places.resolve の予算がない
-suggestion: NFR-25 は ended から charged か charge_failed の早い方までを数え、10 秒の内にどちらもない乗車も超えたと数える。NFR-24 の四つの経路を経路と route_id の表に足して名前を x-route-id にそろえ、places.resolve の予算を足す
-resolution: "受け入れた。NFR-25 は状態の履歴の ended から請求の結果（charged か charge_failed）の早い方までを数え、10 秒の内にどちらもない乗車も超えたと数える（NFR-25 版 3 と同じ）。NFR-24 の四つの経路（places.search、places.resolve、estimates.create、rides.create）を経路と route_id の表に足し、見出しの名前を x-route-id にそろえ、places.resolve の予算（2.15 秒）を足した"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B2、B7）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: FR-05 の 4 は、閾値を満たすドライバーが見つからなかったことを乗客に伝え、閾値を変えて依頼し直せるようにすることを求め、乗客の画面（IFC-22、提供側は ELM-01）がそれを示して依頼し直させる。FR-45 の 1 と 4 は、乗客が乗る場所を決め始めたことと評価を始めたことを時刻とともに記録することを求め、どちらも乗客の端末の中で起きるため、乗客の画面がその時刻を ELM-03 に送る（IFC-03 の POST /v1/rides の pickupPlanningStartedAt、IFC-10 の評価を始めた報告）。ELM-01 の functions は FR-05 も FR-45 も持たないため、IFC-22 の functions がその提供側にない機能を持つ（scripts/check.py の allocation）。どちらも ELM-03 には割り当てられており、振る舞いは欠けていないが、割り当ての記録が ELM-01 の責務と合わない
+suggestion: ELM-01 の functions に FR-05 と FR-45 を加え、責務に、乗る場所を決め始めた時刻と評価を始めたことを ELM-03 に送ることを書く
+resolution: null

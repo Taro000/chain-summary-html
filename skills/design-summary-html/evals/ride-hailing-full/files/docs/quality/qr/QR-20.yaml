@@ -1,33 +1,22 @@
 id: QR-20
-title: アカウントは本人だけが使える
-status: draft
-version: 2
+title: 登録した車とドライバーの内容が実際の車とドライバーに一致する
+status: active
 basis: inferred
-basis_note: QIU-05・08 から導いた。セキュリティのリスク分析の分類（ログインの方式、質問 3・11）にも当たる。運送と決済は模擬（質問 1）なので影響を 5 から 3 に下げた。点と扱いは推定。乗客もドライバーも運営・サポート担当が作ったアカウントに設定の符号でパスワードを決めること（招待制）と、参加者でない人はログインより先に進めないことは 2026-11-03 の回答（設計 2-9）。デモの URL は回の最中や前にも示す（context.yaml の制約）。符号を設定の後も出し直せることは第 2 段階の質問 20。点は変えない（推定）
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-model: product
-layer: external
-characteristic: security > authenticity
-statement: システムは、乗客・ドライバー・運営・サポート担当のアカウントに、本人だけがログインできるようにする。設定の符号は本人だけが使え、一度使うか出し直すと使えなくなる。アカウントを持たない人（参加者でない人）は、ログインより先の画面を使えない。
-applies_to: [FR-01, FR-48]
-traces_to: [QIU-05, QIU-08]
+basis_note: 失敗のシナリオと点は推定。内容は担当者が入れる（FR-43）。登録で入れる項目は名前、顔写真、連絡先、車種、色、ナンバーだけで、審査の結果は記録しない（質問 5、CON-07、FR-43）。FR-43 は登録の前に内容を示して確かめさせるため、誤りは全体で一度あるかどうかとみた。デモの参加者は顔の分かる乗客 1 人とドライバー 1 人（OPF-03、第 4 段階の決めたこと 20）で、登録の誤りで別の車に乗ることは起きにくく、影響は迎車を見つけるのに手間取ることとみた。扱い（最低限守る線）は、CUJ-02 の上限（質問 4）のため。CUJ-02 の組は質問 9 で決まった
+premises: [CON-07, OPF-03]
+model: data
+layer: data-inherent
+characteristic: accuracy
+statement: 登録されたドライバーの名前と顔写真、車種、色、車のナンバーは、実際のドライバーと車に一致し、訂正されると乗客に示す手がかりも訂正した内容になる。
+applies_to: [FR-09, FR-43]
+traces_to: [QIU-09, QIU-10, QIU-31]
 entry_point: null
 stakeholders: [USR-01, USR-02, USR-04]
-failure_scenario: 漏れた資格情報で他人のアカウントにログインされ、乗客は身に覚えのない請求を受け、偽のドライバーが依頼を受ける。設定の符号が他人に知られ、本人より先にパスワードを決められてアカウントを乗っ取られる。使った符号や出し直す前の符号でパスワードを決め直せる。デモの URL を見た参加者でない人が、ログインより先の画面に入れる。
+failure_scenario: 担当者が車の色を誤って登録し、乗客は示された色の車を探して、着いている迎車を見つけられずに待ち続ける。
 score: {impact: 3, likelihood: 2}
-handling: emphasized
+handling: minimum-line
 handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-03'
-    change: 設定の符号（本人だけが使え、使うか出し直すと使えない）と、アカウントを持たない人がログインより先に進めないことを要求と失敗のシナリオに加えた
-    reason: 設計の連鎖が返した課題（参加者でない人の登録と利用）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 2-9）と FR-01 版 3・FR-48 版 2 への追随

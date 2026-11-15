@@ -1,27 +1,14 @@
 id: FND-41
-title: ログの仕様書（app-logs.asyncapi.yaml）が IFC-09・IFC-02・DEC-44 と合わない
+title: IFC-21 の push の出来事が ELM-02 のサービスワーカーにも示した時刻をためて送らせるが、それを使う機能も受ける記録もない
 status: accepted
-version: 2
 basis: inferred
-basis_note: IFC-09 の operations、IFC-01・02・08 の observability、DEC-44 の選んだ案、app-logs.asyncapi.yaml の messages は入力
-needs_agreement: false
-approver_candidates: []
-raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+basis_note: null
+premises: []
+raised_by: high-level-design-to-detailed-design
+raised_in: 4-detailed-design/ELM-02.md
 to: architecture-to-high-level-design
-targets:
-- IFC-09
-- DEC-44
+targets: [IFC-21]
 severity: minor
-evidence: IFC-09 の auth.* と stream.* のメッセージ（中身は IFC-01 と IFC-08 が決めている）が仕様書にない。account_kind の値は、DEC-44 が participant か test とするのに、仕様書は participant、test、staff、none の四つで、SLI-01 がテスト用のアカウントを除く数え方で staff と none をどう扱うかが決まらない。IFC-02 は money.op に操作の ID、種類、キー、結果を書くとするが、仕様書の moneyOp にキーの欄がない（キーは external.call にだけある）。DEC-44 が「どの行にも」とする trace、spanId、client_trace_id が必須の欄になく、「書かない」の一覧から Webhook の URL が抜けている
-suggestion: auth.* と stream.* を仕様書に足し、account_kind の値を DEC-44 とそろえて SLI-01 での扱いを書き、money.op にキーを足すか IFC-02 の文を直し、どの行にもある欄を必須にして「書かない」の一覧を DEC-44 とそろえる
-resolution: "受け入れた。app-logs.asyncapi.yaml に auth.* と stream.* を足し、account_kind の値を DEC-44 版 2（participant、staff、test）とそろえて SLI-01 での扱いを書き、money.op に操作キーと Stripe のキーを持たせ、どの行にもある欄を必須にし、「書かない」の一覧を DEC-44 とそろえた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B7、B8、B10）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: IFC-21 の「push の出来事」は、ELM-01 と ELM-02 のサービスワーカーが知らせを示し、示した時刻と出来事の ID をためて後で ELM-03 に送る（IFC-10、FR-53）とする。FR-53 は乗客とドライバーの画面に示した時刻の記録で、ELM-02 の functions にも、ELM-02 が提供する IFC-24、IFC-25 の functions にもない。SLI-14 が数えるのも乗客とドライバーに示した変化（IFC-10 の出どころ）で、DAT-20 は依頼の経過の出来事（DAT-09）を届けた記録。担当者とエンジニアへの知らせ（anomaly.detected、complaint.received、refund.settled）を示した時刻は、どの機能、SLI、データの実体も使わず、NFR-38 も知らせが Web Push の偽物に届くまでを測る（POL-03）。ELM-02 のサービスワーカーにためさせると、ページと並んで動くサービスワーカーとの間に報告の待ち行列を持つことになる（POL-04 はサービスワーカーに、知らせの受け取りと押したときの扱いだけをさせる）うえ、送っても ELM-03 にそれを受ける記録がない。第 4 段階の ELM-02 の実行は、MOD-05 で知らせを示すことと押したときの扱いだけを行い、示した時刻をためていない
+suggestion: IFC-21 の push の出来事のうち、示した時刻をためて送る部分を ELM-01 のサービスワーカーに限る（ELM-02 のサービスワーカーは示して、押すと対応する画面を開くだけ）。ELM-02 の示した時刻が要るなら、それを使う機能か SLI と、受ける記録を示す
+resolution: "受け入れ。IFC-21 の push の出来事のうち、示した時刻と出来事の ID をためて送るのを ELM-01 のサービスワーカーに限り、ELM-02 のサービスワーカーは知らせを示して、押すと対応する画面を開くだけにした。IFC-10 の示した記録も ELM-01 だけが送ると書いた"

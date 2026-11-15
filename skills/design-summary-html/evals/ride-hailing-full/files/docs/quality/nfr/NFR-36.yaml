@@ -1,39 +1,21 @@
 id: NFR-36
-title: 配備は自動の手順だけで行う
-status: draft
-version: 3
+title: 依頼を届ける相手を決める規則を試すゲート
+status: active
 basis: inferred
-basis_note: 推定。T_lead_feature・T_lead_fix・T_lead_upgrade は利用時の品質のしきい値（QIU-28〜30。版 3 で main に入って CI が通るまでを測る）で、この NFR は値を使わない。配備の誤りは QIU-20〜22 も損なう（QR-26 版 3）
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-26
+basis_note: 試験の中身は QR-54、QR-16、QR-66、QR-32、QR-49、QR-63 からの推定。評価がまだないドライバーと評価の件数が下限に満たないドライバーの扱いは質問 7 の回答（QAS-05）。評価の件数の下限は FR-05（FRP-12 の受け入れ）、停止の前に届いていた依頼も許諾させないことは FR-44（FRP-04 の受け入れ）、登録で入れる項目は FR-43（FRP-07 の受け入れ。審査の結果は記録しない、CON-07）。評価のまとめ方（1〜5 の 5 段階の、受けたすべての評価の平均）は FR-15（第 2 段階の質問 9）。N_rating_count_min の 2 件は質問 10 の回答
+premises: [QAS-05, CON-07]
+from: [QR-54, QR-16, QR-66, QR-32, QR-49, QR-63]
 kind: gate
-cuj: CUJ-11
-statement: 本番への配備は自動の手順（FR-41）だけで行い、手作業の手順を持たないことを完成の定義に入れる。
+cuj: CUJ-06
+statement: 変更のたびに、依頼をどのドライバーに届けるかを決める規則（受付をしているか、乗客の閾値、評価がまだないこと、評価の件数の下限（N_rating_count_min（2 件））、ドライバーの最低の金額と最大の距離、停止されているか、登録されているか）と評価のまとめ方（FR-15 のすべての評価の平均）を、それぞれ単独で、また組み合わせて、境目の値を含めて自動で試験する。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: null
+  transactions: 依頼を届けること、許諾
 slo: null
 gate:
-  where: definition-of-done
-  check: 配備の記録（FR-41）がない本番の変更がないこと
-  threshold: 0 件
+  where: CI
+  check: 規則ごとと組み合わせの試験（閾値ちょうどの評価、評価がまだないドライバー、評価の件数が 2 件と 1 件のドライバー、最低の金額ちょうどと最大の距離ちょうどの依頼、依頼が届いた後に停止したドライバー、登録されていないドライバー）と、評価のまとめ方の試験
+  threshold: すべての試験が通ること。通らない変更は公開しない
 audit: null
 monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-01'
-  change: T_lead の名前の分割に追随
-  reason: 2026-11-01 の利用者の回答への追随
-- version: 3
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した。basis_note の T_lead_* の意味を QIU-28〜30 版 3 に合わせた
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）。第 3 段階の再実行（2026-11-03）の QR-26 版 3 への追随（docs/quality-chain-answers.md の設計 1-1）

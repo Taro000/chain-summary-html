@@ -1,27 +1,14 @@
 id: FND-76
-title: 共通の約束事からのずれが仕様書と IFC に残る（時刻の形、IFC-01 の冪等キー、DEC-55 にない回数の上限、仕様書だけの仮の値）
-status: open
-version: 1
+title: 押さえ直しの印は依頼の表（rides）の列だが、それを書くか空にするか取引の中で読む操作が持ち主の MOD-45 の契約になく、MOD-56 が書くとしている
+status: accepted
 basis: inferred
-basis_note: 根拠に引いた項目と報告書の文は入力。そこから起きることの読みと直し方の案は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-45 の interface と報告の判断表 C とその下の段落、MOD-56 の rehold と settleRehold の post と不変条件、MOD-59 の approve の post、報告の「データ」の rides の行、モジュールの図の rides/ と charges/ と booking/、POL-02 の規則と依存の規則、DEC-08 は入力
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- IFC-01
-- IFC-02
-- IFC-04
-- DEC-40
-- DEC-48
-- DEC-55
+raised_in: reviews/4-detailed-design-ELM-03.md
+to: high-level-design-to-detailed-design
+targets: [MOD-45, MOD-56]
 severity: minor
-evidence: '活動 B8、B10。時刻の欄（format: date-time、71 件）のどれにも DEC-40 のミリ秒と Z の縛りがなく、FND-43 の resolution「ID と時刻の pattern を仕様書に入れ」は時刻については成り立たない。IFC-01 の idempotency は「login と passkeys は送り直してよい」とするが、DEC-48 の例外はパスキーの options と authenticate だけで、auth.openapi.yaml の passkeys/register はキーを求める。places/resolve（1 分に 30 回）、nearby-drivers/count（1 分に 20 回）、visibility-events（1 分に 30 回）、staff-bootstrap（IP ごとに 1 時間に 5 回）の上限は仕様書と IFC にだけあり DEC-55 と設計上の値の表にない。GET /api/v1/config は 429 を返すのに上限がない。見積もりの期限 T_estimate_valid（10 分、仮）と降車場所の見積もりの 5 分は passenger.openapi.yaml にだけあり（DAT-05 は「仮」とだけ書く）、設定の符号の pattern に x-provisional がない。rating、billing、setup-code、cancellation-quote、driver-photo、reception の単数形が DEC-47 の単数の例にない'
-suggestion: '時刻の欄に pattern を足すか DEC-40 を「format: date-time、送るときはミリ秒と Z」と書き分ける。IFC-01 の idempotency を DEC-48 とそろえる。回数の上限と見積もりの期限を DEC-55、DAT-05、設計上の値の表に載せる。単数形の資源を DEC-47 の例に足す'
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: 出した
-  reason: 第 3 段階のレビュー（再実行分）
+evidence: FND-61 を受けて、依頼の押さえ直しの印を rides の rehold_attempt_id と rehold_due_at に置いた（報告の「データ」の rides の「依頼ごとに、答えの期限のうちの押さえ直しは一つまで」の行。保つものの MOD は MOD-56、MOD-59）。MOD-56 の rehold は取引 A で印を読んで比べてからこの試みと期限を書き（MOD-59 の approve もそれを呼ぶ）、settleRehold はどの結果の取引と期限の後の答えでも、印がこの試みなら空にし、依頼の今の押さえ（hold_attempt_id）も読んで比べる。rides は rides/ の MOD-45 の表だが、MOD-45 の interface の操作（create、settleHold、accept、cancelByPassenger、cancelByDriver、noShow、board、confirmArrival、markPickupArrived、applyMoney、onWaitPrompt、onNoAccept、facts、activeOf、recordsOf、anonymizeRecordedThrough）に、印を書くか空にするものはなく、取引の中で印と今の押さえを読むものもない。applyMoney は押さえ直しの結果の書き込みを印で条件づけるだけで、判断表 C にも印を書く行がない（報告の MOD-45 の段落は「替えるかは MOD-56 が同じ取引で読んで決める」とする）。MOD-56 は charges/ にあり、POL-02 は表を読み書きするのをその表を持つ機能の adapters/ だけにし、依頼の状態は DEC-08 のポートを通してだけ書くとするので、書かれたとおりでは charges/ が rides の列を読み書きするか、契約にない操作を実装が足すことになる。押さえと確定額か支払い方法を一緒に替える書き込みは applyMoney を通るので、お金の動きは変わらない
+suggestion: MOD-45 の interface に、取引の中で印を条件つきで書く操作（空か答えの期限を過ぎていればこの試みと期限を書き、ほかならほかの押さえ直しが動いていると返して何も書かない）と、印がこの試みなら空にする操作（applyMoney の変化の行にしてもよい）と、取引の中で印と今の押さえを読む操作を加え、判断表 C と不変条件に印を加えて、MOD-56 がそれを呼ぶ。または、印を charges/ が持つ表に置く
+resolution: 受け入れ。rides の持ち主の MOD-45 の契約に、書き込みの取引の中で依頼の状態、今の押さえ、押さえ直しの印、確定額、支払い方法、moneySettled を読む moneyFacts、印が空か答えの期限を過ぎていたときだけ書いてほかは ReholdInProgress を返す claimRehold、印がその試みなら空にする clearRehold を加え、押さえを替える applyMoney の書き込みが同じ書き込みで印を空にすることにし、判断表 C に印を取る行と空にする行を、不変条件に印と今の押さえの書き手を加えた。MOD-56 の changeMethod、rehold、settleRehold、overdueAnswer と、MOD-59 の approve（MOD-56 の rehold を通す）、MOD-58 の期限の後の答えはこれらを呼び、rides の列を直に読み書きしない。報告の型（RideMoneyFacts、MoneyChange）、データの rides の行、取引の表、モジュールの段落、MOD-45、MOD-56、MOD-59 の節を合わせた。印を charges/ が持つ表に置く案は採らなかった。押さえを替える書き込みは、印と今の押さえを条件に、押さえと確定額か支払い方法と一緒に一つの書き込みで書いており（FND-61）、印を別の表に置くとその条件が二つの機能の表にまたがるため

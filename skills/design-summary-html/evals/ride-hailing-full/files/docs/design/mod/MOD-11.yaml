@@ -1,0 +1,39 @@
+id: MOD-11
+title: 苦情と返金の求め
+status: active
+basis: inferred
+basis_note: 乗客が寄せた苦情と返金の求めを担当者に示し、受けたものと終えたものを分けて示し、担当者が対応を終えたことを記録することは FR-37（入力）。一覧、対応を終える操作、complaint.received は IFC-12 と IFC-11（入力）。苦情から乗車の照会を開くことは第 3 段階の報告の「画面」の CUJ-14（入力）。対応の記録を ELM-03 が操作の記録に残すことは IFC-12 と FR-50（入力）
+premises: []
+component: ELM-02
+name: 苦情と返金の求め
+depth: bounds
+depth_reason: null
+responsibility: 乗客が寄せた苦情と返金の求めを示し、担当者が対応を終えたことを送る
+visibility: public
+interface:
+  - operation: "Complaints() -> 苦情と返金の求めの画面"
+    pre: null
+    post: GET /v1/console/complaints を、受けたものと終えたものに分けて新しい順に示し（FR-37 の 1、2）、ないときは受けた苦情がないことを示す。complaint.received（IFC-11）を受けたら読み直す。苦情を選ぶとその乗車を乗車の照会（MOD-12）で開く。対応を終えると POST /v1/console/complaints/{complaintId}/resolution を MOD-01 で送り、答えの後に読み直す
+    errors:
+      - "NOT_FOUND と 409 の符号: 今の状態を読み直して示す"
+      - "答えがない、5xx: 終えたかどうか分からないことを示し、同じ操作として送り直させる（MOD-01）"
+invariants: []
+depends_on: [MOD-01, MOD-03, MOD-08, MOD-12]
+functions: [FR-37, FR-50]
+realizes:
+  - IFC-24 苦情と返金の求め
+  - IFC-12 GET /v1/console/complaints
+  - IFC-12 POST /v1/console/complaints/{complaintId}/resolution
+  - IFC-11 complaint.received
+drivers: [DRV-30]
+decisions: [DEC-19, DEC-39]
+behaviour: null
+verification:
+  - checks: 受けたものと終えたものを分けて示し、空を示し、対応を終えると終えた方に移る（FR-37 の 1、2）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物
+  - checks: complaint.received で読み直す
+    how: 単体の層（MOD-03 の偽物）
+  - checks: 乗客が苦情を寄せてから担当者が受けて終えるまでと、その操作の記録（CUJ-14、FR-50 の 1）
+    how: 端から端の層（試験の環境の偽物の設定。乗客の ELM-01 から寄せる）
+parameters: []
+as_is: new

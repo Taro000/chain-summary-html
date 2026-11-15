@@ -1,29 +1,14 @@
 id: FND-39
-title: 報告書は持ち主の例外を一つだけとするが、ELM-05 は DAT-22 と DAT-27 を書き、保存期間の処理で ELM-04 の実体の多くを消し、その一覧がどこにもない
+title: DEC-42 の Idempotent-Replayed のヘッダーが、DEC-44 に加えたヘッダーの名付けの決まりに合わない
 status: accepted
-version: 2
 basis: inferred
-basis_note: 報告書の「データ」の文、DAT-02・03・05・06・07・09・11・13・14・19〜22・27 の整合の取り方と保持期間、DEC-05 は入力
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-42 と DEC-44 の文は入力。二つが食い違うことは、このレビューの読み
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+raised_in: reviews/3-high-level-design.md
 to: architecture-to-high-level-design
-targets:
-- DAT-07
-- DAT-13
-- DAT-22
-- DAT-27
+targets: [DEC-42, DEC-44]
 severity: minor
-evidence: 報告書の「データ」は、持ち主の例外は一つだけで、ELM-05 は DAT-07 の匿名化と DAT-13 の確かめ中の片付けを同じモジュールのコードで書くとする。しかし DAT-22 の整合の取り方は「ELM-05 も同じモジュールで書く」、DAT-27 は「ELM-05 も同じモジュールで同じ形を書く」。保持期間の欄では、DAT-02、03、05、06、09、11、14、19、20、21、22 を毎日の処理が消すか、消して匿名にする。DEC-05 は毎日の処理をどこで動かすかを決めるが、ELM-05 が持ち主のモジュールを通して書いてよい実体と操作の一覧は、どの項目にもない。第 4 段階で ELM-05 を設計する人は、どの表に書いてよいかを一か所で知れない
-suggestion: ELM-05 が持ち主のモジュールを通して書く実体と操作（匿名化、削除、確かめ中の片付け、知らせ、ログ）を一覧にし、各 DAT の整合の取り方と報告書の「データ」に書く。DEC-05 に足すべきなら第 2 段階に指摘を出す
-resolution: "受け入れた。ELM-05 は ELM-04 の実体を、同じイメージの持ち主のモジュールを通してだけ書く。書く実体と操作（T_request_max の取り消し、確かめ中の片付け、キーの削除、知らせ、ログ、保存期間の匿名化と削除）を報告書の「データ」の表にし、各 DAT の整合の取り方と DEC-53 版 2 に書いた。第 2 段階の DEC-01（同じコードの別の入口）の範囲で、第 2 段階に指摘は出さない"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B6）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: FND-31 を受けて DEC-44 は、HTTP のヘッダーは標準のもの（Idempotency-Key）のほかは X- で始まる語を - でつなぐ（X-Trace-Id、X-Request-Id、X-Resend）と決めた。DEC-42 は、同じ範囲の同じ要求に最初の答えを Idempotent-Replayed の true のヘッダーとともに返す。Idempotent-Replayed は DEC-44 が挙げる標準のものでも X- で始まる名前でもなく、利用側に見せる同じヘッダーについて二つの共通の約束事が食い違う
+suggestion: DEC-44 の標準のものに Idempotent-Replayed を加える（EXT-01 の答えと同じ名前にそろえる理由とともに）か、DEC-42 のヘッダーを X- で始まる名前に改める
+resolution: "受け入れ。DEC-42 のヘッダーを DEC-44 の決まりの X-Idempotent-Replayed に改め、DEC-44 の X- で始まるヘッダーの例に加えた。EXT-01 の名前にそろえて例外にする案は、利用側がこのシステムの Web アプリだけで、標準でもない名前を例外にする理由がないため採らなかった"

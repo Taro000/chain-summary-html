@@ -1,19 +1,15 @@
 id: NFR-09
-title: トレース ID の完成の定義
-status: draft
-version: 1
-basis: inferred
+title: 失敗をたどれることの完成の定義
+status: active
+basis: assumed
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: [QAS-01]
 from: [QR-10]
 kind: gate
 cuj: CUJ-03
-statement: 提出の経路の部品は、トレース ID をログに出すまで完成としない。
-conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+statement: 提出の経路の処理は、失敗した提出をたどれる記録を残すまで完成としない。
+conditions: {workload: 締め切り前の 24 時間の集中まで（OPF-01）, users: 生徒と講師。試験用のアカウントを除く, transactions: 提出}
 slo: null
-gate: {where: definition-of-done, check: ログにトレース ID が出ること, threshold: 全部品}
+gate: {where: definition-of-done, check: 失敗した提出をその処理までたどれること, threshold: 提出の経路のすべての処理}
 audit: null
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

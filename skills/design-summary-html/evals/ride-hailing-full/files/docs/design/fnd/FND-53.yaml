@@ -1,24 +1,14 @@
 id: FND-53
-title: 乱用されたときの最悪の費用を「上限の和」とするが、外への通信の量が入っておらず、ログインより前の静的なファイルと設定の取得に IP ごとの制限がない
-status: open
-version: 1
+title: MOD-02 の判断表 C に、evidence が unanswered の操作で送る前の確かめが 503 か 4xx で答えた failed の行がない
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定。帯域の 100 Mbps は仮定
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-01 の確かめの判断表と send の post、MOD-02 の判断表 C、契約の誤りと不変条件は入力（0347322 で加わった所）
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-21
-- DEC-02
-- DRV-29
-severity: major
-evidence: DRV-29（主）の応答は「総当たりと大量の要求を抑え、費用が予算を超えない」。DEC-21 の得るものは「最悪の費用が上限の和で決まる」、報告書の「走る費用」の判定は「乱用されたときの最悪の費用は上限の和で決まる（Cloud Run は最大 1 インスタンス × 開いている時間、地図は…）」。しかし費用の表に外への通信（下りの転送量）の行がなく、インスタンス単位の課金が縛るのは CPU とメモリの時間で、転送量ではない。ELM-04 は三つの Web アプリの静的なファイルを配り、回数の制限は IP ごとではログインと設定の符号の入口だけ（DEC-21、第 3 段階の DEC-55）で、ログインより前の静的なファイルと設定の取得には制限がない。仮に 100 Mbps で 3 時間流し続けると 1 回の回で 135 GB、4 回で 540 GB（計算。帯域は仮定、値段は入力にない）。また DEC-21 は残る危険を「多くの IP からの」大量の要求に限るが、制限のない経路では一つの送り元からも 80 の同時の要求の枠を埋められる（応答 5 ms なら 1 秒に 16,000 回。リトルの法則で計算）。ログインと設定の符号は重い計算（DEC-20）を 1 vCPU で行うので、IP ごとに 1 時間 30 回でも 1 回 0.25 秒なら 480 の IP で CPU が埋まる
-suggestion: 費用の表に外への通信の行と未定の値（P_egress など）を足す。静的なファイルを含むログインより前のすべての経路に IP ごとの制限を置くか、静的なファイルを別の配り方にするかを比べる。置かないなら、外への通信の費用と一つの送り元からの枠の埋まりを DEC-21 の失うもの、残る危険、要合意に書く。重い計算の前に回数を確かめる順を応答を左右する点に書く
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A1（DRV-29・01）、A7（F1・F2）
+raised_in: reviews/4-detailed-design-ELM-02.md
+to: high-level-design-to-detailed-design
+targets: [MOD-02]
+severity: minor
+evidence: FND-44 を受けて加わった MOD-01 の確かめの判断表は、GET /v1/me が 5xx（503 を含む）、429、ほかの 4xx で答えると変える要求を出さずに失敗の答えにし、確かめの ApiError の failed を返して evidence を変えない。MOD-02 の判断表 C は、evidence が unanswered の行を「failed（503 でない 5xx か 429）か unanswered」に限るため、前の要求に答えのない返金の操作で確かめが 503 か 4xx で答えた failed はどの行にも当たらない（evidence が failed と notDone の行は failed を限らない）。MOD-02 の契約の誤りは 503 を「受け付けなかったことを示し、同じキーで送り直さずに一覧を読み直す」とするので、それに従うと、ELM-03 で済んでいるかもしれない返金に受け付けなかったと示す（不変条件は結果が分からない返金を済まなかったと示さない）。読み込み中に戻れば kept() が答えがないとして返すので、二重にはならない
+suggestion: 判断表 C の evidence が unanswered の行を failed の中身によらない行にし（確かめが返した failed を含む）、契約の誤りの 503 の行は変える要求への定まった答えだけに当たると書く
+resolution: 受け入れ。MOD-02 の判断表 C の evidence が unanswered の行を、failed の中身によらない行にした（送る前の確かめが 503、429 かほかの 4xx で答えた failed を含む）。契約の誤りの PAYMENT_SERVICE_UNAVAILABLE とほかの符号の 503 は、返金の要求への MOD-01 の定まった答え（refused）だけに当たると書き、答えがないことと定まらない答えの行に送る前の確かめの失敗の答えを加えて、evidence で済んだかどうか分からないか送れなかったかを示すとした。結果が分からない返金の不変条件を evidence で書き直した。MOD-01 の send の post にも、送る前の確かめの失敗の答えを failed として返し、evidence を変えないことを書いた。MOD-02 の単体の層の判断表 C の確かめに、確かめの failed と evidence の各組を加えた

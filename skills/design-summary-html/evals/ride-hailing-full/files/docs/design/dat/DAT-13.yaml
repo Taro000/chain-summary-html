@@ -1,46 +1,22 @@
 id: DAT-13
-title: お金の操作
-status: draft
-version: 2
-basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。押さえの結果の分け方（not_happened）、試みの番号、押さえ直しと乗車の終了の重なりは DEC-52 版 2（FND-30・33・38）、未払いの支払いの何回目かと返金のやり直しは FR-30 版 4・FR-50 版 4。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: お金の操作（押さえ、確定、押さえの取り消し、返金、未払いの支払い）
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- money_op_id
-- ride_id
-- kind（hold、capture、cancel_hold、refund、unpaid_charge）
-- seq（押さえの何番目か、未払いの支払いの何回目か）
-- attempt（押さえの試みの何回目か。DEC-52）
-- amount
-- stripe_idempotency_key
-- stripe_object_id
-- status（processing、succeeded、failed、checking、not_happened）
-- lease_until
-- first_sent_at、last_checked_at
-- error_code
-- refund_request_id
-- destination_change_id（押さえ直しのとき）
+title: 照合の結果
+status: active
+basis: assumed
+basis_note: 日々、期間の取引と返金を EXT-01 から読んで記録と突き合わせ、食い違いを見つけることは DEC-11（入力）。食い違いをエンジニアと担当者に知らせることは NFR-24（入力）。照合の時刻と読む期間と、処理を行った日の値をその 2 日後の実行で決めることを決めて HND-06 を IFC-15 とともに決めた（時刻と期間は DAS-12 による暫定の決定）。SLI-12 の突き合わせの時点は QAS-32 による品質チェーンの暫定の決定。取引が二つ以上ある依頼は、試みの記録の依頼の ID で一つにまとめる（HND-06）。処理されなかった後に新しい試みで続ける押さえの解除と料金の請求（DEC-45）を、試みがいくつあっても一つの処理として突き合わせることは FND-45 を受けた（SLI-12 の、同じ処理を指す記録を一つと数える規則のまま）
+premises: [EXT-01, QAS-32, DAS-12]
+entity: EXT-01 との照合の結果（処理ごと）
+owner: ELM-03
+store: ELM-04
+key_attributes: [processingId, kind, attemptId, ext01ObjectId, rideId, processingDate, recordedAmount, recordedResult, ext01Amount, ext01Result, ext01FinalAt, comparedAt, matched, testAccount]
 relations:
-- to: DAT-06
-  kind: many-to-one
-  note: 依頼
-consistency: 支払いのモジュールだけが書く。DEC-12 の三つのトランザクション（キーと処理中、Stripe、結果と依頼と履歴）。処理中が T_op_stale（30 秒）を過ぎたら確かめ中にする。確かめ中を片付けるのは、lease_until を条件付きの書き込みで取った一つだけ（見回りと毎日の処理が重なっても一つ）。手配の押さえで Stripe が実行しなかったか届かなかったと分かったら not_happened にする。押さえは、5xx の後に照らして PaymentIntent がなく first_sent_at から T_op_stale を過ぎたと確かめたときだけ、前の行を not_happened にして attempt を進めた新しい行で送る（T_hold_wait の内だけ。DEC-52）。手配をやめた依頼と当てなかった降車場所の変更の押さえは checking のまま追い、見つかれば取り消し、ないと確かめたら not_happened にする。乗車の終了と確かめ中の押さえ直しが重なったら、確定は古い押さえで行い、新しい押さえは確かめを続ける（DEC-52）。未払いの支払いの何回目かは前の試みが failed と確定したときだけ進める（FR-30 AC3）。同じ依頼で確かめ中の返金があるあいだは新しい返金を受け付けず、返金できる残りの額は成功した返金と確かめ中の返金の額を引いて計算する（FR-50 AC2）。一つの依頼で同時に動くお金の操作は種類ごとに一つまで。ELM-05 は持ち主のモジュールを通して書く（DEC-53。確かめ中の片付け、押さえの取り消し、保存期間の匿名化）
-retention: 額、種類、Stripe の ID は突き合わせのために残す。依頼の匿名化と一緒に個人への結び付きを消す。システムを終えるとき
+  - {to: DAT-11, kind: many-to-one, note: 突き合わせた試み（EXT-01 にしかない処理はない）}
+consistency: 日々の処理（IFC-15）だけが書き、同じ処理の結果を上書きする。一つの依頼に取引が二つ以上あるとき（確定額か支払い方法が変わった依頼、決済が拒否された依頼）は、試みの記録の依頼の ID と metadata の attemptId で取引ごとに突き合わせ、依頼ごとにまとめて示す。食い違いは異常（DAT-22）として知らせる（NFR-24）
+retention: 依頼と同じ（お金の記録の一部）
 classification: payment
-drivers:
-- DRV-04
-- DRV-30
+drivers: [DRV-07, DRV-27]
+sli_bindings:
+  - sli: SLI-12
+    events: システムが記録したか EXT-01 が処理した一つの押さえ、押さえの解除、請求（確定額の決済、キャンセル料、不在の料金）。同じ処理を指す試みの記録と EXT-01 の処理は一つで、片方にしかない処理も一つ。処理されなかった後に新しい試みで続けた押さえの解除、請求、決済は、試みがいくつあっても一つの処理で、最後の試みの記録を比べる（DEC-45）。処理されなかった試みだけで終わった処理は EXT-01 の側になく、システムの記録だけにある処理になる
+    fields: [processingId, kind, processingDate, recordedAmount, recordedResult, ext01Amount, ext01Result, ext01FinalAt, comparedAt, testAccount, environment]
+    method: 日々の処理（IFC-15）が、EXT-01 の取引の一覧（IFC-17）と試みの記録（DAT-11）を metadata の attemptId と取引の ID で結び、処理を行った日（Asia/Tokyo）ごとに突き合わせる。EXT-01 が最終の結果を返した処理はその時点の EXT-01 の状態（取引の時刻で判断する）と比べ、返さない処理は行った日の翌日の終わりの状態と比べ、日 d の値は d の 2 日後の実行で決める（HND-06、QAS-32）。突き合わせの時点で EXT-01 が結果を返しているのに試みが結果が分からないままのものは GOOD でない。試験用のアカウントの依頼の処理は外し、返金は数えない（NFR-24 が扱う）
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: attempt（押さえの試みの何回目か）と destination_change_id を足した。not_happened にする場合、5xx の後に新しいキーで送る条件、手配をやめた依頼と当てなかった変更の押さえの追い方、押さえ直しと乗車の終了の重なり、未払いの支払いの何回目か、確かめ中の返金と返金できる残りの額を書いた。ELM-05 は持ち主のモジュールを通して書くと書いた
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-05 版 3、FR-12 版 4、FR-30 版 4、FR-50 版 4）、FND-30・31・33・34・38・39'

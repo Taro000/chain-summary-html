@@ -1,0 +1,35 @@
+id: MOD-24
+title: ログ
+status: active
+basis: inferred
+basis_note: ログを pino で一行に一つの JSON として標準出力に書き、どの行もたどる ID と DEC-43 の項目を持ち、DEC-15 の隠す決まりを通したものだけを書くことは POL-04、項目は DEC-43（どれも入力）。書かなかった値を MOD-67 に知らせて NFR-45 の異常にすることは推定
+premises: []
+component: ELM-03
+name: ログ
+depth: bounds
+depth_reason: null
+responsibility: ELM-03 のログを DEC-43 の項目の一行の JSON で標準出力に書く
+visibility: internal
+interface:
+  - operation: "write(level: LogLevel, record: LogRecord) -> none"
+    pre: null
+    post: DEC-43 の項目（time、level、msg、env、buildId、requestId、traceId、route、actorKind、testAccount、outcome、errorCode、failureOrigin、durationMs、rideId）と、MOD-27 が伏せた値の型を持つ項目だけを書く。登録にない項目と伏せた値の型でない値は書かず、書かなかったことを onRefused の聞き手に知らせる。debug はローカルの本番と想定の本番では書かない
+    errors: []
+  - operation: "onRefused(listener: (refusal: LogRefusal) -> none) -> none"
+    pre: 起動のときだけ（MOD-67 が登録する）
+    post: 書かなかった項目の名前と記録の種類を知らせる。値そのものは渡さない
+    errors: []
+invariants: []
+depends_on: [MOD-21]
+functions: []
+realizes: []
+drivers: [DRV-21, DRV-24, DRV-25, DRV-29]
+decisions: [DEC-15, DEC-43]
+behaviour: null
+verification:
+  - checks: 個人の情報（名前、連絡先、位置、乗る場所と降りる場所、連絡のメッセージ）を持つものを書かせ、出力にそのまま現れず、書かなかったことが知らされる（POL-04、NFR-45）
+    how: 単体の層
+  - checks: どの行も DEC-43 の項目を持つ
+    how: 単体の層
+parameters: []
+as_is: new

@@ -1,11 +1,9 @@
 id: FR-05
 title: Nightly submission report
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 statement: Every night, the system builds a report of the submissions up to the previous day.
 origin: cuj-step
 cuj: CUJ-04
@@ -14,8 +12,6 @@ traces_to: [QIU-05]
 proposal: null
 existing: false
 extends: null
-interface: ['Screen: the student web app']
+interface: ['report: cram school office']
 acceptance_criteria: ['By 6:00 every morning, the report shows the numbers of submitted and missing homework per student.']
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

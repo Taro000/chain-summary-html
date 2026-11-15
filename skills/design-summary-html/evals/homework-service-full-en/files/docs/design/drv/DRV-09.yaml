@@ -1,12 +1,9 @@
 id: DRV-09
 title: Write the record before showing the receipt
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 kind: principle
 statement: A submission shows its receipt only after its record is written, never before
 sources:
@@ -21,8 +18,3 @@ priority: null
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

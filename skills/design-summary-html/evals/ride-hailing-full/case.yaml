@@ -1,14 +1,17 @@
 schema_version: "1.1"
 name: ride-hailing-full
 expected_outcome: |
-  docs/design/summary.html is built from the YAML items. The page starts with the ranking table of the 28 architecture
-  drivers that are not principles or retired, open, in the YAML's rank order. Every other table is in a closed toggle,
-  IDs link to their rows, and each of the 37 stage 2 decisions has an entry with its question, options and rejected
-  options' reasons from dec/*.yaml. The debt table shows only the debts dec/*.yaml records, and the final report tells
-  the user that the stage 2 report's debt table also lists DEC-21 and DEC-30 as accepted risks, which the YAML does not
-  record. Every text, table cell and diagram label shows only its gist, its first sentence without bracketed asides,
-  although the YAML writes most of them as paragraphs. No revision notes reach the page. All 50 diagrams of the reports
-  are drawn, the flow numbers on the threat diagram link to the threat table, and NFR-02's hop budgets are a chart
-  against 5 seconds.
+  docs/design/summary.html is built from the YAML items of ride-hailing-app-demo's design, written by req-to-design 0.3.0
+  (stages 1, 2, 2b and 3, and the detailed design of two components, which is not on the page). The page starts with the
+  ranking table of the 30 architecture drivers that are not principles, open, in the YAML's rank order. Every other table
+  is in a closed toggle and IDs link to their rows. Each of the 27 stage 2 decisions has an entry with its question,
+  options and rejected options' reasons from dec/*.yaml. Stage 2b shows the six technical policies (the stack of each
+  kind of component, the repository, the test layers, the pipeline and how specs are made) and its seven decisions. The
+  open hand-offs HND-07, HND-16 and HND-17 are shown, the decided ones and those of stage 4 are not. The CUJ
+  walkthroughs, which the report labels with plain lines ending in a colon, are all on the page, and the error contracts
+  have no empty column. Every text, table cell and diagram label shows only its gist. All 67 diagrams of the reports of
+  stages 1 to 3 and 2b are drawn, the flow numbers on the threat diagram link to the threat table (F10 included, which
+  shares a row with F9), NFR-07's hop budgets are a chart against 5 seconds, and the header shows 2026-11-13. The final
+  report claims no disagreement between the reports and the YAML, and says what the page leaves out.
 context:
   scaffold_script: place-files.sh

@@ -1,31 +1,14 @@
 id: FND-43
-title: 共通の約束事からのずれが仕様書と IFC に残る（冪等キー、ID と時刻の形、一覧、クッキー、版、命名、仮の値の印）
+title: MOD-01 は、MOD-09 がサインインの前に送るサインインとパスワードを決める操作を始められず、合わないパスワードの 401 AUTH_FAILED をセッションが切れた 401 と同じに扱う
 status: accepted
-version: 2
 basis: inferred
-basis_note: DEC-39・40・42・43・47・48・49 の選んだ案、IFC-02・03・04・06・07 の idempotency、仕様書 9 件の中身（照合はサブエージェントのスクリプト、主なものはこの会話で確かめた）は入力
-needs_agreement: false
-approver_candidates: []
+basis_note: MOD-01、MOD-09、IFC-01 の中身は入力。書かれたとおりに作ったときに使い始められないことは、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
-to: architecture-to-high-level-design
-targets:
-- DEC-47
-- DEC-48
-- IFC-03
-- IFC-04
-- IFC-06
-- IFC-07
-severity: minor
-evidence: DEC-48 は状態を変える要求すべてに冪等キーを付けるとするが、仕様書では状態を変える操作 49 件のうち 17 件がキーなしで、DEC-48 の例外（位置、前面と裏、記録）に当たるのは 5 件。残りは IFC が理由を書くが、estimates と destination-quotes は資源を作り（201 で est_ と quoteId）、passkeys/register は資格情報を登録する。DEC-48 は位置も ID で重複を捨てるとするが、IFC-04 と仕様書は位置に鍵を付けない。逆に IFC-03・06・07 は PUT と PATCH を自然に冪等とするが、仕様書はキーを必須にする。DEC-39 の ID の形は、経路の引数 30 か所、positionId、配信の changeId と rideId に pattern がない。DEC-40 のミリ秒と Z は、date-time の 42 欄のどれも縛らない。DEC-42 の一覧の形を PaymentMethods と PlaceCandidates が持たない（例外はドライバーの依頼の一覧だけ）。DEC-43 のクッキーの属性（HttpOnly、Secure、SameSite=Strict）と Set-Cookie が、どの仕様書にもない。DEC-49 の X-App-Version は 2xx にだけ付く。DEC-47 の経路のまとまりに /api/v1/config がなく、単数形の区切り（threshold、rating、cancellation-quote、setup-code、billing）と、経路と一対一でない route_id がある。仕様書の冒頭は仮の値に x-provisional を付けるとするが、確認コードの 10 回、パスワードの 12 文字、見積もりの期限は文だけで、DEC-42 の limit と DEC-55 のそのほかの経路の上限は仕様書にない。エラーの例 681 件のうち 72 件の文が途中で切れ、7 件の操作の x-functions に IFC の functions にない FR がある
-suggestion: 例外を DEC-48 に書き足すか仕様書を直し（キーのない状態を変える操作、位置の重複、PUT と PATCH）、ID と時刻の pattern、一覧の形、クッキーの属性、エラーの応答の X-App-Version を仕様書に入れ、DEC-47 に単数の資源と /api/v1/config を足し、仮の値の印と x-functions を IFC にそろえ、切れた例の文を直す
-resolution: "受け入れた。キーのない状態を変える操作（位置、前面と裏、画面の記録）を DEC-48 版 2 の例外に書き、PUT、PATCH、DELETE にもキーを求めた。ID と時刻の pattern、一覧の形、クッキーの属性、エラーの応答の X-App-Version を仕様書に入れ、DEC-47 版 2 に単数の資源と /api/v1/config を足し、仮の値の印と x-functions を IFC にそろえた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B8、B10）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+raised_in: reviews/4-detailed-design-ELM-02.md
+to: high-level-design-to-detailed-design
+targets: [MOD-01, MOD-09]
+severity: major
+evidence: MOD-09 の SignIn と SetPassword は、サインインの前に POST /v1/sessions と POST /v1/account-setups（IFC-01。どちらも本人の確かめなしで受ける）を MOD-01 で送る。MOD-01 で状態を変える操作を送るには begin を呼ぶ（read の pre は GET と探すだけの POST だけ）が、begin は useAccount にアカウントがなければ NotSignedIn を返し、操作に useAccount のアカウントを写す。新しく開いた画面では useAccount は none なので、書かれたとおりでは二つの操作を始められず、担当者もエンジニアも使い始められない（FR-48 の 1。ELM-02 のどの CUJ もその後にある）。加えて、IFC-01 は合わないサインインの ID かパスワードに 401 AUTH_FAILED を返すが、MOD-01 の三つの所が 401 をそれぞれ違って扱う。send の post は 401 をどれも notSignedIn にして onNotSignedIn に知らせ、Outcome の notSignedIn は ApiError を持たない。状態遷移図は 401 を定まったから除き、サインイン待ちには 401 NOT_SIGNED_IN だけで移るので、AUTH_FAILED の移り先がない。答えの判断表は 401 NOT_SIGNED_IN の行だけを持ち、AUTH_FAILED は「上のほかの 4xx」（refused）に読める。MOD-09 は AUTH_FAILED を示すとする（FR-48 の 2）が、send の post のとおりなら AUTH_FAILED と NOT_SIGNED_IN を見分けられず、合わないパスワードの操作はサインイン待ちに残り、状態ごとの表のとおり、アカウントがないため同じ入力では送り直せない（NotSignedIn）。MOD-09 の単体の層は MOD-01 の偽物で AUTH_FAILED を確かめるため、この食い違いを見つけない
+suggestion: MOD-01 に、アカウントなしで送る操作（IFC-01 の POST /v1/sessions と POST /v1/account-setups）を始める道を決める（begin の pre と errors、useAccount とのかかわり、サインインした後と画面を離れた後にその操作と入力（パスワードと設定の符号）を持たないこと）。401 を符号で分け、NOT_SIGNED_IN だけを notSignedIn とサインイン待ちにし、AUTH_FAILED は refused にして、send の post、状態遷移図、答えの判断表、状態ごとの表をそろえる。MOD-01 の単体の層に、サインインの前の操作と 401 AUTH_FAILED の行を加え、端から端の層で合わないパスワードとサインインを通す
+resolution: 受け入れ。MOD-01 に、サインインの前に送る操作（IFC-01 の POST /v1/sessions と POST /v1/account-setups）を始める beginSignedOut を加えた。その操作はアカウントを持たず、タブの保存に書かず、入力（サインインの ID、パスワード、設定の符号）を定まるか捨てられるまでメモリにだけ持ち、タブのアカウントが決まると捨てる。401 は、AUTH_FAILED とサインインの前の操作への 401 を refused（定まった）にし、サインインした後の操作への NOT_SIGNED_IN と知らない符号の 401 だけを notSignedIn とサインイン待ちにして、send の post、状態遷移図、答えの判断表、状態ごとの表、onNotSignedIn をそろえた。MOD-09 はサインインとパスワードを決める操作を beginSignedOut で送り、画面を離れたら discard で捨てる。MOD-01 の単体の層にサインインの前の操作と 401 AUTH_FAILED の行を、端から端の層に合わないパスワードと正しいパスワードのサインインの場面を加えた

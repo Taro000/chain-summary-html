@@ -1,35 +1,23 @@
 id: QR-28
-title: 乗る場所の正確性
-status: draft
-version: 2
+title: 走っている間は依頼を選ぶ操作と許諾を受け付けず、止まれば受け付ける
+status: active
 basis: inferred
-basis_note: データを作るのは乗客（ピンの位置）と乗客の端末（現在地）。点と扱いは推定
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
-model: data
-layer: data-inherent
-characteristic: accuracy
-statement: 依頼の乗る場所は、乗客が実際に待つ場所を表す。
-applies_to: [FR-02, FR-19, FR-23]
-traces_to: [QIU-13, QIU-15]
+basis_note: 走っている間は依頼を選ぶ操作と許諾を受け付けず、止まってから操作するよう示すことは第 2 段階の質問 3 で確認済み（FR-22）。失敗のシナリオと点は推定。車の速さをどう確かめるかは設計で決め、ドライバーの端末から得られる速さの確からしさは設計が確かめる。QIU-16（短い時間で許諾を終える）とぶつかるが、走っている間の操作を受け付けないことを先にすると第 2 段階の質問 3 で決まっている。扱い（最低限守る線）は決めたこと 17 で確認済み（QAS-11 への訂正）。V_moving_lock の値（時速 5 km）は第 4 段階の決めたこと 4
+premises: [QAS-01, QAS-11]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、車が実際に V_moving_lock（時速 5 km）以上の速さで動いている間は、依頼を選ぶ操作と許諾の操作を一つも受け付けず、車が止まっているか V_moving_lock（時速 5 km）を下回るときは、それらの操作を受け付ける。
+applies_to: [FR-22]
+traces_to: [QIU-17, QIU-16]
 entry_point: null
-stakeholders: [USR-01, USR-02]
-failure_scenario: 乗る場所が、建物の中で不正確に取れた現在地のまま確定し、ドライバーが違う場所に着いて乗客を見つけられず、取り消す。
-score: {impact: 4, likelihood: 4}
-handling: emphasized
+stakeholders: [USR-02]
+failure_scenario: 車の速さが遅れて判断され、走り出した直後のドライバーの許諾の操作が受け付けられ、ドライバーは画面を見て操作を続けて前への注意がそれる。逆に信号で止まっているのに走っているとみなされ、許諾できないうちに依頼がほかのドライバーに取られる。
+score: {impact: 5, likelihood: 2}
+handling: minimum-line
 handling_reason: null
-implies_internal: []
-conflicts:
-  - with: QR-03
-    note: 誤差が大きいときにピンで確かめさせると（FR-02 版 2）手配の手間が増える。誤差が D_pickup_accuracy を超えるときだけ確かめさせる
+implies_internal: [QR-55]
+conflicts: []
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: FRP-03 が FR-02 版 2 として受け入れられたことを競合の記述に反映した
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
+placeholders:
+  - {name: V_moving_lock, meaning: "第 2 段階の値。車が走っているとみなし、依頼を選ぶ操作と許諾を受け付けなくなる速さ", from: FR-22}

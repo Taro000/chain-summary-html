@@ -1,0 +1,17 @@
+id: QCR-01
+title: What NFR-06 measures
+status: open
+stage: '3'
+targets:
+- NFR-06
+origin:
+- IFC-01
+- IFC-03
+issue: NFR-06's 3 seconds do not say whether they include the PUT of the file to the storage
+suggestion: Say that NFR-06's measured span leaves out the PUT to the storage
+quality_stages:
+- 4
+impact: low
+impact_note: Only one hop of the budget would change
+answer: null
+answered_in: null

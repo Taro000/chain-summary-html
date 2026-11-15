@@ -1,0 +1,22 @@
+id: QR-71
+title: キャンセル料と不在の料金は、決まりに当たる依頼にだけ一度だけ請求し、押さえの残りを解く
+status: retired
+basis: confirmed
+basis_note: 質問 23 で、キャンセル料と不在の料金の正しさは請求の正しさ（QR-04）にまとめると決まったため、QR-04 に含めて廃止した
+premises: [CON-03, CON-08, EXT-01, OPF-02]
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、キャンセル料と不在の料金（CON-08）を、ドライバーが許諾した後に乗客が取り消した依頼と乗客の不在で終わった依頼にだけ、CON-08 の額で、一つの依頼に一度だけ請求し、どのドライバーも許諾していない間に取り消された依頼と許諾のないまま終わった依頼には何も請求しない。どの場合も、請求の後に依頼のときの押さえの残りを解き、乗客に示す請求した額とその種類は請求した額と一致する。
+applies_to: [FR-07, FR-23, FR-26, FR-31, FR-54]
+traces_to: [QIU-04]
+entry_point: null
+stakeholders: [USR-01, USR-02, EXT-01]
+failure_scenario: ドライバーが取り消して依頼をほかのドライバーに届け直している間に乗客が取り消したのに、許諾の後の取り消しとしてキャンセル料が請求される。乗客の不在として終える操作が重なって不在の料金が二度請求される。乗客は確かめていない料金を請求される。
+score: {impact: 4, likelihood: 2}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

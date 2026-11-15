@@ -1,17 +1,15 @@
 id: DRV-10
 title: 旧ストレージを使う
 status: retired
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises: []
 kind: constraint
 statement: 旧ストレージに置く
 sources:
 - TC-02
-concern_of: []
+concern_of:
+- STK-01
 scenario: null
 negotiable: true
 derived_from: []
@@ -24,8 +22,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

@@ -1,88 +1,37 @@
 id: IFC-05
-title: 画面の記録の API
-status: draft
-version: 1
-basis: inferred
-basis_note: FR-38、FR-54 の受け入れ基準と DEC-23（端末に一時に保存して送る）は入力。まとめて送る間隔と、ブラウザに保つ上限は推定
-needs_agreement: true
-approver_candidates:
-- 開発の責任者
+title: 位置の受け取り
+status: active
+basis: assumed
+basis_note: 端末が画面に出ている間に測った位置を測った時刻、確からしさ、速さとともに決まった間隔で送り、サーバーが最新の位置と受けた記録を持ち、古い位置を分からないものとして扱うことは DEC-07（入力）。迎車が乗る場所に着いたことをサーバーが受けた位置と乗る場所の距離で決めることは DEC-07 と FR-10 の 1（入力）。ドライバーは受付をしている間も画面に出したままにすることは TC-18（入力）。送る間隔と送る位置の新しさ、位置を分からないとみなす古さを決めて HND-03 を決めた。分からないとみなす古さを T_vehicle_location_lag にすることは、依頼を届ける判断に使う位置がそれより遅れないこと（QR-19）からの推定。送る間隔は DAS-11 による暫定の決定。位置の古さの予算は報告の「遅延の予算とタイムアウト」。一回の送りのタイムアウトを、送り直さない呼び出しの DEC-46 の決め方に合わせて書いたことは FND-29 を受けた
+premises: [TC-18, DAS-03, DAS-11, QCR-02, QCR-03]
 kind: http
-name: 画面の記録の API
-provider: ELM-04
-consumers:
-- ELM-01
-- ELM-02
-- ELM-03
-functions:
-- FR-02
-- FR-13
-- FR-38
-- FR-54
+name: 位置の受け取り
+provider: ELM-03
+consumers: [ELM-01]
+functions: [FR-08, FR-10, FR-13, FR-19, FR-22, FR-24]
 operations:
-- name: POST /api/v1/records/displays
-  does: 状態の変化を相手の画面に示した時刻（まとめて送る）。回数の上限はアカウントごとに 1 分に 60 回
-- name: POST /api/v1/records/client-errors
-  does: ブラウザで起きたエラー（すぐ送る）。回数の上限はアカウントごとに 1 分に 60 回
-- name: POST /api/v1/records/screen-events
-  does: 手配の画面を開いた時刻（FR-02 AC7）と評価の画面を開いた時刻（FR-13 AC4）
-format: JSON（UTF-8）。エラーは application/problem+json（DEC-38）。額は円の整数（DEC-41）、時刻は UTC の RFC 3339（DEC-40）
-protocol: HTTPS の要求と応答。Cloud Run の入口から ELM-04 へ。三つの SPA と同じ入口なので CORS は使わない（DEC-23）
-auth: ログインしたセッション。記録のアカウントと役割はセッションで決める
+  - name: POST /v1/positions
+    does: 画面に出ている乗客とドライバーの端末が、測った位置（緯度、経度、確からしさ、速さ、測った時刻）を送る。ELM-03 は最新の位置として持ち、受けた記録に残し、迎車が乗る場所から D_pickup_position_gap のうちに入ったら迎車の到着とし、相手に流れ（IFC-11 の position.updated と ride.pickup_arrived）で示す（FR-08、FR-10、FR-13、FR-24）
+format: JSON（UTF-8）。緯度と経度は WGS84 の度、確からしさは m、速さは m/s（分からなければ null）、時刻は DEC-37 の端末の時刻の添え方
+protocol: HTTPS の要求と応答
+auth: セッション（DEC-40）。位置を送るのは、ドライバーは受付をしている間と迎車中と乗車中、乗客は配車が確定してから乗車が始まるまで（DEC-07、FR-24）
 errors:
-- case: 'POST /api/v1/records/displays: 形が違う'
-  signal: 400 INVALID_REQUEST
-  caller_does: その記録を捨てる（送り直さない）
-- case: 'POST /api/v1/records/displays: Turso に届かない'
-  signal: 503 DEPENDENCY_UNAVAILABLE
-  caller_does: ブラウザに保ち、後で送る
-- case: 'POST /api/v1/records/client-errors: 形が違う'
-  signal: 400 INVALID_REQUEST
-  caller_does: その記録を捨てる
-- case: 'POST /api/v1/records/screen-events: 形が違う'
-  signal: 400 INVALID_REQUEST
-  caller_does: その記録を捨てる
-- case: '共通: 要求の形が違う（欄の不足、範囲の外、冪等キーがない）。errors に欄ごとの中身'
-  signal: 400 INVALID_REQUEST
-  caller_does: 欄を直す。同じものを送り直さない
-- case: '共通: ログインしていないか、セッションが切れた'
-  signal: 401 UNAUTHENTICATED
-  caller_does: ログインの画面へ。操作の途中なら、ログインの後に同じ冪等キーで送る
-- case: '共通: 役割が違う、または送り元（Origin）がサービスの URL でない'
-  signal: 403 FORBIDDEN
-  caller_does: 送り直さない（画面の誤りとしてブラウザのエラーの記録に残す）
-- case: '共通: ない、または自分のものでない（他人の依頼も 404 にする。DRV-29）'
-  signal: 404 NOT_FOUND
-  caller_does: 画面を読み直す
-- case: '共通: 同じ冪等キーの要求がまだ動いている（DEC-48）'
-  signal: 409 OPERATION_IN_PROGRESS
-  caller_does: Retry-After（1 秒）の後に同じキーで送るか、状態を読み直す
-- case: '共通: 同じ冪等キーで中身の違う要求（DEC-48）'
-  signal: 422 IDEMPOTENCY_KEY_REUSED
-  caller_does: 画面の誤り。新しい操作として新しいキーで始める
-- case: '共通: 回数の上限（DEC-55）'
-  signal: 429 RATE_LIMITED
-  caller_does: Retry-After まで待つ
-- case: '共通: 想定外の誤り'
-  signal: 500 INTERNAL_ERROR
-  caller_does: 読むだけの要求は間を置いて送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す
-- case: '共通: T_route（10 秒）で切った。中の処理は続いていることがある（DEC-33）'
-  signal: 503 ROUTE_TIMEOUT
-  caller_does: 結果が分からないとして扱う。読むだけの要求は送り直す。状態を変える要求は同じ冪等キーで送り直すか、状態を読み直す。新しいキーでは送らない
-- case: '共通: Turso に届かないか遅い（T_db）。状態を変えたかどうかは、一つ目のトランザクションを書けたかによる'
-  signal: 503 DEPENDENCY_UNAVAILABLE
-  caller_does: ROUTE_TIMEOUT と同じ
-idempotency: 表示の記録は（変化の ID、アカウント）で一つだけ（FR-54 AC3）。ブラウザのエラーと画面の出来事は clientErrorId、clientEventId で二度目を捨てる。どれも 202 で重複の数を返す
+  - case: どの操作にも共通する誤り
+    signal: DEC-35 の共通の符号
+    caller_does: DEC-35 のとおり。ただし送り直さず、次の間隔で新しい位置を送る
+  - case: 位置を送る場面でない（受付をしていない、依頼が確定していないか終わった）
+    signal: 409 with code POSITION_NOT_NEEDED
+    caller_does: 位置を送るのをやめる
+  - case: 緯度と経度の範囲や時刻の形が誤っている
+    signal: 400 with code VALIDATION_FAILED
+    caller_does: その位置を捨て、次の間隔で新しい位置を送る
+idempotency: 自然に冪等。同じ測った時刻の位置は一度だけ受け、測った時刻が今の最新より古い位置は記録に残すが最新にしない。冪等キーは付けない（DEC-42）
 timing:
-  timeout: ブラウザ 15 秒。5 秒ごとか、裏に回るとき（keepalive）にまとめて送る。送れないものはブラウザに保ち（FR-38 AC2、FR-54 AC4）、最大 500 件、7 日まで（仮）
-  ordering: null
-  delivery: null
-versioning: 経路に /api/v1。v1 の中では足すだけで、知らない欄は両側とも無視する。応答の X-App-Version とブラウザの版が違えば、操作の途中でないときに画面を読み直す（DEC-49）
-observability: ブラウザのエラーは client.error のログにも書き（IFC-09）、FR-36 の知らせと NFR-21 の数えに使う。表示の記録は SLI-02 の入力
-spec: ifc/specs/records.openapi.yaml
+  timeout: 端末は 5 秒ごとに、その前の 5 秒のうちに測った位置を送る（新しい位置がなければ測り直してから送る）。一回の送りのタイムアウトは 5 秒で、次の送りで替わるため送り直さない（見捨てた送りが ELM-03 で書かれても、測った時刻の順で新しい方が残る）。ELM-03 の答えの期限は 2 秒（DEC-46）。5 秒は、送り直さない呼び出しの DEC-46 の決め方のとおり、ELM-03 の期限 2 秒と通信の往復の予算 1.0 秒の和 3.0 秒より長く、送る間隔 5 秒を超えない（つながり直しの余裕は足さない）。位置は、測った時刻（DEC-37 でサーバーの時刻に直したもの）から T_vehicle_location_lag を過ぎると分からないものとし、依頼を届ける判断、距離の条件、走っているかの判断、着く見込みに使わず、画面には最後に分かった位置と時刻として示す（FR-08 の 2、FR-13 の 3、FR-19 の 4、FR-24 の 2、HND-03）。値は DAS-11
+  ordering: 参加者ごとに測った時刻の順。遅れて着いた古い位置は最新を替えない
+  delivery: 最新の位置を届ければよく、失った位置は次の位置が補うため送り直さない。つながらない間に測った位置はためずに捨てる
+versioning: DEC-41
+observability: 受けた位置の記録（DAT-10。位置は暗号にし、測った時刻と受けた時刻と直した時刻を持つ）。境界の出来事とログには位置を書かない（DEC-15、QR-58）
+sli_bindings: []
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）

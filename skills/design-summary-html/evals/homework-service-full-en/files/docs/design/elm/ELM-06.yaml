@@ -1,27 +1,22 @@
 id: ELM-06
 title: Nightly batch
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: component
 name: Nightly batch
 responsibility: Builds the submission report every night
 functions:
 - FR-05
+- FR-09
 drivers:
 - DRV-06
-decisions: []
+decisions:
+- DEC-04
 team: TEAM-01
-technology: null
+technology: Node.js, in a container (DEC-01)
 runs_on: ELM-07
 depends_on:
 - ELM-04
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

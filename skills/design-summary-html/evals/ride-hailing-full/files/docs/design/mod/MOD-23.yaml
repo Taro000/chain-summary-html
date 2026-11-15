@@ -1,0 +1,76 @@
+id: MOD-23
+title: 鍵と暗号
+status: active
+basis: assumed
+basis_note: 個人の情報を記録した日ごとの鍵で項目ごとに暗号にし、鍵をデータベースの外の秘密の置き場所に置き、保存期間を過ぎた日の鍵を写しとともに捨てることは DEC-16 と DEC-17、項目の暗号を node:crypto の AES-256-GCM にしてどの日の鍵かを暗号の文と一緒に持ち、パスワードを scrypt で持つこと、鍵を src/platform/ の鍵の置き場所のポートだけが作り、読み、捨てることは POL-04 と DEC-30、セッションの ID と設定の符号をハッシュだけで持つことは DEC-40 と DAT-02、仮の名を鍵で作ることは FR-35 の 2 と DAT-18、日を Asia/Tokyo の日付で数えることは DEC-37（どれも入力）。鍵をいつ作りいつ捨てるか（POL-04 が第 4 段階に任せた）は、前もって作り、書くときになければ一度だけ作り、捨てるのは MOD-68 が記録を変え終えた後だけにすることとして推定した。scrypt の強さの値は DEC-30 の想定のとおり実装が今の指針に合わせて決め、MOD-20 の答えの期限のうちに収める。鍵の置き場所の名前と写しの置き方は HND-21 で実装に送る。前もって作る日数、メモリに持つ長さ、仮の名の長さは DAS-18 による暫定の決定。日ごとの鍵を、中身とともに一度に、ないときだけ見せる置き方で作り（ローカルは書き終えた一時のファイルをその日の名前にハードリンクで結び、名前がすでにあれば失敗して置き換えない。想定の本番の Secret Manager は、その日の秘密に中身を版として足してから、その日の最初の版を読み直して使う）、名前だけで中身のない鍵（版のない秘密、結ばれていない一時のファイル）をないものとして扱うことで、作り手が名前を作った後に止まってもほかの作り手がその日の鍵を作れるようにし、作りかけを待って読み直す行をなくしたことは FND-63 を受けた（推定。一つの日の鍵を一度だけ作って置き換えないことと、暗号の値が鍵の版を持つことはこのモジュールの不変条件、日ごとに Secret Manager の一つの秘密でそのすべての版を捨てることは POL-04 で入力。Secret Manager が秘密を作ることと版を足すことを別の呼び出しで行い、版に通し番号を付けることと、ハードリンクがすでにある名前に失敗することは各々の公開の文書と OS の決まりによる）
+premises: [DAS-18]
+component: ELM-03
+name: 鍵と暗号
+depth: full
+depth_reason: 記録した日ごとの鍵を作る、読む、捨てることと、個人の情報の項目の暗号を受け持つ。誤ると個人の情報が読めるまま残るか、読めなくなって戻せない（重大さが高）。いくつものインスタンスが同じ日の鍵を同時に作りうるので、一つの日の鍵を一つに定める（同時に動く仕事と状態を分ける）
+responsibility: 個人の情報の項目を記録した日の鍵で暗号にし、保存期間を過ぎた日の鍵を写しとともに捨てる
+visibility: internal
+interface:
+  - operation: "encrypt(field: FieldName, value: string, recordedOn: LocalDate) -> Sealed"
+    pre: recordedOn は今日の Asia/Tokyo の日付か、訂正するときのその日の日付（呼ぶ側の記録の日）
+    post: その日の鍵（なければ判断表 A のとおり一度だけ作る）で AES-256-GCM の暗号にした値。鍵の日と鍵の版を添え、項目の名前を追加の認証データにする
+    errors: ["KeyDisposed: その日の鍵はもう捨ててある（呼ぶ側の誤り。その取引を止める）", "KeyStoreUnavailable: 秘密の置き場所が答えない（呼ぶ側はその取引を止めて 503 SERVICE_UNAVAILABLE にする）"]
+  - operation: "decrypt(sealed: Sealed, field: FieldName) -> string or disposed"
+    pre: null
+    post: 読み解いた値。その日の鍵が捨ててあれば disposed で、呼ぶ側は個人を特定できない形として扱う
+    errors: ["KeyStoreUnavailable: 秘密の置き場所が答えない", "SealedCorrupted: 認証が合わない（書き換えられたか、項目を取り違えた値。値を示さず、たどる記録に failureOrigin system で残す）"]
+  - operation: "ensureKeys(from: LocalDate, through: LocalDate) -> none"
+    pre: null
+    post: その期間のどの日の鍵もあり、ある日の鍵は作り直していない（判断表 A）
+    errors: ["KeyStoreUnavailable: 作れなかった日は次の起動か日々の処理が作る。書くときになければその時に作る（名前だけで中身のない鍵も、ないものとして作る）"]
+  - operation: "disposeKeysThrough(date: LocalDate) -> LocalDate[]"
+    pre: 呼ぶのは MOD-68 だけで、その日までに記録したどの記録も、その前に個人を特定できない形に変え終えてある
+    post: その日までのどの日の鍵も、置き場所と写しの置き場所の両方とメモリから消してあり、捨てた日を返す。捨てた日の鍵は作り直さない
+    errors: ["KeyStoreUnavailable: 捨てられなかった日は残り、次の日々の処理がやり直す"]
+  - operation: "hashPassword(password: string) -> PasswordHash; verifyPassword(password: string, hash: PasswordHash) -> boolean"
+    pre: null
+    post: scrypt（強さは DEC-30 の想定のとおり実装）で、塩はパスワードごと。照らし合わせは時間の一定な比べ方
+    errors: []
+  - operation: "digest(token: string) -> Digest"
+    pre: null
+    post: セッションの ID と冪等キーの本文の SHA-256 のハッシュ（DEC-40、DAT-02、DAT-26）
+    errors: []
+  - operation: "keyedCode(purpose: CodePurpose, input: string) -> bytes"
+    pre: purpose は confirmation_code、setup_code、pseudonym のどれか
+    post: 目的ごとの秘密の鍵（日ごとの鍵ではない、版を持つ）による HMAC-SHA-256。同じ目的、版、入力に同じ値（確認コード、設定の符号、仮の名を作るもと）
+    errors: ["KeyStoreUnavailable"]
+invariants:
+  - 一つの日の鍵（ローカルはその日のファイル、想定の本番はその日の秘密の最初の版）は、中身とともに一度に現れ、現れた後は置き換わらない（ほかの鍵で上書きされて、その日の項目が読めなくなることはない）
+  - 名前だけで中身のない鍵はないものとして扱い、どの作り手もその日の鍵を作れる（名前を作った後に止まった作り手が、その日の鍵を使えなくすることはない）
+  - 捨てた日の鍵は作り直されず、写しの置き場所にもメモリにも残らない
+  - どの暗号の値も、どの日の鍵の何の版で、どの項目として暗号にしたかを持つ
+depends_on: [MOD-21, MOD-22]
+functions: [FR-35, FR-51]
+realizes: []
+drivers: [DRV-21, DRV-28, DRV-29]
+decisions: [DEC-16, DEC-17, DEC-30, DEC-37, DEC-40]
+behaviour: "報告書の節: MOD-23 鍵と暗号"
+verification:
+  - checks: 鍵を捨てた日の項目が読めなくなり、写しの置き場所にも残らない（POL-04）
+    how: 結合の層（鍵の置き場所の偽物）
+  - checks: 二つの作り手が同じ日の鍵を同時に作っても、どちらも同じ鍵（ローカルは先に結んだファイル、想定の本番は最初の版）を使う（判断表 A の行ごと）
+    how: 単体の層（鍵の置き場所の偽物で、作ることを重ねる）
+  - checks: 作り手が中身を見せる前に止まり、一時のファイルだけが残っても、ほかの作り手がその日の鍵を作って項目を書け、残った一時のファイルはその日の鍵にならない（FND-63）
+    how: 結合の層（ローカルの置き場所のつなぎ口のまま、テストが作る鍵のディレクトリに止まった作り手の一時のファイルを置いてから、暗号にする項目を書く操作を送る。想定の本番の Secret Manager の版のない秘密は、何も配備しないため確かめない、TC-09）
+  - checks: 項目の名前を取り替えた暗号の値と書き換えた値を読み解けない
+    how: 単体の層
+  - checks: パスワードの照らし合わせ、ハッシュ、HMAC の目的ごとの分かれ
+    how: 単体の層
+  - checks: node:crypto を src/platform/ だけが import する
+    how: 依存の規則の検査（POL-02）
+parameters:
+  - name: 前もって作る鍵の日数
+    value: 今日から 2 日先の日まで（起動のときと日々の処理で）
+    basis: 日々の処理が一度動かなくても、次の日の鍵を前もって持てる長さ。足りなくても書くときに一度だけ作る（DAS-18）
+  - name: 読んだ鍵をメモリに持つ長さ
+    value: 10 分（捨てるときはメモリからも消す）
+    basis: 秘密の置き場所を読む回数を抑え、置き場所が短く止まっても書き続けられる長さとして選んだ暫定の値（DAS-18）
+  - name: 仮の名の長さ
+    value: HMAC の値の Base32 の 12 文字
+    basis: 参加者は数人（OPF-03）で、取り違えの起きない長さとして選んだ暫定の値（DAS-18）
+as_is: new

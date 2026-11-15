@@ -1,29 +1,22 @@
 id: QR-45
-title: 依頼の状態の変化を一か所で定める
-status: draft
-version: 1
+title: 返金は、認めた乗車の支払った乗客に、認めた額を一度だけ、支払われた額まで行う
+status: active
 basis: inferred
-basis_note: 外部品質 QR-10、QR-11、QR-16 から導いた。点は持たない
-needs_agreement: true
-approver_candidates: [開発の責任者]
+basis_note: 返金が EXT-01 のテスト環境を通ることは CON-03。失敗のシナリオと点は推定。EXT-01 が答えなかった返金のやり直し（FR-39, FR-40）と、一つの乗車への二つ目の返金が誤りの起きやすい場面とみた。キャンセル料か不在の料金（CON-08）を請求した依頼への返金も、第 2 段階の質問 8 の回答で同じに扱う（FR-39、FR-40）。扱い（最低限守る線）は質問 22 で確認済み（返金の正しさは最低限守る線とする事業の決め）
+premises: [CON-03, CON-08, EXT-01]
 model: product
-layer: internal
-characteristic: maintainability > modularity
-statement: 配車依頼の状態を変える処理は一つの部品にまとまり、許される状態の変化（割り当て、取り消し、停止、しきい値と条件の判定）が一か所で定められている。
-applies_to: [FR-16, FR-20, FR-22, FR-34, FR-47]
-traces_to: [QIU-01, QIU-10, QIU-11, QIU-13, QIU-23]
+layer: external
+characteristic: functional suitability > functional correctness
+statement: システムは、担当者が認めた返金を、その乗車、またはキャンセル料か不在の料金を請求したその依頼の支払いをした乗客に、認めた額で一度だけ行い、一つの乗車や依頼への返金の合計をそれに支払われた額までに限る。
+applies_to: [FR-39, FR-40]
+traces_to: [QIU-29, QIU-28]
 entry_point: null
-stakeholders: [USR-03]
-failure_scenario: 割り当て、取り消し、停止の判定が経路ごとに別々に書かれ、一つを直しても別の経路に古い判定が残り、停止したドライバーやしきい値に満たないドライバーに割り当てられる。
-score: null
-handling: emphasized
-handling_reason: QR-10、QR-11、QR-16（重視）を支える内部品質で、その扱いを受け継ぐ
-implies_internal: []
+stakeholders: [USR-04, USR-01, EXT-01]
+failure_scenario: EXT-01 が答えなかった返金を担当者がやり直し、EXT-01 では一度目も済んでいたため二重に返金される。
+score: {impact: 5, likelihood: 3}
+handling: minimum-line
+handling_reason: null
+implies_internal: [QR-50]
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）

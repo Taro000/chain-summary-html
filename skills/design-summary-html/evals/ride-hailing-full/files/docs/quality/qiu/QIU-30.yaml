@@ -1,49 +1,32 @@
 id: QIU-30
-title: 利用技術の版上げを早く配備できる状態にする
-status: draft
-version: 3
+title: 担当者が参加者のアカウントを誤りなく作成できる
+status: active
 basis: inferred
-basis_note: 変更の速さを扱うことと式は質問 14 で確認済み。T_lead と変更の種類ごとの絞り込みは推定。記録が今はないことは質問 9 で確認済み。T_lead_upgrade の値は 2026-11-01 の利用者の回答で決めた。値が変更の種類ごとに違うので、T_lead を 3 つの名前に分けた（時間は実時間で数える。推定）。「本番に出す」を「main に入って CI が通り、次のデモの回に配備できる状態になる」として測り、次の回を待つ時間を含めないことは、2026-11-03 の回答（設計 1-1）で確認済み
-needs_agreement: true
-approver_candidates:
-  - 開発の責任者
-  - プロダクトオーナー
-user: USR-03
-cuj: CUJ-13
+basis_note: CUJ は質問 2 の回答。参加者を乗客とドライバーと読むこと、ニーズ、測定量、利用状況は推定
+premises: []
+user: USR-04
+cuj: CUJ-16
 outcomes: []
-need: 既存のシステムを壊さずに、早く変更を本番に出したい
+need: 参加者がすぐに使い始められるアカウントを作りたい
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: エンジニア
-  task: 利用技術の版を上げる変更
-  environment: main と CI（デモの環境への配備はデモの回に行う）
+  device: 問わない
+  network: 問わない
+  user_type: 運営・サポートの担当者
+  task: 参加者のアカウントの作成
+  environment: null
   other: null
-characteristic: efficiency
-statement: エンジニアは、利用技術の版を上げる変更を、最初のコミットから 40 時間（T_lead_upgrade）以内に、次のデモの回に配備できる状態（main に入って CI が通った状態）にできる。
-failure_scenario: 版上げの作業が長引いて配備できる状態にならず、次のデモの回も古い版の弱点（セキュリティの修正の遅れなど）を抱えたまま動く。
+characteristic: effectiveness
+statement: 参加者のアカウントを作成する運営・サポートの担当者は、作り直しや訂正の要らないアカウントを作成できる。
+failure_scenario: 乗客として参加する人をドライバーとして作るなど、アカウントを誤って作成し、参加者が使い始められないまま参加をやめる。
 measure:
-  numerator: 最初のコミットから 40 時間（T_lead_upgrade）以内に main に入って CI が通った変更
-  denominator: main に入って CI が通った変更
-  narrowed_to: 利用技術の版を上げる変更
-  denominator_needed_only: main に入って CI が通った変更だけ（途中でやめた変更は含めない）。次のデモの回を待つ時間は含めない
-  contribution: テストと CI の仕組みに直接つながる。変更の大きさにも左右される。デモの回の日程には左右されない（配備を待つ時間を数えない）
-  observable: false
+  numerator: 作り直しや訂正の要らなかったアカウント
+  denominator: 作成したアカウント
+  narrowed_to: 乗客とドライバーのアカウント
+  denominator_needed_only: 作成したアカウントだけを数える
+  contribution: 作成の手順と内容の確かめ方にプロダクトが効く
+  observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 9 の回答（変更の速さは扱わないという前提が誤り）と質問 14 の回答から追加
-  - version: 2
-    date: '2026-11-01'
-    change: しきい値 T_lead_upgrade に値を入れた（T_lead を変更の種類ごとに分けた）
-    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま
-  - version: 3
-    date: '2026-11-03'
-    change: 「本番に出す」を「main に入って CI が通り、次のデモの回に配備できる状態になる」として測るように、要求、測定量、利用状況、失敗のシナリオを変えた。次の回を待つ時間は含めない。T_lead_upgrade の値（40 時間）は変えない
-    reason: 設計の連鎖の第 1 段階が返した課題 1（サーバーはデモの回にしか動かない。設計の TC-07）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）

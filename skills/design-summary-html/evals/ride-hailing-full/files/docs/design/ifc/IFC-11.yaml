@@ -1,82 +1,100 @@
 id: IFC-11
-title: 配備と開け閉めの手順
-status: draft
-version: 2
-basis: inferred
-basis_note: 第 2 段階の DEC-27 版 3・4（GitHub Actions の手順だけ、サービスと二つのジョブを同じイメージ、手順はデータベースの資格情報を持たずデータベースに触れる段は運用のジョブで動かす、配備の記録に残すもの）、DEC-34 版 2、DEC-36 版 2、DEC-37 版 4（期間の終わりはふだん毎日の処理が決める）は入力。手順の名前と入力、同時に一つだけ動かすこと、手順ごとの上限は推定
-needs_agreement: false
-approver_candidates: []
-kind: batch
-name: 配備と開け閉めの手順
-provider: ELM-06
-consumers:
-- USR-03
-functions:
-- FR-41
-- FR-42
+title: 変化の流れ
+status: active
+basis: assumed
+basis_note: 状態の変化を同じ取引で出来事の記録に書き、その記録から開いたままの HTTPS の流れ（Server-Sent Events）で届け、つなぎ直したら最後に受けた出来事の続きから届けることと、相手の位置は記録に残す出来事ではなく最新の値として流すことは DEC-06（入力）。画面に出ていない相手には Web Push で知らせることは DEC-21、届ける相手と中身が DEC-15 の決まりを通ることは DEC-15（入力）。乗客とドライバーがアプリを画面に出したままにすることは TC-13 と TC-18（入力）、iOS の Safari のホーム画面に加えた Web アプリが画面に出ている間に流れを保つことは DAS-03（設計の第 2 段階の質問 6 で確認済み）。流れの生存の確かめ、つなぎ直しの待ち、ほかのインスタンスの出来事を読む間隔を決めて HND-04 を DEC-46 とともに決めた。その値は DAS-11 による暫定の決定。出来事の種類と中身、届けと示した時刻の記録の作り方は推定。切り替えを流れで Web アプリに伝えることは DEC-26（入力）。流れで送った出来事の示した時刻が届かないときに Web Push でも知らせるまでの待ちを、NFR-07 の道の上の値としてここで決めたことは FND-26 を受けた（値は DAS-15）。ride.accepted がドライバーの名前と車の手がかりを運ぶこと（FR-09）と走っているドライバーにも offer.added を届けること（FR-22）を functions に挙げ、乗客が押さえ直したことをドライバーに知らせる ride.payment_method_changed を加えたことは FND-30 を受けた。流れの後の Web Push と示せなかった記録は、相手の端末が示した時刻を送ること（FR-53）に頼り、FR-53 を今期作ることは QAS-54 による品質チェーンの暫定の決定で、第 3 段階のレビューの質問 1 で成り立つと答えを受けた（QCR-08 が品質チェーンに運ぶ。当てられるまで前提に残す）。待ちの 2 秒は T_dispatch_propagation（QAS-25 による暫定の値）に収まる長さとして選んだ。QAS-54 と QAS-25 を前提に挙げたことは FND-38 を、決済サービスが処理しなかった決済を ride.charge_settled で知らせることは FND-45 を受けた（DEC-45）
+premises: [TC-13, TC-18, DAS-03, DAS-11, DAS-15, QAS-25, QAS-54, QCR-02, QCR-03]
+kind: event
+name: 変化の流れ
+provider: ELM-03
+consumers: [ELM-01, ELM-02]
+functions: [FR-04, FR-05, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-13, FR-18, FR-20, FR-21, FR-22, FR-23, FR-24, FR-26, FR-27, FR-29, FR-31, FR-33, FR-36, FR-37, FR-39, FR-44, FR-46, FR-47]
 operations:
-- name: ci
-  does: pull request と main への変更で CI のゲート（NFR-08、10、11、13、16、22、27、30、31、32、35、37、39、40、42）を動かす
-- name: build
-  does: main への変更で、ゲートを通ったイメージを作って ELM-09 に置く
-- name: start-period
-  does: デモの期間を始める。運用のジョブの check-turso で Turso が答えるかを確かめ、二つのジョブ（最新の配備の記録のイメージ）、定時の起動、二つ目の規則を有効にし、定時の起動を通して毎日の処理のジョブを一度動かして終わりを確かめる。record-deploy で記録を残す
-- name: open-demo
-  does: デモを開く。運用のジョブの migrate で構造の変更（足すだけ）を当て、サービスと二つのジョブを同じダイジェストのイメージで配備し、一つ目の規則を有効にし、record-deploy で配備の記録とデモの回を開いた時刻を残す（FR-41 AC2・4）
-- name: close-demo
-  does: デモを閉じる。運用のジョブの count-open が 0 のときだけ、一つ目の規則を止めてからサービスを消し、record-deploy で閉じた時刻を残す（そのデモの最後の回なら印を付ける。FR-41 AC4）。閉じる操作が途中で失敗したら、失敗したことと時刻を残す。理由を付ければ強いて閉じる（DEC-37）
-- name: rollback
-  does: 一つ前に配備したイメージを、サービスと二つのジョブにもう一度配備し、record-deploy で戻した時刻と理由を記録する（FR-42）
-- name: end-period
-  does: 期間を強いて終える（ふだんは毎日の処理が終える。DEC-37）。運用のジョブの period-status で残りを示し、理由を付けたときだけ定時の起動と二つ目の規則を止め、サービスが残っていないか確かめ、record-deploy で強いて終えた理由を残す。毎日の処理が定時の起動や規則を止められなかったときにも使う
-- name: end-system
-  does: システムを終える。二つのジョブ、定時の起動、規則、秘密、地図の鍵を消す（DEC-36。データベースと書き出し、Stripe のサンドボックスは IFC-12）
-format: GitHub Actions の手で動かす手順（workflow_dispatch）。入力はイメージのダイジェスト（既定は最新のゲートを通ったもの）、理由、強いて進めるか、最後の回か（close-demo）。結果は実行の要約と配備の記録（DAT-26）
-protocol: GitHub Actions → Google Cloud の管理の操作（IFC-21）と、運用のジョブで動く運用のコマンド（IFC-10 の migrate、record-deploy、count-open、period-status、check-turso）。手順は Turso に直接つながない
-auth: main の枝の手順だけが鍵を置かない連携で GCP に入れる（DEC-27、DEC-34）。手順はデータベースの資格情報を持たない。手で動かせるのはリポジトリに書く権限を持つ人（開発者）だけ
+  - name: ride.accepted
+    does: 乗客へ。配車が確定したことと、ドライバーの名前と車の手がかり（FR-06 の 1、FR-09）。着く見込みは続く ride.eta_updated で届く
+  - name: ride.eta_updated
+    does: 乗客へ。乗車場所に着く見込みの時刻か、目的地への到着予定の時刻。示せないときはそのこと（FR-06、FR-08、FR-13、DEC-13）
+  - name: position.updated
+    does: 相手の最新の位置と測った時刻。乗客へは迎車と乗車中の車の位置、ドライバーへは迎車中の乗客の現在地（FR-08、FR-13、FR-24）。記録に残す出来事ではなく、続きから届けない
+  - name: ride.pickup_arrived
+    does: 乗客へ。迎車が乗車場所に着いたこと（FR-10）
+  - name: ride.wait_prompted
+    does: 乗客へ。依頼してか届け直してから T_wait_prompt の間どのドライバーも許諾していないことと、待ち続けるか取り消すかの問い（FR-04 の 2、FR-23 の 2）
+  - name: ride.expired
+    does: 乗客へ。T_no_accept の間に許諾がなく依頼を終えたことと、閾値を満たすドライバーが見つからなかったのか（FR-04 の 3、FR-05 の 4、FR-23 の 3）
+  - name: ride.cancelled
+    does: 許諾したドライバーへ。乗客が取り消し、迎車を終えたこと（FR-07 の 3）
+  - name: ride.driver_cancelled
+    does: 乗客へ。ドライバーが取り消し、同じ内容でほかのドライバーに届け直していること（FR-23 の 1）
+  - name: ride.no_show
+    does: 乗客へ。乗客の不在として依頼を終えたこと（FR-26 の 1）。料金の結果は ride.charge_settled で届く
+  - name: ride.started
+    does: 乗客とドライバーへ。乗車が始まり、画面を乗車中に変えること（FR-27 の 1）
+  - name: ride.destination_changed
+    does: ドライバーへ。乗客が承認した新しい降りる場所（FR-24 の 4、FR-47 の 2）
+  - name: ride.destination_arrived
+    does: 乗客へ。ドライバーが到着を確認したことと、確認した場所（FR-13 の 2）
+  - name: ride.charge_settled
+    does: 乗客とドライバーへ。決済、キャンセル料、不在の料金の結果（済んだ額と種類、拒否とその理由、決済サービスが処理せず決済が済んでいないこと、済んだかどうか分からないこと）（FR-26 の 1、FR-29、FR-31 の 1、DEC-45）
+  - name: ride.payment_method_changed
+    does: ドライバーへ。決済が拒否された乗車で、乗客が支払い方法を変えて押さえ直したことと、決済をやり直せること（FR-29 の 4）
+  - name: payment_method.settled
+    does: 乗客へ。結果が分からなかった支払い方法の登録の結果（FR-46 の 4）
+  - name: message.received
+    does: 相手へ。連絡のメッセージ。走っているドライバーには、届いたことだけ（FR-11、DEC-27）
+  - name: offer.added
+    does: ドライバーへ。届いた依頼を一覧に加える。乗客を乗せずに走っているドライバーにも届ける（FR-18 の 1、FR-22 の 1）
+  - name: offer.removed
+    does: ドライバーへ。一覧から除く依頼と理由（ほかのドライバーの許諾、乗客の取り消し、規則に合わなくなった、許諾のないまま終わった、停止）（FR-18 の 2、FR-20 の 3、FR-21 の 2、FR-44 の 1）
+  - name: driver.suspended
+    does: ドライバーへ。停止されたこと。進んでいる迎車と乗車は続く（FR-44 の 1、4）
+  - name: driver.resumed
+    does: ドライバーへ。停止が解かれたこと（FR-44 の 7）
+  - name: refund.settled
+    does: 乗客と担当者へ。返金が済んだことと額、または結果が分からなかった返金の結果（FR-39 の 1、2）
+  - name: complaint.received
+    does: 担当者へ。乗客が寄せた苦情か返金の求め（FR-37 の 1）
+  - name: anomaly.detected
+    does: エンジニアへ。どの機能で、いつ、何が起きたかと、続いている異常の件数（FR-33）
+  - name: switch.changed
+    does: 両方の Web アプリへ。振る舞いの切り替えが変わったこと。止めた機能は示さない（FR-36）
+  - name: stream.resync
+    does: つなぎ直しの続きを出せないときに、今の状態を読み直すよう求める
+format: text/event-stream（Server-Sent Events）。出来事ごとに id（つなぎ直しの続きの印。不透明な文字列、DEC-36）、event（上の種類）、data（JSON。v、type、eventId、rideId（依頼にかかわるとき）、occurredAt と種類ごとの中身）。中身は DEC-15 の決まりを相手ごとに通したものだけで、額は DEC-38、時刻は DEC-37
+protocol: GET /v1/events で開く HTTPS の流れ（Server-Sent Events、DEC-06）。ELM-03 は変化を書いた取引の直後にその変化を流し、ほかのインスタンスが書いた出来事は出来事の記録（DAT-09）を読んで流す。相手の流れが開いていなければ Web Push（IFC-21）で知らせる
+auth: セッション（DEC-40）。届ける相手と中身は DEC-15 の一か所の決まりを通す。流れを開いた後にセッションが消されたら流れを閉じる
 errors:
-- case: ゲートが落ちた
-  signal: 手順の失敗
-  caller_does: 配備せず、どのテストが落ちたかを示す（FR-41 AC3）
-- case: open-demo の途中で失敗
-  signal: 手順の失敗と配備の記録（失敗）
-  caller_does: 本番は前の版のまま（サービスがなければないまま）。失敗を記録して知らせる（FR-41 AC5）。動かし直すと同じ結果に収まる
-- case: rollback で戻せる前の版がない
-  signal: 手順の失敗
-  caller_does: 戻さずその旨を示す（FR-42 AC2）
-- case: close-demo で count-open が 10
-  signal: 手順の失敗と一覧
-  caller_does: 閉じない。参加者が終えるか、見回りが片付けてから動かし直す。理由を付けて強いて閉じると配備の記録に残す（DEC-37）
-- case: close-demo の途中で失敗（一つ目の規則を止めた後、サービスを消す前など）
-  signal: 手順の失敗と配備の記録（閉じる操作の失敗と時刻。FR-41 AC4）
-  caller_does: 動かし直す（置き換えの形なので続きから同じ結果になる）。サービスが残っていれば消すまで続ける
-- case: end-period で period-status が 10（残りがある）
-  signal: 手順の失敗
-  caller_does: 理由を付けないと終えない。理由を付けて強いて終えると配備の記録に残す（DEC-37）
-- case: Turso に届かない（20）
-  signal: 手順の失敗
-  caller_does: 止まり、IFC-12 の unarchive を動かすよう示す（DEC-27）
-- case: 運用のジョブを起こせない、タスクの終わりの符号を読めない
-  signal: その段で手順の失敗
-  caller_does: 原因を直して動かし直す
-- case: GCP の操作の失敗（403、409、429、5xx）
-  signal: その段で手順の失敗
-  caller_does: 原因を直して動かし直す（どの段も置き換えの形なので、続きから同じ結果になる）
-idempotency: どの手順も定義の置き換えで、同じ入力で二度動かしても同じ状態になる。record-deploy は手順の実行と段の組で一行だけ書く。GitHub Actions の一つの concurrency の組で、同時には一つしか動かない（閉じている最中に開く、などを起こさない）
+  - case: 流れを開くときにサインインしていない
+    signal: 401 with code NOT_SIGNED_IN
+    caller_does: サインインの画面に移る
+  - case: つなぎ直しの印が古く、続きを出せない
+    signal: stream.resync の出来事
+    caller_does: 今の状態（IFC-03 の GET /v1/rides/current、IFC-04 の GET /v1/offers など）を読み直して示す
+  - case: 流れが切れたか、生存の確かめが決まった時間届かない
+    signal: 流れの終わりか、何も受けない時間
+    caller_does: 最後に受けた id でつなぎ直し、つなぎ直したら今の状態を読み直す（QR-02、DEC-06）
+  - case: 一つのアカウントで開いた流れが多すぎる
+    signal: 429 with code TOO_MANY_REQUESTS
+    caller_does: ほかの画面の流れを閉じる
+idempotency: 出来事ごとの eventId を持ち、端末は受けた eventId の出来事を二度示さない。端末はつなぎ直しで最後に受けた id を送り、ELM-03 はその後の出来事から送る
 timing:
-  timeout: 手順ごとに 30 分（start-period はジョブの一回の終わりを待つので 60 分）（仮）
-  ordering: 同時に一つ
-  delivery: null
-versioning: 手順の入力は足すだけ
-observability: 配備の記録（DAT-26）に版（イメージのダイジェスト）、時刻、含まれる変更とその種類（feature、fix、upgrade）、各変更の最初のコミットの時刻と main に入って CI が通った時刻（GitHub から集めて record-deploy に引数で渡す。FR-41 AC2）、デモの回を開いた時刻と閉じた時刻、閉じる操作の失敗と時刻、最後の回の印（FR-41 AC4）、戻した理由、強いて進めた理由を残す。実行のログは公開されるので、秘密と個人情報を出さない（DEC-32、DEC-44）
+  timeout: ELM-03 は 15 秒ごとに生存の確かめ（コメントの行）を送る。端末は 35 秒何も受けなければ流れを閉じてつなぎ直す。つなぎ直しの待ちは 1 秒（retry の値）で、続けて失敗すると 1、2、4、8、16、30 秒まで延ばす。ほかのインスタンスが書いた出来事は 1 秒ごとに出来事の記録を読む（HND-04）。相手の流れが開いていなければ、ELM-03 はその組を示せなかったと記録して Web Push で知らせる（FR-53 の 2）。流れで送った出来事の示した時刻が、その出来事を相手の流れに書いてから 2 秒のうちに届かないときも Web Push で知らせる（その組は示せなかったとはしない。端末は流れで受けた変化を示した時刻をためずに送る、IFC-10）。2 秒は、ふだん示した時刻が届くまで（流れ 0.5 秒、示すまで 0.3 秒、報告の送り 0.5 秒と受けた ELM-03 の書き込み 0.2 秒の和 1.5 秒）より長く、待ちと Web Push の配信が T_dispatch_propagation に収まる長さ（値は DAS-15、計算は報告の「遅延の予算とタイムアウト」）。ほかの値は DAS-11 による。NFR-07 の予算は報告の「遅延の予算とタイムアウト」
+  ordering: 一つの依頼の出来事は書いた順。依頼をまたぐ順は保たず、出来事の記録の順に流す
+  delivery: at-least-once（つなぎ直すと続きから届き、重なりは eventId で捨てる）。position.updated は最新の値だけで、つなぎ直したときと画面に戻ったときは今の状態の読み直しで受け直す
+versioning: 出来事の data に種類ごとの版 v を持ち、足すだけで変える。端末は知らない種類を捨てる（DEC-41）
+observability: 流れを開いたことと閉じたこと、送った出来事の eventId と相手、示せなかった記録を、たどる記録（DAT-18）と届けと示した時刻の記録（DAT-20）に残す。ログに中身を書かない（DEC-15）
+sli_bindings:
+  - sli: SLI-01
+    events: ELM-03 が乗客に送る配車の確定の知らせ（ride.accepted。流れか Web Push のどちらで届けても一つ）
+    fields: [eventId, rideId, recipientAccount, recipientTestAccount, environment, createdAt, deliveredVia, deliveryOutcome, failureOrigin]
+    method: 届けと示した時刻の記録（DAT-20）を、本番の環境のデモの回の間の知らせに絞って数える。ELM-03 が開いた流れに書けたか、Web Push の配信サービスが受け付けた（IFC-21）ものが GOOD で、ELM-03 自身の誤りと配信サービスの失敗で届けられなかったもの、流れも宛先もなく送れなかったものは GOOD でない。試験用のアカウントの乗客への知らせは外す
+  - sli: SLI-02
+    events: ELM-03 が乗客に送る迎車の到着の知らせ（ride.pickup_arrived）
+    fields: [eventId, rideId, recipientAccount, recipientTestAccount, environment, createdAt, deliveredVia, deliveryOutcome, failureOrigin]
+    method: SLI-01 の知らせと同じく DAT-20 から数える
+  - sli: SLI-03
+    events: ELM-03 が乗客に送る到着の知らせ（ride.destination_arrived）
+    fields: [eventId, rideId, recipientAccount, recipientTestAccount, environment, createdAt, deliveredVia, deliveryOutcome, failureOrigin]
+    method: SLI-01 の知らせと同じく DAT-20 から数える
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 手順からデータベースの資格情報をなくし、データベースに触れる段（check-turso、migrate、record-deploy、count-open、period-status）を運用のジョブで動かしてタスクの終わりの符号を読むとした。close-demo に最後の回の印、閉じた時刻、閉じる操作の失敗の記録とそのエラーを足した。end-period を強いて終えるときだけにした。record-deploy に変更ごとの最初のコミットの時刻と main で CI が通った時刻を渡すとした。デモを開く・戻すでサービスと二つのジョブを同じイメージにし、end-system が消すジョブを二つにした。FR-41 の受け入れ基準の番号を版 4 に合わせた
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-41 版 3・4）、第 2 段階の DEC-27 版 3・4、DEC-34 版 2、DEC-36 版 2、DEC-37 版 3・4'

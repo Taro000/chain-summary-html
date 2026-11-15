@@ -1,0 +1,19 @@
+id: POL-06
+title: コーディングエージェントが設計を見つける道と、実装からの指摘の戻り方
+status: active
+basis: inferred
+basis_note: 実装からの指摘の決まりは、設計の連鎖の決まり（第 4 段階が詳細設計の索引の実装への申し送りに書くもの）に従う。このリポジトリが .claude/skills/ に設計のスキルを持ち、コーディングエージェントに Claude Code を使うことは、リポジトリの今の形からの推定。命令の名前は POL-04 のパイプラインの手順による
+premises: [TEAM-01]
+scope: implementation-feedback
+addresses: []
+decisions: [DEC-32]
+rules:
+  - rule: リポジトリの根の CLAUDE.md が、コーディングエージェントに次を伝える。変更の前に docs/design/2b-technical-policy.md と docs/design/pol/ の方針を読み、次に docs/design/4-detailed-design.md の実装への申し送りと、変えるコンポーネントの報告（docs/design/4-detailed-design/ の下）を読むこと。方針に従うこと。終える前に pnpm check を動かすこと。git のフックを飛ばさない（--no-verify を使わない）こと。main に入れる commit に DoD の行を書くこと。CLAUDE.md は実装が書いて保つ
+    check: CLAUDE.md を作るか変える変更を、開発者が main に入れる前に見るレビュー
+  - rule: コーディングエージェントと開発者は、変更を終える前に pnpm check を動かす。pnpm check は検査の手順（check）そのもの（静的な検査、依存の規則、仕様書の違い、単体と結合の層のテスト、check.py）
+    check: git のフックが同じ pnpm check を動かし、失敗すると main に入れない
+  - rule: 設計の決めたことをコードが守れないとき（契約、不変条件、インタフェース、方針、決定が書いたとおりに動かないか、二つの項目が食い違う）は、実装への申し送りのとおりに docs/design/fnd/ に指摘を書き、技術方針（POL）についての指摘は architecture-to-technical-policy に宛てる。設計が実装に任せた細部は指摘にせず、docs/design/ に書き戻さない
+    check: 検査の手順が python3 .claude/skills/design-review/scripts/check.py --skill implementation を動かし、指摘の形と名指す項目を確かめる
+  - rule: 変更の要約は、書いた指摘と、再実行する設計の段を挙げる
+    check: 開発者が変更を main に入れる前に見るレビュー
+as_is: new

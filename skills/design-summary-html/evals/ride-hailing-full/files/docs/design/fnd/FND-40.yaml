@@ -1,26 +1,14 @@
 id: FND-40
-title: 配信の仕様書（stream.asyncapi.yaml）が、流れを開くときの見出しと断り、アカウントの本数を超えたときの扱いで IFC-08 と合わない
+title: 報告の DRV-01 の流れが、乗車の開始と到着の確認の端末のタイムアウトを 10 秒と描くが、IFC-03 はその値を第 4 段階に送っている
 status: accepted
-version: 2
 basis: inferred
-basis_note: IFC-08 の protocol、auth、errors、operations、2-architecture.md の上限の文、stream.asyncapi.yaml の冒頭と messages は入力。つなぎ直しが断られることは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: 第 3 段階の報告の DRV-01 の流れ、IFC-03、IFC-04、IFC-09 の timing、DEC-46、HND-17 は入力
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+raised_in: reviews/3-high-level-design.md
 to: architecture-to-high-level-design
-targets:
-- IFC-08
+targets: [IFC-03]
 severity: minor
-evidence: IFC-08 は 401 UNAUTHENTICATED と、429 STREAM_LIMIT と Retry-After を返し、ブラウザは traceparent と Last-Event-ID の見出しを付けて開くとするが、仕様書にはどれもなく、断りは冒頭の説明の一文だけ。アカウントごとの 2 本を超えたとき、IFC-08 と 2-architecture.md（DEC-21）は古い流れを閉じるとし、仕様書は 429 と Retry-After を返すとする。後者では、前面に戻ってつなぎ直すときに前の流れがまだ切れていないと断られ、15 秒ごとの問い合わせに落ちる（DRV-02）。ride.live の「1 秒に 1 回まで」と、古い流れを閉じるときの stream.closing の理由の値も仕様書にない
-suggestion: 仕様書に、流れを開く要求の見出し（Last-Event-ID、traceparent、X-Client-Trace-Id）、401 と 429 の応答、ride.live の頻度、stream.closing の理由の値を書き、アカウントの本数を超えたときの扱いを IFC-08 と DEC-21 の「古い流れを閉じる」にそろえる
-resolution: "受け入れた。stream.asyncapi.yaml に、流れを開く要求の見出し、401 と 429 の応答、ride.live の頻度、stream.closing の理由の値（max_age、replaced、shutdown）を書き、アカウントの本数を超えたときの扱いを IFC-08 と第 2 段階の DEC-21 の「古い流れを閉じる」にそろえた。流れの優先は第 2 段階の DEC-21 版 5 で外した"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B5、B10）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: FND-22 を受けて描き直した報告の DRV-01 の流れは、外部を呼ばない操作（取り消し、許諾、乗車の開始、到着の確認、評価）の送り直しを「タイムアウト（10 秒）の後」と描く。10 秒は、時間のしきい値の SLO とお金の道の上の外部を呼ばない操作の端末のタイムアウト（DEC-46。IFC-03 の取り消しと不在、IFC-04 の許諾、IFC-09 の評価）。IFC-03 の timing は、乗車の開始と到着の確認をそれらの道にない操作として枠だけを決め、値を第 4 段階に送る（ELM-01 は HND-17）。流れと IFC-03 が、二つの操作の値で食い違う
+suggestion: DRV-01 の流れの 10 秒を取り消し、許諾、評価の値として書き分け、乗車の開始と到着の確認は HND-17 で決まる端末のタイムアウトの後に送り直すと描く
+resolution: "受け入れ。報告の DRV-01 の流れの外部を呼ばない操作の送り直しを、取り消し、許諾、評価は端末のタイムアウト 10 秒の後、乗車の開始と到着の確認は第 4 段階が HND-17 で決めるタイムアウトの後と書き分けた。IFC-03 の timing は変えず、basis_note にこの指摘を引いた"

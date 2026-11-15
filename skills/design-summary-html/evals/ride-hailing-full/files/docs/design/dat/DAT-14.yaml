@@ -1,40 +1,23 @@
 id: DAT-14
-title: 操作キーと最初の結果
-status: draft
-version: 2
+title: 評価とまとめた評価
+status: active
 basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: 操作キーと最初の結果
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- account_id と idempotency_key（一意）
-- route_id
-- request_hash
-- status（processing、pending、completed）
-- response_status、response_body（設定の符号を示す操作では符号を入れず、示したことだけを残す。DEC-48）
-- resource_id（依頼など）
-- created_at、expires_at
+basis_note: 乗客が 1〜5 で評価し、ドライバーの振る舞いと車の状態を含められ、一つの乗車に一つだけで、ドライバーの評価をすべての評価の平均とすることは FR-15（入力）。評価を受けた取引でまとめた評価も書き直し、新しい評価をその時から規則に使うことは DEC-24（入力）。評価の件数を N_rating_count_min と比べることは FR-05（入力）。属性と扱いの区分は推定
+premises: []
+entity: 評価と、ドライバーのまとめた評価
+owner: ELM-03
+store: ELM-04
+key_attributes: [ratingId, rideId, driverAccountId, passengerAccountId, score, aspects, comment, receivedAt, driverAverage, driverRatingCount, aggregateUpdatedAt, testAccount]
 relations:
-- to: DAT-06
-  kind: many-to-one
-  note: 作った依頼
-consistency: 冪等性のモジュールだけが書く。一つ目のトランザクションで一意の制約で書き（同時の二つ目は制約で落ちて 409 OPERATION_IN_PROGRESS）、最初の結果は状態を変えたのと同じトランザクションで書く。pending は結果が確定したとき、配車か支払いのモジュールが冪等性のモジュールの操作を呼んで completed にする。手配の押さえで Stripe が実行しなかったか届かなかったと分かったとき（503 PAYMENTS_UNAVAILABLE）は、二つ目のトランザクションでキーの行を消して放す（同じキーの送り直しは初めからやり直す。DEC-48 の例外、DEC-52）。ELM-05 は持ち主のモジュールを通して書く（DEC-53。T_idem_keep を過ぎたキーの削除と、確かめで定まった pending の確定）
-retention: 7 日（仮。T_idem_keep。DEC-48）。毎日の処理が消す
+  - {to: DAT-07, kind: one-to-one, note: 評価した乗車}
+  - {to: DAT-01, kind: many-to-one, note: 評価されたドライバー}
+consistency: 評価を書く取引で、ドライバーのまとめた評価（すべての評価の平均と件数）を書き直す（DEC-24、FR-15 の 3）。一つの乗車に評価は一つ（FR-15 の 5）。任意の文は記録した日の鍵で暗号にする（DEC-16）
+retention: 評価は依頼と同じ（FR-38 の 2 で示す）。任意の文は記録してから 3 年を過ぎたら日々の処理が消す（QR-59）。まとめた評価はドライバーのアカウントが使えなくなるまで
 classification: personal
-drivers:
-- DRV-04
-- DRV-30
-- DRV-01
+drivers: [DRV-08, DRV-09, DRV-27]
+sli_bindings:
+  - sli: SLI-13
+    events: 乗客が送り、ELM-03 が受けた評価一つごと（一つの乗車に一つ）
+    fields: [ratingId, receivedAt, aggregateUpdatedAt, testAccount, environment]
+    method: 評価の記録を受けた日（Asia/Tokyo）ごとに問い合わせ、まとめた評価を書き直した時刻と受けた時刻の差を T_rating_reflect と比べる。同じ取引で書くため差はその取引の時間で、まとめた評価に一度も入らなかった評価はない。試験用のアカウントの評価は外す
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 手配の 503 PAYMENTS_UNAVAILABLE ではキーの行を消して放すと書いた。ELM-05 は持ち主のモジュールを通して書くと書いた。設定の符号を示す操作の最初の結果に符号を入れないことを書いた（符号はハッシュだけを DAT-02 に持つ）
-  reason: '第 3 段階の再実行（2026-11-04）: DEC-48 版 2、FND-30・39'

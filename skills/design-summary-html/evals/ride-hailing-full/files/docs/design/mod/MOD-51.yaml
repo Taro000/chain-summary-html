@@ -1,0 +1,33 @@
+id: MOD-51
+title: 依頼を届ける相手の規則
+status: active
+basis: inferred
+basis_note: 届けるとき、一覧と内容を示すとき、許諾を受けるときに、受付、停止、登録、評価とその件数、乗客の閾値、ドライバーの条件と新しい現在地を、その時点の値で一つの規則に当てることは DEC-24、その規則と評価のまとめ方を一つの機能のディレクトリに置き、規則ごとと組み合わせで試せることは POL-02、QR-54、NFR-36、閾値と件数の下限（N_rating_count_min、2 件）は FR-05、QR-16、ドライバーの最低の金額と最大の距離と現在地が分からないときは FR-19、QR-32、登録が済むまで届けないことは FR-43 の 5 と QR-63、停止は FR-44 と QR-49、評価のまとめ方（すべての評価の平均）は FR-15 の 3 と QR-66、距離を直線の距離とすることは DEC-24 の想定（QCR-01）（どれも入力）。評価の平均と閾値を整数の掛け算で比べて丸めないことは推定。迎車中か乗車中のドライバーを規則で除かず（DEC-24 と IFC-04 の規則にない）、許諾だけを MOD-52 が DRIVER_ALREADY_ASSIGNED で退けることは、DEC-24、IFC-04、FR-18 の 1（入力）に従うよう FND-68 を受けて直した
+premises: [QCR-01]
+component: ELM-03
+name: 依頼を届ける相手の規則
+depth: full
+depth_reason: 依頼を届けるか、示すか、許諾を受けるかを、受付、登録、停止、評価とその件数と乗客の閾値、最低の金額、最大の距離と新しい現在地の組で決める、いくつもの条件の規則（DEC-24。NFR-36 が規則ごとと組み合わせで試すことを求める）。評価のまとめ方も同じ所に置く（POL-02）
+responsibility: その時点の値から、ドライバーにその依頼を届けてよいかを決める
+visibility: internal
+interface:
+  - operation: "eligible(driver: DriverFacts, ride: OfferFacts, now: Instant) -> eligible | notEligible(reasons: Reason[])"
+    pre: driver と ride は、呼ぶ側が同じ取引か同じ読みで読んだその時点の値（受付、登録、停止、評価の和と件数、条件、最新の位置と新しさ。乗客の閾値、確定額、乗る場所）
+    post: 判断表 A で決め、notEligible はあてはまらなかった理由をすべて返す（FR-45 の 2、NFR-35 の記録と ride.expired の閾値のためかに使う）
+    errors: []
+  - operation: "aggregate(scores: integer[]) -> RatingAggregate"
+    pre: 一つの乗車に一つの評価だけを渡す
+    post: 評価の和と件数（平均は和を件数で割ったもの。比べるときは和と閾値と件数の積を比べて丸めない、FR-15 の 3）
+    errors: []
+invariants: []
+depends_on: []
+functions: [FR-05, FR-15, FR-16, FR-19, FR-32, FR-43, FR-44]
+realizes: []
+drivers: [DRV-08, DRV-35]
+decisions: [DEC-24]
+behaviour: "報告書の節: MOD-51 依頼を届ける相手の規則"
+verification:
+  - checks: 判断表 A の規則ごとと組み合わせ（閾値ちょうどの評価、評価がまだないドライバー、件数が 2 件と 1 件、最低の金額ちょうど、最大の距離ちょうど、現在地が分からない、届いた後に停止、登録なし、迎車中か乗車中のドライバーも規則では除かない）と評価のまとめ方
+    how: 単体の層（NFR-36 の出どころ）
+parameters: []
+as_is: new

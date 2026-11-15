@@ -1,11 +1,9 @@
 id: QR-09
 title: 生徒の個人情報の機密性
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: []
 model: product
 layer: external
 characteristic: security > confidentiality
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

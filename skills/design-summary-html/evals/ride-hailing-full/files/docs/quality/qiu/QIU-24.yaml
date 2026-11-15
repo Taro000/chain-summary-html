@@ -1,44 +1,32 @@
 id: QIU-24
-title: 苦情への対処を早く決める
-status: draft
-version: 2
-basis: inferred
-basis_note: 利用者と CUJ は質問 4・10 で確認済み（説明から下書き）。苦情の記録が今はないことは質問 9 で確認済み。T_complaint と測定量は推定。T_complaint の値は 2026-11-01 の利用者の回答で決めた
-needs_agreement: true
-approver_candidates:
-  - 運営の責任者
-user: USR-04
-cuj: CUJ-14
+title: エンジニアが既存の機能を壊さずに新しい機能を追加できる
+status: active
+basis: assumed
+basis_note: CUJ とニーズ（既存のシステムを壊さない）は入力。測定量と利用状況は推定。測定量はプロダクトの外のエンジニアの記録で数える（第 2 段階の質問 5）。N_regression_days の値（14 日）は第 4 段階が提案した仮の値で、QAS-49 による仮定
+premises: [QAS-49]
+user: USR-03
+cuj: CUJ-11
 outcomes: []
-need: 乗客の苦情に応え、問題のあるドライバーへの対処を決めたい
+need: 機能の追加で既存のシステムを壊さない
 context_of_use:
-  device: 指定なし
-  network: 指定なし
-  user_type: 運営・サポート担当
-  task: 乗車に関する苦情への対応
+  device: 問わない
+  network: 問わない
+  user_type: システムを保守するエンジニア
+  task: 新しい機能の追加
   environment: null
   other: null
-characteristic: efficiency
-statement: 運営・サポート担当は、苦情を受けてから 1 時間（T_complaint）以内に、ドライバーへの対処を決められる。
-failure_scenario: 対処を決めるまでに時間がかかり、その間に問題のあるドライバーが次の乗客を乗せ、同じ苦情が重なる。
+characteristic: effectiveness
+statement: 新しい機能を追加するエンジニアは、既存の機能を以前どおりに動かしたまま、追加を公開できる。
+failure_scenario: 新しい機能を公開したら配車の確定や決済が動かなくなり、乗客は配車を手配できず、ドライバーは運賃を受け取れない。
 measure:
-  numerator: 受け付けてから 1 時間（T_complaint）以内に対処を決めた苦情
-  denominator: 対処を決めた苦情
-  narrowed_to: ドライバーの振る舞い、車の清潔さ、運転についての苦情。重複といたずらを除く
-  denominator_needed_only: 対処を決めた苦情だけ（決められなかったものは QIU-23 で数える）
-  contribution: 苦情と乗車・ドライバーの記録をすぐ引けるかにつながる。担当の人数にも左右される
+  numerator: 公開から N_regression_days（14 日）以内に、既存の機能が以前どおりに動かなくなる不具合を起こさなかった機能の追加
+  denominator: 公開した機能の追加
+  narrowed_to: 稼働中のシステムに公開した機能の追加
+  denominator_needed_only: 公開まで進んだ追加だけを数える
+  contribution: 変更が既存の機能に及ぼす影響を確かめやすいかにプロダクトの作りが効く
   observable: false
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 質問 4 の回答から下書きし、質問 10 で残すと確認
-  - version: 2
-    date: '2026-11-01'
-    change: しきい値 T_complaint に値を入れた
-    reason: 2026-11-01 の利用者の回答。目標値（target）は未定のまま

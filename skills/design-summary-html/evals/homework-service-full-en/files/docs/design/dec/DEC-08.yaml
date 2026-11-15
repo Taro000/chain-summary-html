@@ -1,45 +1,36 @@
 id: DEC-08
-title: State-changing requests carry an idempotency key
-status: draft
-version: 1
+title: Write the API server with Hono on Node.js
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
-stage: high-level-design
-question: Which requests are idempotent?
+premises:
+- TC-01
+stage: technical-policy
+question: Which framework is the API server written in?
 addresses:
-- IFC-01
-- IFC-02
-- DRV-03
+- DRV-02
+- DRV-07
 options:
-- name: An idempotency key on every state-changing request
-  effect: Retries never duplicate
-  cost: Keys are kept for 24 hours
-- name: An idempotency key on submissions only
-  effect: Less to keep
-  cost: A retried return sends two notifications
-chosen: An idempotency key on every state-changing request
-rationale: Neither a submission nor a return may happen twice when retried (DRV-03).
+- name: Hono on Node.js
+  effect: Specs come from typed routes
+  cost: A newer framework
+- name: Express on Node.js
+  effect: Widely documented
+  cost: Requests and responses are untyped
+chosen: Hono on Node.js
+rationale: Specs come from typed routes, all in TypeScript (TC-01).
 rejected:
-- option: An idempotency key on submissions only
-  reason: Returns can happen twice
-gains: []
-costs: []
+- option: Express on Node.js
+  reason: Requests and responses are untyped
+gains:
+- No spec written by hand
+costs:
+- A newer framework
 sensitive_points: []
 trade_offs: []
 assumptions: []
-depends_on: []
-parameters:
-- name: Idempotency key retention
-  value: 24 hours
-  basis: Provisional
+depends_on:
+- DEC-01
+parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

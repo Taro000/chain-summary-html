@@ -1,10 +1,10 @@
-system:
-  name: Homework submission service (homework-portal)
-  boundary: The web app that students and teachers use (handing out, submitting, grading and returning homework), the monthly report the cram school office reads, and the servers and logs that run them. The parents' screens and tuition payments are left out.
-  purpose: Students hand in homework by the deadline, and teachers return it quickly
-  constraints: [Submitted files are kept in an external storage service]
-  data_producers: [External storage (submitted files)]
-  basis: stated
+system: {name: Homework submission service (homework-portal), boundary: 'Where students and teachers hand out, submit, grade and return homework, and the monthly report the cram school office reads. The parents'' screens and tuition payments are left out.', purpose: 'Students hand in homework by the deadline, and teachers return it quickly', basis: stated}
+constraints:
+- {id: CON-01, statement: Teachers set the deadline of each assignment, source: The request document in the inputs, basis: stated}
+external_systems:
+- {id: EXT-01, role: External storage (keeps the submitted files), creates_data: true, source: The request document in the inputs, basis: stated}
+design_inputs:
+- {id: DIN-01, statement: The student and teacher screens are a web app that runs in the browser, source: The request document in the inputs, basis: stated}
 kgis:
 - {id: KGI-01, name: Retention, measure: Students enrolled at month end ÷ students enrolled at month start, target: 95%, basis: stated}
 outcomes:
@@ -57,4 +57,5 @@ cujs:
 hints:
 - {statement: Handles students' personal information, kind: law, source: The request document in the inputs}
 operational_facts:
-- {fact: Submissions peak in the 24 hours before the deadline, source: The request document in the inputs}
+- {id: OPF-01, fact: Submissions peak in the 24 hours before the deadline, source: The request document in the inputs, basis: stated}
+- {id: OPF-02, fact: Server access logs and records of the nightly jobs already exist, source: The request document in the inputs, basis: stated}

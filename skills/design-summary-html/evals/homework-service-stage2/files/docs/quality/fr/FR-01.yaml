@@ -1,11 +1,9 @@
 id: FR-01
 title: 課題の提出
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: stated
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: [EXT-01]
 statement: システムは、生徒が添付したファイルを課題への提出として受け付ける。
 origin: cuj-step
 cuj: CUJ-01
@@ -14,8 +12,6 @@ traces_to: [QIU-01, KPI-01]
 proposal: null
 existing: true
 extends: null
-interface: ['画面: 生徒の Web アプリ']
+interface: ['画面: 生徒', EXT-01]
 acceptance_criteria: [期限までに提出すると、提出の記録を作り「提出しました」と示す。, 期限を過ぎた提出は、遅れの印を付けて受け付ける。]
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: 作成, reason: 第 2 段階の下書き}

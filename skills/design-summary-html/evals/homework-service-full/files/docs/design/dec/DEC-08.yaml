@@ -1,45 +1,36 @@
 id: DEC-08
-title: 状態を変える要求に冪等キーを求める
-status: draft
-version: 1
+title: API サーバーは Node.js の上の Hono で書く
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
-stage: high-level-design
-question: どの要求を冪等にするか
+premises:
+- TC-01
+stage: technical-policy
+question: API サーバーをどのフレームワークで書くか
 addresses:
-- IFC-01
-- IFC-02
-- DRV-03
+- DRV-02
+- DRV-07
 options:
-- name: 状態を変える要求すべてに冪等キー
-  effect: 送り直しても二重にならない
-  cost: キーを 24 時間持つ
-- name: 提出だけに冪等キー
-  effect: 持つものが少ない
-  cost: 返却の送り直しで通知が二重になる
-chosen: 状態を変える要求すべてに冪等キー
-rationale: 提出も返却も、送り直しで二重にしない（DRV-03）。
+- name: Node.js の上の Hono
+  effect: 型のついた経路から仕様書を作れる
+  cost: 仕組みが新しい
+- name: Node.js の上の Express
+  effect: 情報が多い
+  cost: 要求と応答に型がない
+chosen: Node.js の上の Hono
+rationale: 型のついた経路から仕様書を作れ、TypeScript（TC-01）で揃う。
 rejected:
-- option: 提出だけに冪等キー
-  reason: 返却が二重になる
-gains: []
-costs: []
+- option: Node.js の上の Express
+  reason: 要求と応答に型がない
+gains:
+- 仕様書を手で書かずに済む
+costs:
+- 仕組みが新しい
 sensitive_points: []
 trade_offs: []
 assumptions: []
-depends_on: []
-parameters:
-- name: 冪等キーの保持
-  value: 24 時間
-  basis: 仮
+depends_on:
+- DEC-01
+parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き

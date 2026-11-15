@@ -1,11 +1,9 @@
 id: FRP-02
 title: Automatic resend of submissions
 status: rejected
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 proposed_by: functional-requirements-to-product-quality
 origin: [QR-01]
 changes: null
@@ -14,5 +12,3 @@ suggested_statement: Resend failed submissions automatically
 affects: []
 placeholders: []
 resolution: 'Not accepted: the FR-06 draft is enough'
-changelog:
-- {version: 1, date: '2026-09-08', change: Proposed, reason: Stage 3}

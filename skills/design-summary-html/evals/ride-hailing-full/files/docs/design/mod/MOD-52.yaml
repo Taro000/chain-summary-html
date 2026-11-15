@@ -1,0 +1,69 @@
+id: MOD-52
+title: 届いた依頼と許諾
+status: active
+basis: inferred
+basis_note: 受付の切り替え、届いている依頼の一覧（届ける相手の規則をその時点の値で当て、現在地が分からないときはそのことを返して距離の条件のある依頼を除く）、依頼を選ぶ操作（走っていなければ内容を返し、示した金額を記録する）、許諾（規則と走っているかを当て直し、今の状態を条件に割り当て、許諾したときの速さ、評価、閾値を記録する）と答えは IFC-04、一覧の変化を offer.added と offer.removed で届け、走っているドライバーにも届けることは IFC-11 と FR-22 の 1、規則は DEC-24、走っているかの判断は DEC-22、重なった許諾は先に書けた一つだけが割り当てられることは DEC-08 と FR-21、停止した時から許諾させないことは QR-49、依頼を届けた先とそのときの条件と停止、選んだことと許諾とそのときの評価と閾値と速さを依頼の経過に残すことは FR-45 の 2、3、FR-22 の 4、DAT-09（どれも入力）。許諾の当て直しと割り当てを一つの書き込みの取引で行い、停止と受付と条件をその取引の中で読むことは MOD-25 の取引の決まりからの推定。依頼の内容の移動時間を、見積もり（DAT-06）か押さえ直した降りる場所の変更（DAT-08）が持つ道の時間から示し、EXT-02 を呼ばないことは推定（その時間は EXT-02 で求めたもの、IFC-19）。受付をしている人を MOD-49 に渡す口を実装することは推定。迎車中か乗車中のドライバーにも依頼を届けて一覧と内容を示し、許諾だけを判断表 A の 3 行目で DRIVER_ALREADY_ASSIGNED で退けること（MOD-51 の規則で除かない）は、DEC-24、IFC-04、FR-18 の 1（入力）に従うよう FND-68 を受けて直し、post と verification の表の名前を報告の判断表 A に合わせた
+premises: [QCR-01]
+component: ELM-03
+name: 届いた依頼と許諾
+depth: full
+depth_reason: 許諾を、規則と走っているかの当て直しと今の状態を条件にした割り当てを一つの書き込みの取引で行う（重なった許諾、取り消し、停止のどれが効くかを決める、同時に動く仕事と状態を分ける）。どのドライバーに依頼を届け、いつ一覧から除くかを決める
+responsibility: 受付をしているドライバーに依頼を届け、許諾を一人に割り当てる
+visibility: public
+interface:
+  - operation: "setAvailability(actor: Actor, accepting: boolean, key: IdempotencyKey) -> Availability"
+    pre: null
+    post: PUT /v1/drivers/me/availability で、判断表 B のとおり受付を始めるかやめ（やめても許諾した依頼は続く）、冪等キーの答えと一つの取引で書く。やめたら最新の位置を持たなくてよい（MOD-47）
+    errors: ["DRIVER_SUSPENDED: 403", "DRIVER_NOT_REGISTERED: 403"]
+  - operation: "listOffers(actor: Actor, now: Instant) -> OfferList"
+    pre: null
+    post: GET /v1/offers に、searching の依頼のうち、その時点の値で MOD-51 の eligible に当たるものを返す。最新の位置が新しくなければ positionUnknown を真にし、距離の条件のある依頼を除く
+    errors: ["NOT_ACCEPTING_REQUESTS: 409", "DRIVER_SUSPENDED: 403"]
+  - operation: "selectOffer(actor: Actor, rideId: RideId, now: Instant) -> OfferDetail"
+    pre: null
+    post: GET /v1/offers/{rideId} で、判断表 A で答え、渡せるなら金額（確定額）、乗車場所、現在地から乗車場所までの直線の距離、降りる場所、移動時間の見込みを返し、示した金額と選んだことを依頼の経過に書く（SLI-11 の amountShownToDriver）
+    errors: ["DRIVER_MOVING: 409", "OFFER_NO_LONGER_AVAILABLE: 409 と reason（taken、cancelled、not_eligible、ended）", "NOT_ACCEPTING_REQUESTS: 409", "DRIVER_SUSPENDED: 403"]
+  - operation: "accept(actor: Actor, rideId: RideId, key: IdempotencyKey) -> Assigned"
+    pre: null
+    post: POST /v1/offers/{rideId}/acceptance で、一つの書き込みの取引の中で、受付、停止、登録、迎車中か乗車中の依頼、評価、閾値、条件、最新の位置を読んで MOD-51 で当て直し、MOD-48 で走っているかを決め、判断表 A で答える。割り当てるなら MOD-45 の accept、許諾したときの速さが V_moving_lock を下回っていたか、評価、閾値の依頼の経過、ほかに届けたドライバーへの offer.removed（taken）、冪等キーの答えを同じ取引で書く
+    errors: ["DRIVER_MOVING: 409", "OFFER_NO_LONGER_AVAILABLE: 409 と reason", "DRIVER_SUSPENDED: 403", "DRIVER_ALREADY_ASSIGNED: 409", "NOT_ACCEPTING_REQUESTS: 409"]
+  - operation: "offerToEligible(tx: Tx, ride: OfferFacts) -> AccountId[]"
+    pre: MOD-45 が、依頼が searching になる取引（押さえた、届け直した）の中で、起動のときに渡された口から呼ぶ
+    post: 受付をしているドライバーごとに MOD-51 を当て、届けたドライバーごとにそのときの条件と停止と評価と閾値の依頼の経過と offer.added（MOD-33）を書き、届けた先を返す。評価のために除いたドライバーがいれば、そのことも依頼の経過に残す（ride.expired の閾値のためか）
+    errors: []
+  - operation: "withdraw(tx: Tx, rideId: RideId, reason: WithdrawReason) -> none; withdrawAllFor(tx: Tx, driver: AccountId) -> none"
+    pre: withdraw は MOD-45 が依頼が searching でなくなる取引の中で、withdrawAllFor は MOD-55 が停止の取引の中で呼ぶ
+    post: その依頼を届けたドライバー（許諾したドライバーを除く）か、そのドライバーに届いている searching の依頼ごとに offer.removed と理由を書く
+    errors: []
+  - operation: "acceptingDrivers() -> AccountId[]"
+    pre: null
+    post: 受付をしているドライバー（MOD-49 の対象の人）
+    errors: []
+invariants:
+  - 許諾は、当て直しの読みと割り当ての書き込みを一つの書き込みの取引で行い、その取引の前に確定した停止、取り消し、ほかの許諾は必ず効く
+  - 依頼を届けたドライバーには、その依頼が searching でなくなったとき offer.removed を一度届ける
+depends_on: [MOD-21, MOD-25, MOD-26, MOD-27, MOD-28, MOD-30, MOD-33, MOD-37, MOD-45, MOD-47, MOD-48, MOD-49, MOD-51, MOD-53]
+functions: [FR-04, FR-05, FR-06, FR-07, FR-17, FR-18, FR-19, FR-20, FR-21, FR-22, FR-23, FR-43, FR-44, FR-45]
+realizes:
+  - IFC-04 PUT /v1/drivers/me/availability
+  - IFC-04 GET /v1/offers
+  - IFC-04 GET /v1/offers/{rideId}
+  - IFC-04 POST /v1/offers/{rideId}/acceptance
+  - IFC-11 offer.added
+  - IFC-11 offer.removed
+drivers: [DRV-02, DRV-03, DRV-08, DRV-11, DRV-35]
+decisions: [DEC-08, DEC-22, DEC-24]
+behaviour: "報告書の節: MOD-52 届いた依頼と許諾"
+verification:
+  - checks: 判断表 A〜C の行ごと（受付、停止、登録、走っている、分からない、searching でない理由、迎車中か乗車中のドライバーは選ぶ操作で内容を受け、許諾で DRIVER_ALREADY_ASSIGNED を受け、届けと一覧から除かれない）
+    how: 単体の層（MOD-45、MOD-48、MOD-51 の偽物）
+  - checks: 二人の許諾、許諾と取り消し、許諾と停止を差し込みで重ね、どの順でも一人に定まり、ほかは OFFER_NO_LONGER_AVAILABLE か DRIVER_SUSPENDED を受ける（FR-21 の 2、3、FR-44 の 2、QR-49、NFR-11）
+    how: 結合の層（依頼の状態を書くポートの差し込み）
+  - checks: 走っている間の 409 と止まった後の受け付け（FR-22 の 2、3）
+    how: 結合の層（位置と速さの偽物）
+  - checks: 届けた記録の項目（届けた先、条件と停止、選んだこと、許諾と評価と閾値と速さ、FR-45 の 2、3、FR-22 の 4、NFR-35 の信号）
+    how: 結合の層
+  - checks: 依頼からドライバーの一覧に示すまでと、ほかのドライバーの許諾から見ているドライバーの一覧から除くまで（SLI-14、NFR-07）
+    how: 端から端の層
+parameters: []
+as_is: new

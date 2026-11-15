@@ -1,12 +1,9 @@
 id: DEC-04
 title: 夜間のレポートをバッチで作る
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises: []
 stage: architecture
 question: 月次の提出状況のレポートをいつ作るか
 addresses:
@@ -42,11 +39,4 @@ debt:
   what: レポートは前の日までの分しか出ない
   why_accepted: 塾の事務は月次で見る（CUJ-04）
   repay_when: 当日の数字が要ると言われたとき
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

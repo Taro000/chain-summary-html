@@ -1,0 +1,22 @@
+id: QR-58
+title: ログの中の個人の情報は伏せてある
+status: active
+basis: inferred
+basis_note: ログの個人の情報を伏せることは質問 1 で確認済み（個人の情報の扱いに関する法令）。どう伏せるかは設計で決める。端末で起きたエラーの記録（FR-52）もログとして加えた。持ち込んだ役割は法務の担当と推定した。最低限守る線とすることは決めたこと 11 で確認済み（QAS-21 への訂正）
+premises: [CON-06, QAS-21]
+model: data
+layer: data-system-dependent
+characteristic: confidentiality
+statement: システムのログに記録される乗客とドライバーの名前、連絡先、位置情報は、どれも伏せた形でだけ記録されている。
+applies_to: [FR-33, FR-34, FR-35, FR-45, FR-52]
+traces_to: []
+entry_point: {type: law, source: 個人情報保護法, brought_by: 法務の担当}
+stakeholders: [USR-01, USR-02, USR-03]
+failure_scenario: 決済の失敗を記録したログに乗客の名前と降りる場所がそのまま残り、ログを見られる人なら誰でも乗客の移動が分かる。
+score: {impact: 5, likelihood: 2}
+handling: minimum-line
+handling_reason: 個人の情報の扱いに関する法令から来るため、点によらず対象から外さない
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

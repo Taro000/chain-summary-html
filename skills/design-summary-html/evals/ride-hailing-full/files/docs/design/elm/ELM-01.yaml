@@ -1,85 +1,17 @@
 id: ELM-01
-title: 乗客の Web アプリ
-status: draft
-version: 3
+title: 乗客とドライバーの Web アプリ
+status: active
 basis: inferred
-basis_note: 提案
-needs_agreement: false
-approver_candidates: []
+basis_note: Web アプリで iOS の Safari だけを対象にすることは TC-13（入力）。参加者がアプリを画面に出したままにすることは設計の第 1 段階の質問 2 の答え（QCR-02）に従う。ドライバーが受付をしている間も出したままにすること（TC-18、QCR-03）は質問 2 で、対応する iOS の版は質問 1 で確認済み。ホーム画面に加えた Web アプリの振る舞いは DAS-03 によるもので、質問 6 で確認済み（仮定のまま進め、実機での振る舞いは開発の中と NFR-15 の受け入れの試験で確かめる）。受け持つ機能の割り当ては推定
+premises: [TC-13, TC-18, CON-05, DAS-03, QCR-02, QCR-03]
 kind: component
-name: 乗客の Web アプリ
-responsibility: ログインと、設定の符号で最初のパスワードを決める画面（自分でアカウントを作る画面はない）。手配、手配の状況（押さえを確かめている間の「確かめています」と取り消し、T_request_max でのシステムの取り消しの知らせ）、迎車と乗車の地図、迎車中の乗る前の案内（確認コードを伝え、画面が乗車中に変わってから乗る。乗車中はサーバーの記録した運転の開始を受けたときだけ示す。DEC-30）、降車場所の変更、評価、しきい値、報告、履歴、支払い手段の画面。位置の取得と送信（迎車中で許可したとき）、音、前面と裏の扱い、カードの入力部品、SSE の受信と最新の状態の取り直し、表示の記録とエラーの記録の一時の保存と送信
-functions:
-- FR-01
-- FR-02
-- FR-03
-- FR-04
-- FR-05
-- FR-06
-- FR-07
-- FR-08
-- FR-09
-- FR-10
-- FR-11
-- FR-12
-- FR-13
-- FR-14
-- FR-24
-- FR-26
-- FR-28
-- FR-29
-- FR-31
-- FR-37
-- FR-38
-- FR-43
-- FR-44
-- FR-51
-- FR-54
-drivers:
-- DRV-02
-- DRV-03
-- DRV-07
-- DRV-08
-- DRV-09
-- DRV-14
-- DRV-20
-- DRV-21
-- DRV-22
-- DRV-24
-- DRV-27
-- DRV-28
-- DRV-32
-decisions:
-- DEC-03
-- DEC-10
-- DEC-12
-- DEC-14
-- DEC-18
-- DEC-21
-- DEC-22
-- DEC-23
-- DEC-24
-- DEC-30
-- DEC-33
+name: 乗客とドライバーの Web アプリ
+responsibility: 乗客とドライバーの画面を示し、利用者の操作を冪等キーとたどる ID とともに配車サーバーに送り、サーバーからの流れと Web Push で変化を示す。画面に出ている間は画面を消さずに保ち、端末が測った位置と速さを送る。カードの情報は EXT-01 の入力部品で直接 EXT-01 に渡し、地図は EXT-02 で描く。端末で起きたエラーと、相手の変化を示した時刻を、つながっていない間はためて送る。使える機能、額、状態、評価は決めず、サーバーが送ったものを示す
+functions: [FR-01, FR-02, FR-03, FR-04, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-15, FR-16, FR-17, FR-18, FR-19, FR-20, FR-21, FR-22, FR-23, FR-24, FR-25, FR-26, FR-27, FR-28, FR-29, FR-30, FR-31, FR-32, FR-36, FR-37, FR-39, FR-44, FR-46, FR-47, FR-48, FR-49, FR-52, FR-53, FR-54]
+drivers: [DRV-14, DRV-04, DRV-03, DRV-02, DRV-12, DRV-05, DRV-09, DRV-10, DRV-11, DRV-17, DRV-18, DRV-19, DRV-22, DRV-24, DRV-26, DRV-28, DRV-33]
+decisions: [DEC-01, DEC-02, DEC-04, DEC-06, DEC-07, DEC-08, DEC-12, DEC-13, DEC-14, DEC-19, DEC-21, DEC-22, DEC-23, DEC-25, DEC-26, DEC-27]
 team: TEAM-01
-technology: React（TC-02）。組み立ては Vite（DEC-23、DEC-32）
-runs_on: ELM-15
-depends_on:
-- ELM-04
-- ELM-10
-- ELM-11
-- ELM-13
+technology: iOS 18.4 以降の iPhone の Safari で、ホーム画面に加えた Web アプリとして動く（ランタイムは Safari、DEC-02、DEC-04）。静的なファイルは ELM-03 が配る
+runs_on: ELM-11
+depends_on: [ELM-03, ELM-05, ELM-06, ELM-07]
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: 形づくる決定に、手配の操作キー（DEC-12）、SSE の流れの上限と 429（DEC-21）、経路の上限の 503（DEC-33）を加えた
-  reason: FND-04、07、08（第 2 段階のレビュー）を受け入れた
-- version: 3
-  date: '2026-11-03'
-  change: 責務に、設定の符号でパスワードを決める画面（自分でアカウントを作る画面はない）、押さえを確かめている間の画面と取り消し、システムの取り消しの知らせ、迎車中の乗る前の案内と、乗車中をサーバーの記録からだけ示すことを足した
-  reason: 品質チェーンの再実行（FR-01 版 3、FR-05 版 3、FR-08 版 2、FR-12 版 4、FR-26 版 2）と DEC-30 版 2 に追随した（第 2 段階の再実行、4 回目）

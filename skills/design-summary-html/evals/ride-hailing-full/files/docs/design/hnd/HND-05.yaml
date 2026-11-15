@@ -1,0 +1,14 @@
+id: HND-05
+title: お金の道の時間切れ、やり直し、待ちの値
+status: decided
+basis: inferred
+basis_note: DEC-10 の応答を左右する点。お金の道で、QR-24 の T_payment_response の道にもあるため、第 3 段階に送る。EXT-01 のテスト環境の応答の時間は、設計の第 1 段階の申し送り（bounds に挙げた）が同じ段階に送っている
+premises: [EXT-01]
+from: architecture-drivers-to-architecture
+to: architecture-to-high-level-design
+component: null
+origin: [DEC-10]
+what: EXT-01 への一回の呼び出しの時間切れ、同じキーでのやり直しの回数と間隔、依頼のときの押さえと押さえ直しを済まなかったとみなすまでの待ち、結果が分からない操作を確かめに行く間隔、ドライバーの端末が決済の答えを待つ時間の値
+bounds: QR-24 と NFR-29（T_payment_response のうちに結果か分からないことを示す）、DEC-10（時間切れの順、同じキーでの確かめ、新しいキーで送らない）、HND-01（EXT-01 のテスト環境の応答の時間）
+trigger: 第 3 段階の次の実行
+resolution: IFC-17、IFC-03、IFC-13 で決めた（答えの分け方は DEC-45、決め方は DEC-46）。EXT-01 への一回の呼び出しのタイムアウトは 4 秒、利用者が待つ試みは 0.5 秒置いて同じキーで一度だけ送り直し、最初に送ってからの待ちは 8.5 秒、結果が分からない試みはその後 30 秒、1、2、4、8 分、以後 10 分ごとに確かめる。ELM-03 の答えの期限は 8.8 秒、端末の待ちは 15 秒（値は DAS-10）

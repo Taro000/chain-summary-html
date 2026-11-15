@@ -1,29 +1,37 @@
 id: DRV-23
-title: 道路運送法を模す
-status: draft
-version: 1
-basis: inferred
-basis_note: 要求は QR-36・37（入口は道路運送法を模す開発方針）。交渉できることは質問 9 で確認済み。実在の運賃の定めの中身は誰も確かめていない。難しさと順位は推定で要合意
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者]
-kind: constraint
-statement: 料金（キャンセル料と不在の料金を含む）は R_fare に従い、R_fare は模す運賃の定めに合う（QR-36）。受付できるのは、運営・サポート担当が審査を通ったものとして登録したドライバーだけ（QR-37）
-sources: [QR-36, QR-37, NFR-30, NFR-39, NFR-43, FR-03, FR-48]
-concern_of: [USR-01, USR-02, USR-04]
-scenario: null
-negotiable: true
+title: 時刻が来れば、誰も操作していなくても処理が進む
+status: active
+basis: assumed
+basis_note: FR-04、FR-23、FR-26、FR-51 の、時刻が来たときの振る舞い（入力）から推定した機能の要求。時刻が来たことを、利用者の操作の応えとしてではなく働かせる仕組みで作りが分かれる。T_wait_prompt の値は QAS-53、T_noshow_wait の値は QAS-51 による。T_no_accept は利用者が仮に決めた値（品質チェーンの第 4 段階の決めたこと 19）。想定の本番が Cloud Run であることは質問 1 で確認済み。順位は質問 6 で確認済み
+premises: [OPF-01, CON-06, TC-08, QAS-51, QAS-53]
+kind: function
+statement: 許諾のない依頼を乗客に知らせることと依頼を終えること、乗客の不在として終えられるようになること、保存期間を過ぎた記録を個人を特定できない形に変えることは、その時刻が来れば、乗客もドライバーも操作していなくても、システムが止まって再開した後でも行われる
+sources: [FR-04, FR-23, FR-26, FR-51, QR-59, NFR-46]
+concern_of: [USR-01, USR-02, STK-02]
+scenario:
+  source: 時計
+  stimulus: 依頼してから T_wait_prompt と T_no_accept が過ぎる。迎車が着いてから T_noshow_wait が過ぎる。記録してから QR-59 の保存期間が過ぎる
+  artifact: 依頼の待ちと終わり（FR-04、FR-23）、乗客の不在（FR-26）、個人を特定できない形への変換（FR-51）
+  environment: 乗客もドライバーも操作していない間。システムが止まって再開した後
+  response: 乗客への知らせ、依頼の終わり、不在として終えられるようになること、記録の変換が、その時刻に行われる
+  measure: FR-04、FR-23、FR-26 の受け入れ基準、NFR-46 の監視
+negotiable: null
 derived_from: []
 priority:
   business: high
-  business_reason: 入口（開発方針）から来た要求。交渉できる
-  difficulty: low
-  difficulty_reason: 料金の計算と受付の資格を一か所に置けば満たせる。R_fare の刻みと端数が未定
-  rank: 19
+  business_reason: 法令から来た QR-59（FR-51）と、迎車が実際に着いた時刻から不在の待ちを数える QR-06（重視、FR-26）に仕える
+  difficulty: medium
+  difficulty_reason: 想定する本番の Cloud Run（TC-08）は要求を受けている間に処理する基盤で、時刻で働く処理には別の仕組みが要る。再開の後も、待っている時刻を失わない
+  rank: 13
 primary: false
 conflicts: []
 placeholders:
-  - name: R_fare
-    meaning: 模擬の運賃表（基本料金 100 円、1 分 60 円、1 km 330 円、迎車料金 300 円、アプリ手配料 100 円。刻み、端数、消費税は未定）
-    from: context.yaml の制約
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
+  - name: T_wait_prompt
+    meaning: 許諾のない依頼について乗客に知らせ、待ち続けるか取り消すかを選ばせるまでの、依頼してからの時間
+    from: FR-04
+  - name: T_no_accept
+    meaning: 依頼してからどのドライバーも許諾しないまま、システムが依頼を終えるまでの時間
+    from: FR-04
+  - name: T_noshow_wait
+    meaning: 迎車が乗車場所に着いてから、ドライバーが乗客の不在として依頼を終えられるようになるまでの時間
+    from: FR-26

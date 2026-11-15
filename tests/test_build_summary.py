@@ -498,7 +498,8 @@ class RideHailing(unittest.TestCase):
 @unittest.skipUnless((CHAIN / 'shared' / 'glossary.md').is_file(), 'cuj-to-slo がない: %s（環境変数 CUJ_TO_SLO で場所を渡せる）' % CHAIN)
 class ChainCheck(unittest.TestCase):
     def run_check(self, base):
-        return subprocess.run([sys.executable, str(ROOT / 'scripts' / 'check-chain.py'), str(base)], capture_output=True, text=True)
+        return subprocess.run([sys.executable, str(ROOT / 'scripts' / 'check-chain.py'), str(base), '--only', 'cuj-to-slo'],
+                              capture_output=True, text=True)
 
     def test_current_chain_matches(self):
         r = self.run_check(CHAIN)

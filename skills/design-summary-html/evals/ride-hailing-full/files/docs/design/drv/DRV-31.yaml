@@ -1,21 +1,17 @@
 id: DRV-31
-title: 依頼の状態は一か所で変え、変えたら必ず残す
-status: draft
-version: 1
+title: 額、評価、依頼の状態、決済の結果を決めるのはサーバーだけ
+status: active
 basis: inferred
-basis_note: QR-45・NFR-11・QR-33 から導いた原則
-needs_agreement: false
-approver_candidates: []
+basis_note: QR-13（最低限守る線）の失敗のシナリオ（端末から送る値の書き換え）と、DRV-02、DRV-07、DRV-08 から推定した全体の原則。ドライバーと乗客の位置と車の速さは端末から受けるしかなく、到着や不在をめぐる争いは DRV-30 の記録で扱う。セキュリティのリスク分析は品質要求のほかに脅威を挙げていない（質問 5 で確認済み）
+premises: []
 kind: principle
-statement: 配車依頼の状態を変えるのは一つの部品だけで、許される変化はそこで一度だけ定める。状態を変えたら必ず履歴を残し、片方だけが残ることはない
-sources: [QR-45, NFR-11, QR-33, FR-39]
-concern_of: [USR-03]
+statement: 確定額と請求する額、ドライバーの評価、依頼の状態、決済と返金の結果を決めるのはサーバーだけで、端末が送る値はそれらを決めない。端末から受けるのは利用者の操作と、端末が測った位置と速さだけとする
+sources: [QR-13, FR-49, NFR-27]
+concern_of: [USR-01, USR-02]
 scenario: null
 negotiable: false
-derived_from: [DRV-05, DRV-27, DRV-04]
+derived_from: [DRV-02, DRV-07, DRV-08]
 priority: null
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}

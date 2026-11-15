@@ -1,23 +1,21 @@
 id: NFR-01
 title: 提出の可用性の SLO
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: confirmed
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: [OPF-01]
 from: [QR-01, QR-06]
 kind: slo
 cuj: CUJ-01
-statement: 直近 28 日で、有効な提出の要求の 99.5% が、サーバーのエラーなしに応える。
-conditions: {workload: 締め切り前の 24 時間に集中, users: 生徒と講師。テスト用アカウントを除く, transactions: 提出}
+statement: 直近 28 日で、有効な提出の 99.5% が、システムの失敗なしに受け付けられる。
+conditions: {workload: 締め切り前の 24 時間の集中まで（OPF-01）, users: 生徒と講師。試験用のアカウントを除く, transactions: 提出}
 slo:
   sli: SLI-01
   target: 99.5%
-  target_status: provisional
-  target_rationale: 運用の実績がないので保守的にした
+  target_status: confirmed
+  target_rationale: 第 4 段階の質問 1 で、塾の事務と講師が確かめた
   window: 28-day rolling
-  error_budget: 有効な提出の要求の 0.5% までがエラーになってよい
+  error_budget: 有効な提出の 0.5% までが失敗してよい
   error_budget_volume: 28 日の提出の件数 × 0.005
   policy: EBP-01
   alerts:
@@ -26,5 +24,3 @@ slo:
 gate: null
 audit: null
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: 作成, reason: 第 4 段階の下書き}

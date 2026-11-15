@@ -1,0 +1,12 @@
+id: QAS-35
+title: 評価を送るまでの操作の回数の上限
+status: open
+stage: 4
+kind: decision
+statement: N_rating_operations を 3 回とする（評価の段階を選ぶ、送る、それに一つの余裕）。
+why_unsure: 入力に数値はなく、評価の段階はまだ決まっていない（第 2 段階の未解決の点）。3 回は、段階を選んで送るだけの流れに一つの余裕を足した最初の値。
+breadth: medium
+severity: low
+rating_note: QR-68 と NFR-33 が依存する。評価の段階は 1〜5 に決まった（第 2 段階の質問 9）。値は変えるのが容易
+answer: null
+answered_in: null

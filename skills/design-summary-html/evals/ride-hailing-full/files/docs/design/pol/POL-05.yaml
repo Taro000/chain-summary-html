@@ -1,0 +1,36 @@
+id: POL-05
+title: インタフェースの種類ごとの仕様書の作り方
+status: active
+basis: inferred
+basis_note: どのインタフェースも両側を同じ開発者が作ること（TEAM-01）と、ほかの者がこのシステムの決まりに合わせて作るインタフェースがないこと（第 2 段階の外部との関係と実行時の構成のビュー）は入力からの推定。EXT-01、EXT-02、Web Push の配信サービスの文書はそれぞれの持ち主のもの（TC-10、TC-12、DEC-21）。想定の本番のアラートを配備せず、本物と照らさないことは TC-09（入力。FND-18 を受けて前提に挙げた）。生成の道具は DEC-33、表の形のマイグレーションは DEC-29 による。Web アプリが起動のときに読む環境ごとの値の操作（DEC-34）を一つ目の項に入れたことは、FND-12 を受けて加えた
+premises: [TEAM-01, TC-09, TC-10, TC-12, EXT-01, EXT-02]
+scope: specs
+addresses: [DRV-12, DRV-13, DRV-16, DRV-18]
+decisions: [DEC-06, DEC-11, DEC-12, DEC-13, DEC-20, DEC-21, DEC-29, DEC-33, DEC-34]
+rules: []
+specs:
+  - interfaces: ELM-03 が提供する HTTP の操作のすべて（二つの Web アプリが呼ぶもの（起動のときに読む環境ごとの値の操作、DEC-34 を含む）、日々の呼び出しの入口、外からの生存確認の入口）と、ELM-03 から二つの Web アプリへの流れ（Server-Sent Events）の出来事
+    made: from-code
+    how: OpenAPI 3.1 の文書を、ELM-03 の @hono/zod-openapi の経路の定義（Zod のスキーマ）から生成し、流れの出来事のスキーマも同じ文書に入れて、apps/server/generated/openapi.json に置いてコミットする。二つの Web アプリの型は、packages/api-client が openapi-typescript でその文書から生成し（コミットする）、Web アプリはその型と openapi-fetch で呼ぶ。IFC は、利用側が頼る決まり（操作、エラーとその符号、冪等性、結果が分からないときの答え）を持つ。検査の手順は、文書と型を生成し直して違いがあれば失敗し、oasdiff で最後のリリースの文書と比べて、第 3 段階の版の扱いが許さない壊す変更（操作や項目を消す、型を狭める）で失敗する。Web アプリは、生成した型が変わると型の確かめで失敗する
+  - interfaces: ELM-03 から ELM-04（配車データベース）の表
+    made: from-code
+    how: 表の形は、ELM-03 の Drizzle の表の定義（コード）から drizzle-kit が生成する SQL のマイグレーション（apps/server/migrations/）で、決まりはデータの実体（DAT）が持ち、表の細部は実装が決める。検査の手順は、表の定義から生成し直したマイグレーションとコミットしたものに違いがあれば失敗し、結合の層はマイグレーションを当てたデータベースで動く
+  - interfaces: EXT-01（Stripe のテスト環境）の API を ELM-03 が呼ぶものと、ELM-01 の中の EXT-01 の入力部品（Stripe.js）
+    made: owner
+    how: Stripe の API の文書（使う API の版を固定する）と Stripe.js の文書を IFC が引く。ELM-03 のつなぎ口は、リリースの手順の契約の層で Stripe のテスト環境に照らす。入力部品は、NFR-47 の確かめ（端から端の層）と実機の受け入れの層で確かめる
+  - interfaces: EXT-02（Google Maps Platform）の API を ELM-03 が呼ぶもの（場所の候補、住所と位置、道と移動時間）と、ELM-01 が地図を描くもの
+    made: owner
+    how: Google Maps Platform のそれぞれの API の文書を IFC が引く。ELM-03 のつなぎ口は、リリースの手順の契約の層で本物の API に、決めた少ない呼び出しで照らす。地図を描くことは、実機の受け入れの層で確かめる
+  - interfaces: Web Push（ELM-03 から ELM-07 を経て ELM-01 と ELM-02 へ）
+    made: owner
+    how: Web Push の標準（RFC 8030、RFC 8291、RFC 8292）と配信サービスの文書を IFC が引く。知らせの中身の形（DEC-21 の短い題）は IFC が決め、ELM-03 の送る部分の単体の層が確かめ、本物の配信は実機の受け入れの層で確かめる
+  - interfaces: ELM-03 がプラットフォームのログに書く記録のうち、想定の本番のアラートが読むもの（日々の処理を終えた記録、DEC-20）
+    made: none
+    how: IFC が記録の項目を決め、infra/gcp/ のアラートの条件はその項目を読む。ELM-03 の単体の層が記録の項目を確かめる。アラートは配備しない（TC-09）ため、本物とは照らさない
+  - interfaces: 画面（乗客とドライバーが ELM-01 で、担当者とエンジニアが ELM-02 で使うもの）
+    made: none
+    how: 画面の IFC が決まりで、端から端の層と実機の受け入れの層が確かめる
+  - interfaces: ほかの者がこのシステムの決めた決まりに合わせて作る HTTP か出来事
+    made: by-hand
+    how: 今はない。現れたら、第 3 段階が ifc/specs/ に OpenAPI か AsyncAPI の文書を書き、検査の手順の契約のテストが提供側をそれに照らす
+as_is: new

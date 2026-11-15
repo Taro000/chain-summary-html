@@ -1,12 +1,9 @@
 id: DRV-08
 title: Protect students' answers and personal information
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 kind: security
 statement: Only the student and their teacher can open a submission and its grade
 sources:
@@ -31,8 +28,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

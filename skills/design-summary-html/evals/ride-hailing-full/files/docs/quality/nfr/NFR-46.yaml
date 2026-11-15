@@ -1,0 +1,21 @@
+id: NFR-46
+title: 3 年を過ぎた個人の情報の監視
+status: active
+basis: inferred
+basis_note: 3 年は QR-59 の入力の値。個人を特定できない形に変える機能は FR-51（FRP-05 の受け入れ）
+premises: [CON-06]
+from: [QR-59]
+kind: monitor
+cuj: null
+statement: 記録してから 3 年を過ぎた記録とデータ（アカウントの情報、位置情報、乗車の記録、ログ）のうち、操作した人か位置が残り個人を特定できるものを、見つけるたびにエンジニアに知らせる。
+conditions:
+  workload: null
+  users: null
+  transactions: 位置情報と個人の情報を含むすべての記録とデータ
+slo: null
+gate: null
+audit: null
+monitor:
+  signal: 記録してから 3 年を過ぎた記録とデータのうち、操作した人か位置が残っているもの
+  threshold: 一件でもあれば知らせる
+  notifies: エンジニア

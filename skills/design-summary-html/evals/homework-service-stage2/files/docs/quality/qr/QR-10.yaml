@@ -1,20 +1,18 @@
 id: QR-10
 title: 失敗をたどれること
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: assumed
 basis_note: null
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
+premises: [QAS-01]
 model: product
 layer: external
 characteristic: maintainability > analysability
-statement: 開発者は、提出の失敗を 1 件ずつ部品をまたいでたどれる。
+statement: 開発者は、提出の失敗を 1 件ずつ、通った処理をまたいでたどれる。
 applies_to: [FR-04]
 traces_to: [QIU-04]
 entry_point: null
-stakeholders: [USR-01]
-failure_scenario: ログがつながらず原因を特定できない。
+stakeholders: [USR-03]
+failure_scenario: 失敗した提出の経路がたどれず、原因を特定できない。
 score: {impact: 3, likelihood: 3}
 handling: minimum-line
 handling_reason: null
@@ -22,5 +20,3 @@ implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: 作成, reason: 第 3 段階の下書き}

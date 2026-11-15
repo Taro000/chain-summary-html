@@ -1,0 +1,53 @@
+id: MOD-14
+title: ドライバーと車両の登録
+status: active
+basis: inferred
+basis_note: 審査を通ったドライバーと車両を名前、顔写真、連絡先、車種、色、ナンバーで、入れた内容を示し確かめてから登録し、審査の日付と手がかりを入れさせず、欠けた項目と登録済みのナンバーを示して登録せず、訂正を記録して乗客に示す手がかりにすることは FR-43（入力）。審査の結果を記録しないことは TC-17（入力）。登録、今の登録を読む、訂正する操作と符号（PLATE_ALREADY_REGISTERED、UNKNOWN_FIELD）は IFC-12、探した一覧から選んだドライバーの今の登録を示して訂正することは IFC-24（入力）。顔写真の形式と大きさの上限は実装（IFC-12）。ドライバーのアカウントを MOD-13 の探す画面で選ぶこと、停止の画面（MOD-15）に今の登録を読ませることは推定
+premises: [TC-17]
+component: ELM-02
+name: ドライバーと車両の登録
+depth: bounds
+depth_reason: null
+responsibility: 審査を通ったドライバーと車両を登録し、今の登録を示して訂正を送る
+visibility: public
+interface:
+  - operation: "DriverRegistration() -> 登録の画面"
+    pre: null
+    post: ドライバーのアカウントを MOD-13 の AccountSearch で選び、名前、顔写真、連絡先、車種、色、ナンバーだけを入れさせ（審査の日付と審査の記録を探す手がかりの入れ物を持たない、FR-43 の 2、TC-17）、入れた内容を示して担当者が確かめてから POST /v1/console/drivers（IFC-12）を MOD-01 で送る（FR-43 の 1）
+    errors:
+      - "VALIDATION_FAILED: 欠けた項目と形の誤りを示し、登録しない（FR-43 の 3）"
+      - "PLATE_ALREADY_REGISTERED: ほかのドライバーに登録済みのナンバーであることを示し、登録しない（FR-43 の 3）"
+      - "答えがない、5xx: 登録したかどうか分からないことを示し、同じ操作として送り直させる（MOD-01）"
+  - operation: "DriverDetail(accountId: AccountId) -> 今の登録の画面"
+    pre: null
+    post: GET /v1/console/drivers/{accountId} の今の登録を示し、訂正を PATCH /v1/console/drivers/{accountId} で MOD-01 で送り、答えの後に読み直す（FR-43 の 4）
+    errors:
+      - "NOT_FOUND: 見つからないことを示し、探し直させる"
+      - "VALIDATION_FAILED と PLATE_ALREADY_REGISTERED: 登録と同じに示し、訂正しない"
+  - operation: "readDriver(accountId: AccountId) -> DriverState"
+    pre: null
+    post: GET /v1/console/drivers/{accountId} の、停止しているかとその時刻、迎車中か乗車中の依頼を返す（MOD-15 が使う）
+    errors:
+      - "NOT_FOUND: 登録がない"
+invariants: []
+depends_on: [MOD-01, MOD-08, MOD-13]
+functions: [FR-43, FR-50]
+realizes:
+  - IFC-24 ドライバーと車両の登録
+  - IFC-12 POST /v1/console/drivers
+  - IFC-12 GET /v1/console/drivers/{accountId}
+  - IFC-12 PATCH /v1/console/drivers/{accountId}
+drivers: [DRV-20, DRV-29, DRV-30]
+decisions: [DEC-19, DEC-44]
+behaviour: null
+verification:
+  - checks: 審査の日付と手がかりの入れ物がなく、送る本文にも現れない（FR-43 の 2）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-01 の偽物が受けた本文を調べる
+  - checks: 確かめてから登録し、欠けた項目と登録済みのナンバーを示して登録しない（FR-43 の 1、3）。今の登録の訂正（FR-43 の 4）
+    how: 単体の層
+  - checks: 登録を訂正すると乗客の ELM-01 の画面の手がかりが変わる（NFR-22、FR-43 の 4）
+    how: 端から端の層（POL-03 の NFR-22 の出どころ。試験の環境の偽物の設定）
+  - checks: 登録してからそのドライバーが受付を始められるまで（CUJ-17、FR-43 の 5）
+    how: 端から端の層
+parameters: []
+as_is: new

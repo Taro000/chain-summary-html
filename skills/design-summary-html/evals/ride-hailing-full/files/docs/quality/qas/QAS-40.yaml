@@ -1,0 +1,12 @@
+id: QAS-40
+title: T_request_entry の最初の値
+status: overturned
+stage: 4
+kind: decision
+statement: T_request_entry を 2 分とする。
+why_unsure: 入力に数値も基準となる値もない。2 分は、現在地か場所の名前で乗る場所と降りる場所を決め、移動時間と料金を確かめて依頼するまでの数回の操作に、迷う時間を足した控えめな最初の値で、最初のウィンドウの値から見直す。
+breadth: medium
+severity: low
+rating_note: QIU-02、FR-01、FR-02 が依存する。第 1 段階と第 2 段階が次の実行で書く値で、変えるのは容易
+answer: 誤り。乗る場所を決め始めてから配車依頼を出し終えるまでは 30 秒
+answered_in: "第 4 段階、決めたこと #12"

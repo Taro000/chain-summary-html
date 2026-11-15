@@ -1,38 +1,21 @@
 id: NFR-10
-title: 割り当てと絞り込みの規則のテスト
-status: draft
-version: 2
+title: 依頼の状態と割り当ての食い違いの監視
+status: active
 basis: inferred
-basis_note: 確かめる場合の一覧は推定。N_min_ratings の値はテストの引数で、値は決めない
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-- 開発の責任者
-from:
-- QR-10
-- QR-11
-- QR-12
-- QR-16
-kind: gate
-cuj: CUJ-06
-statement: 割り当てと絞り込みの規則を、境目の場合を含む自動テストで確かめ、落ちたら配備を止める。
+basis_note: QR-03 は食い違いを一件も認めないため、エラーバジェットを持つ SLO ではなく、一件ごとに知らせる監視にした（推定）
+premises: []
+from: [QR-03]
+kind: monitor
+cuj: CUJ-01
+statement: 二人以上のドライバーが割り当てられた依頼と、状態の変化が食い違う依頼（取り消した後の許諾、一つの依頼への二度の許諾）を、見つけるたびにエンジニアに知らせる。
 conditions:
-  workload: 少人数の参加者のデモ。件数は未定（運用の事実）。サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く（2026-11-03 の回答、設計 1-1）
-  users: デモの参加者（乗客、ドライバー、運営・サポート担当）。エンジニアのテスト用アカウント、合成の監視、負荷試験は除く
-  transactions: null
+  workload: null
+  users: 登録した乗客とドライバー。試験用のアカウントを含む（食い違いは試験用でも起きてはならない）
+  transactions: 依頼、許諾、乗客とドライバーの取り消し
 slo: null
-gate:
-  where: CI
-  check: 同じ依頼への同時の許諾で一人だけに割り当てること、取り消しと許諾がぶつかる場合、評価値がしきい値と等しい場合と評価の件数が N_min_ratings の境目の場合、しきい値を下げたときの示し直し、近くのドライバーの数の判定、受取額の下限と距離の上限の境目、停止した時刻の前後の許諾
-  threshold: すべて通る
+gate: null
 audit: null
-monitor: null
-changelog:
-- version: 1
-  date: '2026-10-31'
-  change: 作成
-  reason: 第 4 段階の下書き（質問 1〜4 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: conditions.workload の「常時稼働し、使うのはデモの回だけ」を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した
-  reason: 設計の連鎖が返した課題（常時稼働の前提）への 2026-11-03 の利用者の回答（docs/quality-chain-answers.md の設計 1-1）
+monitor:
+  signal: 依頼ごとの割り当てたドライバーの数と、状態の変化の並び
+  threshold: 一件でもあれば知らせる
+  notifies: エンジニア

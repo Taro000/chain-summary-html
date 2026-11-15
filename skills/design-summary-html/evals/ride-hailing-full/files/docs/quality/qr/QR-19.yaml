@@ -1,32 +1,23 @@
 id: QR-19
-title: 評価の画面の操作の少なさ
-status: draft
-version: 1
+title: 車と乗客の現在地として使う位置が、今の位置から遅れない
+status: active
 basis: inferred
-basis_note: 失敗のシナリオと点は推定。重視にすることは質問 7 で確認済み
-needs_agreement: true
-approver_candidates: [プロダクトオーナー]
-model: product
-layer: external
-characteristic: usability > operability
-statement: 評価の画面は、降車後に少ない操作で評価を送れる。
-applies_to: [FR-13]
-traces_to: [QIU-09]
+basis_note: 失敗のシナリオと点は推定。ドライバーの現在地はドライバーの端末から、乗客の現在地は乗客の端末から得る。迎車中のドライバーに乗客の現在地を示すことは決めたこと 20 の回答で、FR-24 が示す（FRP-10 を第 2 段階が受け入れたもの）。走る車の位置が遅れて示される場面はデモの回（OPF-01）ごとにあるとみた。T_vehicle_location_lag の値（30 秒）は第 4 段階の決めたこと 17 で利用者が仮に決めた値。ドライバーの端末からの位置がどれだけ早く届くかは設計が確かめる。扱い（重視）は質問 9、決めたこと 16、20、21、22 で確認済み（CUJ-02、CUJ-07、CUJ-09 の組。迎車の位置が古いと乗客が来るかどうか分からずに取り消すため QIU-15 に、迎車中のドライバーに示す乗客の現在地が古いと乗る場所で互いを見つけられないため QIU-18 にもたどる）
+premises: [OPF-01]
+model: data
+layer: data-inherent
+characteristic: currentness
+statement: 乗客に示す迎車と乗車中の車の位置と乗車場所に着く見込みの時刻、迎車中のドライバーに示す乗客の現在地、および依頼を届けるかを決めるときに使うドライバーの現在地は、実際の位置から T_vehicle_location_lag（30 秒）を超えて遅れない。
+applies_to: [FR-08, FR-13, FR-19, FR-20, FR-24]
+traces_to: [QIU-08, QIU-12, QIU-15, QIU-18, QIU-20]
 entry_point: null
-stakeholders: [USR-01]
-failure_scenario: 評価の画面の操作が多く、乗客が評価をやめる。
-score: {impact: 2, likelihood: 2}
+stakeholders: [USR-01, USR-02]
+failure_scenario: 迎車の位置が数分前のまま示され、乗客はまだ来ないと思って店に入り、その間に着いた迎車のドライバーは、数分前の乗客の現在地を見て別の出口で待ち、互いを見つけられない。走り続けたドライバーには、古い現在地で近いとみなされた遠い乗車場所の依頼が届く。
+score: {impact: 3, likelihood: 4}
 handling: emphasized
-handling_reason: 点は低いが、CUJ-04 に重視の QR を置くと事業が決めた（質問 7）
+handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders:
-  - name: T_rate
-    meaning: 評価の画面を開いてから評価を送るまでの秒数（第 4 段階で使う）
-    from: QIU-09
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+  - {name: T_vehicle_location_lag, meaning: "乗客に示す車の位置、ドライバーに示す乗客の現在地、依頼を届けるかを決めるときに使うドライバーの現在地が、実際の位置から遅れる時間の許容", from: QR-19}

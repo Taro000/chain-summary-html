@@ -1,0 +1,12 @@
+id: DAS-02
+title: Use the Active LTS version of Node.js
+status: confirmed
+stage: 2b
+kind: decision
+statement: The API server and the nightly batch run on the Active LTS version of Node.js
+why_unsure: No version rule is in the inputs
+breadth: low
+severity: low
+rating_note: Only POL-01 relies on it
+answer: As drafted
+answered_in: stage 2b, question 1

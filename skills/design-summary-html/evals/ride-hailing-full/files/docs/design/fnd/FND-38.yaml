@@ -1,27 +1,14 @@
 id: FND-38
-title: 押さえが 5xx を受けた後の、見回りの同じキーでの送り直しは同じ 5xx を受けるだけで、その手配は T_hold_wait で必ず取りやめになる
+title: IFC-11、IFC-21、DEC-46 は、示した時刻の記録（QAS-54）と T_dispatch_propagation の値（QAS-25）に頼る流れの後の Web Push を決めたが、前提に挙げていない
 status: accepted
-version: 2
 basis: inferred
-basis_note: IFC-13 の basis_note と 5xx の行（Stripe の文書）、DEC-52 の選んだ案、CUJ-01-B の見回りの枝、DEC-12 の (d) は入力。送り直しが進まないことは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: IFC-10、IFC-11、IFC-21、DEC-46、FR-53、QAS-25、QAS-54 と第 3 段階の報告の「未確認の仮定」は入力。三つの項目が二つの QAS に頼ることは、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+raised_in: reviews/3-high-level-design.md
 to: architecture-to-high-level-design
-targets:
-- DEC-52
-- IFC-13
+targets: [IFC-11, IFC-21, DEC-46]
 severity: minor
-evidence: IFC-13 は、Stripe が 5xx も含めて同じキーに同じ応答を返す（Stripe の文書）とし、5xx の後は送り直さず確かめ中にする。一方、DEC-52 と CUJ-01-B の見回りは「押さえがなく、T_hold_wait の内なら同じキーで送り直す」。最初の押さえが 5xx を受け、Stripe に PaymentIntent がないとき、この送り直しは保存された 5xx を受けるだけで、新しいキーは 24 時間を過ぎるまで使わない（DEC-12 の (d)）ので、押さえは置かれず T_hold_wait で not_booked になる。設計はこの結果を書いておらず、第 4 段階は進まない送り直しを作ることになる
-suggestion: 5xx の後は見回りの同じキーの送り直しが進まないことを DEC-52 に書き、受け入れるか、照らして PaymentIntent がなく最初の要求も動いていない（T_op_stale を過ぎた）と確かめた後に新しいキーで送る形と比べる
-resolution: "受け入れた。5xx の後は、照らして PaymentIntent がなく最初の送信から T_op_stale を過ぎた（最初の要求は動いていない）と確かめてから、試みの番号を進めた新しいキーで送る（第 2 段階の DEC-12 の (d) と同じ。T_hold_wait の内だけ）。押さえのキーは依頼の ID、押さえの何番目か、試みの何回目か。DEC-52 版 2 と IFC-13 に書いた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B3）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+evidence: FND-26 を受けて、IFC-11 は流れで送った出来事の示した時刻が流れに書いてから 2 秒のうちに届かなければ Web Push でも知らせると決め、IFC-21 はその知らせを送る呼び出しのタイムアウト 5 秒と一度だけの送り直しを、DEC-46 はその配信のホップ 1.0 秒を、NFR-07 の道の値として決めた。この道は相手の端末が示した時刻を送ること（FR-53）があって初めて働き、FR-53 を今期作ることは QAS-54 による品質チェーンの暫定の決定（FR-53 の premises）。IFC-11 は示せなかった記録（FR-53 の 2）にも頼り、2 秒は待ちと Web Push の配信が T_dispatch_propagation（QAS-25）に収まる長さとして選んだ（IFC-11 の timing）。第 3 段階の報告の「未確認の仮定」も、QAS-54 が覆れば流れの後の Web Push の待ち（IFC-11）と NFR-07 の予算をやり直すと書く。それでも IFC-11 の premises には QAS-54 も QAS-25 もなく、IFC-21 と DEC-46 の premises には QAS-54 がない。三つとも FR-53 を functions にも addresses にも持たないため FR-53 からたどっても見つからず、QAS-54 に答えが出たときに premises で探すと漏れる
+suggestion: IFC-11 の premises に QAS-54 と QAS-25 を、IFC-21 と DEC-46 の premises に QAS-54 を加える。QAS-54 の答え（第 3 段階のレビューの質問 1。成り立つ。QCR-08 が品質チェーンに運ぶ）を、品質チェーンが当てるまで QAS-54 を premises に残したまま、この三つの basis_note に引く
+resolution: "受け入れ。IFC-11 の premises に QAS-54 と QAS-25 を、IFC-21 と DEC-46 の premises に QAS-54 を加え、この三つと IFC-10、DAT-20 の basis_note に QAS-54 の答え（第 3 段階のレビューの質問 1。成り立つ。QCR-08 が品質チェーンに運ぶ）を引いた。QAS-54 は品質チェーンが当てるまで premises に残す。IFC-10 と DAT-20 は、ほかに未確認の仮定がないため根拠を推定にした。報告の「未確認の仮定」で QAS-54 の影響の広さを高と評価し直した（答えを受けているため尋ね直さない）"

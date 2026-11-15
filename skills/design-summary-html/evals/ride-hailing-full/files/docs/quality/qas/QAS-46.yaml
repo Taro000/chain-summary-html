@@ -1,0 +1,12 @@
+id: QAS-46
+title: T_alighting の最初の値
+status: overturned
+stage: 4
+kind: decision
+statement: T_alighting を 2 分とする。
+why_unsure: 入力に数値も基準となる値もない。2 分は、降りる場所に着いてから到着を確かめ、決済の結果（T_payment_response の 10 秒）を待って降りるまでの控えめな最初の値で、最初のウィンドウの値から見直す。
+breadth: medium
+severity: low
+rating_note: QIU-12、FR-13、FR-28、FR-29 が依存する。第 1 段階と第 2 段階が次の実行で書く値で、変えるのは容易
+answer: 誤り。降りる場所に着いてから決済を終えて降りるまでは 30 秒
+answered_in: "第 4 段階、決めたこと #15"

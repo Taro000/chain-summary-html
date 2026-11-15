@@ -1,11 +1,9 @@
 id: FR-03
 title: 採点と返却
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 statement: システムは、講師が点と講評を付けた提出を生徒に返却する。
 origin: cuj-step
 cuj: CUJ-02
@@ -14,8 +12,6 @@ traces_to: [QIU-03, KPI-02]
 proposal: null
 existing: false
 extends: null
-interface: ['画面: 生徒の Web アプリ']
+interface: ['画面: 講師', '画面: 生徒']
 acceptance_criteria: [返却すると、生徒の画面に点と講評を示す。]
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: 作成, reason: 第 2 段階の下書き}

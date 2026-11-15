@@ -1,29 +1,14 @@
 id: FND-33
-title: 降車場所の変更の押さえ直しを確かめている間に乗車が終わると何が起きるかが決まっておらず、押さえが残りうる
+title: DEC-39 の一覧の大きさと DEC-42 の待つ時間が、parameters にも仮定にもない暫定の値になっている
 status: accepted
-version: 2
 basis: inferred
-basis_note: IFC-02 の 202 DESTINATION_CHANGE_PENDING、DEC-52 の選んだ案、IFC-03 と driver.openapi.yaml の complete の応答、DAT-13 の整合の取り方、FR-29 AC1、DEC-10 の押さえの期限、DEC-37 の期間を終える条件は入力。重なったときに起きることは推定
-needs_agreement: false
-approver_candidates: []
+basis_note: DEC-39 と DEC-42 の chosen と parameters は入力。それが仮定のない暫定の値であることは、このレビューの推定
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-03-high-level-design.md
+raised_in: reviews/3-high-level-design.md
 to: architecture-to-high-level-design
-targets:
-- IFC-02
-- IFC-03
-- DAT-13
-- DEC-52
-severity: major
-evidence: 押さえ直しの結果が分からないと、IFC-02 は 202 DESTINATION_CHANGE_PENDING を返し、見回りが T_hold_wait（60 秒）まで確かめ、間に合えば降車場所を変える（DEC-52）。その間もドライバーは乗車を終えられる。IFC-03 の POST /api/v1/driver/rides/{rideId}/complete のエラーにこの場合はなく（driver.openapi.yaml の complete の固有の符号は 409 FAR_FROM_DROPOFF だけ）、DAT-13 の「一つの依頼で同時に動くお金の操作は種類ごとに一つまで」は、押さえ（hold）と確定（capture）が同時に動くことを許す。CUJ-03 と CUJ-08 の流れ、配車依頼の状態遷移図、依頼の支払いの状態遷移図のどれにも、確かめ中の押さえ直しと乗車の終了が重なる場合がない。確定は古い押さえに走り、どの額で確定するか（FR-29 AC1 は、降車場所を変えたときは変更後の料金とする）も決まらない。その後に見回りが新しい押さえを見つけると、DEC-52 のとおりなら、終わった乗車の降車場所を変え、確定済みの古い押さえを取り消そうとする。新しい押さえを取り消す決まりはどこにもなく、Stripe の押さえの期限（7 日。DEC-10）まで乗客のカードに残りうる（DRV-04）。DEC-37 の期間を終える条件（確定も解放もしていない押さえが 0 件）にも当たり続ける
-suggestion: 二つのどちらかに決め、IFC-03、CUJ-03 と CUJ-08 の流れ、二つの状態遷移図に描く。一つは、押さえ直しを確かめている間は乗車の終了を待たせる（409 と Retry-After。長くて T_hold_wait）。もう一つは、乗車の終了で確かめ中の変更を取りやめ、見回りが後で見つけた新しい押さえは取り消す（変更は当てない）。どちらでも、確定に使う押さえと額を書く
-resolution: "受け入れた（二つ目の案）。乗車の終了は、確かめ中の降車場所の変更を取りやめ（当てない）、古い押さえと変更の前の確定した料金で確定する。新しい押さえは確かめを続け、見つかれば取り消す。乗客には変更を当てなかったことを示す（ride.updated の destinationChange.state=abandoned）。IFC-03、IFC-02、CUJ-03・CUJ-08 の流れ、二つの状態遷移図、DAT-07（destination_change_abandoned）、DEC-52 版 2 に書いた"
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 出した
-  reason: 第 3 段階のレビュー（活動 B3、B9）
-- version: 2
-  date: '2026-11-04'
-  change: 受け入れた
-  reason: 第 3 段階の再実行（2026-11-04）
+targets: [DEC-39, DEC-42]
+severity: minor
+evidence: DEC-39 は一覧の limit を既定 50、最大 100 とし、DEC-42 は動いている要求への 409 OPERATION_IN_PROGRESS に Retry-After 1 秒を返すが、どちらの値も parameters に挙げず（DEC-39 は空、DEC-42 はキーを持つ 24 時間だけ）、もとも DAS もない。暫定の設計上の値は事業の判断で、尋ねるか kind が decision の DAS にするもの
+suggestion: 二つの値をもととともに各 DEC の parameters に書き、暫定の決定として DAS に入れ、依存する項目の premises に挙げる
+resolution: DEC-39 の limit の既定 50 と最大 100 と、DEC-42 の Retry-After 1 秒を、もととともに各 DEC の parameters に書き、暫定の決定として DAS-14 に入れ、DEC-39 と DEC-42 の premises に挙げた

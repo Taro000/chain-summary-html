@@ -1,0 +1,47 @@
+id: MOD-46
+title: 確認コード
+status: active
+basis: assumed
+basis_note: 依頼ごとにサーバーが推し量れないコードを作ってその依頼の乗客にだけ示し、ドライバーが入れたコードを照らし、合わない試みを記録して回数を限ることは DEC-25 と TC-14、依頼がコードのハッシュだけを持つことは DAT-07、合わないときと止めているときの答えは IFC-03、一致と合わない試みを記録することは FR-12 の 4、乗車を始めてよいかの判断を単独で境目まで試せることは QR-55 と NFR-21（どれも入力）。コードを依頼の ID とコードの鍵の版から目的の鍵で作ること（ハッシュだけを持ったまま、乗客が画面を開くたびに同じコードを示せる、IFC-03 の GET /v1/rides/current）は推定。コードの長さと文字、止める回数と時間は HND-13 を決めたもので、DAS-24 による暫定の決定
+premises: [DAS-24]
+component: ELM-03
+name: 確認コード
+depth: full
+depth_reason: 乗車を始めてよいかを確認コードで決め、合わない試みを数えて照らし合わせを止める。止めているか、合うか、試みの数の組で答えが決まる、いくつもの条件の規則で、NFR-21 が境目まで試すことを求める。同じ依頼への重なった試みの数を書き込みの取引の中で数える
+responsibility: 依頼ごとの確認コードを作り、ドライバーが入れたコードを照らす
+visibility: internal
+interface:
+  - operation: "codeFor(rideId: RideId, keyVersion: integer) -> ConfirmationCode"
+    pre: 呼ぶのは、その依頼の乗客に今の状態を示す MOD-60 と、依頼を書くときの MOD-45 だけ
+    post: 依頼の ID と鍵の版から目的の鍵（MOD-23 の keyedCode、confirmation_code）で作った 4 桁の数字。同じ依頼にいつも同じコード
+    errors: ["KeyStoreUnavailable"]
+  - operation: "hashFor(code: ConfirmationCode) -> Digest"
+    pre: null
+    post: 依頼に書くコードのハッシュ
+    errors: []
+  - operation: "verify(tx: Tx, ride: RideCodeState, entered: string, now: Instant) -> matched | mismatched(remainingTries) | locked(retryAfterSeconds)"
+    pre: 呼ぶのは、乗車の開始の取引の中の MOD-45 だけ
+    post: 判断表 A で決め、続けて合わない数、止めた時刻の終わり、一致と合わない試みの依頼の経過（FR-12 の 4）を同じ取引で書く
+    errors: []
+invariants:
+  - 依頼が持つのは、コードのハッシュ、コードの鍵の版、続けて合わない数、止めた時刻の終わりだけ（コードそのものは書かない）
+  - 止めている間は、合うコードでも乗車を始めない
+depends_on: [MOD-21, MOD-23]
+functions: [FR-12, FR-27]
+realizes: []
+drivers: [DRV-19]
+decisions: [DEC-25]
+behaviour: "報告書の節: MOD-46 確認コード"
+verification:
+  - checks: 判断表 A の行ごと（一致、不一致、ほかの依頼のコード、4 回目と 5 回目の不一致、止めた時間のちょうど前と後、止めている間の一致）
+    how: 単体の層（時計の偽物。NFR-21 の出どころ）
+  - checks: 乗客の今の状態だけがコードを持ち、ドライバーと担当者とエンジニアの答え、出来事、知らせ、ログにコードが出ない
+    how: 結合の層
+parameters:
+  - name: コードの長さと文字
+    value: 4 桁の数字（0000〜9999）
+    basis: HND-13。乗客が口で伝えやすく、ほかの依頼の乗客との取り違えを 1 万に 1 つにする暫定の値（DAS-24）
+  - name: 照らし合わせを止めるまでの続けて合わない数と止める時間
+    value: 5 回で 60 秒
+    basis: HND-13。入れ間違いを数回許し、照らし合わせを呼べるのはその依頼に割り当てたドライバーだけなので、推し量りを長く止める要がない暫定の値（DAS-24）
+as_is: new

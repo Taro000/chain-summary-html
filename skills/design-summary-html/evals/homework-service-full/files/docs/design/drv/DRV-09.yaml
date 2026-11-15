@@ -1,12 +1,9 @@
 id: DRV-09
 title: 記録を書いてから受領を示す
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
+premises: []
 kind: principle
 statement: 提出は、記録を書き終えてから受領を示す。受領を先に示さない
 sources:
@@ -21,8 +18,3 @@ priority: null
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: 作成
-  reason: 第 1 段階の下書き

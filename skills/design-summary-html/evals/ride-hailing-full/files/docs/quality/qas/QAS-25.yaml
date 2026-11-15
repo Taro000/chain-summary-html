@@ -1,0 +1,12 @@
+id: QAS-25
+title: 依頼の状態の変化を届ける速さのしきい値と最初の目標値
+status: open
+stage: 4
+kind: decision
+statement: T_dispatch_propagation を 5 秒とし、依頼の状態の変化の 95% をシステムが受けてから 5 秒以内に相手に向けて送ることを最初の目標値とする。
+why_unsure: 入力に数値も基準となる値もなく、機能はまだない。5 秒は相手が操作の結果を待っていると感じない長さとして置いた最初の値で、95% は最初のウィンドウで数えることを優先した値。
+breadth: medium
+severity: low
+rating_note: QR-06、QR-02、SLI-14、NFR-07 が依存する。最初のデモの値から見直すもので、変えるのは容易
+answer: null
+answered_in: null

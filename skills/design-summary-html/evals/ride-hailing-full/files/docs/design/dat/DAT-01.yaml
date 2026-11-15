@@ -1,49 +1,23 @@
 id: DAT-01
 title: アカウント
-status: draft
-version: 2
+status: active
 basis: inferred
-basis_note: 持ち主と置き場所は第 2 段階の情報のビューと DEC-05・08・15（入力）。乗客のアカウントも運営・サポート担当が作ることは FR-01 版 3・FR-48 版 2、ログインの失敗をアカウントと IP の組で数えることは第 2 段階の DEC-20 版 3（入力）。主な属性と整合の取り方はこの段の推定。保持期間は品質チェーンの T_pii_retention・T_log_retention と第 2 段階の決定（DEC-14、16、22、28、36）から当てはめた
-needs_agreement: false
-approver_candidates: []
-entity: アカウント
-owner: ELM-04
-store: ELM-07
-key_attributes:
-- account_id
-- roles（passenger、driver、operator、engineer の組）
-- name（乗客の名前。FR-48 AC1。ドライバーの名前は DAT-03）
-- email（一意。大文字小文字を区別しない）
-- password_hash
-- status（invited は設定の符号でパスワードを決める前、active）
-- ログインの失敗の数と停止の期限（アカウントと IP の組ごと。第 2 段階の DEC-20 版 3）
-- test_account（FR-01 AC6）
-- created_at、last_used_at
+basis_note: アカウントの作成と訂正、試験用の区別、本人の確かめ、3 年を過ぎた情報の扱いは FR-41、FR-42、FR-48、FR-51 の 4（入力）。システムのデータを一つのデータベースに置いて ELM-03 だけが書き、個人の情報を記録した日ごとの鍵で暗号にすることは DEC-16、DEC-17（入力）。サインインの ID は DEC-36。属性、整合の取り方、扱いの区分は推定
+premises: [CON-06]
+entity: アカウント（乗客、ドライバー、運営・サポートの担当者、エンジニア）
+owner: ELM-03
+store: ELM-04
+key_attributes: [accountId, loginId, kind, displayName, contact, testAccount, status, createdAt]
 relations:
-- to: DAT-02
-  kind: one-to-many
-  note: セッションとパスキー
-- to: DAT-03
-  kind: one-to-one
-  note: ドライバーのとき
-- to: DAT-12
-  kind: one-to-one
-  note: 乗客の支払い手段の参照
-consistency: 認証のモジュールだけが書く。作成と役割の付与は一つのトランザクション。乗客のアカウントもドライバーのアカウントも運営・サポート担当が作り、自分で作る入口はない（FR-01 版 3、FR-48 版 2）。管理のモジュールが認証のモジュールの操作を呼んで作り、乗客は管理の操作の記録（DAT-18）と、ドライバーは DAT-03 と同じトランザクションで書く。ログインの失敗の数と一時の停止は、アカウントと IP の組ごとの行への条件付きの書き込み（二つのインスタンスでも数がずれない。アカウント全体は止めない）。テスト用の印はエンジニアの API（IFC-07）だけが変え、変えた後の記録に写す。ELM-05 は持ち主のモジュールを通して書く（DEC-53。保存期間の匿名化）
-retention: 名前、メールアドレス、パスワードのハッシュは、最後に使ってから T_pii_retention（3 年）を過ぎると消して匿名にする（FR-53）。残りはシステムを終えるとき（DEC-36）
+  - {to: DAT-02, kind: one-to-many, note: 本人の確かめの秘密とセッション}
+  - {to: DAT-03, kind: one-to-one, note: ドライバーと車両の登録（ドライバーだけ）}
+  - {to: DAT-04, kind: one-to-one, note: 受付の状態と、閾値か条件}
+  - {to: DAT-05, kind: one-to-many, note: 支払い方法と登録の取引（乗客だけ）}
+  - {to: DAT-07, kind: one-to-many, note: 乗客かドライバーとしての依頼と乗車}
+  - {to: DAT-25, kind: one-to-many, note: 端末ごとの知らせの宛先}
+consistency: ELM-03 だけが書く（DEC-17）。作成、訂正、試験用の区別の変更は、操作の記録（DAT-17）と一つの取引で書く（FR-41 の 4、FR-42 の 3、FR-50）。名前と連絡先は記録した日の鍵で暗号にし（DEC-16）、同じ人のアカウントがすでにあるかはサーバーが読み解いて比べる（FR-41 の 3）。試験用の区別は、その時点の値を依頼、評価、決済、苦情、SLI の記録に写す（FR-42 の 2、QR-47）
+retention: 使っている間。記録してから 3 年（QR-59、FR-51）を過ぎた内容は日々の処理が個人を特定できない形に変え、そのアカウントは使えなくなる（FR-51 の 4）。変えた後の行は消さない
 classification: personal
-drivers:
-- DRV-29
-- DRV-21
-- DRV-25
-- DRV-27
+drivers: [DRV-28, DRV-29, DRV-21, DRV-25]
+sli_bindings: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 乗客のアカウントも運営・サポート担当が作る（自分で作る入口はない）と書き、乗客の名前（name）を足して保持期間に含めた。ログインの失敗の数と一時の停止をアカウントと IP の組ごとにし、status から locked を外した。保存期間の匿名化は ELM-05 が持ち主のモジュールを通して行うと書いた。FR-01 の受け入れ基準の番号を版 3 に合わせた
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-01 版 3、FR-48 版 2）、第 2 段階の DEC-20 版 3（FND-44 の受け入れ）、FND-39'

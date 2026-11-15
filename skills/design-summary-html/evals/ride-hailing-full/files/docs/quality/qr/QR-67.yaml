@@ -1,0 +1,22 @@
+id: QR-67
+title: 到着予定時刻と料金を求める決まりを、地図のサービスを使わずに試せる
+status: active
+basis: inferred
+basis_note: QR-08 を支える内部品質として推定。料金を運賃表に従って求める QR-61 にも役立つ。どう試すかは設計で決める
+premises: [EXT-02]
+model: product
+layer: internal
+characteristic: maintainability > testability
+statement: 目的地への到着予定時刻（ドライバーが見つかるまでの時間と迎車の時間を含む）と料金を求める決まりは、EXT-02 を使わずに、EXT-02 が失敗する場合と答えない場合も含めて、変更のたびに自動で試験できる。
+applies_to: [FR-03, FR-47]
+traces_to: [QIU-05]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 到着予定時刻の求め方を変えても EXT-02 を使わずに試す手立てがなく、迎車の時間を入れ忘れた誤りが公開の後に初めて見つかる。
+score: null
+handling: emphasized
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

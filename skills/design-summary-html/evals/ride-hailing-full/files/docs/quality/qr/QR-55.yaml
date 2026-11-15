@@ -1,0 +1,23 @@
+id: QR-55
+title: 乗車を始めてよいかと、走っている間の操作を受け付けるかの判断を、単独で試せる
+status: active
+basis: inferred
+basis_note: QR-18、QR-28 を支える内部品質として推定。V_moving_lock の値（時速 5 km）は第 4 段階の決めたこと 4
+premises: []
+model: product
+layer: internal
+characteristic: maintainability > testability
+statement: 確かめの手がかりで乗車を始めてよいかの判断と、車の速さで依頼を選ぶ操作と許諾を受け付けるかの判断は、それぞれ単独で、実際の端末や車を使わずに、境目の値を含めて自動で試験できる。
+applies_to: [FR-12, FR-22, FR-27]
+traces_to: [QIU-10, QIU-17, QIU-18]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: 速さが V_moving_lock（時速 5 km）のちょうど境目のときの振る舞いを試す手立てがなく、走り出した直後の許諾が受け付けられる誤りが残る。
+score: null
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders:
+  - {name: V_moving_lock, meaning: "第 2 段階の値。車が走っているとみなし、依頼を選ぶ操作と許諾を受け付けなくなる速さ", from: FR-22}

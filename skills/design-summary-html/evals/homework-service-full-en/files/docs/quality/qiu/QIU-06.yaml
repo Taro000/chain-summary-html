@@ -1,16 +1,14 @@
 id: QIU-06
 title: Tell parents about submissions
 status: retired
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 user: USR-05
 cuj: CUJ-01
 outcomes: []
 need: Parents can know about submissions.
-context_of_use: {device: Smartphone browser, network: null, user_type: null, task: Tell parents about submissions, environment: null, other: null}
+context_of_use: {device: Smartphone, network: null, user_type: null, task: Tell parents about submissions, environment: null, other: null}
 characteristic: effectiveness
 statement: Parents can know about submissions.
 failure_scenario: Parents do not know about submissions.
@@ -18,5 +16,3 @@ measure: {numerator: Submissions notified, denominator: Submissions, narrowed_to
 kpi: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

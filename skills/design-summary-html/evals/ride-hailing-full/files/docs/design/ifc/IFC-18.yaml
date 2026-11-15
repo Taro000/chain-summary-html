@@ -1,64 +1,42 @@
 id: IFC-18
-title: 端末のブラウザの機能
-status: draft
-version: 2
+title: 決済サービスの入力部品（EXT-01 の Stripe.js）
+status: active
 basis: inferred
-basis_note: TC-09、TC-12（iOS の Safari、裏に回ると止まる、安全な文脈でだけ）と DEC-23（端末の機能は一つのモジュールだけ）は入力。音を最初のタップで鳴らせるようにすること、Wake Lock を前面に戻るたびに取り直すことは推定（実機で確かめる。NFR-20）
-needs_agreement: false
-approver_candidates: []
-kind: event
-name: 端末のブラウザの機能（外部）
-provider: ELM-13
-consumers:
-- ELM-01
-- ELM-02
-functions:
-- FR-02
-- FR-06
-- FR-17
-- FR-21
-- FR-24
-- FR-52
+basis_note: 乗客の Web アプリの中に EXT-01 のドメインから読み込みその枠の中で動く入力部品を置き、サーバーが作った登録の取引を端末から EXT-01 に直接確かめさせ、サーバーは結果を EXT-01 から読み直してから使える支払い方法にすることは DEC-12（入力）。カードの情報がこのシステムのサーバー、ログ、データを通らないことは TC-11 と CON-04（入力）。入力部品と公開の鍵を src/platform/ だけが扱い、起動のときに ELM-03 から読む値で偽物を選ぶことは POL-02、DEC-34（入力）。入力部品の形と読み込み方は Stripe.js の文書による（POL-05、報告の「入力」）。待ちの値は第 4 段階
+premises: [EXT-01, TC-11, CON-04]
+kind: http
+name: 決済サービスの入力部品（Stripe.js の Payment Element）
+provider: ELM-05
+consumers: [ELM-01]
+functions: [FR-46]
 operations:
-- name: Geolocation（watchPosition、enableHighAccuracy）
-  does: 位置と誤差と測った時刻を受ける（DEC-14 で 10 秒ごとに最新を送る）
-- name: Screen Wake Lock（navigator.wakeLock.request('screen')）
-  does: 受付中・迎車中・乗車中の画面を消さない（FR-52 AC1）。受付を終えて迎車中でも乗車中でもなくなったら解放する（FR-52 AC2）
-- name: 音の再生（Web Audio）
-  does: 許諾、到着、新しい依頼、取り消し、降車場所の変更を音で知らせる
-- name: Page Visibility（visibilitychange）
-  does: 裏に回った時刻と前面に戻った時刻（FR-17 AC5）、前面に戻ったときの取り直し（FR-06 AC3）
-format: ブラウザの API（同じ端末の中）
-protocol: JavaScript の呼び出しと出来事。安全な文脈（HTTPS か localhost）でだけ使える（TC-12）
-auth: 位置情報は利用者の許可。音は利用者の最初の操作（タップ）の後でないと鳴らない（iOS の Safari）
+  - name: Payment Element の表示
+    does: ELM-01 が js.stripe.com から Stripe.js を読み込み、IFC-07 が返した client secret と公開の鍵（IFC-01 の client-config）で入力部品を EXT-01 の枠の中に示す
+  - name: stripe.confirmSetup
+    does: 乗客が入れたカードの情報を、入力部品が EXT-01 に直接送り、登録の取引を確かめる。ELM-01 はその後に IFC-07 の completion を呼び、結果は ELM-03 が EXT-01 から読み直して決める（FR-46 の 1）
+format: Stripe.js（EXT-01 が配る JavaScript）。ELM-01 が入力部品に渡すのは client secret と公開の鍵だけ
+protocol: 入力部品が EXT-01 の枠（iframe）から EXT-01 に HTTPS で送る。カードの情報は ELM-01 のコードにも ELM-03 にも触れない（TC-11）
+auth: EXT-01 の公開の鍵と、その登録の取引の client secret
 errors:
-- case: 位置の利用が許可されていない
-  signal: PERMISSION_DENIED
-  caller_does: 乗客には現在地を入れず探して指定するよう示す（FR-02 AC4）。ドライバーには受付を始めさせず許可を求める（FR-17 AC3）
-- case: 位置を得られない
-  signal: POSITION_UNAVAILABLE、TIMEOUT
-  caller_does: その回は送らない。相手の画面は古さを示す（FR-10 AC4）
-- case: 画面の点灯を使えない、失敗
-  signal: 例外か解放の出来事
-  caller_does: 画面が消えると一覧と現在地の更新が止まることを示す（FR-52 AC4）。前面に戻ったら取り直す（FR-52 AC3）
-- case: 音を鳴らせない
-  signal: 再生の失敗
-  caller_does: 画面の知らせだけにし、次のタップで鳴らせるようにする
-idempotency: —
+  - case: 入れた番号や期限の誤り
+    signal: 入力部品が示す誤り
+    caller_does: 乗客が入れ直す
+  - case: confirmSetup がカードを使えないと答えた
+    signal: confirmSetup の誤り
+    caller_does: IFC-07 の completion を呼び、ELM-03 が読み直した結果（PAYMENT_METHOD_DECLINED）を示す
+  - case: confirmSetup が答えないか、読み込めない
+    signal: タイムアウトか読み込みの失敗
+    caller_does: 確かめたかどうか分からないとして IFC-07 の completion を呼ぶ（ELM-03 が読み直す）。読み込めなければ登録を始められないことを示す
+  - case: 追加の本人確認を求められた
+    signal: 入力部品の確かめの画面
+    caller_does: 入力部品の画面に従う（DAS-06 はテスト用のカードで求めないと見込む）
+idempotency: 同じ client secret の confirmSetup は、何度呼んでも一つの登録の取引のまま（EXT-01 が持つ）
 timing:
-  timeout: null
-  ordering: 出来事は起きた順
-  delivery: 裏に回ると位置と出来事が止まる（受け入れた制約。TC-09）
-versioning: —
-observability: 失敗をブラウザのエラーの記録（IFC-05）に。前面と裏の時刻を IFC-04 で送る
+  timeout: 枠だけを決める。ELM-01 が confirmSetup を待つ時間は、それを過ぎても結果を ELM-03 の completion で決めるため、登録を二重にしない。お金を動かさず、時間のしきい値の SLO の道にもなく、値は第 4 段階が決める（HND-17）
+  ordering: null
+  delivery: null
+versioning: Stripe.js は EXT-01 が配る版を読み込む（js.stripe.com の決まった URL）
+observability: ELM-01 は入力部品の結果の種類だけをたどる記録に送り（FR-52）、カードの情報と client secret は送らない
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 画面の点灯を、受付を終えて迎車中でも乗車中でもなくなったら解放すると書いた。FR-17 の受け入れ基準の番号を版 2 に合わせた
-  reason: '第 3 段階の再実行（2026-11-04）: 品質チェーンの再実行（FR-17 版 2）、FND-47'

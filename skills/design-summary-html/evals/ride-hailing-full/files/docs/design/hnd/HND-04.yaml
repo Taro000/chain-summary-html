@@ -1,0 +1,14 @@
+id: HND-04
+title: 変化を届ける流れの生存の確かめ、つなぎ直しの待ち、出来事の記録を読む間隔
+status: decided
+basis: inferred
+basis_note: DEC-06 の応答を左右する点。NFR-07 の時間のしきい値の道にあるため、第 3 段階に送る
+premises: []
+from: architecture-drivers-to-architecture
+to: architecture-to-high-level-design
+component: null
+origin: [DEC-06]
+what: 開いたままの流れの生存を確かめる間隔、切れたときにつなぎ直すまでの待ち、ほかのインスタンスが書いた出来事を記録から読む間隔の値と、操作から相手の画面に示すまでの遅延の予算
+bounds: NFR-07 と SLI-14（T_dispatch_propagation）、QR-06、DEC-06（出来事の記録から届け、続きから届ける）、DEC-08（同じキーで送り直す）
+trigger: 第 3 段階の次の実行
+resolution: IFC-11 と DEC-46 で決めた。生存の確かめは 15 秒ごと、端末は 35 秒何も受けなければつなぎ直し、つなぎ直しの待ちは 1 秒から 30 秒まで延ばし、ほかのインスタンスが書いた出来事は 1 秒ごとに読む。NFR-07 の予算は報告の「遅延の予算とタイムアウト」で、どの変化も T_dispatch_propagation に収まる（値は DAS-11）

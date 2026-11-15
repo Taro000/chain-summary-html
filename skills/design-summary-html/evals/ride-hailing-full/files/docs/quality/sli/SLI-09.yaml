@@ -1,0 +1,29 @@
+id: SLI-09
+title: 乗る場所の位置の正確さ
+status: active
+basis: inferred
+basis_note: 乗客が実際に待っていた場所を、乗車を始めたときの車の位置で表すのは推定。しきい値 D_pickup_position_gap（50 m）は質問 3 の回答で、迎車が乗る場所に着いたとみなす範囲と同じ値。設計は、二つの位置を同じ基準で比べられることを確かめる
+premises: [OPF-01, EXT-02]
+function: GOOD ÷ VALID
+refs: [QR-05, NFR-12]
+reshaped: 規則 3（乗客が実際に待っていた場所に近づけるため、依頼に入った位置を乗車を始めた位置と比べることにした）
+target_entity: 配車依頼に乗る場所として入った位置（FR-01, FR-02）と、乗車を始めたときの車の位置（FR-27）
+purpose: 依頼に入る乗る場所が、乗客が実際に待つ場所からずれていることがどれだけあるか
+unit_event: 乗車を始めた一つの依頼
+vantage: data
+vantage_reason: 乗る場所の位置がずれているかは、依頼の位置と実際に乗った位置を突き合わせて初めて分かる。乗客にも境界の応えにも現れないため、データで比べる
+existing_source: null
+elements:
+  VALID:
+    definition: 乗車を始めた依頼
+    exclusions: 試験用のアカウントの依頼。乗車を始めたときの車の位置が記録されていない依頼は除かずに数えて、GOOD に数えない
+    unit: 依頼
+    counting_rule: 一つの依頼は一つと数える。依頼は乗車を始めた日に数える
+  GOOD:
+    definition: VALID のうち、乗車を始めたときの車の位置が、依頼に入った乗る場所の位置から D_pickup_position_gap（50 m）未満のもの
+    unit: 依頼
+    counting_rule: VALID と同じ
+scale: ratio
+applicability: 本番の環境で、デモの回の間（OPF-01）の、利用者の実際の依頼
+lifecycle: 本番で測る。デモの回ごとに値をまとめ、振り返りに使う
+blind_spots: 車を止められる場所が乗る場所から離れているときや、乗客が車まで歩いて乗ったときも、ずれとして数える。乗車を始めずに終わった依頼（乗客の不在、取り消し）は、ずれていたかが分からない。端末が測る位置そのもののずれは見えない

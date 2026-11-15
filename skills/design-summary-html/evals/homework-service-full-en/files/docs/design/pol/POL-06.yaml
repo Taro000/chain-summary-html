@@ -1,0 +1,14 @@
+id: POL-06
+title: Feedback from implementation
+status: active
+basis: inferred
+basis_note: null
+premises: []
+scope: implementation-feedback
+addresses:
+- DRV-06
+decisions: []
+rules:
+- rule: When the code cannot keep the design, write a finding and re-run the stage
+  check: The review of the pull request
+as_is: new

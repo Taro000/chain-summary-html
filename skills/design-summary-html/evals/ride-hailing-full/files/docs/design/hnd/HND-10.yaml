@@ -1,0 +1,14 @@
+id: HND-10
+title: 異常とみなす条件、監視と SLO のアラートを確かめる間隔、日々の処理を終えた記録を待つ時間
+status: decided
+basis: inferred
+basis_note: DEC-20 の応答を左右する点。時間のしきい値の SLO とお金の道にないため、第 4 段階の ELM-03 の実行に送る。想定の本番の見張りが日々の処理を終えた記録を待つ時間は、FND-09 を受けて加えた。日々の処理がかかる時間を決める同じ実行に送る
+premises: []
+from: architecture-drivers-to-architecture
+to: high-level-design-to-detailed-design
+component: ELM-03
+origin: [DEC-20]
+what: 異常とみなす操作の失敗と外部のサービスの失敗の条件、続く異常のまとめ方、監視の条件と SLO のアラートを確かめる間隔の値と、想定の本番のアラートが日々の処理を終えた記録を待つ、日々の呼び出しの予定の時刻からの時間の値
+bounds: QR-33 と NFR-38（T_alert_delay）、NFR-01〜NFR-07 のアラート、監視の非機能要件（NFR-10、NFR-14、NFR-24、NFR-35、NFR-39、NFR-45、NFR-46 など）、DEC-18（日々の処理）、DEC-20
+trigger: 第 4 段階の ELM-03 の実行
+resolution: "異常とみなす条件、続く異常のまとめ方、監視の条件と SLO のアラートを当てる間隔は MOD-67 の判断表と parameters で決めた（DAS-28）。想定の本番のアラートが日々の処理を終えた記録を待つ時間は、日々の処理の時間の上限と呼び出し手の再試行とともに MOD-32 の parameters で決めた（DAS-20）。外からの生存確認の間隔と知らせるまでの失敗は MOD-20 の parameters で決めた（DAS-17）"

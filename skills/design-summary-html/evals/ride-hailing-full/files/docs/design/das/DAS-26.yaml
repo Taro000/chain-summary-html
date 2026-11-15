@@ -1,0 +1,12 @@
+id: DAS-26
+title: 走っているかの判断に使う位置の新しさと窓を暫定に採る
+status: open
+stage: 4
+kind: decision
+statement: MOD-48 は、直した測った時刻が 10 秒より古い位置を判断に使わず、最近 10 秒の位置の速さのどれかが V_moving_lock 以上なら走っているとし、速さのない位置だけのときは、最近 30 秒のうち 20 秒以上離れた二つの位置の動いた距離に両方の確からしさを足しても V_moving_lock に満たないときだけ止まっているとする。値は MOD-48 の parameters にある
+why_unsure: 端末は 5 秒ごとに位置を送る（IFC-05）が、参加者の iPhone の Safari が返す速さの揺れと、止まっているときに速さを返すかは測っていない（DAS-27）
+breadth: low
+severity: medium
+rating_note: MOD-48 と、それを使う MOD-52 と MOD-62 が依存する。緩すぎると走り出した直後の操作を受け付けうる（QR-28、安全）が、判断表は分からないときに受け付けない側に倒し、実機の受け入れで確かめる（MOD-48 の verification）ので、気づかずに残る見込みは小さく、重大さは中にとどまる
+answer: null
+answered_in: null

@@ -1,0 +1,59 @@
+id: MOD-47
+title: 位置
+status: active
+basis: assumed
+basis_note: 画面に出ている乗客とドライバーの端末が測った位置を送り、ELM-03 が最新の位置として持ち、受けた記録に残し、迎車が乗る場所から D_pickup_position_gap のうちに入ったら迎車の到着とし、相手に position.updated と ride.pickup_arrived で示すことと、送る場面（ドライバーは受付をしている間と迎車中と乗車中、乗客は配車が確定してから乗車が始まるまで）、POSITION_NOT_NEEDED、同じ測った時刻の位置は一度だけ受け、古い位置は記録に残すが最新にしないこと、T_vehicle_location_lag を過ぎた位置を分からないものとして判断に使わないことは IFC-05、DEC-07、DAT-10（入力）。位置の時刻を DEC-37 で直し、緯度と経度を記録した日の鍵で暗号にし、迎車の到着を決めた位置を依頼の状態の変化と一つの取引で書くことは DAT-10（入力）。position.updated を記録に残さない出来事として相手の流れにだけ渡すことは IFC-11（入力）。迎車の到着に使う位置の確からしさの上限は、着く前に着いたと示さない（DRV-03）ための推定で、DAS-25 による暫定の決定。迎車の到着の前に確認コードで乗車が始まった依頼には迎車の到着を決めないことは DAT-07（FND-56 を受けた第 3 段階の変更、入力）
+premises: [DAS-25]
+component: ELM-03
+name: 位置
+depth: full
+depth_reason: 参加者ごとの最新の位置を、直した測った時刻が新しいものだけで置き換え（遅れて着いた位置との重なりを条件つきの書き込みで分ける、同時に動く仕事と状態を分ける）、迎車の位置から迎車の到着を決めて依頼の状態を移す（DRV-03 と DRV-04 の道の上の、いくつもの条件の規則）
+responsibility: 端末が測った位置を受けて最新の位置を定め、迎車の到着を見つける
+visibility: public
+interface:
+  - operation: "receive(actor: Actor, fix: DevicePosition) -> accepted"
+    pre: null
+    post: POST /v1/positions で、判断表 A で送る場面かを決め、測った時刻を DEC-37 で直し、受けた位置の記録に足し（同じ端末の測った時刻は一度だけ）、直した測った時刻が今の最新より新しいときだけ最新にする。最新になった位置を、見てよい相手（MOD-27 の判断表 B）の流れに position.updated で渡し（記録に残さない）、ドライバーの位置なら判断表 B で迎車の到着を当て（MOD-45 の markPickupArrived）、聞き手（MOD-50）に知らせる
+    errors: ["POSITION_NOT_NEEDED: 409", "VALIDATION_FAILED: 400（緯度と経度の範囲か時刻の形の誤り）"]
+  - operation: "latest(accountId: AccountId, now: Instant) -> fresh(CorrectedPosition) | stale(CorrectedPosition) | none"
+    pre: null
+    post: 最新の位置と、直した測った時刻から T_vehicle_location_lag を過ぎたか（過ぎた位置は分からないものとして、依頼を届ける判断、距離の条件、走っているかの判断、着く見込みに使わず、画面には最後に分かった位置と時刻として示す）
+    errors: []
+  - operation: "recent(accountId: AccountId, since: Instant) -> CorrectedPosition[]"
+    pre: null
+    post: その時刻の後に測った位置を新しい順に（MOD-48 の判断に）
+    errors: []
+  - operation: "onFix(listener: (driver: AccountId, fix: CorrectedPosition) -> none) -> none"
+    pre: 起動のときだけ（MOD-50 が登録する）
+    post: 最新になったドライバーの位置を知らせる
+    errors: []
+  - operation: "clearLatest(tx: Tx, accountId: AccountId) -> none; purgeRecordsBefore(at: Instant) -> integer"
+    pre: null
+    post: 依頼が終わるか受付をやめたときに最新の位置を消し、保持期間（N_trace_retention_days）を過ぎた受けた位置の記録を消す（MOD-68）
+    errors: []
+invariants:
+  - 参加者ごとの最新の位置は、受けた位置のうち直した測った時刻が最も新しいもの
+  - 同じ端末の同じ測った時刻の位置は一度だけ記録に足す
+  - 迎車の到着は、assigned の依頼に割り当てたドライバーの、新しく確からしい位置からだけ決める（迎車の到着の前に乗車が始まった依頼には決めない）
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-27, MOD-28, MOD-33, MOD-45]
+functions: [FR-08, FR-10, FR-13, FR-19, FR-24, FR-49]
+realizes:
+  - IFC-05 POST /v1/positions
+  - IFC-11 position.updated
+drivers: [DRV-03, DRV-04, DRV-11, DRV-27]
+decisions: [DEC-07, DEC-16, DEC-22, DEC-37]
+behaviour: "報告書の節: MOD-47 位置"
+verification:
+  - checks: 判断表 A と B の行ごと（送る場面と、D_pickup_position_gap のちょうど内と外、確からしさの上限の前と後、古い位置、ほかのドライバーの位置）
+    how: 単体の層（位置の偽物、時計の偽物）
+  - checks: 遅れて着いた古い位置が最新を替えず、同じ測った時刻の位置が一度だけ記録に残り、二つの送りを重ねても新しい方が残る
+    how: 結合の層
+  - checks: 迎車の到着から乗客の画面と知らせまで（SLI-14、NFR-07）、乗客と車の位置の示し方（FR-08、FR-13、FR-24）
+    how: 端から端の層（試験の環境の偽物の設定）
+  - checks: 位置が境界の出来事とログに書かれず、他人の位置が見えない（FR-49 の 2、QR-58）
+    how: 結合の層
+parameters:
+  - name: 迎車の到着に使う位置の確からしさの上限
+    value: 30 m
+    basis: 確からしさの悪い位置で着く前に着いたと示さない（DRV-03）ための暫定の値（DAS-25）。D_pickup_position_gap（50 m）より小さい
+as_is: new

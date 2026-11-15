@@ -1,49 +1,22 @@
 id: QR-40
-title: 保存期間を過ぎた個人情報を残さない
-status: draft
-version: 3
+title: 利用技術のバージョンアップでデータを移しても、失われず変わらない
+status: active
 basis: inferred
-basis_note: 残すことは質問 4 で確認済み。FRP-06 は FR-53 として受け入れられ、記録を残して操作した人と位置を消す形になった（第 2 段階の質問 12）。法令として扱うことは第 1 段階の質問 20・22 で確認済み。法令がそれを求めるかは未確認で推定。現在地の受信の記録（FR-17 版 2）を対象に加えたことは推定（T_log_retention の間だけ残すので T_pii_retention より短い）
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 開発の責任者, 法令を確かめる担当（推定）]
+basis_note: 失敗のシナリオと点は推定。バージョンアップにデータの移し替えが伴うかは設計による
+premises: []
 model: data
-layer: data-inherent
-characteristic: compliance
-statement: 位置情報と個人情報を含むログとデータは、決めた保存期間（T_pii_retention）を過ぎると残らない。
-applies_to: [FR-17, FR-37, FR-38, FR-39, FR-53]
-traces_to: []
-entry_point:
-  type: law
-  source: 個人情報保護法（保存期間と削除）。第 2 段階の未解決の点が挙げた分類。参加者は実在の人で位置情報も本物なので法令として扱う（第 1 段階の質問 20・22）
-  brought_by: 利用者（第 1 段階の質問 7 の回答）
-stakeholders: [USR-01, USR-02, USR-03]
-failure_scenario: 位置情報と個人情報が期限なく残り続ける。
-score: {impact: 2, likelihood: 2}
+layer: data-system-dependent
+characteristic: portability
+statement: 利用技術のバージョンアップに伴ってデータを移しても、アカウント、登録、依頼と乗車の記録、評価、決済と返金の記録は、欠けも文字化けもせず、移す前と同じ値で使える。
+applies_to: [FR-15, FR-38, FR-41, FR-43, FR-45]
+traces_to: [QIU-26]
+entry_point: null
+stakeholders: [USR-03, USR-01, USR-02, USR-04]
+failure_scenario: 利用技術のバージョンアップでデータを移したら、乗客の名前の一部が文字化けし、ドライバーに示す依頼主の名前が読めなくなる。
+score: {impact: 4, likelihood: 2}
 handling: minimum-line
-handling_reason: 法令から来る要求なので点に関わらず残す。事業化しないデモなので最低限守る線
+handling_reason: null
 implies_internal: []
-conflicts:
-  - with: QR-33
-    note: 保存期間を過ぎた状態の履歴から操作した人と位置を消す（FR-53）と、その乗車をドライバーに結び付けられなくなる。変化の種類と時刻は残すので件数は数えられる。苦情の対応に要る期間は T_pii_retention を下回らないように決める
-  - with: QR-23
-    note: 期限で消すと過去の障害を調べられない。保存期間は調査に要る期間を下回らないように決める
-  - with: QR-34
-    note: T_log_retention と T_pii_retention を合わせて決める
+conflicts: []
 stated_numbers: []
-placeholders:
-  - name: T_pii_retention
-    meaning: 位置情報と個人情報を含むログとデータを残す期間
-    from: この段階
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: FR-53 を対象に加え、QR-33 との競合を記録した
-    reason: 第 3 段階の再実行（第 1 段階 55db34c、第 2 段階 dbb8df9）
-  - version: 3
-    date: '2026-11-03'
-    change: 現在地の受信の記録を対象に加えた（FR-17 を対象に足した）
-    reason: 第 2 段階の再実行（2026-11-03）の FR-17 版 2 への追随
+placeholders: []

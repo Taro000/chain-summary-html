@@ -1,31 +1,17 @@
 id: DRV-33
-title: 時刻で動く処理は動かなかった間の分を続ける
-status: draft
-version: 3
+title: 外部のサービス、時計、端末とのつながり、端末の位置と速さは、試験で失敗まで差し替えられる
+status: active
 basis: inferred
-basis_note: FR-53・FR-55（受け入れ基準の「次の処理で残りを続ける」）と、サーバーがデモの回にしか動かず、毎日の処理がデモの期間だけ動くこと（質問 4・12、第 2 段階の質問 1）から導いた原則。許諾のない依頼を T_request_max で取り消すこと（FR-08 版 2）を含めることは質問 16 で確認済み
-needs_agreement: false
-approver_candidates: []
+basis_note: QR-50、QR-51、QR-67（重視）と QR-55（最低限守る線）は、どれも試験の差し替え口を求める内部品質で、第 2 段階、第 2b 段階、第 4 段階がそれぞれ決めかねないため、全体の原則にした（推定）
+premises: []
 kind: principle
-statement: 時刻で動く処理（突き合わせ、履歴の確かめ、保存期間の処理、毎日の監視、許諾のない依頼を T_request_max で取り消すこと）は、動かなかった間（デモの期間の外、デモの回の外、実行の失敗）の分を、次の実行で抜けなく続ける
-sources: [FR-08, FR-53, FR-55, NFR-06, TC-07, TC-08]
-concern_of: [USR-03, USR-04]
+statement: EXT-01、EXT-02、時計、端末とのつながり、端末が測る位置と速さは、試験で差し替えられ、受け付けない、答えない、途切れる、境目の値の場合まで再現できる
+sources: [QR-50, QR-51, QR-55, QR-67, NFR-09, NFR-11, NFR-21, NFR-25]
+concern_of: [USR-03]
 scenario: null
 negotiable: false
-derived_from: [DRV-04, DRV-05, DRV-21, DRV-27, DRV-18]
+derived_from: [DRV-07, DRV-02, DRV-06, DRV-10, DRV-11, DRV-12]
 priority: null
 primary: false
-conflicts:
-  - with: DRV-18
-    note: 毎日の処理はデモの期間だけ毎朝動き、期間の外では動かない（TC-07）。期間の中は品質チェーンの締めの時刻（NFR-06）に間に合う見込み（第 2 段階の DEC-05）。品質チェーンは NFR の条件を「サーバーはデモの回だけ、毎日の処理はデモの期間だけ動く」に直した（課題 1 は決着）
+conflicts: []
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成, reason: 第 1 段階の下書き（質問 1〜10 の回答を反映）}
-  - version: 2
-    date: 2026-11-03
-    change: 「サーバーが止まっていた間の分を、次に動いたとき」を「動かなかった間（デモの期間の外、実行の失敗）の分を、次の実行で」に直した
-    reason: FND-02 を受け入れた（第 1 段階の再実行。質問 12）
-  - version: 3
-    date: 2026-11-03
-    change: 時刻で動く処理に、許諾のない依頼を T_request_max で取り消すことを足した（サーバーが動いていなかった間に期限を過ぎた依頼も、次の実行で取り消して押さえを解放する）。DRV-18 との競合の注（常時稼働の前提）を、品質チェーンが直したと書き替えた
-    reason: 品質チェーンの再実行（FR-08 版 2、回答の設計 1-1・2-7）に追随した。質問 16 で確認済み（第 1 段階の再実行、3 回目）

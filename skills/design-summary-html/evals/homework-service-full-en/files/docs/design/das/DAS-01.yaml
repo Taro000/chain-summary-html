@@ -1,0 +1,12 @@
+id: DAS-01
+title: At most 300 students at once
+status: open
+stage: '2'
+kind: judgment
+statement: At most 300 students submit at once before a deadline
+why_unsure: The school's number of students is not in the inputs
+breadth: medium
+severity: low
+rating_note: Only DEC-01 relies on it; beyond it, instances are added
+answer: null
+answered_in: null

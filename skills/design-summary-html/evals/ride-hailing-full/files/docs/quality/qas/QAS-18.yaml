@@ -1,0 +1,12 @@
+id: QAS-18
+title: CUJ-18 ドライバーの停止の重視は QR-49、QR-44
+status: retired
+stage: 3
+kind: decision
+statement: CUJ-18 ドライバーの停止の重視の組を QR-49（停止がすぐ効く機能正確性）と QR-44（担当者の操作の責任追跡性、質問 2 と質問 4）とする。
+why_unsure: QR-49 を入れることは点から下書きした。事業がどの品質を重く見るかは入力にない。
+breadth: low
+severity: medium
+rating_note: QR-49 の扱いが依存する。乗客の安全に関わる QR-49 は重視に入っている。決めたこと 18 と 15 で、この組の QR（QR-04、QR-49）はほかの CUJ の組として重視に決まり、扱いがこの仮定によらなくなったため廃止した
+answer: null
+answered_in: null

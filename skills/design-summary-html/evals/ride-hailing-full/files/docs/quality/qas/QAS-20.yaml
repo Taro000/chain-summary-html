@@ -1,0 +1,12 @@
+id: QAS-20
+title: EXT-01 からの結果の真正性（QR-31）は今期は対象外
+status: open
+stage: 3
+kind: decision
+statement: 決済と返金の結果を EXT-01 から来たと確かめたものだけ受け入れること（QR-31）を、今期は対象外とする。
+why_unsure: 実際のお金は動かない（CON-03）ため害は小さいとみたが、事業がテスト環境でもこれを求めるかは入力にない。
+breadth: low
+severity: low
+rating_note: QR-31 だけが依存する。実際のお金は動かず、後から上げるのは容易
+answer: null
+answered_in: null

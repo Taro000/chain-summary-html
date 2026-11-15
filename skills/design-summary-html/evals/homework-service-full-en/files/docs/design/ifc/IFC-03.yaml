@@ -1,11 +1,10 @@
 id: IFC-03
 title: Files in the storage
-status: draft
-version: 1
+status: active
 basis: inferred
-basis_note: null
-needs_agreement: false
-approver_candidates: []
+basis_note: 'Decides HND-01: the PUT is outside the confirmation hops'
+premises:
+- EXT-01
 kind: file
 name: Files in the storage
 provider: ELM-05
@@ -24,17 +23,13 @@ errors:
 - case: The URL has expired
   signal: 403 (ObjectStore)
   caller_does: Get a new URL
-idempotency: State-changing requests carry an Idempotency-Key (DEC-08)
+idempotency: State-changing requests carry an Idempotency-Key (DEC-10)
 timing:
   timeout: Browser 10 s
   ordering: null
   delivery: null
 versioning: v1 in the path
 observability: Trace IDs in the logs
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

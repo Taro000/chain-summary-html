@@ -1,23 +1,14 @@
 id: FND-54
-title: 設定の符号を参加者に渡す手段が決まっておらず、F1 は「範囲外」とするが範囲外の節にも DEC-20 の前提にもない
-status: open
-version: 1
+title: 報告の割り当ての FR-50 の 1 が MOD-01 を挙げるが、MOD-01 の functions に FR-50 がない
+status: accepted
 basis: inferred
-basis_note: 根拠の記述は成果物から（入力）。食い違いと重さの判断は推定
-needs_agreement: false
-approver_candidates: []
+basis_note: null
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-11-04-architecture.md
-to: architecture-drivers-to-architecture
-targets:
-- DEC-20
-- DRV-29
+raised_in: reviews/4-detailed-design-ELM-02.md
+to: high-level-design-to-detailed-design
+targets: [MOD-01]
 severity: minor
-evidence: 脅威のモデルの F1 は設定の符号について「渡す手段は範囲外」と書くが、報告書の「範囲外」の節にその行はなく、DEC-20 の前提にも要合意にもない。DRV-29 の刺激は「盗み見たか推し量った設定の符号で、本人より先にパスワードを決める」、応答は「設定の符号は本人だけが使え」。品質チェーンへの回答（設計 2-9）は「QR-20 で、設定の符号が本人だけに届くことなど」を設計に回している。符号をアカウントのメールアドレスに送ると、そのメールを読める人は両方を得る。出し直しにも、頼んだ人が本人かの確かめがない。推し量りは危険でない（10 文字の英数字で 36^10 ≈ 3.7 × 10^15。100 の IP が 1 日 24,000 回試して 6.6 × 10^-12。計算）
-suggestion: '渡す手段を DEC-20 の前提に書く（例: 対面か、アカウントのメールとは別の道で渡し、出し直す前に本人を確かめる）。業務の手順として扱うなら範囲外の節に一行足し、DRV-29 の応答がその前提に頼ることを書く'
-resolution: null
-changelog:
-- version: 1
-  date: '2026-11-04'
-  change: Raised
-  reason: 第 2 段階の 3 回目・4 回目の再実行分のレビュー、活動 A7（F1）
+evidence: 0347322 で報告の割り当ての FR-50 の 1 に MOD-01（操作を始めたアカウントのセッションでだけ送る）を加えたが、MOD-01 の functions は FR-40 と FR-48 だけで FR-50 を持たない。FND-48 を受けて FR-49 の 1 から MOD-01 を外したのと同じ食い違い
+suggestion: MOD-01 の functions に FR-50 を加える（送る前の確かめが操作の記録の担当者を操作を始めた担当者に保つ。DRV-30）か、FR-50 の 1 の行から MOD-01 を外す
+resolution: 受け入れ。MOD-01 の functions に FR-50 を加えた。FR-50 の 1 は行った担当者とともに記録することを求め、MOD-01 は一つの操作のどの要求も操作を始めたアカウントのセッションでだけ送ることで、記録される担当者を操作を始めた担当者に保つ（DRV-30）ので、FR-49 の 1 のように渡すだけのものではない。報告の割り当ての FR-50 の 1 はそのままにし、MOD-01 の端から端の層の確かめに、二つのタブで担当者を替えた後にほかの担当者の名で記録されないこと（FR-50 の 1）を書いた

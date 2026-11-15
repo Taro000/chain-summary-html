@@ -1,0 +1,17 @@
+id: DRV-35
+title: 依頼を届ける相手を決める規則は一か所にあり、どの時点でも同じ規則を使う
+status: active
+basis: inferred
+basis_note: QR-54（重視、内部品質）と、QR-49 の失敗のシナリオ（停止の規則が許諾の時点に入っていない）から推定した全体の原則。DRV-08 と DRV-20 に仕える
+premises: []
+kind: principle
+statement: 依頼を届ける相手を決める規則（受付をしているか、登録されているか、停止されているか、乗客の閾値、ドライバーの条件）と、閾値と比べる評価のまとめ方は一か所にあり、依頼を届けるとき、一覧と内容を示すとき、許諾を受け付けるときのどれでも同じ規則を使う
+sources: [QR-54, QR-49, QR-63, NFR-36]
+concern_of: [USR-01, USR-02, USR-04]
+scenario: null
+negotiable: false
+derived_from: [DRV-08, DRV-20]
+priority: null
+primary: false
+conflicts: []
+placeholders: []

@@ -1,29 +1,24 @@
 id: QR-16
-title: 配車を停止したドライバーに依頼を示さない
-status: draft
-version: 1
-basis: inferred
-basis_note: 運送は模擬（質問 1）なので影響を 4 から 3 に下げた。点と扱いは推定
-needs_agreement: true
-approver_candidates: [運営の責任者, プロダクトオーナー]
+title: 閾値を設定した乗客の依頼は、閾値以上のドライバーにだけ届く
+status: active
+basis: assumed
+basis_note: 失敗のシナリオと点は推定。評価がまだないドライバーと、評価の件数が N_rating_count_min に満たないドライバーに届けないことは、第 4 段階の質問 7 で QAS-05 が確認済みになり、FRP-12 を第 2 段階が受け入れたもの（FR-05）。N_rating_count_min の値（2 件）は第 4 段階の決めたこと 10。ドライバーの評価は 1〜5 の 5 段階の評価の平均（第 2 段階の質問 9、FR-15）。新しい評価を反映することはこの QR に含む（決めたこと 14）。T_rating_reflect の値（1 時間）は第 4 段階が提案した仮の値で、QAS-36 による仮定。デモのドライバーは 1 人（OPF-03）で、その 1 人に届くかどうかがこの QR で決まる。扱い（重視）は質問 2 で確認済み（CUJ-05 の組）
+premises: [OPF-03, QAS-05, QAS-36]
 model: product
 layer: external
 characteristic: functional suitability > functional correctness
-statement: システムは、配車を停止したドライバーに、停止した時点から新しい依頼を示さず、許諾も受け付けない。
-applies_to: [FR-17, FR-18, FR-20, FR-47]
-traces_to: [QIU-23]
+statement: システムは、評価の閾値を設定した乗客の依頼を、評価の件数が N_rating_count_min（2 件）以上で、届ける時点の評価がその閾値以上のドライバーにだけ届け、評価がまだないドライバーと件数が N_rating_count_min（2 件）に満たないドライバーには届けない。比べる評価は、乗客が付けた新しい評価を T_rating_reflect（1 時間）以内に反映した値である。閾値を設定していない乗客の依頼は、評価によってドライバーを除かない。
+applies_to: [FR-05, FR-15, FR-16]
+traces_to: [QIU-14, QIU-06]
 entry_point: null
-stakeholders: [USR-04, USR-01]
-failure_scenario: 停止の前に開いていた受付の画面に依頼が届き続け、問題のあるドライバーが次の乗客を乗せる。
-score: {impact: 3, likelihood: 3}
+stakeholders: [USR-01, USR-02]
+failure_scenario: 乗客が閾値を上げた直後の依頼に古い閾値が使われる、または評価が閾値を下回ったばかりのドライバーや評価の件数が足りないドライバーに依頼が届いて許諾され、乗客は乗るのをためらって配車を取り消す。
+score: {impact: 4, likelihood: 2}
 handling: emphasized
 handling_reason: null
-implies_internal: [QR-45]
+implies_internal: [QR-54]
 conflicts: []
 stated_numbers: []
-placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+placeholders:
+  - {name: T_rating_reflect, meaning: "乗客が評価を付けてから、閾値によるマッチに使うドライバーの評価がそれを反映するまでの時間", from: QR-16}
+  - {name: N_rating_count_min, meaning: "第 4 段階の値。閾値を設定した乗客の依頼を届けるのに要る、ドライバーの評価の件数の下限", from: FR-05}

@@ -1,133 +1,138 @@
-# 第 1 段階（requirements-to-architecture-drivers）が書く。更新: 2026-11-03（再実行: FND-01〜03、FND-18、品質チェーンの再実行と FND-27）
 read_from:
   quality_chain: docs/quality/
-  other:
-    - 利用者の入力（2026-11-02。技術制約、予算と納期、チームの構成、将来の変更）
-    - 第 1 段階の質問 1〜10 の回答（2026-11-02）
-    - Stripe の文書（Context7。押さえ、押さえより少ない額の請求、押さえの増額）
-    - 第 2 段階の指摘 FND-01〜03 と、そのもとの第 2 段階の質問 1・7 の回答（2026-11-03）
-    - 第 1 段階の質問 11〜15 の回答（2026-11-03、再実行）
-    - 第 2 段階の指摘 FND-18 と、そのもとの第 2 段階の質問 17 の回答（2026-11-03、第 2 段階の 2 回目の再実行）
-    - 品質チェーンへの回答（docs/quality-chain-answers.md、2026-11-03）と、それを反映した品質チェーンの再実行（2026-11-03、コミット 896be5c）
-    - 第 2 段階のレビューの指摘 FND-27 と、そのもとのレビューの質問 1・2 の回答（2026-11-03。デモの URL を発表、ブログ、動画で、デモの回の最中や前にも示す）
-    - 第 1 段階の質問 16 の回答（2026-11-03、3 回目の再実行）
+  other: [利用者が与えた設計の与件（第 1 段階の最初の実行の依頼）, 設計の第 2 段階の質問 2 の答え（TC-18）]
 technology_constraints:
   - id: TC-01
-    statement: TypeScript で書く
+    statement: コードは TypeScript で書く
     kind: mandated
-    source: 利用者の入力（2026-11-02）
+    source: 利用者が与えた設計の与件（技術制約）
     basis: stated
   - id: TC-02
     statement: 画面は React で作る
     kind: mandated
-    source: 利用者の入力（2026-11-02）
+    source: 利用者が与えた設計の与件（技術制約）
     basis: stated
   - id: TC-03
     statement: サーバーは Hono で作る
     kind: mandated
-    source: 利用者の入力（2026-11-02）
+    source: 利用者が与えた設計の与件（技術制約）
     basis: stated
   - id: TC-04
-    statement: 静的な検査は Oxlint、整形は Oxfmt を使う
+    statement: 静的な検査に Oxlint を使う
     kind: mandated
-    source: 利用者の入力（2026-11-02）
+    source: 利用者が与えた設計の与件（技術制約）
     basis: stated
   - id: TC-05
-    statement: テストは Vitest を使う
+    statement: 書式の整形に Oxfmt を使う
     kind: mandated
-    source: 利用者の入力（2026-11-02）
+    source: 利用者が与えた設計の与件（技術制約）
     basis: stated
   - id: TC-06
-    statement: データベースは Turso。デモの環境で使い、データはデモとデモの間も残す。手元では同じ形（libSQL）で動かす
-    kind: platform
-    source: 利用者の入力（2026-11-02）、第 1 段階の質問 2・9
-    basis: confirmed
+    statement: 試験に Vitest を使う
+    kind: mandated
+    source: 利用者が与えた設計の与件（技術制約）
+    basis: stated
   - id: TC-07
-    statement: 実行環境は GCP Cloud Run。サーバー（Cloud Run のサービス）は、デモの回と、確かめ（NFR-20、NFR-26）のための短い間だけ配備する。毎日の処理は Cloud Run のジョブとし、定時の起動（Cloud Scheduler）とともに、デモの期間だけ有効にする。デモの期間は、一つのデモの最初の回の日から、最後の回の翌朝の処理が終わるまで。ただし、その翌朝の処理のあとに、確かめ中のお金の操作、確定も解放もしていない押さえ、終わっていない依頼が残っていれば、毎日の処理がそれらをどれも 0 件と記録するまで延びる（第 2 段階の DEC-37。延びるのはそれらが残ったときだけ）。それ以外のときは Cloud Run で何も動かさない。手元でも同じ形で動かす
+    statement: 本番のデータベースは Turso として設計する。利用者はこれを「あくまで想定」としており、実際には配備しない
     kind: platform
-    source: 利用者の入力（2026-11-02）、第 1 段階の質問 1・2・9・12、第 2 段階の質問 1（FND-02）・質問 17（FND-18）、context.yaml の運用の事実（2026-11-03。品質チェーンへの回答の設計 1-1）
+    source: 利用者が与えた設計の与件（技術制約）; 第 1 段階の質問 1
     basis: confirmed
   - id: TC-08
-    statement: ふだんは手元の機械で開発する。サーバーを動かすのは、デモの回、確かめの短い間（TC-07）と開発のときだけで、常時は動かさない。デモの期間は、毎日の処理のジョブが動く（TC-07）
+    statement: 本番の実行の基盤は GCP Cloud Run として設計する。利用者はこれを「あくまで想定」としており、実際には配備しない
     kind: platform
-    source: 利用者の入力（2026-11-02。ローカルだけで完結）、第 1 段階の質問 1・4、第 2 段階の質問 1（FND-02）
+    source: 利用者が与えた設計の与件（技術制約）; 第 1 段階の質問 1
     basis: confirmed
   - id: TC-09
-    statement: スマートフォンのブラウザの Web アプリだけで、ネイティブアプリは使わない。対象は iOS の Safari だけ。裏に回ると通知と現在地の更新が止まる制約を受け入れ、ドライバーは受付中に前面に開いておく
+    statement: このアプリはデモで、実際にはデプロイせず、作ること、試すこと、動かすことをローカルだけで完結させる。ローカルでは本番と同じコードを Turso と Cloud Run の代わりのもので動かす。デモの回、SLO、監視、監査は、想定の本番（TC-07、TC-08）の要求として設計し、実際には行わない
     kind: platform
-    source: context.yaml の制約、QR-42、第 1 段階の質問 10
+    source: 利用者が与えた設計の与件（技術制約）; 第 1 段階の質問 1
     basis: confirmed
   - id: TC-10
-    statement: 決済は Stripe のテスト環境（サンドボックス）。誰も実際のお金を失わない。約束（SLA、上限）は入力にない
+    statement: 決済と返金は外部の決済サービス（EXT-01）のテスト環境を通し、製品は Stripe のテスト環境（サンドボックス）とする。システムの中で記録するだけの仮の仕組みは使わず、実際のお金は動かない
     kind: external-service
-    source: context.yaml の制約（2026-11-03 に Stripe と書かれた。品質チェーンへの回答の設計 1-4）、第 1 段階の質問 6
-    basis: confirmed
+    source: context.yaml DIN-01; context.yaml CON-03
+    basis: stated
   - id: TC-11
-    statement: 地図・経路・渋滞の情報は Google Maps Platform の API。使った分の料金と月ごとの無料の枠がある。約束（SLA、上限）は入力にない
+    statement: カードの情報は決済のサービスが用意する入力部品で入れ、このシステムのサーバー、ログ、データを通さず、保存しない
     kind: external-service
-    source: context.yaml のデータを作るシステム（2026-11-03 に Google Maps Platform と書かれた。品質チェーンへの回答の設計 1-4）、第 1 段階の質問 6
-    basis: inferred
-    basis_note: サービスの名前は質問 6 で確認済み。料金の形（使った分の料金と無料の枠）は推定
+    source: context.yaml DIN-03; context.yaml CON-04
+    basis: stated
   - id: TC-12
-    statement: 位置情報と画面の点灯のブラウザの機能は、安全な文脈（HTTPS か localhost）でしか使えない
-    kind: platform
-    source: ブラウザの仕様（入力にない）
-    basis: inferred
+    statement: 外部の地図のサービス（EXT-02）は Google Maps Platform とする
+    kind: external-service
+    source: context.yaml DIN-05
+    basis: stated
   - id: TC-13
-    statement: TC-01〜05 は必ず使う。足りないところ（画面の自動テストを動かすブラウザ、アクセシビリティの確認、依存の確かめ、入口の代理、地図の表示など）には、ほかの道具やライブラリを足してよい
-    kind: mandated
-    source: 第 1 段階の質問 3
+    statement: 乗客とドライバーは、ネイティブアプリではなく、スマートフォンのブラウザで使う Web アプリでこのサービスを使う。対象は iOS の Safari だけで、ほかの端末とブラウザには対応しない。乗客とドライバーは、迎車を待つ間、迎車中、乗車中にアプリを画面に出したままにする
+    kind: platform
+    source: context.yaml DIN-04; context.yaml CON-05; 第 1 段階の質問 2
     basis: confirmed
   - id: TC-14
-    statement: CI は GitHub のホストされた CI を無料の枠で使う
+    statement: 乗客とドライバーが同じ依頼の相手であることは確認コードで確かめ、乗客が伝えたコードをドライバーが入れる
+    kind: mandated
+    source: context.yaml DIN-02
+    basis: stated
+  - id: TC-15
+    statement: 新しい版の配備はデモの回を開くときに行う。配車を止めずに新しい版を入れることは求めない
     kind: platform
-    source: 第 1 段階の質問 9、GitHub のリモート（Taro000/ride-hailing-app-demo）
+    source: context.yaml DIN-06
+    basis: stated
+  - id: TC-16
+    statement: 運営・サポートの担当者は参加者に、アカウントの設定の符号を直接渡す
+    kind: mandated
+    source: context.yaml DIN-07
+    basis: stated
+  - id: TC-17
+    statement: ドライバーと車両の審査の結果（審査の日付と、審査の記録を探す手がかりを含む）と免許の期限は、このシステムに記録しない
+    kind: prohibited
+    source: context.yaml CON-07
+    basis: stated
+  - id: TC-18
+    statement: ドライバーは、受付をしている間もアプリを画面に出したままにする（TC-13 の、迎車を待つ間、迎車中、乗車中に加える）
+    kind: platform
+    source: 設計の第 2 段階の質問 2; QCR-03
     basis: confirmed
 project_constraints:
   - id: PC-01
     kind: budget
-    statement: 個人開発で払える程度。額は未定（C_budget_month）。無料の枠を優先する
-    source: 利用者の入力（2026-11-02）、第 1 段階の質問 5
-    basis: confirmed
+    statement: 決まった予算はない。費用は、個人の開発者が自分で支払える程度に収める
+    source: 利用者が与えた設計の与件（予算と納期）
+    basis: stated
   - id: PC-02
     kind: deadline
-    statement: 決まりなし
-    source: 利用者の入力（2026-11-02）
+    statement: 決まった納期はない
+    source: 利用者が与えた設計の与件（予算と納期）
     basis: stated
   - id: PC-03
     kind: team
-    statement: 一人（個人開発）。サーバーからブラウザへのリアルタイムの送信は作ったことがある。決済の組み込みは初めて。実機は iPhone だけ
-    source: 利用者の入力（2026-11-02）、第 1 段階の質問 7
-    basis: confirmed
-  - id: PC-04
-    kind: other
-    statement: ログと監視の基盤は自前の最小構成（構造化ログを保存し、集計のスクリプトで数え、チャットなどに知らせる）
-    source: context.yaml の運用の事実（2026-11-01 の回答）
-    basis: stated
-  - id: PC-05
-    kind: other
-    statement: 規模。デモは全体で 1〜2 回で終わる。参加者は 2 人（乗客 1 人とドライバー 1 人）。乗車はデモ 1 回で 2〜3 回（全体で 2〜6 回）。1 回のデモは 1〜2 日で、1 日に N_session_hours（3 時間）のデモの回が一つ（デモの回は全体で 1〜4 回、3〜12 時間）。乗客とドライバーが同時に動くので iPhone が 2 台要り、2 台ともそろう。アカウントは参加者にだけ作る（招待制。PC-06）ので、ログインして使うのは参加者 2 人とテスト用アカウントだけで、使う人の数の上限として使える
-    source: 第 2 段階の質問 7 の回答（2026-11-03。FND-03）、context.yaml の運用の事実（N_session_hours）と制約（招待制。2026-11-03）、第 1 段階の質問 11・14、FND-27
-    basis: inferred
-    basis_note: デモの数、参加者、乗車の数、デモの日数は第 2 段階の質問 7 の回答（入力）。1 日に 3 時間の回が一つは質問 11、iPhone が 2 台そろうことは質問 14 で確認済み。招待制で上限として使えることは品質チェーンへの回答（設計 2-9 と「設計の連鎖が扱うもの」）の入力。「1 回の乗車は 2〜3 回」をデモ 1 回の乗車の数と読んだのは推定（質問 15 は回答なし）
-  - id: PC-06
-    kind: other
-    statement: 公開。デモの URL（Cloud Run のサービスの URL）は、発表、ブログ、動画で、デモの回の最中や前にも示す。URL を知る人は参加者に限られない。アカウントは運営・サポート担当が参加者にだけ作り（招待制）、参加者でない人はログインより先に進めない
-    source: context.yaml の制約（2026-11-03。品質チェーンへの回答の設計 2-9）、第 2 段階のレビュー（reviews/2026-11-03-architecture-2.md）の質問 1・2 の回答、FND-27
-    basis: stated
+    statement: 開発者 1 人の個人開発。その人は自分で選んだ TypeScript、React、Hono を使いこなし、Stripe の押さえと請求、Google Maps Platform、iOS の Safari の位置情報と知らせを使った経験は見込まない
+    source: 利用者が与えた設計の与件（チームの構成）; DAS-01
+    basis: assumed
 teams:
   - id: TEAM-01
-    name: 開発者本人
-    owns: すべて（乗客とドライバーの Web アプリ、管理の画面、エンジニアの画面、サーバー、データ、配備と運用）
+    name: 個人の開発者
+    owns: システムの全体（作ること、動かすこと、保守すること）
+    source: 利用者が与えた設計の与件（チームの構成）
     basis: stated
-anticipated_changes: []   # 将来の変更はない（利用者の入力）。仮の決済スタブの差し替えは、Stripe に決まった（質問 6）ので起きず、品質チェーンの再実行（2026-11-03、回答の設計 1-4）で context.yaml からも消えた
+anticipated_changes: []
 stakeholders:
   - id: STK-01
-    role: 開発者本人（プロダクトオーナー、開発の責任者、運用を兼ねる）
-    concerns:
-      - 個人で払える費用（無料の枠を優先）
-      - 一人で作り切って動かせること
-      - 本物らしい製品として一通りの開発を通す実験になること
-    source: 利用者の入力（個人開発、1 人）、context.yaml の目的（第 1 段階の質問 22）、品質チェーンの承認者の候補
-    basis: inferred
-as_is: null   # 製品のコードも基盤の定義もない。すべて新設
+    role: 個人の開発者（費用を払い、作って動かす人）
+    concerns: [個人で支払える費用, 1 人で作って動かせること, ローカルだけで完結させること]
+    source: 利用者が与えた設計の与件
+    basis: stated
+  - id: STK-02
+    role: 法務の担当
+    concerns: [個人の情報の扱いに関する法令（QR-57、QR-58、QR-59）]
+    source: QR-57、QR-58、QR-59 の入口
+    basis: stated
+  - id: STK-03
+    role: 開発の責任者
+    concerns: [カードの情報の扱いの標準を模す開発方針（QR-60、DIN-03）, 旅客運送の法令を模す開発方針（QR-61、QR-62、QR-63、CON-07）, Web アプリで iOS の Safari だけを対象にする開発方針（DIN-04）]
+    source: QR-60、QR-61、QR-62、QR-63 の入口; context.yaml DIN-04
+    basis: stated
+  - id: STK-04
+    role: プロダクトの責任者
+    concerns: [乗客とドライバーの画面の WCAG 2.2 レベル AA（QR-64）]
+    source: QR-64 の入口
+    basis: stated

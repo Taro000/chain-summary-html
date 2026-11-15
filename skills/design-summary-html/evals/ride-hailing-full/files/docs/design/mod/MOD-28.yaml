@@ -1,0 +1,53 @@
+id: MOD-28
+title: たどる記録と境界の出来事
+status: active
+basis: inferred
+basis_note: 入口が要求ごとに受けたときに書き、答えたときに結果を足す境界の出来事は DAT-19 と DEC-23、その項目と X-Resend は DEC-43、位置の報告と端末からの報告と生存確認を書かないことは DAT-19 と IFC-16、たどる記録を足すだけで隠してから書き、乗客とドライバーを仮の名で持ち、端末のエラーを一件ごとの ID で一度だけ書くことは DAT-18、IFC-10、DEC-19、SLI-14 の区間の始まりを同じたどる ID の最も早く受けた時刻にすることは IFC-10 と DAT-20（どれも入力）。足した順に読む口を MOD-66 と MOD-67 に渡すことは推定
+premises: []
+component: ELM-03
+name: たどる記録と境界の出来事
+depth: bounds
+depth_reason: null
+responsibility: システムが受けた要求と、一件の操作で行ったことを、たどれる記録に残す
+visibility: internal
+interface:
+  - operation: "boundaryReceived(event: BoundaryReceived) -> BoundaryId; boundaryResponded(id: BoundaryId, result: BoundaryResult) -> none"
+    pre: null
+    post: 受けた時刻と DAT-19 の項目を、その要求の取引と分けてすぐ確定する一行で書き、答えたときに答えた時刻と結果を足す。依頼の段階と試験用かは受けたときの値を写す
+    errors: []
+  - operation: "earliestReceivedAt(traceId: TraceId) -> Instant or none"
+    pre: null
+    post: 同じたどる ID の境界の出来事のうち最も早く受けた時刻（DAT-20 の changeReceivedAt）
+    errors: []
+  - operation: "step(record: TraceStep) -> none"
+    pre: 値は MOD-27 の outbound（たどる記録）を通したもの
+    post: たどる記録（DAT-18）を足す。たどる ID、依頼の ID、部分、段階、結果、failureOrigin、始めた時刻、時間を持つ
+    errors: []
+  - operation: "deviceError(report: DeviceErrorReport) -> accepted | duplicate"
+    pre: 値は MOD-27 を通したもの
+    post: 端末の一件ごとの ID で一度だけ書く（同じ ID は duplicate）
+    errors: []
+  - operation: "traceOf(rideId: RideId) -> TraceRecord[]; findRides(criteria: TraceCriteria) -> Page<RideRef>; readAfter(cursor: Cursor, limit: integer) -> RecordBatch"
+    pre: null
+    post: 依頼のたどる記録を時刻の順に、探す条件に合う依頼を、足した順の記録を返す（MOD-64、MOD-66、MOD-67）
+    errors: []
+  - operation: "purge(boundaryBefore: Instant, traceBefore: Instant) -> integer"
+    pre: 呼ぶのは MOD-68 だけ
+    post: 保持期間（DAT-18、DAT-19）を過ぎた行を消す
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-25, MOD-27]
+functions: [FR-34, FR-42, FR-52]
+realizes: []
+drivers: [DRV-24, DRV-25, DRV-27]
+decisions: [DEC-19, DEC-23, DEC-43]
+behaviour: null
+verification:
+  - checks: 受けたときに書かれ、答えたときに結果が足され、答えずに止まった要求は結果のない行で残る
+    how: 結合の層
+  - checks: 端末のエラーを同じ ID で一度だけ書き、隠した形で書く（FR-52 の 1、5）
+    how: 結合の層
+  - checks: SLI-01〜SLI-06 の項目と、試験用かと依頼の段階を受けたときの値で写す（FR-42 の 2）
+    how: 結合の層
+parameters: []
+as_is: new

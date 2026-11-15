@@ -1,62 +1,32 @@
 id: DEC-38
-title: エラーの形
-status: draft
-version: 2
+title: 額は円の整数と通貨の符号で表し、端数を丸めるのは料金を求めるときの一度だけにする
+status: active
 basis: inferred
-basis_note: RFC 9457 は標準。interfaces.md のエラーの決まり（変わらない符号、人向けの文、要求の ID）と FR-37 AC3（エラーの応答にトレース ID）は入力。形の選び方は推定（質問 3 は回答なし）
-needs_agreement: false
-approver_candidates: []
+basis_note: インタフェースが見せる額の約束事は、第 3 段階の確定の種類（推定）。料金が円で、市場が一つであることは CON-08 と CON-01（入力）。料金を模擬の運賃表で求めることは QR-61（入力）で、その中の丸め方は運賃表の決まりとして第 4 段階が料金を求めるモジュールで決める
+premises: [CON-01, CON-08]
 stage: high-level-design
-question: すべてのインタフェースで、エラーをどの形で返すか
-addresses:
-- IFC-01
-- IFC-02
-- IFC-03
-- IFC-04
-- IFC-05
-- IFC-06
-- IFC-07
-- DRV-28
+question: インタフェース、データ、EXT-01 への受け渡しで額をどう表し、どこで丸めるか
+addresses: [DRV-07, DRV-31, SLI-11, SLI-12]
 options:
-- name: "RFC 9457 の問題の詳細に code、traceId、errors を足す。形: {type, title, status, code, detail?, traceId, errors?, retryAfterSeconds?} と場合ごとの拡張の欄（distanceMeters、remainingAttempts、currentFee、remainingRefundable。どれも任意）。202 の本文は {code, …資源} で、code に保留の符号（HOLD_PENDING、HOLD_RELEASE_PENDING、DESTINATION_CHANGE_PENDING、PAYMENT_PENDING、REFUND_PENDING）を入れ、呼ぶ側は配信か GET で結果を待ち、新しいキーで送り直さない。title と detail は日本語で個人情報を含めない。code は UPPER_SNAKE_CASE。429 と 503 には Retry-After の見出しも付ける。符号の一覧は packages/contracts に置き、画面はそこの文を示す（DEC-46）"
-  effect: 標準の content type（application/problem+json）で、プログラム向けの変わらない符号、人向けの文、トレース ID、欄ごとの誤りを一つの形で返す
-  cost: 拡張の欄を決めて守る
-- name: 独自の {code, message, traceId, details}
-  effect: 同じ中身を返せる
-  cost: 標準の形ではなく、道具が読めない
-- name: HTTP の状態の符号と文だけ
-  effect: 作る量が最も少ない
-  cost: 同じ 409 の中の違い（間に合わなかった、取り消された）を画面が見分けられない
-chosen: 'RFC 9457 の問題の詳細に code、traceId、errors を足す。形: {type, title, status, code, detail?, traceId, errors?, retryAfterSeconds?} と場合ごとの拡張の欄（distanceMeters、remainingAttempts、currentFee、remainingRefundable。どれも任意）。202 の本文は {code, …資源} で、code に保留の符号（HOLD_PENDING、HOLD_RELEASE_PENDING、DESTINATION_CHANGE_PENDING、PAYMENT_PENDING、REFUND_PENDING）を入れ、呼ぶ側は配信か GET で結果を待ち、新しいキーで送り直さない。title と detail は日本語で個人情報を含めない。code は UPPER_SNAKE_CASE。429 と 503 には Retry-After の見出しも付ける。符号の一覧は packages/contracts に置き、画面はそこの文を示す（DEC-46）'
-rationale: 画面がエラーの場合ごとに違う扱いをする（interfaces.md のエラーの決まり）には変わらない符号が要る。トレース ID は FR-37 AC3 の求め。標準の形は OpenAPI と道具がそのまま扱える
+  - name: "{ amount, currency } の形で、amount は円の整数、currency は JPY。丸めるのは料金を求めるときの一度だけ"
+    effect: 押さえた額、示した額、請求した額、解いた額が整数の足し引きでそろい、EXT-01 にもそのまま渡せる
+    cost: 将来ほかの通貨を扱うときは、最小の単位を通貨ごとに決める
+  - name: 額を小数の数で表す
+    effect: 書き方が短い
+    cost: 浮動小数点の誤差で、示した額と請求した額がずれうる
+chosen: "額は { amount, currency } の形で表し、amount は円の整数、currency は JPY だけ（市場は一つ、CON-08）。小数と浮動小数点は使わない。端数を丸めるのは料金を求めるとき（模擬の運賃表の決まり、QR-61、第 4 段階）の一度だけで、ほかの所は確定額、CON-08 の料金、押さえた額、請求した額、解いた額、返金できる残りの額の整数の足し引きだけを行い、求め直さない。EXT-01 に渡す額も円の整数（円は小数のない通貨）"
+rationale: 二つ目は浮動小数点の誤差で、SLI-11 が数える示した額と請求した額の一致を崩しうる。一つ目は、整数だけを足し引きするので額は一度決まれば変わらず（DRV-07）、決めるのはサーバーの料金を求める所だけ（DRV-31）。通貨の符号を持つのは、EXT-01 に渡す形と同じにし、額を読むどの所も通貨を取り違えないため
 rejected:
-- option: 独自の {code, message, traceId, details}
-  reason: 中身は同じで、標準でない分だけ道具の助けを失う
-- option: HTTP の状態の符号と文だけ
-  reason: 画面が場合を見分けられず、送り直してはいけないものを送り直す
+  - option: 額を小数の数で表す
+    reason: 浮動小数点の誤差で示した額と請求した額がずれうり、DRV-07 と SLI-11 を弱める
 gains:
-- どのインタフェースも同じ形で誤りを返す
-- 符号の一覧（packages/contracts）を画面とサーバーが共有する
+  - 押さえた額、示した額、請求した額、解いた額が整数でそろう
 costs:
-- 拡張の欄（code、traceId、errors、retryAfterSeconds）を守る
-sensitive_points:
-- code を変えないこと（変えると画面の扱いが変わる）
+  - ほかの通貨を加えるときに最小の単位を決め直す
+sensitive_points: []
 trade_offs: []
-assumptions:
-- type は urn:ride-hailing-demo:problem:<code の小文字>（参照できない URI でよい。RFC 9457）
-depends_on:
-- DEC-26
+assumptions: []
+depends_on: [DEC-09]
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: "エラーの形に場合ごとの拡張の欄（距離、残りの回数、今の額、残りの額）を足し、detail を任意にした。202 の本文の形と保留の符号を書いた。選んだ案と案の名前の書き方をそろえた"
-  reason: "第 3 段階の再実行（2026-11-04）。FND-42 を受け入れた。保留の符号は FR-05 版 3・FR-12 版 4・DEC-52 版 2"

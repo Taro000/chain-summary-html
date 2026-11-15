@@ -1,6 +1,6 @@
 # Quality in use and KPIs: Homework submission service
 
-Updated: 2026-09-01
+Status: answers applied · Updated: 2026-09-01 · Inputs as of: none · Stage 1 of 4
 
 ## Quality-in-use requirements
 

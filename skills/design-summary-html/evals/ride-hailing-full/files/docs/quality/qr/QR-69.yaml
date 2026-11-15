@@ -1,0 +1,22 @@
+id: QR-69
+title: 新しい版の配備を、自動の手順で終える
+status: active
+basis: inferred
+basis_note: 配備を自動の手順で終えることと、最低限守る線とすることは決めたこと 13 で確認済み（QAS-16 への訂正）。配備はデモの回を開くときに行う（設計への申し送り DIN-06）。手順の作りは設計で決める。失敗のシナリオと点は推定
+premises: []
+model: product
+layer: external
+characteristic: portability > installability
+statement: 機能の追加、修正、利用技術のバージョンアップを含む新しい版の配備は、エンジニアの手作業によらず、決まった自動の手順で終わる。
+applies_to: [FR-36]
+traces_to: [QIU-24, QIU-25, QIU-26]
+entry_point: null
+stakeholders: [USR-03]
+failure_scenario: デモの回を開く前にエンジニアが手作業で配備し、設定の一つを入れ忘れて、決済の機能が動かないまま回が始まる。
+score: {impact: 3, likelihood: 2}
+handling: minimum-line
+handling_reason: null
+implies_internal: []
+conflicts: []
+stated_numbers: []
+placeholders: []

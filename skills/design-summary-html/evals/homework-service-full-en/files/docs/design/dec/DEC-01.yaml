@@ -1,11 +1,11 @@
 id: DEC-01
 title: One API server and two web apps
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: assumed
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- DAS-01
+- PC-03
 stage: architecture
 question: How is the system divided, and where does it run?
 addresses:
@@ -39,15 +39,8 @@ trade_offs:
 - with: DRV-01
   note: One server takes the rush before deadlines
 assumptions:
-- At most 300 students at once
+- At most 300 students at once (DAS-01)
 depends_on: []
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: Created
-  reason: Stage 2 draft

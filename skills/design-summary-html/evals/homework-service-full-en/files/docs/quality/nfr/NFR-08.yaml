@@ -1,19 +1,15 @@
 id: NFR-08
 title: Personal information audit
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: []
 from: [QR-09]
 kind: audit
 cuj: null
 statement: Every six months, review who can see submissions.
-conditions: {workload: Concentrated in the 24 hours before the deadline, users: 'Students and teachers, test accounts excluded', transactions: Submissions}
+conditions: {workload: Up to the rush in the 24 hours before a deadline (OPF-01), users: 'Students and teachers, test accounts excluded', transactions: Submissions}
 slo: null
 gate: null
 audit: {mechanism: Access review, criterion: 0 unneeded permissions, cadence_or_deadline: Every six months}
 monitor: null
-changelog:
-- {version: 1, date: '2026-09-12', change: Created, reason: Stage 4 draft}

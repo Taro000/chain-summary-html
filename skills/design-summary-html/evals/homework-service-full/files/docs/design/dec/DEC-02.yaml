@@ -1,11 +1,11 @@
 id: DEC-02
 title: 提出のファイルを署名付き URL でストレージに直接置く
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises:
+- EXT-01
+- TC-02
 stage: architecture
 question: 提出のファイルを、サーバーを通さずにどう置くか
 addresses:
@@ -41,11 +41,4 @@ parameters:
   value: 15 分
   basis: 仮。提出の画面を開いてから送るまでの時間
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-18'
-  change: 作成
-  reason: 第 2 段階の下書き

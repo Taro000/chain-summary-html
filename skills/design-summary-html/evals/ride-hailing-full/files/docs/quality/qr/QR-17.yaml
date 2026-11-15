@@ -1,37 +1,22 @@
 id: QR-17
-title: 返金の額と回数の正しさ
-status: draft
-version: 3
+title: システムが止まっても、確定した依頼と決済・返金の結果は失われない
+status: active
 basis: inferred
-basis_note: 決済はテスト環境（質問 1）なので影響を 4 から 2 に下げた。返金の誤りは突き合わせ（FR-55）で見つかる。点と扱いは推定。失敗と分かった返金のやり直しを新しいキーにすること（FR-50 版 4、2026-11-03 の回答、設計 3-2）への追随は推定
-needs_agreement: true
-approver_candidates: [運営の責任者, プロダクトオーナー]
-model: product
-layer: external
-characteristic: functional suitability > functional correctness
-statement: システムは、運賃、キャンセル料、不在の料金の返金の額を、それぞれの請求の返金できる残りの額の範囲に限り、同じ返金を二度行わない。
-applies_to: [FR-49, FR-50, FR-55]
-traces_to: [QIU-26]
+basis_note: 失敗のシナリオと点は推定。止まった後に再開するまでの速さは QR-01 の可用性に含め、ここでは失われないことを扱う。どう残すかは設計で決める。依頼のときの押さえとキャンセル料・不在の料金の請求（FR-54、第 2 段階の質問 8）の結果も失われてはならないものに加えた
+premises: [EXT-01]
+model: data
+layer: data-system-dependent
+characteristic: recoverability
+statement: システムが止まっても、それまでに確定した依頼、乗車中の乗車と確定額、EXT-01 から受けた押さえ、決済、キャンセル料と不在の料金の請求、返金の結果は失われず、再開すると止まる前の状態から続けられる。
+applies_to: [FR-04, FR-21, FR-27, FR-29, FR-39, FR-45, FR-47, FR-54]
+traces_to: [QIU-01, QIU-04, QIU-19, QIU-28]
 entry_point: null
-stakeholders: [USR-04, USR-01, 決済の外部サービス]
-failure_scenario: 返金できる残りの額の計算を誤り、分けて行った返金の合計が請求額を超える。答えのなかった返金を、失敗と分かる前に新しいキーで送り直し、二重に返金する。失敗と分かった返金を同じキーで送り直し、決済のサービスが同じ失敗を返して、返すべき額が返らない。
-score: {impact: 2, likelihood: 2}
+stakeholders: [USR-01, USR-02, USR-04, EXT-01]
+failure_scenario: システムが止まって再開すると、乗車中だった乗車の記録と更新した確定額が消えており、ドライバーは到着を確認できず、決済できないか元の料金で請求される。
+score: {impact: 4, likelihood: 2}
 handling: minimum-line
 handling_reason: null
 implies_internal: []
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: '2026-11-01'
-    change: キャンセル料と不在の料金の返金を加えた。FR-55 を対象に加えた
-    reason: 第 3 段階の再実行（第 2 段階 7d0cb6d）
-  - version: 3
-    date: '2026-11-03'
-    change: 失敗のシナリオに、返金のキーの使い分けの誤り（答えのない送り直しに新しいキー、失敗の後のやり直しに同じキー）を足した
-    reason: 第 2 段階の再実行（2026-11-03）の FR-50 版 4 への追随（docs/quality-chain-answers.md の設計 3-2）

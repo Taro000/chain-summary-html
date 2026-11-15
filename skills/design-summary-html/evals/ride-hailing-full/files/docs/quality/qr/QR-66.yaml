@@ -1,0 +1,22 @@
+id: QR-66
+title: マッチに使うドライバーの評価は、付けられた評価から正しく求めた値である
+status: active
+basis: inferred
+basis_note: 失敗のシナリオと点は推定。評価は 1〜5 の 5 段階で、ドライバーの評価は受けたすべての評価の平均（第 2 段階の質問 9、FR-15）。この QR はまとめ方を書き写さず、FR-15 のまとめ方のとおりに求めることを述べる。扱い（重視）は質問 2 で確認済み（CUJ-05 の組）
+premises: []
+model: product
+layer: external
+characteristic: functional suitability > functional correctness
+statement: 閾値によるマッチ（FR-05）に使うドライバーの評価は、そのドライバーが乗客から付けられた評価から、FR-15 のまとめ方のとおりに求めた値である。
+applies_to: [FR-05, FR-15]
+traces_to: [QIU-14]
+entry_point: null
+stakeholders: [USR-01, USR-02]
+failure_scenario: 取り消しで終わった依頼の評価まで数に入れてまとめた値が使われ、低い評価が薄まったドライバーが閾値を設定した乗客の依頼を受け取る。
+score: {impact: 4, likelihood: 2}
+handling: emphasized
+handling_reason: null
+implies_internal: [QR-54]
+conflicts: []
+stated_numbers: []
+placeholders: []

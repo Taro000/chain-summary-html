@@ -1,6 +1,6 @@
 ---
 type: llm
-focus: language
+focus: design
 weight: 1
 ---
 

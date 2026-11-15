@@ -1,0 +1,12 @@
+id: QAS-42
+title: N_eta_trust_level の最初の値
+status: overturned
+stage: 4
+kind: decision
+statement: N_eta_trust_level を、乗り終えた乗客への問いの答えのうち、信じられた側の上位 2 段階とする（5 段階の問いなら 4 と 5）。
+why_unsure: 入力に問いの段階はない（FR-14 は段階を決めていない）。尺度の分からない数ではなく、答えの意味で置いた。
+breadth: low
+severity: low
+rating_note: QIU-05 だけが依存する。問いの段階が決まったら見直す
+answer: 誤り。示された移動時間を信じられたかは乗客に尋ねない。記録から数える（降車した時刻が、手配時に示した到着予定時刻から 5 分以内だった乗車の割合）
+answered_in: "第 4 段階、決めたこと #21"

@@ -1,0 +1,12 @@
+id: QAS-31
+title: 示す額と請求する額の一致の最初の目標値
+status: open
+stage: 4
+kind: decision
+statement: 決済を行った乗車の 99.5% で、示した額と請求した額がどれも確定額と等しいことを最初の目標値とする。
+why_unsure: 入力に数値も基準となる値もない。額の食い違いは乗客の信用を損なうが、実際のお金は動かない（CON-03）。
+breadth: low
+severity: medium
+rating_note: NFR-23 だけが依存する。一度だけの請求は監視（NFR-24）が一件ごとに知らせるため、目標が緩くても二重の請求は見逃さない。乗車の数（OPF-02）では 1 件の食い違いで予算を使い切る
+answer: null
+answered_in: null

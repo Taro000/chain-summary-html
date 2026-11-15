@@ -1,0 +1,1 @@
+{id: QAS-02, title: 過去の受領を後から開ける, status: confirmed, stage: 2, kind: judgment, statement: 生徒は、提出の履歴から過去の受領を開ける。, why_unsure: 入力は受領の表示を求めるが、後から見るかは示さない。, breadth: low, severity: low, rating_note: FR-02 だけが頼る。, answer: 開ける, answered_in: 第 2 段階、質問 3}

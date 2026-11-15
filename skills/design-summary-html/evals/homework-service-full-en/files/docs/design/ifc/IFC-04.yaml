@@ -1,11 +1,9 @@
 id: IFC-04
 title: Nightly submission report
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: batch
 name: Nightly submission report
 provider: ELM-06
@@ -13,6 +11,7 @@ consumers:
 - ELM-02
 functions:
 - FR-05
+- FR-09
 operations:
 - name: nightly-report job
   does: Counts the submissions up to the previous day
@@ -23,17 +22,19 @@ errors:
 - case: The previous day is not finished
   signal: Continues from the unfinished day
   caller_does: Nothing
-idempotency: State-changing requests carry an Idempotency-Key (DEC-08)
+idempotency: State-changing requests carry an Idempotency-Key (DEC-10)
 timing:
   timeout: Browser 10 s
   ordering: null
   delivery: null
 versioning: v1 in the path
 observability: Trace IDs in the logs
+sli_bindings:
+- sli: SLI-02
+  events: Each run of the nightly-report job
+  fields:
+  - finished_at
+  - status
+  method: ELM-06's completion record
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: Created
-  reason: Stage 3 draft

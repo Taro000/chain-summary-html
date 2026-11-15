@@ -1,12 +1,9 @@
 id: DRV-07
 title: Trace a failed submission with one trace ID
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates:
-- Product owner
+premises: []
 kind: observability
 statement: A failed submission can be traced from the browser to the storage with one trace ID
 sources:
@@ -14,7 +11,13 @@ sources:
 - FR-04
 - NFR-09
 concern_of: []
-scenario: null
+scenario:
+  source: Developers (USR-03)
+  stimulus: Get the notice of a failed submission
+  artifact: FR-04
+  environment: Normal operation
+  response: One ID leads to the cause
+  measure: NFR-09's definition of done
 negotiable: null
 derived_from: []
 priority:
@@ -26,8 +29,3 @@ priority:
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-- version: 1
-  date: '2026-09-15'
-  change: Created
-  reason: Stage 1 draft

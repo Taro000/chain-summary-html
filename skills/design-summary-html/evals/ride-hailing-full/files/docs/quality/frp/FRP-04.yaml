@@ -1,25 +1,14 @@
 id: FRP-04
-title: ドライバーの画面が自動で消えないようにする
+title: 停止したドライバーには、停止の前に届いていた依頼も許諾させない
 status: accepted
-version: 2
 basis: inferred
-basis_note: 推定。電池（QR-06）との競合がある
-needs_agreement: false
-approver_candidates: []
+basis_note: "QR-49 からの推定。QAS-08 は #19 で覆り、QR-49 は QIU-33 と QIU-27 にたどる。FR-44 の受け入れ基準は停止した時から新しい依頼を示さないとするが、停止の前に一覧に届いていた依頼の扱いを決めておらず、QR-49 が禁じる許諾を通しうる"
+premises: [QAS-08]
 proposed_by: functional-requirements-to-product-quality
-origin: [QR-27, QR-42]
-changes: null
-reason: 画面が消えると現在地の送信と依頼の一覧の更新が止まる制約を受け入れたが（第 1 段階の質問 15）、それを防ぐ FR がない。ドライバーが前面に開き続けることだけに頼っている。
-suggested_statement: システムは、受付中・迎車中・乗車中のドライバーの画面が自動で消えないようにし、ブラウザが対応していないときはその旨をドライバーに示す。
-affects: [FR-52, QR-27, QR-42, QR-06]
+origin: [QR-49]
+changes: FR-44
+reason: 停止の直前に一覧に届いていた依頼を、停止されたドライバーが許諾できると、停止した時から依頼が届かないこと（QIU-33）が成り立たない。
+suggested_statement: システムは、担当者がドライバーを停止すると、停止の前にそのドライバーの一覧に届いていた依頼も一覧から除き、許諾させない。
+affects: [NFR-35, NFR-36]
 placeholders: []
-resolution: FR-52 として受け入れた（第 2 段階の質問 13）
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 提案
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-31
-    change: 受け入れ
-    reason: 第 2 段階の再実行
+resolution: "受け入れ。FR-44（新規）をその場で変え、停止の前に一覧に届いていた依頼も除いて許諾させないようにした。QR-49 は第 3 段階の決めたこと #15 で重視に決まっている。"

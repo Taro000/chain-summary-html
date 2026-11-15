@@ -1,62 +1,41 @@
 id: DEC-29
-title: サーバーで位置の列を確かめ、疑わしい到着に印を付ける
-status: draft
-version: 2
-basis: inferred
-basis_note: 位置の偽りを扱うことは第 1 段階の質問 8 で確認済み。確かめ方と、料金を止めないことは推定（質問 10 は回答なし）
-needs_agreement: true
-approver_candidates:
-- プロダクトオーナー
-stage: architecture
-question: ドライバーが端末の位置を偽って到着を知らせることに、どう備えるか
-addresses:
-- DRV-29
-- DRV-04
-- DRV-20
+title: ELM-04 の読み書きは Drizzle ORM で行い、データの形の変更は drizzle-kit が生成する SQL のマイグレーションで行う
+status: active
+basis: assumed
+basis_note: 本番のデータベースを Turso として設計し、実際にはローカルの libSQL で動かすことは TC-07、TC-09（入力）。一つのデータベースに置いて ELM-03 だけが書くことは DEC-17、一つの取引の中の条件つきの書き込みは DEC-08、お金の操作の試みの記録は DEC-10、データの形を前の版が読める足し方で変えることは DEC-26（入力）。道具の比べ方と選び方は推定。開発者が Drizzle ORM を使いこなすか学べることは DAS-07 による仮定。Turso の文書が Drizzle を @libsql/client でつなぐとしていること、drizzle-kit の push が libSQL で表を作り直すときに失敗する報告があることは、公開の情報で読んだ（報告の「入力」）。Drizzle ORM の 1 系が正式に出たかは確かめていない
+premises: [TC-07, TC-09, DAS-07]
+stage: technical-policy
+question: 配車サーバー（ELM-03）は、配車データベース（ELM-04。想定の本番は Turso、ローカルは libSQL）を何で読み書きし、データの形を何で変えるか
+addresses: [DRV-16, DRV-15, DRV-13, DRV-02, DRV-07]
 options:
-- name: サーバーで受けた位置の列を確かめ（あり得ない速さの飛び、誤差の不自然な値、到着の位置とそれまでの道筋の食い違い）、疑わしい到着に印を付けて NFR-45 の毎日の一覧で運営・サポート担当に示す。料金は FR-25・27 の規則のまま
-  effect: 偽りの多くを後から見つけられる
-  cost: 一貫した偽りの道筋は見分けられない
-- name: 端末の確かめ（App Attest など）
-  effect: 偽りを防げる
-  cost: Safari の Web アプリでは使えない
-- name: 何もしない
-  effect: 手間がない
-  cost: DRV-29 の応答「疑わしい位置での到着を見分ける」を満たさない
-chosen: サーバーで受けた位置の列を確かめ（あり得ない速さの飛び、誤差の不自然な値、到着の位置とそれまでの道筋の食い違い）、疑わしい到着に印を付けて NFR-45 の毎日の一覧で運営・サポート担当に示す。料金は FR-25・27 の規則のまま
-rationale: TC-09（DRV-20、交渉できない）のもとでは端末を確かめる手段がなく、見分けて後から見つけるところまでが道（第 1 段階の実現の判定）。料金の扱いは品質チェーンが決めた。疑わしい印の付いた到着にも規則どおりに請求し、運営・サポート担当が毎日の一覧（NFR-45 版 2。印と、ドライバーごとの疑わしい到着の件数を示す）で見て、偽りと判断したら返金する（QR-49 版 3、FR-50。課題 2 は決着）。自動で無料にすると、位置の誤差で誤って印が付いたとき、ドライバーが正しい料金を失い取り戻す手段がないため（品質チェーンへの回答の設計 2-2）
+  - name: Drizzle ORM（@libsql/client でつなぐ）で読み書きし、drizzle-kit がコードの表の定義から生成する SQL のマイグレーションを、新しい版が動く前に Drizzle の適用器で当てる
+    effect: 表の定義が TypeScript の型になり、読み書きを型で確かめられる。一つのつなぎ方でローカルの libSQL と Turso の両方を扱う。マイグレーションは読んで確かめられる SQL のファイルで、足すだけの変更かをレビューで見られる
+    cost: ORM の書き方を学ぶ（DAS-07）。drizzle-kit の push は使わない
+  - name: Kysely で型つきの SQL を組み立て、Kysely のマイグレーションを使う
+    effect: SQL に近い書き方で、型で確かめられる
+    cost: 表の型を別に書くか生成し、libSQL の方言は別の部品で足す
+  - name: "@libsql/client で SQL を直接書き、マイグレーションの適用は小さな自作の道具で行う"
+    effect: 部品が最も少ない
+    cost: 行と型の対応を手で書き、マイグレーションの適用と記録を自分で作って試す
+chosen: Drizzle ORM（@libsql/client でつなぐ）で読み書きし、drizzle-kit がコードの表の定義から生成する SQL のマイグレーションを、新しい版が動く前に Drizzle の適用器で当てる
+rationale: どの案も、一つの取引の中の条件つきの書き込み（DEC-08）とお金の操作の試みの記録（DEC-10）を書け、DRV-07 と DRV-02 では並ぶ。三つ目は型の対応と適用器を自分で作って試す手間が DRV-16 で劣り、二つ目は表の型と libSQL の方言を別に揃える手間がかかる。一つ目は、ローカルの libSQL と Turso を同じつなぎ方で扱い（DRV-15）、コードの表の定義と生成したマイグレーションの違いを検査の手順で見つけられる（POL-01）。マイグレーションは新しい版が動く前に当て、一つの版の中では足すだけにし、消すのは前の版に戻す見込みがなくなった後のリリースで行う（DEC-26、DRV-13、POL-04）
 rejected:
-- option: 端末の確かめ（App Attest など）
-  reason: DRV-20 に反する
-- option: 何もしない
-  reason: DRV-29 を満たさない
+  - option: Kysely で型つきの SQL を組み立て、Kysely のマイグレーションを使う
+    reason: 表の型と libSQL の方言を別に揃える手間が DRV-16 で一つ目に劣る
+  - option: "@libsql/client で SQL を直接書き、マイグレーションの適用は小さな自作の道具で行う"
+    reason: 型の対応と適用器を自分で作って試す手間が DRV-16 で劣る
 gains:
-- 疑わしい到着を後から見つけられる
+  - 読み書きとマイグレーションが、コードの表の定義から型で確かめられる
+  - ローカルと想定の本番で同じつなぎ方を使う
 costs:
-- 確かめの規則を作る手間
-sensitive_points:
-- 疑わしいとみなす境目（速さ、誤差）
-trade_offs:
-- with: DRV-08
-  note: 建物の近くなどで誤差が大きい正しい到着も疑わしく見えうる
-assumptions: []
-depends_on:
-- DEC-14
-- DEC-15
+  - ORM の書き方を学ぶ
+  - Drizzle の版を上げるとき、マイグレーションのファイルの形を合わせることがある
+sensitive_points: []
+trade_offs: []
+assumptions:
+  - Drizzle ORM は、libSQL の取引の中の条件つきの書き込みとマイグレーションの適用を、ローカルの libSQL のファイルとサーバー、Turso のどれでも行える
+  - 開発者は Drizzle ORM を使いこなすか、学ぶ時間を取れる（DAS-07）
+depends_on: [DEC-08, DEC-10, DEC-17, DEC-26]
 parameters: []
-debt:
-  what: 一貫した偽りの道筋は見分けられない
-  why_accepted: Safari の Web アプリでは端末を確かめられない（DRV-20）
-  repay_when: ネイティブアプリを考えるとき
-deferred: false
-revisit_when: null
+debt: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: 疑わしい到着の料金の扱い（規則どおりに請求し、担当が毎日の一覧で見て偽りなら返金する）を根拠に書き、品質チェーンへの課題 2 を決着にした
-  reason: 品質チェーンの再実行（QR-49 版 3、NFR-45 版 2。回答の設計 2-2）と、第 1 段階の 3 回目の再実行（DRV-29 版 2、DRV-04 版 4）に追随した（第 2 段階の再実行、4 回目）

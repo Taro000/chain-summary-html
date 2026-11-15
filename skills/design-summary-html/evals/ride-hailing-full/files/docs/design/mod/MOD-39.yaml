@@ -1,0 +1,39 @@
+id: MOD-39
+title: 料金の求め方
+status: active
+basis: inferred
+basis_note: 料金を模擬の運賃表に従って求めることは QR-61、運賃表を版ごとに持って入れた後は変えず、見積もりが使った版を持つことは DAT-24 と DAT-06、額を円の整数で表し、端数を丸めるのは料金を求めるときの一度だけで、ほかの所は求め直さないことは DEC-38、確定額は見積もりか承認した降りる場所の変更の料金からだけ決まることは CON-01 と FR-49 の 3、運賃表の照合は NFR-48 の監査（どれも入力）。料金を初乗りと距離の加算だけで求め、時間距離併用、迎車料金、割増を持たないことは、質問 1 の答え（初乗りと距離の加算だけで求める。下書きどおり）で確認した（QCR-09 が品質チェーンに運ぶ）。加算を始まった単位ごとに数え、ほかの丸めをしないことは DEC-38 からの推定。運賃表の rules の形と入れ方は HND-22 で実装に送る。版の決まりの初乗りの料金 F0 を 500 円以上にすることは、確定額が CON-08 の料金を下回らないかを尋ねた QCR-05 の答え（設計の第 2 段階の質問 5。起こらない、模擬の運賃表の最も安い料金は 500 円以上で、料金は押さえから請求する）に従い、品質チェーンが当てるまで QCR-05 を前提に残す（FND-72 を受けた）
+premises: [QCR-05, QCR-09]
+component: ELM-03
+name: 料金の求め方
+depth: full
+depth_reason: 確定額になる料金を模擬の運賃表から求める（お金を動かす額を決める）。端数を丸めるのはここの一度だけ（DEC-38）で、運賃表の区分の組で額が決まる、いくつもの条件の規則
+responsibility: 道の長さと時間と運賃表の版から、確定額になる料金を求める
+visibility: internal
+interface:
+  - operation: "fareFor(route: RouteMeasure, table: FareTable) -> Money"
+    pre: route.distanceMeters と route.durationSeconds は 0 以上の整数。table はその時に効いている版（currentTable）
+    post: 判断表 A で求めた円の整数（JPY）。同じ入力に同じ額で、端数の扱いはここの一度だけ
+    errors: ["FareTableInvalid: 版の決まりが判断表 A の形に合わない（起動のときと版を入れるときに見つけ、その版を使わない）"]
+  - operation: "currentTable(at: Instant) -> FareTable"
+    pre: null
+    post: effectiveFrom が at より前の版のうち最も新しいもの
+    errors: ["NoFareTable: 効いている版がない（起動しない）"]
+invariants:
+  - 運賃表の版は入れた後に変わらず、消えない（DAT-24）
+  - 見積もりの料金は、その見積もりが持つ版と道の長さと時間から fareFor で求め直したものと等しい
+depends_on: [MOD-25]
+functions: [FR-03]
+realizes: []
+drivers: [DRV-07, DRV-20]
+decisions: [DEC-17, DEC-38]
+behaviour: "報告書の節: MOD-39 料金の求め方"
+verification:
+  - checks: 判断表 A の行ごとと、初乗りの距離のちょうどと 1 m 先、加算の単位のちょうどと 1 m 先、距離 0（QR-61、NFR-09、NFR-25）
+    how: 単体の層（NFR-09 と NFR-25 の出どころ）
+  - checks: 入れる版の決まりの形を確かめ、合わない版を使わない
+    how: 単体の層と結合の層
+  - checks: 運賃表のすべての区分の額が模す運賃の定めに合う（NFR-48）
+    how: 監査（POL-03 の置き場所。運賃表を作るか変える変更を main に入れる前に、開発者が照らす）
+parameters: []
+as_is: new

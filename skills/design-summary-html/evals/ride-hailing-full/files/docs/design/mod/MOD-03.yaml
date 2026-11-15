@@ -1,0 +1,44 @@
+id: MOD-03
+title: 変化の流れの受け取り
+status: active
+basis: inferred
+basis_note: 変化を開いたままの流れ（Server-Sent Events）で受け、最後に受けた id の続きからつなぎ直し、つなぎ直したら今の状態を読み直し、eventId で重なりを捨て、知らない種類を捨てることは DEC-06、DEC-41、IFC-11（入力）。生存の確かめ、つなぎ直しの待ちの値は IFC-11 の timing（第 3 段階の値で、ここでは決めない）。つなぎ直すときに起動の値の buildId を比べることは DEC-41（入力）。流れを src/platform/ にだけ置くことは POL-02（入力）。受け手への渡し方と状態の知らせ方は推定。流れの印はそれを開いたときのセッションのクッキー（DEC-40）なので、MOD-01 がタブのアカウントを知らせたら流れを開き直し、ほかのタブのサインインの後も前のアカウントの出来事を受け続けないことは FND-44 を受けた（推定）
+premises: []
+component: ELM-02
+name: 変化の流れの受け取り
+depth: bounds
+depth_reason: null
+responsibility: ELM-03 からの変化の流れ（IFC-11）を一つ開いて保ち、届いた出来事を一度ずつ受け手に渡す
+visibility: internal
+interface:
+  - operation: "subscribe(types: [EventType], handler: (event: StreamEvent) -> none) -> Unsubscribe"
+    pre: null
+    post: タブに一つの流れ（GET /v1/events、IFC-11）を開いて保ち、受けたその種類の出来事を、eventId ごとに一度だけ渡す。知らない種類と版は捨てる（DEC-41）。流れが切れたか IFC-11 の timing の間何も受けなければ、IFC-11 の待ちで最後に受けた id の続きからつなぎ直す。MOD-01 の onAccount がタブのアカウントを知らせたら（サインインと、アカウントが変わったとき）、流れを閉じ、アカウントがあれば開き直す（前のアカウントの流れの出来事を渡さない）
+    errors: []
+  - operation: "onResync(handler: () -> none) -> Unsubscribe"
+    pre: null
+    post: stream.resync を受けたときと、つなぎ直した後に呼ぶ。受け手は今の状態を読み直す（IFC-11）。つなぎ直した後は MOD-04 の checkBuild も呼ぶ（DEC-41）
+    errors: []
+  - operation: "status() -> StreamStatus"
+    pre: null
+    post: connected、reconnecting、notSignedIn（流れを開くと 401）、tooManyStreams（429）のどれかを返し、変わると聞き手に知らせる。notSignedIn と tooManyStreams ではつなぎ直さず、notSignedIn の後は MOD-01 の onAccount がアカウントを知らせたときに開き直す
+    errors: []
+invariants: []
+depends_on: [MOD-01, MOD-04, MOD-07]
+functions: [FR-33]
+realizes:
+  - IFC-11 stream.resync
+drivers: [DRV-24]
+decisions: [DEC-06, DEC-15, DEC-41]
+behaviour: null
+verification:
+  - checks: 同じ eventId の出来事を一度だけ渡し、知らない種類を捨てる
+    how: 単体の層（Vitest の Browser Mode、Chromium）。テストが渡す流れの源の偽物
+  - checks: 何も受けない時間とつながりの切れでつなぎ直し、最後の id の続きから受け、つなぎ直した後に onResync と MOD-04 の checkBuild を呼ぶ。401 と 429 を status で知らせる
+    how: 単体の層。流れの源の偽物と時計の偽物（MOD-07）
+  - checks: MOD-01 の onAccount でアカウントが知らされると流れを開き直し、none なら閉じたままにし、前のアカウントの流れの出来事を渡さない
+    how: 単体の層。MOD-01 の偽物（呼び出しの部品の偽物）と流れの源の偽物
+  - checks: 流れが切れても、つなぎ直した画面が今の状態を示す
+    how: 端から端の層。Playwright がブラウザを切ってつなぎ直す（POL-03）
+parameters: []
+as_is: new

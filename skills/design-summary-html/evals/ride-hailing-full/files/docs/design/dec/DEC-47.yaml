@@ -1,55 +1,29 @@
 id: DEC-47
-title: 命名
-status: draft
-version: 2
+title: EXT-01 は公式の部品を使わず、payments のつなぎ口から Node.js の fetch で Stripe の HTTPS の API を直接呼ぶ
+status: active
 basis: inferred
-basis_note: DEC-20（役割は経路のまとまりごとに確かめる）、DEC-16（URL の決まり）、SLI-01 の欄の名前は入力。名前の付け方は推定
-needs_agreement: false
-approver_candidates: []
-stage: high-level-design
-question: 経路、欄、出来事、符号の名前をどう付けるか
-addresses:
-- IFC-01
-- IFC-08
-- IFC-09
+basis_note: HND-14 を決めたもの。二つの案（Stripe の公式の Node.js の部品か、HTTP を直接呼ぶか）は HND-14 の what にある。部品の自動のやり直しを使わず、やり直しを IFC-17 の一か所だけで行い、二回目の呼び出しを待ちの終わりまでの残りで切ることは IFC-17 と第 3 段階の報告の「タイムアウト」、外へ HTTP を呼ぶものを payments の機能の adapters/ に限ることは POL-02、API の版を Stripe-Version で固定することは DEC-41（どれも入力）。二つの案の比べ方と選び方は推定
+premises: [TC-10]
+stage: detailed-design
+question: ELM-03 の EXT-01 のつなぎ口（MOD-41）は、何で EXT-01 を呼び、自動のやり直し、時間切れ、冪等キーの付け方をどう設定するか
+addresses: [DRV-07, DRV-32, IFC-17]
 options:
-- name: "経路は /api/v1/<役割>/ の後に小文字のハイフンつなぎの複数形。ただし一人に一つの資源は単数形（/api/v1/passenger/threshold、/api/v1/driver/conditions、/api/v1/driver/earnings、/api/v1/auth/session）にし、役割のない設定は /api/v1/config に置く。JSON の欄は camelCase、列挙は小文字の _ つなぎ、誤りの符号は UPPER_SNAKE、出来事は小文字の . つなぎ、ログの欄は snake_case。経路のまとまり: /api/v1/auth、/api/v1/passenger、/api/v1/driver、/api/v1/admin、/api/v1/engineer、/api/v1/locations、/api/v1/visibility-events、/api/v1/records、/api/v1/stream。route_id は passenger.rides.create のような . つなぎ。操作は資源の下の動詞（/rides/{rideId}/cancel）を POST で"
-  effect: 役割の確かめを経路のまとまりで一度にできる（DEC-20）。JSON は TypeScript と同じ。ログの欄は SLI の定義の欄名（request_id、trace_id）と同じ
-  cost: 二つの書き方を使い分ける
-- name: すべて snake_case
-  effect: 一つの書き方
-  cost: TypeScript の型と合わない
-- name: すべて camelCase
-  effect: 一つの書き方
-  cost: SLI の定義の欄名と Cloud Logging の問い合わせと合わない
-chosen: '経路は /api/v1/<役割>/ の後に小文字のハイフンつなぎの複数形。ただし一人に一つの資源は単数形（/api/v1/passenger/threshold、/api/v1/driver/conditions、/api/v1/driver/earnings、/api/v1/auth/session）にし、役割のない設定は /api/v1/config に置く。JSON の欄は camelCase、列挙は小文字の _ つなぎ、誤りの符号は UPPER_SNAKE、出来事は小文字の . つなぎ、ログの欄は snake_case。経路のまとまり: /api/v1/auth、/api/v1/passenger、/api/v1/driver、/api/v1/admin、/api/v1/engineer、/api/v1/locations、/api/v1/visibility-events、/api/v1/records、/api/v1/stream。route_id は passenger.rides.create のような . つなぎ。操作は資源の下の動詞（/rides/{rideId}/cancel）を POST で'
-rationale: 役割ごとの経路のまとまりは DEC-20 の「役割は経路のまとまりごとに一か所で確かめる」をそのまま形にする
+  - name: Stripe の公式の Node.js の部品（stripe）を、自動のやり直しを 0 にし、呼び出しごとに時間切れと冪等キーを渡して使う
+    effect: 要求の組み立て、応答の型、誤りの種類を部品が持つ
+    cost: 部品が持つ自動のやり直し、時間切れ、冪等キーの既定を一つずつ止め、部品の版を上げるたびに確かめ続ける。呼び出しごとに待ちの残りで切る道と、生の状態の組とヘッダー（Idempotent-Replayed）を読む道が、部品の版に頼る
+  - name: Node.js の fetch で Stripe の HTTPS の API を直接呼ぶ（form の本文、Stripe-Version、Idempotency-Key、AbortSignal による時間切れ）
+    effect: 自動のやり直しがなく、時間切れを呼び出しごとに待ちの残りで切れ、状態の組と誤りの type と code とヘッダーをそのまま MOD-41 の判断表に渡せる
+    cost: 使う 11 の操作（IFC-17）の要求の組み立てと応答の型を自分で書いて保つ
+chosen: Node.js の fetch で Stripe の HTTPS の API を直接呼ぶ
+rationale: IFC-17 は、やり直しを一か所だけで行い、二回目の呼び出しを待ちの終わりまでの残りで切り、答えを四つに分けることを求める（DEC-45）。直接呼べば、どれも部品の既定によらずに守れ、MOD-41 の判断表が状態の組と誤りの type と code を直に読める。使う操作は 11 と少なく、form の本文の組み立ても小さい
 rejected:
-- option: すべて snake_case
-  reason: 型と合わない
-- option: すべて camelCase
-  reason: ログの問い合わせと SLI の欄名と合わない
-gains:
-- 経路の名前（route_id）を SLI-01 の操作の名前に使える
-costs: []
-sensitive_points:
-- URL に位置、連絡先、名前、検索の語を入れない（DEC-16）
+  - {option: "Stripe の公式の Node.js の部品", reason: 自動のやり直しと時間切れの既定を止め続ける要があり、呼び出しごとの待ちの残りでの切り方と生の答えの読み方が部品の版に頼るため}
+gains: [やり直しと時間切れが IFC-17 の一か所だけで決まる, MOD-41 の判断表が EXT-01 の生の答えを読める, サーバーの依存が増えない]
+costs: [11 の操作の要求と応答の型を書いて保つ, Stripe の API の変化を部品の更新で受けられない（版は Stripe-Version で固定する、DEC-41）]
+sensitive_points: []
 trade_offs: []
-assumptions: []
-depends_on:
-- DEC-20
-- DEC-16
+assumptions: [Stripe の API は form の本文で受け、JSON で答え、誤りの本文に type と code を持ち、同じキーの送り直しの答えに Idempotent-Replayed のヘッダーを付ける（Stripe の API の文書）]
+depends_on: [DEC-10, DEC-41, DEC-45]
 parameters: []
 debt: null
-deferred: false
-revisit_when: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: "一人に一つの資源を単数形にすることと、/api/v1/config を足した。選んだ案と案の名前の書き方をそろえた"
-  reason: "第 3 段階の再実行（2026-11-04）。FND-43 を受け入れた"

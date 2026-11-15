@@ -1,0 +1,14 @@
+id: HND-19
+title: ELM-03 の値のうち、時間のしきい値の SLO とお金の道にないもの
+status: decided
+basis: inferred
+basis_note: 時間のしきい値の SLO とお金の道にない値は、第 3 段階が枠だけを決め、値は第 4 段階の ELM-03 の実行が決める（DEC-46）。流れの後の Web Push の待ちと、Web Push を送る呼び出しのタイムアウトと送り直しは NFR-07 の道の上にあるため、FND-26 を受けて第 3 段階が IFC-11 と IFC-21 で決め、ここから外した。TTL は T_dispatch_propagation の道の時間にかかわらないため残した。日々の処理の時間の上限は、FND-22 を受けて取った実行を止まったとみなすまでの長さとして加えた
+premises: []
+from: architecture-to-high-level-design
+to: high-level-design-to-detailed-design
+component: ELM-03
+origin: [IFC-01, IFC-02, IFC-03, IFC-04, IFC-06, IFC-08, IFC-09, IFC-10, IFC-12, IFC-14, IFC-15, IFC-16, IFC-21]
+what: 時間のしきい値の SLO とお金の道にない ELM-03 の値。IFC-01、IFC-02、IFC-03 の今の状態と乗車の開始と到着の確認と降りる場所の変更の見積もり、IFC-04 の受付の切り替えと一覧と依頼の選択、IFC-06、IFC-08、IFC-09 の過去の乗車と苦情、IFC-10、IFC-12、IFC-14 の操作に ELM-03 が答える期限。Web Push の TTL（IFC-21）。日々の処理の時間の上限（取った実行を止まったとみなすまでの長さ、DAT-27）と、Cloud Scheduler とローカルの定期の呼び出しの期限と再試行の回数と間隔（IFC-15）。生存確認のタイムアウト、間隔、知らせるまで続けて失敗する回数（IFC-16）
+bounds: DEC-46（呼ぶ側のタイムアウトは呼ばれる側の最悪の待ちより長い）、DEC-13（EXT-02 のタイムアウトの順）、HND-07（EXT-02 の呼び出し）、HND-10（異常とみなす条件と監視の間隔、終えた記録を待つ時間）、各 IFC の timing の枠。日々の処理の時間の上限は日々の処理の最悪の時間より長く、Cloud Scheduler の呼び出しの期限はその上限より長く、呼び出し手の再試行は止まったとみなす時刻の後にも少なくとも一度届く（IFC-15、DAT-27）
+trigger: 第 4 段階の ELM-03 の実行
+resolution: "ELM-03 が答える期限（外部を呼ばない操作は 5 秒、EXT-02 を呼ぶ操作は 8 秒、生存確認は 1 秒）と外からの生存確認の値は MOD-20、日々の処理の時間の上限と、Cloud Scheduler とローカルの定期の呼び出しの期限と再試行は MOD-32、Web Push の TTL は MOD-33 の parameters で決めた（DAS-17、DAS-20、DAS-21）。外部を呼ばない操作の 5 秒は、ELM-02 の MOD-01 のタイムアウト 15 秒が前提にする 10 秒より短い（DAS-16）。ELM-01 は HND-17 でこれらの期限に通信の余裕を足したものより長いタイムアウトを決める"

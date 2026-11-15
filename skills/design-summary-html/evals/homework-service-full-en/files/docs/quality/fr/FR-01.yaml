@@ -1,11 +1,9 @@
 id: FR-01
 title: Homework submission
-status: draft
-version: 1
-basis: inferred
+status: active
+basis: stated
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: [EXT-01]
 statement: The system accepts the files a student attached as a submission for the assignment.
 origin: cuj-step
 cuj: CUJ-01
@@ -14,8 +12,6 @@ traces_to: [QIU-01, KPI-01]
 proposal: null
 existing: true
 extends: null
-interface: ['Screen: the student web app']
+interface: ['screen: student', EXT-01]
 acceptance_criteria: [A submission made by the deadline creates a submission record and shows "Submitted"., A submission after the deadline is accepted and marked late.]
 quality_hints: []
-changelog:
-- {version: 1, date: '2026-09-03', change: Created, reason: Stage 2 draft}

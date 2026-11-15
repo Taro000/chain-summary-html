@@ -1,0 +1,42 @@
+id: MOD-29
+title: 操作の記録
+status: active
+basis: inferred
+basis_note: 足すだけで直しも消しもせず、前の記録のハッシュを含めて書き換えが分かるようにし、記録する操作と一つの取引で書き、済まなかった操作も結果とともに書き、操作した人と内容の個人の情報を記録した日の鍵で暗号にしてハッシュは暗号にした値から求めることは DAT-17 と DEC-19、記録する操作は FR-35 の 3、FR-50、QR-12、IFC-03、IFC-12、IFC-13、IFC-14 の observability、探す操作は IFC-12 と DEC-39（どれも入力）。前の記録を書き込みの取引の錠の中で読むことは MOD-25 の取引の決まりからの推定
+premises: []
+component: ELM-03
+name: 操作の記録
+depth: bounds
+depth_reason: null
+responsibility: 担当者とエンジニアの特別な操作と料金にかかわる操作を、後から書き換えられない記録に足す
+visibility: public
+interface:
+  - operation: "append(tx: Tx, entry: AuditEntry) -> AuditId"
+    pre: 記録する操作の結果を書く同じ書き込みの取引の中で呼ぶ
+    post: その取引の中で最後の記録を読み、次の番号と、前の記録のハッシュを含めたハッシュとともに足す。操作した人、時刻、操作の種類、対象、内容、結果（済まなかったものも）、理由（あるとき）を持ち、個人の情報は MOD-23 で暗号にし、ハッシュは暗号にした値から求める
+    errors: []
+  - operation: "search(criteria: AuditCriteria) -> Page<AuditView>"
+    pre: null
+    post: POST /v1/console/audit-records/search に、担当者、期間、操作の種類、対象の乗車やアカウントで探した記録を新しい順に返し（DEC-39）、なければ空の items（FR-50 の 2）
+    errors: ["VALIDATION_FAILED: 条件の形の誤り"]
+  - operation: "verifyChain(from: AuditId, to: AuditId) -> ok | broken(at: AuditId)"
+    pre: null
+    post: ハッシュの鎖を確かめる（MOD-67 の日々の確かめ）
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-23, MOD-25, MOD-27]
+functions: [FR-35, FR-39, FR-41, FR-42, FR-43, FR-50]
+realizes:
+  - IFC-12 POST /v1/console/audit-records/search
+drivers: [DRV-21, DRV-24, DRV-30]
+decisions: [DEC-16, DEC-19, DEC-39]
+behaviour: null
+verification:
+  - checks: NFR-32 が挙げる操作ごとに記録が残り、操作の記録に残す操作の登録にあってテストのない操作があると失敗する（NFR-32 の出どころ）
+    how: 結合の層
+  - checks: 記録を直すことも消すこともできず（表の決まりで断る）、鎖の確かめが書き換えを見つける
+    how: 結合の層と単体の層
+  - checks: 担当者、期間、操作の種類、対象で探し、空の items（FR-50 の 2）。済まなかった返金が結果とともに残る（FR-50 の 3）
+    how: 結合の層
+parameters: []
+as_is: new

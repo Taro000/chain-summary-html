@@ -1,0 +1,50 @@
+id: MOD-35
+title: Web Push
+status: active
+basis: inferred
+basis_note: 端末ごとの宛先を登録し直すと置き換え、使い終えると外し、配信サービスが 404 か 410 を返したら消すことは DAT-25 と IFC-10、IFC-01、知らせの中身を RFC 8291 で暗号にし VAPID で送り TTL と Urgency を付け、中身に v、type、eventId、rideId、title だけを持つことは IFC-21 と DEC-21、宛先と鍵をログに書かないことは DAT-25、Web Push の部品を notifications の adapters/ だけが使うことは POL-02（どれも入力）。送り直しをせず、答えを分けて返し、送り直すかは MOD-33 が決めることは推定。Web Push の部品の選び方は実装（第 2b 段階の報告）
+premises: []
+component: ELM-03
+name: Web Push
+depth: bounds
+depth_reason: null
+responsibility: 端末の Web Push の宛先を持ち、知らせを配信サービスに送る
+visibility: public
+interface:
+  - operation: "putSubscription(actor: Actor, subscription: PushSubscription) -> none; deleteSubscription(actor: Actor) -> none"
+    pre: null
+    post: PUT と DELETE /v1/push-subscriptions/current で、そのセッションの端末の宛先を一つ置くか外す（置き直すと置き換える）
+    errors: ["VALIDATION_FAILED: 宛先の URL か鍵の形の誤り"]
+  - operation: "removeForSession(tx: Tx, sessionId: SessionId) -> none; removeForAccount(tx: Tx, accountId: AccountId) -> none"
+    pre: null
+    post: 使い終えたセッションの宛先か、使えなくなったアカウントの宛先を外す
+    errors: []
+  - operation: "subscriptionsOf(accountId: AccountId) -> Subscription[]"
+    pre: null
+    post: その人の宛先の並び
+    errors: []
+  - operation: "send(subscription: Subscription, payload: PushPayload, ttl: integer, urgency: Urgency, deadline: Instant) -> PushResult"
+    pre: payload は MOD-27 の outbound（Web Push）を通したもの
+    post: 一度だけ送り、accepted（201）、gone（404、410。宛先を消す）、tooMany(retryAfter)（429）、failed（5xx、タイムアウト、つながらない）、senderError（400、403、413）のどれかを返し、結果と時間をたどる記録に残す。送り直さない
+    errors: []
+invariants: []
+depends_on: [MOD-21, MOD-22, MOD-25, MOD-27, MOD-28]
+functions: [FR-33]
+realizes:
+  - IFC-10 PUT /v1/push-subscriptions/current
+  - IFC-10 DELETE /v1/push-subscriptions/current
+  - IFC-21 POST {宛先の URL}
+drivers: [DRV-03, DRV-24]
+decisions: [DEC-21]
+behaviour: null
+verification:
+  - checks: 中身の形と暗号と VAPID、TTL と Urgency のヘッダー（IFC-21）
+    how: 単体の層
+  - checks: 404 と 410 で宛先が消え、ほかの答えが分かれて返る
+    how: 結合の層（Web Push の偽物）
+  - checks: 使い終えると宛先が外れる（FR-48 の 4）。宛先の URL と鍵がログに出ない
+    how: 結合の層
+  - checks: 本物の配信サービスを通って iPhone に知らせが届く
+    how: 実機の受け入れの層
+parameters: []
+as_is: new

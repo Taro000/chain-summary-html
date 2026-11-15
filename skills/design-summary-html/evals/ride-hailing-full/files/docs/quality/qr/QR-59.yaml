@@ -1,0 +1,26 @@
+id: QR-59
+title: 記録してから 3 年を過ぎた記録とデータは、個人を特定できない形になっている
+status: active
+basis: inferred
+basis_note: 保存期間（3 年）を過ぎた個人の情報を残さないことは質問 1 で確認済み（個人の情報の扱いに関する法令）。3 年はどれも記録した日から数え、過ぎたものは状態の変化の種類と時刻を残して操作した人と位置を消し、個人を特定できない形に変える（質問 7）。個人を特定できない形に変える機能は FR-51（FRP-05 を第 2 段階が受け入れたもの）。持ち込んだ役割は法務の担当と推定した。最低限守る線とすることは決めたこと 11 で確認済み（QAS-21 への訂正）
+premises: [CON-06, QAS-21]
+model: data
+layer: data-system-dependent
+characteristic: compliance
+statement: 位置情報や個人の情報を含む記録とデータ（アカウントの情報、位置情報、乗車の記録、ログの中のもの）は、記録してから 3 年を過ぎると、状態の変化の種類と時刻を残したまま、操作した人と位置が消され、個人を特定できない形になっている。使い続けている参加者のアカウントの情報も同じである。
+applies_to: [FR-31, FR-38, FR-41, FR-45, FR-51]
+traces_to: []
+entry_point: {type: law, source: 個人情報保護法, brought_by: 法務の担当}
+stakeholders: [USR-01, USR-02, USR-04]
+failure_scenario: 4 年前の乗車の記録に乗客の名前と乗る場所・降りる場所が残ったままで、法令の保存期間を過ぎた個人の情報を持ち続ける。
+score: {impact: 5, likelihood: 1}
+handling: minimum-line
+handling_reason: 個人の情報の扱いに関する法令から来るため対象から外さない。デモが 3 年を超えて動き続ける見込みは入力になく、起こりやすさを低くみた
+implies_internal: []
+conflicts:
+  - {with: QR-42, note: "乗車の記録を取り出せる日数 N_ride_record_days（365 日）は、保存期間の 3 年を超えない"}
+  - {with: QR-37, note: "依頼の経過をたどる記録を取り出せる日数 N_trace_retention_days（28 日）は、保存期間の 3 年を超えない"}
+  - {with: QR-15, note: "記録が欠けないこと（QR-15）は 3 年のうちの記録について成り立ち、3 年を過ぎた記録は状態の変化の種類と時刻だけが残る"}
+  - {with: QR-17, note: "止まった後に戻すために残すものにも、保存期間を過ぎた個人の情報は残さない"}
+stated_numbers: ["3 年（記録した日から数える個人の情報の保存期間）、第 3 段階の質問 1 と質問 7 の回答"]
+placeholders: []

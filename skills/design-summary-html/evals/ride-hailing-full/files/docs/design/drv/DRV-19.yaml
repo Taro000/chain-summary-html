@@ -1,21 +1,22 @@
 id: DRV-19
-title: Turso と Cloud Run に載せられる形を保つ（廃止）
-status: retired
-version: 1
+title: 相手と本人を確かめる符号は、人が手で渡す
+status: active
 basis: confirmed
-basis_note: 質問 1・2 で、Turso と Cloud Run は想定ではなくデモの回の実行の場所になったので、DRV-18 に統合した
-needs_agreement: false
-approver_candidates: []
+basis_note: 制約は DIN-02 と DIN-07（入力）、確認コードがその依頼にだけ合い推し量れないことは QR-18（最低限守る線）。交渉できないことは質問 4 で確認済み。順位は質問 6 で確認済み
+premises: [TC-14, TC-16, OPF-03]
 kind: constraint
-statement: データベースは Turso、実行環境は GCP Cloud Run を想定先とし、その上でも動く形を保つ（DRV-18 に統合）
-sources: [TC-06, TC-07]
-concern_of: [STK-01]
+statement: 乗客とドライバーが同じ依頼の相手であることは、乗客が伝えた確認コードをドライバーが入れて確かめ、一致したときだけ乗車を始める。確認コードはその依頼にだけ合い、ほかの人が推し量れない。参加者のアカウントの設定の符号は、運営・サポートの担当者が参加者に直接渡す
+sources: [TC-14, TC-16, DIN-02, DIN-07, QR-18, NFR-21, FR-12, FR-27, FR-41, FR-48]
+concern_of: [USR-01, USR-02, USR-04]
 scenario: null
-negotiable: true
+negotiable: false
 derived_from: []
-priority: null
+priority:
+  business: high
+  business_reason: 利用者の回答から来た交渉できない制約（下書き）
+  difficulty: low
+  difficulty_reason: その依頼にだけ合う推し量れない符号と、手で渡す設定の符号は、どの妥当な作りでも扱える
+  rank: 26
 primary: false
 conflicts: []
 placeholders: []
-changelog:
-  - {version: 1, date: 2026-11-02, change: 作成と同時に廃止, reason: 下書きにあったが、質問 1・2 の回答で DRV-18 に統合した}

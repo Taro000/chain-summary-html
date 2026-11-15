@@ -1,0 +1,48 @@
+id: MOD-10
+title: 画面の枠
+status: active
+basis: inferred
+basis_note: 許されない機能と止めた機能を示さず、サインインしていなければ使い始めに移り、つながらない間は送っていることを示してつながったら今の状態を読み直すことは、第 3 段階の報告の「画面」と FR-49 の 1、FR-36 の 3、FR-48 の 3（入力）。許すかどうかは ELM-03 が決め、Web アプリは隠すだけであることは DEC-15 と IFC-01（入力）。予期しない失敗を画面の境の一か所で受けて端末のエラーとして送ることは POL-04（入力）。画面の業務の機能ごとのディレクトリと土台に分けることは POL-02、画面を React Router と TanStack Query で組むことは POL-01（入力）。画面の URL に不透明な ID のほか個人の情報と探す条件を入れないことは、DEC-44 が ELM-03 の経路と問い合わせに個人の情報を入れない理由（アクセスのログとブラウザの履歴）を、ELM-03 が配る ELM-02 の画面の URL にも当てた推定。知らせを押したときの開く画面の選び方と、アカウントが変わったら読んだものの記憶を消すことは推定。アカウントが変わったら（ほかのタブのサインインと使い終えることを含む）新しいアカウントの始めの画面に移り、前のアカウントの画面と読んだものを示し続けないことは FND-44 を受けた（推定）
+premises: []
+component: ELM-02
+name: 画面の枠
+depth: bounds
+depth_reason: null
+responsibility: 許された画面だけを道筋と案内に並べて画面の間を行き来させ、予期しない失敗を画面の境で受ける
+visibility: internal
+interface:
+  - operation: "App() -> Web アプリ"
+    pre: null
+    post: MOD-04 の load の後に始め、サインインしていなければ使い始め（MOD-09）を示す。MOD-09 の me の使える機能にあり止めた機能にない画面だけを道筋と案内に並べ（FR-49 の 1、FR-36 の 3）、ほかの道筋では使えないことを示す。読んだものの記憶（TanStack Query）を持ち、MOD-09 がアカウントが変わったと知らせたら（ほかのタブのサインインと使い終えることを含む）、すべて消して、新しいアカウントの始めの画面に移る（アカウントがなければ使い始め）。同じアカウントで確かめ直したときは、移る前の画面に戻す（MOD-09）。つながらない間は送っていることを示し、つながったら今の画面を読み直す
+    errors:
+      - "ConfigInvalid と NoAnswer（MOD-04）: 画面を始めずにそのことを示す"
+  - operation: "routes() -> [Route]"
+    pre: null
+    post: どの画面の URL も、画面の名前と不透明な ID（DEC-36）だけを持ち、名前、連絡先、ナンバー、探す条件、期間、見る理由、設定の符号を持たない。知らせを押したときの道筋（MOD-05）は、anomaly.detected なら rideId があればその依頼のたどり（MOD-18）、なければ異常の一覧（MOD-17）、complaint.received なら苦情の一覧（MOD-11）、refund.settled ならその乗車の返金（MOD-02）、ほかは始めの画面を開く
+    errors: []
+  - operation: "screenName(location: Location) -> ScreenName"
+    pre: null
+    post: 道筋の登録の画面の名前を返す（MOD-06 の報告の画面）
+    errors: []
+  - operation: "画面の境（ErrorBoundary と、捕えられなかった失敗の聞き手）"
+    pre: null
+    post: 画面の中で投げられた予期しない失敗を受け、MOD-06 に画面の名前とともに渡し、その画面を表示できなかったと示して、ほかの画面は使えるままにする（POL-04）
+    errors: []
+invariants: []
+depends_on: [MOD-02, MOD-04, MOD-06, MOD-08, MOD-09, MOD-11, MOD-12, MOD-13, MOD-14, MOD-15, MOD-16, MOD-17, MOD-18, MOD-19]
+functions: [FR-36, FR-48, FR-49]
+realizes: []
+drivers: [DRV-12, DRV-17, DRV-28, DRV-29]
+decisions: [DEC-03, DEC-15, DEC-26, DEC-36, DEC-44]
+behaviour: null
+verification:
+  - checks: 使える機能にない画面と止めた機能の画面を道筋と案内に出さず（FR-49 の 1、FR-36 の 3）、乗客とドライバーのアカウントにはどの画面も出さない（FR-49 の 2）
+    how: 単体の層（Vitest の Browser Mode、Chromium）。MOD-09 の偽物で使える機能と止めた機能を変える
+  - checks: どの画面の URL も、名前、連絡先、ナンバー、探す条件、期間、見る理由、設定の符号を持たない
+    how: 単体の層（道筋の登録を調べる）と端から端の層（探して選ぶ流れの後の URL と履歴を調べる）
+  - checks: 画面の境が失敗を受けて MOD-06 に渡し、ほかの画面が使えるままである
+    how: 単体の層
+  - checks: アカウントが変わると読んだものの記憶が消えて新しいアカウントの始めの画面に移り、同じアカウントで確かめ直すと移る前の画面に戻り、知らせを押したときの道筋が type ごとの画面を開く
+    how: 単体の層（MOD-09 の偽物でアカウントを替える）
+parameters: []
+as_is: new

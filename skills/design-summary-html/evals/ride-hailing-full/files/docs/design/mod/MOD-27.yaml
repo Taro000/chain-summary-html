@@ -1,0 +1,60 @@
+id: MOD-27
+title: 使える機能と見せる範囲
+status: active
+basis: inferred
+basis_note: 使える機能、見せる範囲、個人の情報を隠す決まりをサーバーの一か所で決め、応答、流れの出来事、知らせ、ログ、たどる記録、写しのどれもそこを通すことは DEC-15、それを access の機能のディレクトリに置き、経路、出来事、知らせ、記録の種類の登録ごとに決まりがあるかを結合の層が確かめることは POL-02、利用者の種類ごとの機能は FR-49 と IFC-01〜IFC-14 の auth、依頼の段階ごとに見せる範囲は QR-57、エンジニアの見るものを隠して仮の名にし、理由を示したときだけその依頼の分を示すことは FR-35 と QR-34、ログの個人の情報を伏せることは QR-58、他人の依頼と位置の存在を明かさず 404 にすることは DEC-35（どれも入力）。判断表の行の分け方は推定。理由を示して見たことの操作の記録は MOD-64 が同じ取引で書く（access は記録を書かない）。日々の処理の経路（IFC-15）を、MOD-20 が呼び出しの印を確かめた system の利用者にだけ許すことは IFC-15 の auth と DEC-43 の actorKind（入力）に従うよう FND-64 を受けて判断表 A に加え、取り消した後の依頼の乗車場所と乗客の現在地を割り当てたドライバーに示さない（判断表 B）ことが FR-24 の 5 を受け持つため functions に FR-24 を加えたことは FND-73 を受けた
+premises: []
+component: ELM-03
+name: 使える機能と見せる範囲
+depth: full
+depth_reason: 何を誰に見せ、個人の情報をどう隠すかを一か所で決め（DEC-15）、外へ出るどの道もここを通す。誤ると個人の情報が許されない人に出る（重大さが高）うえ、経路、出来事、知らせ、ログ、たどる記録、写しのどれもこれに頼る（影響の広さが高）。利用者の種類、依頼の段階、相手かどうかの組で決まる、いくつもの条件の規則
+responsibility: 利用者の種類ごとに使える機能と、依頼の段階ごとに見せる範囲と、個人の情報の隠し方を一か所で決める
+visibility: internal
+interface:
+  - operation: "canUse(actor: Actor, route: RouteName) -> allowed | notSignedIn | notAllowed"
+    pre: null
+    post: 判断表 A で決める。登録にない経路は notAllowed
+    errors: []
+  - operation: "rideView(actor: Actor, ride: RideFacts) -> RideVisibility"
+    pre: null
+    post: 判断表 B で、その利用者がその依頼の何を見られるか（none は 404 NOT_FOUND で存在を明かさない）を項目ごとに返す
+    errors: []
+  - operation: "outbound(channel: Channel, kind: string, recipient: Recipient, payload: Payload) -> MaskedPayload"
+    pre: null
+    post: 判断表 C の、その通り道（応答、流れの出来事、Web Push、ログ、たどる記録、写し）と種類の決まりで、項目を残す、伏せる、仮の名にする、落とす。決まりのない種類は空にしてたどる記録に残す
+    errors: []
+  - operation: "engineerView(record: Payload) -> MaskedPayload"
+    pre: null
+    post: 名前、連絡先、乗る場所と降りる場所、位置を隠し、乗客とドライバーを仮の名（MOD-23 の keyedCode、目的 pseudonym）にする。同じ人は同じ仮の名（FR-35 の 1、2、FR-52 の 5）
+    errors: []
+  - operation: "disclosable(engineer: Actor, ride: RideFacts, reason: string) -> Disclosure"
+    pre: reason は空でない（空なら呼ぶ側が先に 400 VALIDATION_FAILED を返す）
+    post: その依頼の隠した項目だけ（乗客とドライバーの名前と連絡先、乗る場所と降りる場所）と、記録に残すべき見た項目の名前を返す。記録は呼ぶ側（MOD-64）が同じ取引で書く
+    errors: ["RecordAnonymized: 個人を特定できない形に変えた記録（409 RECORD_ANONYMIZED）"]
+  - operation: "registry() -> AccessRegistry"
+    pre: null
+    post: 経路、流れの出来事、知らせ、ログとたどる記録の種類ごとの決まりの一覧（NFR-27 のテストが、決まりのない種類を見つける）
+    errors: []
+invariants:
+  - 決まりの登録にない経路、出来事、知らせ、記録の種類は外へ出ない（経路は起動しない、ほかは出す前に落とす）
+  - エンジニアに見せるものは、disclosable のほかは隠した形だけ
+  - 乗客とドライバーには、自分がその段階で相手である依頼のほかの依頼、乗車、位置を示さない
+depends_on: [MOD-23]
+functions: [FR-24, FR-25, FR-35, FR-49, FR-52]
+realizes: []
+drivers: [DRV-21, DRV-28, DRV-29, DRV-31, DRV-34]
+decisions: [DEC-15, DEC-16, DEC-35, DEC-40]
+behaviour: "報告書の節: MOD-27 使える機能と見せる範囲"
+verification:
+  - checks: 判断表 A の行ごと（利用者の種類と本人の確かめの有無の組、日々の処理の経路は system だけ、NFR-27）
+    how: 単体の層
+  - checks: 判断表 B の行ごと（依頼の段階と相手かどうか、取り消した後の割り当てたドライバー、FR-49 の 2、FR-24 の 5、FR-25、QR-57）
+    how: 単体の層
+  - checks: 判断表 C の通り道と種類ごとの隠し方と、エンジニアの見るたどりと端末のエラーの仮の名（FR-35 の 1、2、FR-52 の 5）
+    how: 単体の層
+  - checks: 経路、流れの出来事、知らせ、ログの記録の種類の登録ごとに決まりがあり、ないと失敗する（POL-02、NFR-27）
+    how: 結合の層
+  - checks: 端末から送る値を書き換えた要求で他人の依頼と位置が見えない（NFR-27）
+    how: 結合の層
+parameters: []
+as_is: new

@@ -1,0 +1,1 @@
+{id: QAS-03, title: 夜間レポートの目標値を 99% とする, status: open, stage: 4, kind: decision, statement: '夜間レポートが 6:00 に揃う割合の目標値を、仮に 99% とする。', why_unsure: 運用の実績がなく、事務が何回の遅れまで許すかを聞いていない。, breadth: low, severity: medium, rating_note: NFR-02 と EBP-02 だけが頼る。, answer: null, answered_in: null}

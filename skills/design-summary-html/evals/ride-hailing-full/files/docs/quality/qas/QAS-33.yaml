@@ -1,0 +1,12 @@
+id: QAS-33
+title: 決済の結果を示すまでの速さのしきい値
+status: open
+stage: 4
+kind: decision
+statement: T_payment_response を 10 秒とし、10 秒を超えて結果を応えた決済を一件ごとにエンジニアに知らせる。
+why_unsure: 入力に数値も基準となる値もない。10 秒は、EXT-01 の応えを待つ時間を含めても、降りようとする乗客とドライバーを長く止めない長さとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QR-24、QR-04、NFR-29 が依存する。最低限守る線の監視で、変えるのは容易
+answer: null
+answered_in: null

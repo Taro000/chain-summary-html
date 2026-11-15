@@ -1,70 +1,48 @@
 id: IFC-21
-title: Google Cloud の管理の操作
-status: draft
-version: 2
-basis: inferred
-basis_note: 第 2 段階の DEC-27 版 3・4（鍵を置かない連携、main の枝の手順だけ、定義はリポジトリ、データベースに触れる段は運用のジョブで動かして終わりの符号を読む）、DEC-34 版 2（毎日の処理のジョブは自分の定時の起動と二つ目の規則を止められる）、DEC-37 版 4 は入力。操作の一覧と、タスクの終わりの符号の読み方は推定（第 4 段階で確かめる）
-needs_agreement: false
-approver_candidates: []
+title: Web Push の配信（ELM-07）
+status: active
+basis: assumed
+basis_note: 画面に出ていない端末にはブラウザの提供元の配信サービスを通す Web Push で知らせ、中身は暗号にして短い題だけにし、名前、場所、額を入れず、届かなくなった宛先を外すことは DEC-21（入力）。担当者とエンジニアの Web アプリにも Web Push で異常を知らせることは DEC-20（入力）。ホーム画面に加えた Web アプリが画面に出ていない間も知らせを受けることは DAS-03（設計の第 2 段階の質問 6 で確認済み）。送り方は Web Push の標準（RFC 8030、RFC 8291、RFC 8292）による（POL-05、報告の「入力」）。中身の形と、示した時刻をサービスワーカーがためて後で送ることは推定。流れが開いていない相手への知らせは SLI-14 で示せなかった変化として数えから外れるが、流れで送ったのに示した時刻が届かない相手に IFC-11 の待ちの後に知らせる道は NFR-07 の道の上にあるため、送る呼び出しのタイムアウトと送り直しをここで決めたことは FND-26 を受けた（値は DAS-15）。その道は相手の端末が示した時刻を送ること（FR-53）があって働き、FR-53 を今期作ることは QAS-54 による品質チェーンの暫定の決定で、第 3 段階のレビューの質問 1 で成り立つと答えを受けた（QCR-08 が品質チェーンに運ぶ。当てられるまで前提に残す）。QAS-54 を前提に挙げたことは FND-38 を、示した時刻をためて送るのを ELM-01 のサービスワーカーに限ったことは FND-41 を受けた（担当者とエンジニアへの知らせを示した時刻は、どの機能も SLI も使わない）
+premises: [TC-13, DAS-03, DAS-15, QAS-54]
 kind: http
-name: Google Cloud の管理の操作（外部）
-provider: ELM-19
-consumers:
-- ELM-06
-- ELM-05
-functions:
-- FR-41
-- FR-42
+name: Web Push の配信（ブラウザの提供元の配信サービス）
+provider: ELM-07
+consumers: [ELM-03, ELM-01, ELM-02]
+functions: [FR-04, FR-06, FR-07, FR-10, FR-13, FR-18, FR-22, FR-23, FR-26, FR-31, FR-33, FR-39, FR-44, FR-47]
 operations:
-- name: Artifact Registry
-  does: イメージを置く、読む
-- name: Cloud Run の管理の API（ELM-17）
-  does: サービスと二つのジョブ（毎日の処理と運用）の定義の置き換え、消す、毎日の処理のジョブの実行と終わりの待ち。運用のジョブを運用のコマンドの引数を付けて実行し（run.jobs.runWithOverrides）、終わりを待ってタスクの終わりの符号を読む（ELM-06。第 2 段階の DEC-27 版 3）
-- name: Cloud Scheduler
-  does: 定時の起動を作る、止める、再開する、一度動かす、消す（ELM-06）。期間の終わりに毎日の処理が自分の定時の起動を止める（ELM-05。第 2 段階の DEC-37 版 4）
-- name: Cloud Monitoring
-  does: 二つの規則を有効にする、止める、消す（ELM-06）。期間の終わりに毎日の処理が二つ目の規則を止める（ELM-05）
-- name: Secret Manager
-  does: システムを終えるときに秘密を消す（ELM-06）。ELM-06 はデータベースの資格情報を読まない（第 2 段階の DEC-34 版 2）
-- name: API Keys
-  does: システムを終えるときに地図の鍵を消す
-format: gcloud と REST（JSON）
-protocol: HTTPS
-auth: ELM-06 は鍵を置かない連携（Workload Identity Federation。main の枝の手順だけ。DEC-27、DEC-34）。ELM-05 の毎日の処理のジョブはそのサービスアカウントで、自分の定時の起動と二つ目の規則を止める権限だけを持つ（第 2 段階の DEC-34 版 2）
+  - name: POST {宛先の URL}
+    does: ELM-03 が端末の宛先（IFC-10 で登録したもの）に知らせを送る。中身は RFC 8291 で暗号にし、送り手を RFC 8292 の VAPID で示し、TTL と Urgency のヘッダーを付ける（RFC 8030）
+  - name: push の出来事
+    does: サービスワーカーが知らせを受けて示す。ELM-01 のサービスワーカーは、示した時刻と出来事の ID をためて、後で ELM-03 に送る（IFC-10、FR-53）。ELM-02 のサービスワーカーは示すだけで、示した時刻をためない。どちらも知らせを押すと対応する画面を開く
+format: 中身は JSON で、v、type（IFC-11 の出来事の種類）、eventId、rideId（依頼にかかわるとき）、title（ELM-03 の文言のファイルの短い題、POL-04）だけを持ち、名前、場所、額、メッセージと苦情の中身を入れない（DEC-21）
+protocol: HTTPS（宛先は配信サービスの URL。iPhone は Apple の配信サービス）
+auth: VAPID の送り手の鍵（試験用とローカルの本番で別、ELM-03 だけが持つ、POL-04）
 errors:
-- case: 権限がない
-  signal: '403'
-  caller_does: 止まる
-- case: 消すものがない
-  signal: '404'
-  caller_does: 消えたとみなして続ける
-- case: 競合
-  signal: '409'
-  caller_does: 置き換えで解く
-- case: 回数の上限、Google の中の誤り
-  signal: 429、5xx
-  caller_does: gcloud の既定の送り直し。それでも失敗したら止まる
-- case: 運用のジョブのタスクが 0 でない終わりの符号で終わった
-  signal: 実行の失敗とタスクの終わりの符号（10、20、1）
-  caller_does: ELM-06 は符号ごとの扱い（IFC-10、IFC-11）で止まる
-- case: 毎日の処理が定時の起動か二つ目の規則を止められない
-  signal: 403、5xx
-  caller_does: ELM-05 は期間を終えたと記録せず、失敗として終わる（IFC-10）。次の実行でやり直すか、人が ELM-06 の end-period で止める
-idempotency: 定義の置き換え（gcloud run services replace など）なので、同じ入力は同じ結果。止める操作も二度目は同じ（止まったまま）
+  - case: 配信サービスが受け付けた（201）
+    signal: 受け付けた
+    caller_does: 届けたものとして記録する（DAT-20）
+  - case: 宛先がなくなった（404、410）
+    signal: 宛先なし
+    caller_does: 宛先を外す（DAT-25）。その相手に知らせられなかったことを記録する
+  - case: 多すぎる（429）
+    signal: 待つ時間つきの拒否
+    caller_does: Retry-After の後に一度だけ送り直す
+  - case: 5xx、タイムアウト、つながらない
+    signal: 配信サービスの失敗か、受け付けたか分からない
+    caller_does: 1 秒置いて同じ中身で一度だけ送り直し（端末は同じ eventId の知らせを tag で一つにまとめる）、届けられなければ知らせられなかったと記録する
+  - case: 中身が大きすぎる（413）、送り手の誤り（400、403）
+    signal: システムの誤り
+    caller_does: 異常として記録する
+  - case: 端末が知らせを示せない（知らせの許しがない）
+    signal: サービスワーカーが示せない
+    caller_does: 示した時刻を送らない（ELM-01）
+idempotency: 同じ出来事を二度送ると知らせが二つ出うるため、サービスワーカーは同じ eventId の知らせを tag で一つにまとめる
 timing:
-  timeout: 手順ごとの上限（IFC-11）
-  ordering: null
-  delivery: null
-versioning: gcloud の版は手順で固める
-observability: GitHub Actions の実行のログ（秘密を出さない）と配備の記録（DAT-26）。毎日の処理が止めたことは job.task のログと DAT-24、DAT-26
+  timeout: 送る呼び出しは、流れで送ったのに示した時刻が届かない相手への知らせ（IFC-11 の 2 秒の待ちの後）で NFR-07 の道の上にあるため、値をここで決める。一回のタイムアウトは 5 秒（配信サービスの健全なときの遅い裾を見込んだ暫定の値）で、送り直しは上の誤りのとおり一度だけ、ELM-03 の notifications の一か所だけで行う（DAS-15）。送ってから端末が示すまでの予算は DEC-46 の Web Push の配信のホップ。TTL は知らせが意味を持つ長さ（T_wait_prompt の問いなら次の判断まで）を超えず、T_dispatch_propagation の道の時間にかかわらないため、値は第 4 段階が決める（HND-19）
+  ordering: 順は保たれない。端末は示す前に今の状態を読み直す
+  delivery: at-most-once に近い（配信サービスは TTL を過ぎた知らせを捨てる）。失った知らせは、アプリを開いたときに流れと今の状態の読み直しで示す（DEC-06）
+versioning: 中身の v（DEC-41）
+observability: 送った結果（配信サービスの状態の符号、時間）をたどる記録（DAT-18）と届けと示した時刻の記録（DAT-20）に残す。宛先の URL と鍵はログに書かない
+sli_bindings: []
 spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 3 段階（質問 1・2 の回答を反映。質問 3〜5 は回答なし）
-- version: 2
-  date: '2026-11-04'
-  change: 運用のジョブを引数を付けて実行し（run.jobs.runWithOverrides）、終わりを待ってタスクの終わりの符号を読む操作を足した。期間の終わりに毎日の処理が定時の起動と二つ目の規則を止める操作を足し、consumers に ELM-05 を加えた。ELM-06 が Secret Manager から Turso のトークンを読むことをやめた。この二つのエラーを足した
-  reason: '第 3 段階の再実行（2026-11-04）: 第 2 段階の DEC-27 版 3・4、DEC-34 版 2、DEC-37 版 3・4（FND-19・22 の受け入れ）'

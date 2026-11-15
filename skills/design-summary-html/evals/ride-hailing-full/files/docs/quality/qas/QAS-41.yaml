@@ -1,0 +1,12 @@
+id: QAS-41
+title: T_pickup_wait の最初の値
+status: open
+stage: 4
+kind: decision
+statement: T_pickup_wait を 10 分とする。
+why_unsure: 入力に数値も基準となる値もなく、ドライバーの数と依頼の量は分からない。10 分は、依頼してから迎車が着くまでを乗客が長いと感じ始める前の控えめな最初の値で、最初のウィンドウの値から見直す。
+breadth: medium
+severity: low
+rating_note: QIU-03 と FR-04 が依存する。変えるのは容易
+answer: null
+answered_in: null

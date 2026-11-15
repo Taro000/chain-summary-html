@@ -1,0 +1,12 @@
+id: QAS-53
+title: 許諾のない依頼を乗客に知らせる時点
+status: open
+stage: 4
+kind: decision
+statement: T_wait_prompt を 5 分とする。依頼してから 5 分たっても許諾がないとき、乗客に知らせ、待ち続けるか取り消すかを選べるようにする。
+why_unsure: "値はまだ決まっていない（決めたこと #19）。5 分は、乗客がドライバーが見つからないまま長く待たされたと感じる前の長さとして置いた最初の値で、システムが取り消す 30 分（T_no_accept）より前にある。"
+breadth: medium
+severity: low
+rating_note: FRP-13、FR-04、FR-23 が依存する。変えるのは容易
+answer: null
+answered_in: null

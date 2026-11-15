@@ -1,0 +1,14 @@
+id: HND-18
+title: ELM-02 の呼び出しのうち、時間のしきい値の SLO とお金の道にないもののタイムアウト
+status: decided
+basis: inferred
+basis_note: 時間のしきい値の SLO とお金の道にない呼び出しは、第 3 段階が枠だけを決め、値は呼ぶ側のコンポーネントを設計する第 4 段階が決める（DEC-46）。ELM-02 の返金の呼び出しの値は IFC-13 にある
+premises: []
+from: architecture-to-high-level-design
+to: high-level-design-to-detailed-design
+component: ELM-02
+origin: [IFC-01, IFC-10, IFC-12, IFC-14, IFC-24, IFC-25]
+what: ELM-02 が ELM-03 の操作（IFC-01、IFC-10、IFC-12、IFC-14）を待つタイムアウトの値と、画面の細部の時間（IFC-24、IFC-25）
+bounds: DEC-46（呼ぶ側のタイムアウトは、呼ばれる側の答えの期限に通信の余裕を足したものより長い）、DEC-08、HND-19（ELM-03 の答えの期限）、各 IFC の timing の枠
+trigger: 第 4 段階の ELM-02 の実行
+resolution: ELM-02 の呼び出しを送る MOD-01（確定の深さ）の parameters で決めた。ELM-03 の操作（IFC-01、IFC-10、IFC-12、IFC-14）を待つタイムアウトは 15 秒（DAS-16）で、ELM-03 がそれらの操作に答える期限（HND-19）は、各 IFC の timing の枠（タイムアウトは期限と通信の余裕 5 秒の和より長い、DEC-46）のとおり 10 秒より短くする。答えのない操作の自動の送り直しの回数と間合いも MOD-01 が持つ。返金の呼び出しは IFC-13 の 15 秒をそのまま使う。端末のエラーの報告をためる長さ（IFC-10）と画面の細部の時間（IFC-24、IFC-25）は、枠の深さのモジュール（MOD-06 と、画面の MOD-09、MOD-11〜MOD-19）の中にあり、実装がそれぞれの MOD の中で決める

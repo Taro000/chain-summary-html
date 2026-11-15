@@ -15,7 +15,11 @@ import sys
 import tempfile
 import unittest
 
+import os
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+# req-to-design, for scripts/check-chain.py: REQ_TO_DESIGN, else next to this repository
+CHAIN = pathlib.Path(os.environ.get('REQ_TO_DESIGN', ROOT.parent / 'req-to-design')).expanduser()
 SKILL = ROOT / 'skills' / 'design-summary-html'
 SCRIPT = SKILL / 'scripts' / 'build_design_summary.py'
 EVALS = SKILL / 'evals'
@@ -99,37 +103,70 @@ class HomeworkFull(Case):
 
     def test_reports_the_planted_mismatch_and_what_it_left_out(self):
         out = self.run1.stdout
-        self.assertIn('設計の決定（第 2 段階）: YAML にあって報告書にない DEC-06', out)
+        self.assertIn('食い違い: 1 件', out)
+        self.assertIn('技術的負債: YAML にあって報告書にない DEC-06', out)
         self.assertIn('通し確認: CUJ-03 提出の失敗の調査（報告書に表がない）', out)
         self.assertIn('遅延の予算: NFR-02（報告書に表がない）', out)
-        self.assertIn('履歴の注記を削った文: 25 件', out)
+        self.assertIn('履歴の注記を削った文: 7 件', out)
+        self.assertIn('ページに載せない項目: 未確認の仮定 1 件、品質チェーンへの要求 未回答 1 件・回答済み 0 件', out)
+        self.assertIn('旧い形式: なし', out)
 
     def test_yaml_over_the_report(self):
-        dec = toggle(self.page, 't-dec')
-        self.assertIn('DEC-06', dec)
-        self.assertIn('先送り', dec)                                  # a deferred decision has no chosen option
+        self.assertIn('保護者の画面と生徒の画面が一つのアプリにまとまる', toggle(self.page, 't-debt2'))   # DEC-06's debt
         self.assertNotIn('DRV-10', toggle(self.page, 't-constraint'))  # retired
         self.assertIn('個人情報（生徒の答案）', toggle(self.page, 't-data'))
 
     def test_report_prose_is_left_out(self):
         self.assertNotIn('t-structure', self.page)
-        self.assertNotIn('依存の規則', self.page)
-        self.assertNotIn('区間の表にするほどの区間はない', self.page)
+        self.assertNotIn('apps/server/', self.page)                  # the directory tree
+        self.assertNotIn('ホップの表にするほどのホップはない', self.page)
+        self.assertNotIn('呼ぶ側が待つ最悪', self.page)               # the timeouts
+        self.assertNotIn('generated:', visible(self.page))
 
     def test_budget_chart_and_threat_links(self):
         b = toggle(self.page, 't-budget')
         self.assertIn('id="b-NFR-06"', b)
         self.assertIn('class="bud"', b)
-        self.assertIn('和 1.5 秒、余り 1.5 秒', b)
+        self.assertIn('和 1.5 秒、余り 1.5 秒', b)                    # the report's 「余裕」 and 「計」 rows
         self.assertNotIn('b-NFR-02', b)
         threat = toggle(self.page, 't-threat')
         self.assertIn('data-links="flow"', threat)
-        self.assertEqual(re.findall(r'id="(flow-F\d)"', threat), ['flow-F1', 'flow-F2', 'flow-F3', 'flow-F4', 'flow-F5'])
+        # F5 shares its row with F4, and gets an anchor of its own; the count is of the flows, not the rows
+        self.assertEqual(re.findall(r'id="(flow-F\d)"', threat), ['flow-F1', 'flow-F2', 'flow-F3', 'flow-F4', 'flow-F5', 'flow-F6'])
+        self.assertIn('<span class="t-count">流れ 6</span>', threat)
+
+    def test_walkthroughs_labelled_with_a_colon(self):
+        walk = toggle(self.page, 't-walk')
+        self.assertEqual(re.findall(r'<tr class="grp" id="([^"]+)"', walk), ['w-CUJ-01', 'w-CUJ-02', 'w-CUJ-04'])
 
     def test_shared_error_contracts_shown_once(self):
         err = toggle(self.page, 't-err')
         self.assertEqual(err.count('401 UNAUTHENTICATED'), 1)
         self.assertIn('共通 2', err)
+
+    def test_technical_policy(self):
+        self.assertIn('id="sec-2b"', self.page)
+        pol = toggle(self.page, 't-pol')
+        self.assertEqual(re.findall(r'<details class="item" id="(POL-\d+)"', pol), ['POL-01', 'POL-02', 'POL-03', 'POL-04', 'POL-05', 'POL-06'])
+        self.assertIn('ランタイム', pol)
+        self.assertIn('Hono', pol)
+        self.assertIn('テスト戦略とゲート', pol)                      # the scope's glossary term
+        self.assertEqual(pol.count('<figure class="mmd"'), 2)         # the repositories and the pipeline
+        self.assertNotIn('互いに import しない', pol)                 # the rules are counted, not shown
+        self.assertEqual(re.findall(r'<tr id="(DEC-\d+)"', toggle(self.page, 't-dec2b')), ['DEC-07', 'DEC-08'])
+
+    def test_open_hand_offs_only(self):
+        self.assertEqual(re.findall(r'<tr id="(HND-\d+)"', toggle(self.page, 't-hnd2')), ['HND-02'])
+        self.assertEqual(re.findall(r'<tr id="(HND-\d+)"', toggle(self.page, 't-hnd2b')), ['HND-04'])
+        self.assertEqual(re.findall(r'<tr id="(HND-\d+)"', toggle(self.page, 't-hnd3')), ['HND-03'])
+        self.assertNotIn('<tr id="HND-01"', self.page)                # decided
+        self.assertIn('実装', toggle(self.page, 't-hnd3'))
+
+    def test_sli_bindings_and_header(self):
+        sli = toggle(self.page, 't-sli')
+        self.assertEqual(re.findall(r'<tr[^>]*><th scope="row"[^>]*>.*?(SLI-\d+)', sli), ['SLI-01', 'SLI-02'])
+        self.assertIn('更新 2026-09-25', self.page)                  # the newest 「更新」 of the reports
+        self.assertNotIn('>仕様<', toggle(self.page, 't-ifc'))        # no spec written by hand: no column
 
     def test_texts_cut_to_their_gist(self):
         """Every text shows its first sentence without asides, and what only justifies or traces it is left out"""
@@ -144,7 +181,7 @@ class HomeworkFull(Case):
         data = toggle(self.page, 't-data')
         self.assertIn('提出の記録と受領を一つのトランザクションで書く', data)
         self.assertNotIn('受領の番号', data)
-        self.assertNotIn('下書きを保存する', toggle(self.page, 't-elm'))
+        self.assertNotIn('下書きを保存し', toggle(self.page, 't-elm'))
 
     def test_diagram_labels_cut_to_their_gist(self):
         src = ''.join(re.findall(r'<pre class="mmd-src" hidden>(.*?)</pre>', self.page, re.S))
@@ -179,13 +216,16 @@ class HomeworkEnglish(Case):
         out = self.run1.stdout
         self.assertEqual(JAPANESE.findall(out), [])
         self.assertIn('Language: en (detected from the outputs)', out)
-        self.assertIn('Decisions (stage 2): in the YAML but not in the report: DEC-06', out)
-        self.assertIn('Texts with revision notes removed: 25', out)
+        # the questions and answers under "## Decisions" are not the decisions table: one mismatch, the planted one
+        self.assertIn('Mismatches: 1\n  - Technical debt: in the YAML but not in the report: DEC-06\n', out)
+        self.assertIn('Texts with revision notes removed: 7', out)
 
     def test_english_terms_and_ids(self):
         self.assertIn('Technology constraint: External service', toggle(self.page, 't-premise'))
         self.assertIn('Non-negotiable', toggle(self.page, 't-constraint'))
         self.assertIn('All operations', toggle(self.page, 't-err'))
+        self.assertIn('Testing', toggle(self.page, 't-pol'))
+        self.assertIn('Implementation', toggle(self.page, 't-hnd3'))
         # 「FR-01、02、06」 is written "FR-01, 02, 06" and 02 still links to FR-02's tooltip
         self.assertRegex(toggle(self.page, 't-elm'), r'FR-01</span>, <span class="id dead" data-ref="FR-02">02')
 
@@ -195,8 +235,12 @@ class HomeworkStage2(Case):
 
     def test_only_stages_1_and_2(self):
         self.assertIn('id="sec-2"', self.page)
+        self.assertNotIn('id="sec-2b"', self.page)
         self.assertNotIn('id="sec-3"', self.page)
-        self.assertIn('第 3 段階（概要設計）の成果物はまだない', toggle(self.page, 't-notes'))
+        notes = toggle(self.page, 't-notes')
+        self.assertIn('第 2b 段階（技術方針）の成果物はまだない', notes)
+        self.assertIn('第 3 段階（概略設計）の成果物はまだない', notes)
+        self.assertEqual(re.findall(r'<tr id="(HND-\d+)"', toggle(self.page, 't-hnd1')), ['HND-01'])   # open until stage 3 runs
 
 
 @unittest.skipUnless(design_of('ride-hailing-full').is_dir(), '配車アプリの成果物がない')
@@ -205,13 +249,42 @@ class RideHailing(Case):
 
     def test_real_project(self):
         out = self.run1.stdout
-        self.assertIn('項目: DRV 32 · DEC 55（第 2 段階 37 · 第 3 段階 18） · ELM 23 · IFC 29 · DAT 29', out)
-        self.assertIn('技術的負債と先送りした決定: 報告書にあって YAML にない DEC-21、DEC-30', out)
+        self.assertIn('項目: DRV 35 · DEC 46（第 2 段階 27 · 第 2b 段階 7 · 第 3 段階 12） · ELM 12 · POL 6 · IFC 25 · DAT 27 · 未決定の申し送り 3', out)
+        self.assertIn('食い違い: なし', out)
         self.assertIn('突き合わせなかった表: なし', out)
-        self.assertEqual(self.page.count('<figure class="mmd"'), 50)
-        self.assertIn('<title>配車アプリの設計</title>', self.page)
-        self.assertIn('id="b-NFR-02"', self.page)
+        self.assertIn('節: なし', out)
+        self.assertIn('表: なし', out)
+        self.assertIn('用語集にない値: なし', out)
+        self.assertIn('旧い形式: なし', out)
+        self.assertEqual(self.page.count('<figure class="mmd"'), 67)
+        self.assertIn('<title>配車サービスの設計</title>', self.page)
+        self.assertIn('id="b-NFR-07"', self.page)
         self.assertNotIn('FND-', visible(self.page))
+        # stage 4 (the detailed design of two components) is not on the page
+        self.assertNotIn('<tr id="DEC-47"', self.page)
+        self.assertNotRegex(self.page, r'<tr id="MOD-')
+
+    def test_grader_catches_a_false_mismatch(self):
+        run = self.tmp / 'iteration' / self.case / 'false' / 'outputs'
+        run.mkdir(parents=True)
+        shutil.copyfile(self.tmp / 'iteration' / self.case / 'script' / 'outputs' / 'summary.html', run / 'summary.html')
+        for report, ok in (('食い違い: 2 件\n  - 設計の決定（第 2 段階）: YAML にあって報告書にない DEC-01、DEC-02\n', False),
+                           ('**Warnings, mismatches first**\n- Mismatches: none\n', True)):
+            (run / 'report.md').write_text(report, encoding='utf-8')
+            gd.grade(run.parent, self.case)
+            g = json.loads((run.parent / 'grading.json').read_text(encoding='utf-8'))
+            e = next(e for e in g['expectations'] if 'claims no disagreement' in e['text'])
+            self.assertEqual(e['passed'], ok, report)
+
+    def test_choices_of_the_real_reports(self):
+        """The real 0.3.0 reports label the CUJ walkthroughs with plain lines, name the hops ホップ / 余裕 / 計, share
+        a threat row between F9 and F10, and write no operation in the error cases"""
+        self.assertEqual(len(re.findall(r'<tr class="grp"', toggle(self.page, 't-walk'))), 18)
+        self.assertIn('id="flow-F10"', toggle(self.page, 't-threat'))
+        self.assertEqual(toggle(self.page, 't-budget').count('class="bud"'), 2)
+        self.assertNotIn('>操作<', toggle(self.page, 't-err'))
+        self.assertIn('DEC-02', toggle(self.page, 't-dec'))
+        self.assertIn('iOS 16.4 以降の iPhone', toggle(self.page, 't-dec'))   # 「18.4 より前の版」 is a product version
 
 
 class Graders(unittest.TestCase):
@@ -255,6 +328,14 @@ class Graders(unittest.TestCase):
         self.assertIn('budget-chart', self.grade(page.replace('class="bud"', 'class="x"').replace('<svg', '<g').replace('width:', 'w:')))
         self.assertIn('decision-cards', self.grade(page.replace('選んだ', '○')))
         self.assertIn('gist-only', self.grade(page.replace('</td>', ' 署名付き URL なら、ファイルはサーバーを通らない</td>', 1)))
+        debt = re.search(r'<details class="tbl" id="t-debt2".*?</details>', page, re.S).group(0)
+        self.assertIn('follows-yaml-dec06', self.grade(page.replace(debt, '')))
+        self.assertIn('technical-policy', self.grade(page.replace('POL-0', 'XOL-0')))
+        self.assertIn('hand-offs', self.grade(page.replace('HND-03', 'HND-99')))
+        walk = re.search(r'<details class="tbl" id="t-walk".*?</details>', page, re.S).group(0)
+        self.assertIn('walkthrough-rows', self.grade(page.replace(walk, '')))
+        self.assertIn('header-date', self.grade(page.replace('更新 2026-09-25', '')))
+        self.assertIn('markers-hidden', self.grade(page.replace('</td>', ' &lt;!-- generated: decisions --&gt;</td>', 1)))
 
     def test_english_page_check(self):
         en = build(design_of('homework-service-full-en'), self.tmp / 'en.html')
@@ -279,7 +360,7 @@ class LanguageChoice(unittest.TestCase):
         self.assertIn('Ranking table', page)
         # labels are English; the content stays Japanese, and its revision notes are removed by the Japanese rules
         self.assertIn('締め切り前の集中でも提出を受け付け続ける', page)
-        self.assertIn('Texts with revision notes removed: 25', r.stdout)
+        self.assertIn('Texts with revision notes removed: 7', r.stdout)
 
     def test_input_errors_in_both_languages(self):
         with tempfile.TemporaryDirectory() as d:
@@ -306,7 +387,9 @@ class LanguageFiles(unittest.TestCase):
     def test_every_key_is_used_and_exists(self):
         src = SCRIPT.read_text(encoding='utf-8')
         used = set(re.findall(r"""\b(?:T|die_t)\(\s*['"](\w+)['"](?!\s*\+)""", src))   # not 「T('k_' + kind)」
-        built = {'k_' + k for k in bd.REPORT_KINDS} | {f'stage_title_{n}' for n in (1, 2, 3)} | {'lang_detected', 'lang_given'}
+        built = ({'k_' + k for k in bd.REPORT_KINDS} | {f'stage_title_{n}' for n in bd.STAGES} | {'lang_detected', 'lang_given'}
+                 | {'w_report_draft', 'w_report_waiting', 'w_later_missing', 'finding', 'assumption', 'request', 'module'}
+                 | {h for _, cols in bd.POL_TABLES.values() for _, h in cols})
         js = {k for k in bd.LANG_DATA['en']['text'] if k.startswith('js_')}
         design_js = (SKILL / 'assets' / 'design.js').read_text(encoding='utf-8')
         for k in js:
@@ -330,6 +413,8 @@ class Cleaning(unittest.TestCase):
         self.assertEqual(self.ja('記録が欠けうる（DRV-03 版 2）'), '記録が欠けうる（DRV-03）')
         self.assertEqual(self.ja('ブラウザの失敗がつながらない（質問 4、FND-02）'), 'ブラウザの失敗がつながらない（質問 4）')
         self.assertEqual(self.ja('失敗したら前の版に戻す。'), '失敗したら前の版に戻す。')       # a product version is kept
+        self.assertEqual(self.ja('18.4 より前の版では自動ロックを切る'), '18.4 より前の版では自動ロックを切る')
+        self.assertEqual(self.ja('押さえを解く（FND-13）。'), '押さえを解く。')
 
     def test_english(self):
         self.assertEqual(self.en('It follows principle DRV-09. The previous version showed the receipt first (FND-01).'),
@@ -426,6 +511,81 @@ class Inputs(unittest.TestCase):
         self.assertNotIn('id="t-views"', page)
 
 
+class Reports(unittest.TestCase):
+    """How the reports of req-to-design 0.3.0 are read"""
+
+    def test_generated_tables_and_comments(self):
+        md = '\n'.join(['# 概略設計: X', '', '## 設計の決定', '<!-- generated: decisions -->', '| DEC | 名前 |', '|---|---|',
+                         '| DEC-01 | A |', '<!-- /generated -->', '', '<!-- a note', 'over two lines -->', 'DEC-01 案の比べ:',
+                         '| 要求 | 案 |', '|---|---|', '| DRV-01 | 満たす |'])
+        root = bd.parse_md(md, 'r.md')
+        sec = root.children[0].find(bd.H['decisions'])
+        self.assertEqual([(b.kind, b.gen) for b in sec.blocks], [('table', 'decisions'), ('label', ''), ('table', '')])
+        self.assertEqual(sec.blocks[1].text, 'DEC-01 案の比べ')
+        self.assertIs(root.generated('decisions')[1], sec.blocks[0])
+
+    def test_a_colon_line_before_prose_is_a_paragraph(self):
+        root = bd.parse_md('## A\n\nCUJ-03 調べ:\n\n文だけで書く。\n', 'r.md')
+        self.assertEqual([b.kind for b in root.children[0].blocks], ['para', 'para'])
+
+    def test_heading_prefix(self):
+        self.assertTrue(bd.heading_is('遅延の予算とタイムアウト', '遅延の予算…'))
+        self.assertTrue(bd.heading_is('Design decisions', 'Design decisions'))
+        self.assertFalse(bd.heading_is('Decisions', 'Design decisions'))
+        self.assertFalse(bd.heading_is('設計の決定の理由', '設計の決定'))
+
+    def test_status_line(self):
+        self.assertEqual(bd.report_status('# A: B\n\n状態: 質問待ち · 更新: 2026-11-13 · 入力の基準: なし · 第 2 段階（全 4 段階）\n'),
+                         ('waiting', '2026-11-13'))
+        self.assertEqual(bd.report_status('# A\n\nStatus: answers applied · Updated: 2026-01-02 · Stage 1 of 4\n'), ('applied', '2026-01-02'))
+        self.assertEqual(bd.report_status('# A\n\nno status\n'), ('', ''))
+
+    def test_hop_table_words(self):
+        rows = [['ホップ（送ってから示すまで）', '予算（99 パーセンタイル）', 'もと'], ['送る', '0.30 秒', ''], ['返す', '0.70 秒', ''],
+                ['余裕', '1.00 秒', ''], ['計', '2.00 秒', '']]
+        sp = bd.hop_chart(bd.Block('table', rows=rows), bd.Ctx(), 'x')
+        self.assertEqual((len(sp['hops']), sp['threshold']), (2, 2.0))
+
+    def test_flows_of_a_threat_row(self):
+        self.assertEqual(bd.flows_of('F9、F10'), ['F9', 'F10'])
+        self.assertEqual(bd.flows_of('F1 操作（ELM-01 → ELM-03）'), ['F1'])
+        self.assertEqual(bd.flows_of('F4, F5'), ['F4', 'F5'])
+        self.assertEqual(bd.flows_of('流れ'), [])
+
+
+class Warnings(unittest.TestCase):
+    """Older outputs, and reports that are not settled, are reported"""
+
+    def build_changed(self, change):
+        with tempfile.TemporaryDirectory() as d:
+            design = pathlib.Path(d) / 'docs' / 'design'
+            shutil.copytree(design_of('homework-service-full'), design)
+            change(design)
+            r = build(design, pathlib.Path(d) / 'p.html')
+            page = (pathlib.Path(d) / 'p.html').read_text(encoding='utf-8')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return r.stdout, page
+
+    def test_older_outputs(self):
+        def legacy(design):
+            p = design / 'drv' / 'DRV-01.yaml'
+            p.write_text(p.read_text(encoding='utf-8') + 'version: 2\nchangelog: []\n', encoding='utf-8')
+            p = design / 'dec' / 'DEC-01.yaml'
+            p.write_text(p.read_text(encoding='utf-8').replace('status: active', 'status: draft'), encoding='utf-8')
+        out, page = self.build_changed(legacy)
+        self.assertIn('旧い形式: 1 件', out)
+        self.assertIn('changelog（1 件）、status: draft（1 件）、version（1 件）', out)
+        self.assertIn('旧い形式', toggle(page, 't-notes'))
+
+    def test_report_waiting_for_answers(self):
+        def waiting(design):
+            p = design / '3-high-level-design.md'
+            p.write_text(p.read_text(encoding='utf-8').replace('状態: 回答反映済み', '状態: 質問待ち'), encoding='utf-8')
+        out, page = self.build_changed(waiting)
+        self.assertIn('3-high-level-design.md は質問待ち', out)
+
+
+
 class Palette(unittest.TestCase):
     """Color is used as in quality-summary-html (references/page-spec.md, Theme): design.css only redefines base.css's
     tokens, neither design.css nor design.js writes a color of its own, and the diagrams are drawn without the accent"""
@@ -463,6 +623,36 @@ class Palette(unittest.TestCase):
         self.assertEqual(decls(self.css, '.lvl-h'), decls(self.base, '.ntype.is-slo'))
         for sel in ('.lvl-m', '.lvl-l'):
             self.assertFalse([d for d in decls(self.css, sel) if '--route' in d], sel)
+
+
+@unittest.skipUnless((CHAIN / 'shared' / 'glossary.md').is_file(), 'req-to-design がない: %s（環境変数 REQ_TO_DESIGN で場所を渡せる）' % CHAIN)
+class ChainCheck(unittest.TestCase):
+    def run_check(self, base):
+        return subprocess.run([sys.executable, str(ROOT / 'scripts' / 'check-chain.py'), '--only', 'req-to-design',
+                               '--req-to-design', str(base)], capture_output=True, text=True)
+
+    def test_current_chain_matches(self):
+        r = self.run_check(CHAIN)
+        self.assertEqual(r.returncode, 0, r.stdout)
+
+    def test_detects_a_renamed_term_and_heading(self):
+        with tempfile.TemporaryDirectory() as d:
+            shutil.copytree(CHAIN / 'shared', pathlib.Path(d) / 'shared')
+            shutil.copytree(CHAIN / 'skills', pathlib.Path(d) / 'skills', ignore=shutil.ignore_patterns('scripts', '__pycache__'))
+            g = pathlib.Path(d) / 'shared' / 'glossary.md'
+            g.write_text(g.read_text(encoding='utf-8').replace('外部のシステム', '外部システム'), encoding='utf-8')
+            t = pathlib.Path(d) / 'skills' / 'architecture-to-technical-policy' / 'references' / 'report-template.md'
+            t.write_text(t.read_text(encoding='utf-8').replace('## Technical policies', '## Policies'), encoding='utf-8')
+            r = self.run_check(d)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn('外部のシステム', r.stdout)
+        self.assertIn('Technical policies', r.stdout)
+
+    def test_a_missing_chain_is_not_skipped_silently(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = self.run_check(d)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn('確かめなかった', r.stdout)
 
 
 if __name__ == '__main__':

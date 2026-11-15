@@ -1,43 +1,32 @@
 id: QIU-12
-title: ドライバーが時間あたりの受取額を高く保つ
-status: draft
-version: 2
+title: 乗客が着いてから手間をかけずに降りられる
+status: active
 basis: inferred
-basis_note: ニーズ（多く・高い依頼、手間を省く）は入力。測定量は推定。ブラウザが裏に回っていた時間を除くのは質問 15 の回答から推定
-needs_agreement: false
-approver_candidates: []
-user: USR-02
-cuj: CUJ-06
+basis_note: ニーズ（乗降の手間を省きたい）は入力。決済がシステムの中で行われることは質問 1 で確認済み（CON-01）。手間を時間で測ることと利用状況は推定。T_alighting の値（30 秒）は第 4 段階の決めたこと #15 で確認済み（QAS-46）
+premises: [CON-01, CON-05, QAS-46]
+user: USR-01
+cuj: CUJ-03
 outcomes: []
-need: できるだけ多く、高い依頼を受けたい。乗客を探したり交渉したりする手間を省きたい
+need: 乗降の手間を省きたい（正しい場所かの確認）
 context_of_use:
-  device: スマートフォンのブラウザ（Web アプリ）
-  network: 指定なし
-  user_type: 条件を設定していないドライバー
-  task: 受付可能にして依頼を受ける
-  environment: null
-  other: 地域と時間帯ごとに数える。受付中はブラウザを前面に開いたままにする（質問 15）
+  device: スマートフォン（対応する端末、CON-05）
+  network: 問わない
+  user_type: 登録した乗客
+  task: 目的地での降車
+  environment: 車内
+  other: null
 characteristic: efficiency
-statement: 条件を設定していないドライバーは、乗客を探したり交渉したりせずに、受付可能な時間あたりの受取額を高く保てる。
-failure_scenario: 近くで依頼が成立せず、遠い迎車や空車の時間が長くなり、ドライバーの時間あたりの稼ぎが下がる。
+statement: 乗車中の乗客は、降りる場所に着いたら、正しい場所かを手間をかけずに確かめ、短い時間で降りられる。
+failure_scenario: 着いてから正しい場所かを自分で確かめたり、決済が終わるのを待ったりして時間がかかり、乗客は降りるたびに手間を感じる。
 measure:
-  numerator: 完了した乗車でドライバーが受け取った額の合計（手数料を除く）
-  denominator: ドライバーが受付中で、ブラウザを前面に開いていた時間の合計
-  narrowed_to: 条件を設定していないドライバー、スマートフォンのブラウザ。地域と時間帯ごとに数える（需要の違いを比べないため）
-  denominator_needed_only: 受付中でブラウザを前面に開いていた時間だけ。休憩中、受付を止めていた時間、ブラウザが裏に回っていた時間は含めない（裏に回ると依頼を受け取れない制約を受け入れたため）
-  contribution: 料金の水準と需要の影響が大きい。製品の寄与（迎車の距離が短くなるマッチング）は、マッチングの仕組みを A/B で比べて切り分ける
+  numerator: 降りる場所に着いてから T_alighting（30 秒）以内に降車（到着の確認と決済）を終えた乗車
+  denominator: 完了した乗車
+  narrowed_to: スマートフォンで依頼した登録した乗客。試験用のアカウントを除く
+  denominator_needed_only: 完了した乗車だけを数える
+  contribution: 到着の確かめ方と決済の手順にプロダクトが直接効く
   observable: true
   compared_with: null
   scale: ratio
 kpi: null
 target: null
 target_status: undecided
-changelog:
-  - version: 1
-    date: 2026-10-28
-    change: 作成
-    reason: 第 1 段階の下書き（質問 1〜14 の回答を反映）
-  - version: 2
-    date: 2026-10-28
-    change: 分母を「受付中で、ブラウザを前面に開いていた時間」に変え、利用状況に前面に開いたままにする前提を加えた
-    reason: 質問 15 でブラウザが裏に回ると通知が止まる制約を受け入れたため。受け入れた制約による取りこぼしを、この QIU の失敗として数えない

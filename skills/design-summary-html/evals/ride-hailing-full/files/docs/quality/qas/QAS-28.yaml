@@ -1,0 +1,12 @@
+id: QAS-28
+title: 回復の訓練の頻度
+status: open
+stage: 4
+kind: decision
+statement: 止まってから再開する回復の訓練を、保存するデータの形を変えるリリースのたびと、各デモの前に行う。
+why_unsure: 入力に訓練の頻度はない。デモは全体で 1〜2 回（OPF-01）のため、決まった間隔ではなくデモの前ごとにした。
+breadth: low
+severity: low
+rating_note: NFR-16 だけが依存する。最低限守る線の訓練で、変えるのは容易
+answer: null
+answered_in: null

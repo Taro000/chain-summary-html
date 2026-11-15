@@ -1,22 +1,15 @@
 id: FND-01
 title: 受領を記録より先に示している
 status: accepted
-version: 1
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 raised_by: design-review
-raised_in: reviews/2026-09-20-architecture.md
+raised_in: reviews/2-architecture.md
 to: architecture-drivers-to-architecture
 targets:
 - DEC-03
 severity: major
 evidence: 受領の後に記録が欠けうる
 suggestion: 記録を書いてから受領を返す
-resolution: DEC-03 を直した
-changelog:
-- version: 1
-  date: '2026-09-20'
-  change: 作成
-  reason: 第 2 段階のレビュー
+resolution: 受け入れ。DEC-03 を直した

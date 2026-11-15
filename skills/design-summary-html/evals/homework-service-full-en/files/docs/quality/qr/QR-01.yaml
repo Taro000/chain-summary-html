@@ -1,11 +1,9 @@
 id: QR-01
 title: Submission availability
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: true
-approver_candidates: [Product owner]
+premises: [OPF-01]
 model: product
 layer: external
 characteristic: reliability > availability
@@ -22,5 +20,3 @@ implies_internal: [QR-05]
 conflicts: []
 stated_numbers: []
 placeholders: []
-changelog:
-- {version: 1, date: '2026-09-08', change: Created, reason: Stage 3 draft}

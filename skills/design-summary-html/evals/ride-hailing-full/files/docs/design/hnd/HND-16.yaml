@@ -1,0 +1,14 @@
+id: HND-16
+title: ELM-03 が提供する HTTP と流れのインタフェースのスキーマ
+status: open
+basis: inferred
+basis_note: POL-05 の一つ目の項（ELM-03 が提供する HTTP の操作と流れの出来事の仕様書は、@hono/zod-openapi の経路の定義から OpenAPI 3.1 の文書を生成する）に従い、第 3 段階は仕様書を書かず、スキーマを実装に送る。日々の呼び出しの入口と生存確認の入口も同じ項に入る
+premises: []
+from: architecture-to-high-level-design
+to: implementation
+component: ELM-03
+origin: [IFC-01, IFC-02, IFC-03, IFC-04, IFC-05, IFC-06, IFC-07, IFC-08, IFC-09, IFC-10, IFC-11, IFC-12, IFC-13, IFC-14, IFC-15, IFC-16]
+what: ELM-03 が提供する HTTP の操作の要求と応答と、流れの出来事の中身のスキーマ（項目、型、必須か、上限）。日々の呼び出しの入口（IFC-15）と生存確認（IFC-16）を含む
+bounds: 各 IFC の操作、誤りとその符号、冪等性、結果が分からないときの答え（IFC-01〜IFC-16）、共通の約束事（DEC-35〜DEC-45）、仕様書の作り方（POL-05 の一つ目の項）、コードの中の約束事（POL-04）
+trigger: ELM-03 の各インタフェースの経路を実装するとき
+resolution: null

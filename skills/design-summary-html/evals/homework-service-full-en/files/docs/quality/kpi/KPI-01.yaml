@@ -1,18 +1,15 @@
 id: KPI-01
 title: Submission completion rate
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 outcome: OUT-01
 numerator: Homework submissions completed
 denominator: Homework submissions started
 counted_over: All students and devices
+observable: true
 overlaps_with: [QIU-01]
 overlap_note: null
 target: null
 target_status: undecided
-changelog:
-- {version: 1, date: '2026-09-01', change: Created, reason: Stage 1 draft}

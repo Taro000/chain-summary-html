@@ -1,34 +1,22 @@
 id: QR-13
-title: 走行中の操作の制限の正しさ
-status: draft
-version: 1
+title: 確定額、評価、依頼の状態は、許された操作のほかでは変わらない
+status: active
 basis: inferred
-basis_note: 失敗のシナリオと点は推定。影響を下げることは質問 10、扱いは質問 14 で確認済み
-needs_agreement: true
-approver_candidates: [プロダクトオーナー, 安全の責任者]
+basis_note: 失敗のシナリオと点は推定。誰がどの機能を使えるかの区別は FR-49（FRP-02 を第 2 段階が受け入れたもの）
+premises: [CON-01]
 model: product
 layer: external
-characteristic: functional suitability > functional correctness
-statement: システムは、ドライバーの速度が V_moving 以上のあいだ依頼を選ぶ操作と許諾の操作を受け付けず、位置の揺れで停車中の操作を止めない。
-applies_to: [FR-21]
-traces_to: [QIU-14]
+characteristic: security > integrity
+statement: 確定額、ドライバーの評価、依頼の状態は、それを決める機能を使うことを許された人の操作によってだけ変わり、乗客やドライバーが端末からシステムへ送る値を書き換えても変わらない。
+applies_to: [FR-04, FR-05, FR-15, FR-21, FR-29, FR-47, FR-49]
+traces_to: [QIU-04, QIU-06, QIU-14]
 entry_point: null
-stakeholders: [USR-02]
-failure_scenario: 位置の揺れで速度を低く求めて走行中の操作を受け付ける、または停車中に高く求めて操作を止める。
-score: {impact: 3, likelihood: 3}
+stakeholders: [USR-01, USR-02]
+failure_scenario: ドライバーが端末から送る値を書き換えて確定額より高い額で決済させる、または自分の評価を上げ、閾値を設定した乗客の依頼を受け取る。
+score: {impact: 4, likelihood: 2}
 handling: minimum-line
-handling_reason: 運送は模擬で、参加者は運賃を取る運転をしない（質問 1・10）ため影響を下げ、CUJ-06 の上位 4 件から外れた（質問 14）
-implies_internal: [QR-43]
-conflicts:
-  - with: FR-21
-    note: FR-21 は速度を求められないとき操作を受け付ける（第 2 段階の質問 10 で確認済み）。第 2 段階の決定として受け入れ、第 4 段階で速度が分からなかった操作の割合を見る
+handling_reason: null
+implies_internal: []
+conflicts: []
 stated_numbers: []
-placeholders:
-  - name: V_moving
-    meaning: 時速何 km 以上を走行中とするか
-    from: QIU-14
-changelog:
-  - version: 1
-    date: 2026-10-30
-    change: 作成
-    reason: 第 3 段階の下書き（質問 1〜14 の回答を反映）
+placeholders: []

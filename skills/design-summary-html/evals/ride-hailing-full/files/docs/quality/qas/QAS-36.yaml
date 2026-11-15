@@ -1,0 +1,12 @@
+id: QAS-36
+title: 評価の反映の速さのしきい値と最初の目標値
+status: open
+stage: 4
+kind: decision
+statement: T_rating_reflect を 1 時間とし、評価の 99% を受けてから 1 時間以内にマッチに使う評価に反映することを最初の目標値とする。
+why_unsure: 入力に数値も基準となる値もない。1 時間は、評価が付いてから次の依頼が届くまでに反映されていれば足りるとして置いた最初の値。
+breadth: medium
+severity: low
+rating_note: QR-16、SLI-13、NFR-34 が依存する。最初のデモの値から見直すもので、変えるのは容易
+answer: null
+answered_in: null

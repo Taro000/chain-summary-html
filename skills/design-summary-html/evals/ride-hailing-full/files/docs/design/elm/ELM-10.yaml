@@ -1,43 +1,17 @@
 id: ELM-10
-title: Stripe（テスト環境）
-status: draft
-version: 3
+title: ローカルの実行環境（開発者のマシン）
+status: active
 basis: inferred
-basis_note: 提案
-needs_agreement: false
-approver_candidates: []
-kind: external-system
-name: Stripe（テスト環境）
-responsibility: カードの入力部品、顧客と支払い手段、押さえと確定と取り消し、返金、一覧の取り出しを行うと想定する。システムが送る個人の情報は内部の ID だけ（DEC-10）。デモと CI のサンドボックスは、システムを終えるときに消す（DEC-36）。約束（SLA、上限）は入力にない
+basis_note: 作ること、試すこと、動かすことをローカルだけで完結させ、同じコードを Turso と Cloud Run の代わりのもので動かすことは TC-09（入力）。置き方は DEC-05 による
+premises: [TC-09]
+kind: node
+name: ローカルの実行環境（開発者のマシン）
+responsibility: 実際に ELM-03 と、ELM-04 の代わりの libSQL のデータベースを動かす。参加者の iPhone は同じネットワークから HTTPS で、または同じマシンの iOS のシミュレーターから使う。インターネットには公開しない
 functions: []
-drivers:
-- DRV-04
-- DRV-11
-- DRV-22
-- DRV-30
-decisions:
-- DEC-10
-- DEC-11
-- DEC-12
-- DEC-13
-- DEC-25
-- DEC-34
-- DEC-36
-team: null
-technology: Stripe のテスト環境（TC-10）
+drivers: [DRV-15, DRV-16]
+decisions: [DEC-05]
+team: TEAM-01
+technology: 開発者のコンピューター（ELM-03 のコンテナか Node.js と、libSQL のデータベース）
 runs_on: null
 depends_on: []
 as_is: new
-changelog:
-- version: 1
-  date: '2026-11-03'
-  change: 作成
-  reason: 第 2 段階の下書き（質問 1〜12 の回答を反映）
-- version: 2
-  date: '2026-11-03'
-  change: CI のサンドボックス（DEC-25）と制限付きの鍵（DEC-34）を形づくる決定に加えた
-  reason: FND-09、13（第 2 段階のレビュー）を受け入れた
-- version: 3
-  date: '2026-11-03'
-  change: 責務に、送るのは内部の ID だけであることと、システムを終えるときにサンドボックスを消すことを書き、DEC-36 を加えた
-  reason: FND-26 を受け入れた（第 2 段階の再実行、3 回目）

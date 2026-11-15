@@ -1,11 +1,9 @@
 id: IFC-02
 title: 採点の API
-status: draft
-version: 1
+status: active
 basis: inferred
 basis_note: null
-needs_agreement: false
-approver_candidates: []
+premises: []
 kind: http
 name: 採点の API
 provider: ELM-03
@@ -37,17 +35,13 @@ errors:
 - case: '共通: 要求の形が違う'
   signal: 400 INVALID_REQUEST
   caller_does: 欄を直す
-idempotency: 状態を変える要求は Idempotency-Key（DEC-08）
+idempotency: 状態を変える要求は Idempotency-Key（DEC-10）
 timing:
   timeout: ブラウザ 10 秒
   ordering: null
   delivery: null
 versioning: 経路に v1
 observability: トレース ID をログに書く
-spec: ifc/specs/teacher.openapi.yaml
+sli_bindings: []
+spec: null
 as_is: new
-changelog:
-- version: 1
-  date: '2026-09-22'
-  change: 作成
-  reason: 第 3 段階の下書き
