@@ -78,7 +78,7 @@ A stage is on the page when its items (stage 1: `drv/`; stage 2: `elm/` or archi
 | 脅威のモデル / Threat model | report: the first Mermaid diagram and the table | the flow numbers on the diagram's arrows (F1…) link to the table's rows, which get the ids `flow-F1`…; a row that covers several flows (「F9、F10」) gets an anchor for each; pointing at one highlights the arrows that carry it |
 | 通し確認（CUJ） / Walkthroughs (CUJs) | report: one table per CUJ, under its label (a line in bold, or a one-line paragraph of at most 80 characters that ends in a colon, 「CUJ-01 配車手配（USR-01）:」) or its own heading | all merged into one table with a header row per CUJ; a CUJ written as prose is left out and listed |
 | 通し確認（設計を動かす要求） / Walkthroughs (primary drivers) | report tables | both tables, if there are two |
-| 費用と体制 / Cost and team | report: the first table of cost and team | |
+| 費用と体制 / Cost and team | report: the first table of cost and team (a Japanese report may title it 「運用費と体制」) | |
 | 設計上の値 / Design parameters | YAML `parameters` of the stage's decisions | parameter, value, decision; the basis of the value is left out |
 | 技術的負債 / Technical debt | YAML `debt` (what, why_accepted, repay_when) | the report's debt table, written by hand, also lists deferrals (hand-offs); only its DEC rows are compared |
 | 申し送り / Hand-offs | YAML `hnd/` | see Hand-offs |
@@ -131,6 +131,7 @@ Japanese:
 - A sentence (split at 「。」 outside brackets) is dropped when it contains 前回, 前々回, 「N 回目の再実行」, 再実行, 「課題 N は決着」, 「版 N」 not attached to an ID, an FND number used in a sentence, or 「前の版」 meaning a document revision (followed by は, （, 。, ）, では, が挙, の欠け, の誤り, の負債, or the end). 「前の版に戻す」「前の版の動き」「一つ前の版」「本番は前の版のまま」「戻せる前の版がない」「18.4 より前の版では」「それ以前の版」 mean product versions and are kept. Outputs of 0.3.0 keep the current state only, so what remains to remove is mostly a finding number in a bracket (「（FND-01 を受けて）」).
 - Inside brackets the same rule applies per sentence; a bracket left with only process references (課題, 質問, 回答の設計) after a removal goes too, and an empty bracket disappears.
 - 「XX-NN 版 N」 becomes 「XX-NN」. An FND number that is one item of a list (「質問 11・14、FND-27」「（FND-02）」) is removed alone.
+- A finding cited as the source of what a sentence states, at its start (「FND-12 のとおり、…」「FND-12 と FND-14 のとおり、…」), is removed alone, and the statement stays. 「FND-01 を受けて、…改めた」 narrates a revision, so its sentence is dropped. The English rules have no such exception yet: no English output has shown the wording.
 
 English (the same kinds of note; wordings that can also describe the product are kept, such as a job that is re-run or an image rolled back to the previous version):
 
@@ -155,7 +156,7 @@ Design IDs (DRV, DEC, ELM, POL, IFC, DAT, the open HNDs on the page, TC, PC, TEA
 
 ## Latency budget charts
 
-A hop table (first column starting 区間, ホップ or Hop, second column starting 予算 / Budget, values in 秒, s, ms, 分 or min, a margin row 余り, 余裕 or Margin and a total row 合計, 計 or Total: the reports translate these words themselves) becomes a horizontal stacked bar: one segment per hop in the accent (`--route`), a light track up to the threshold (the margin, `--rule-soft`), and a line at the threshold (the total, or the hops plus the margin). Values of ten minutes or more are shown in minutes. Labels inside segments are hidden when they do not fit; every value is in the tooltip and in the 「数値の表」 / "Values" toggle under each chart. The kinds of hop (own processing, external services, waits) are not in the table, so the chart does not color them.
+A hop table (first column starting 区間, ホップ or Hop, second column starting 予算 / Budget, values in 秒, s, ms, 分 or min, a margin row 余り, 余裕 or Margin and a total row 合計, 計 or Total, in any case: the reports translate these words themselves, and a Japanese report may keep Hop as 「hop」) becomes a horizontal stacked bar: one segment per hop in the accent (`--route`), a light track up to the threshold (the margin, `--rule-soft`), and a line at the threshold (the total, or the hops plus the margin). Values of ten minutes or more are shown in minutes. Labels inside segments are hidden when they do not fit; every value is in the tooltip and in the 「数値の表」 / "Values" toggle under each chart. The kinds of hop (own processing, external services, waits) are not in the table, so the chart does not color them.
 
 ## Theme
 

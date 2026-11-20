@@ -415,6 +415,11 @@ class Cleaning(unittest.TestCase):
         self.assertEqual(self.ja('失敗したら前の版に戻す。'), '失敗したら前の版に戻す。')       # a product version is kept
         self.assertEqual(self.ja('18.4 より前の版では自動ロックを切る'), '18.4 より前の版では自動ロックを切る')
         self.assertEqual(self.ja('押さえを解く（FND-13）。'), '押さえを解く。')
+        # a finding cited as the source of what the sentence states loses only the citation; a revision still goes
+        self.assertEqual(self.ja('FND-12 と FND-14 のとおり、採点を待たずに受領を返す'), '採点を待たずに受領を返す')
+        self.assertEqual(self.ja('提出を保存する。FND-12 のとおり、通知は後に送る。'), '提出を保存する。通知は後に送る。')
+        self.assertEqual(self.ja('鍵を分ける（FND-12 のとおり、クラスごとに）'), '鍵を分ける（クラスごとに）')
+        self.assertEqual(self.ja('FND-01 を受けて、受領を先に示す案から改めた。'), '')
 
     def test_english(self):
         self.assertEqual(self.en('It follows principle DRV-09. The previous version showed the receipt first (FND-01).'),
@@ -534,6 +539,12 @@ class Reports(unittest.TestCase):
         self.assertFalse(bd.heading_is('Decisions', 'Design decisions'))
         self.assertFalse(bd.heading_is('設計の決定の理由', '設計の決定'))
 
+    def test_cost_heading(self):
+        # the glossary does not fix the Japanese of "Cost and team", and reports translate it either way
+        for title in ('費用と体制', '運用費と体制', 'Cost and team'):
+            root = bd.parse_md(f'# アーキテクチャ: X\n\n## {title}\n\n| 項目 | 月 |\n|---|---|\n| サーバー | 20 ドル |\n', 'r.md')
+            self.assertIsNotNone(root.children[0].find(bd.H['cost']), title)
+
     def test_status_line(self):
         self.assertEqual(bd.report_status('# A: B\n\n状態: 質問待ち · 更新: 2026-11-13 · 入力の基準: なし · 第 2 段階（全 4 段階）\n'),
                          ('waiting', '2026-11-13'))
@@ -545,6 +556,14 @@ class Reports(unittest.TestCase):
                 ['余裕', '1.00 秒', ''], ['計', '2.00 秒', '']]
         sp = bd.hop_chart(bd.Block('table', rows=rows), bd.Ctx(), 'x')
         self.assertEqual((len(sp['hops']), sp['threshold']), (2, 2.0))
+        # the words are matched whatever their case: a Japanese report may keep the template's Hop as 「hop」
+        rows = [['hop', '予算（95 パーセンタイル）', '根拠'], ['送る', '0.25 秒', ''], ['返す', '0.50 秒', ''],
+                ['余裕', '0.25 秒', ''], ['合計', '1.00 秒', '']]
+        sp = bd.hop_chart(bd.Block('table', rows=rows), bd.Ctx(), 'x')
+        self.assertEqual((len(sp['hops']), sp['threshold']), (2, 1.0))
+        rows = [['hop', 'budget (p99)', 'basis'], ['send', '0.25 s', ''], ['margin', '0.25 s', ''], ['total', '0.50 s', '']]
+        sp = bd.hop_chart(bd.Block('table', rows=rows), bd.Ctx(), 'x')
+        self.assertEqual((len(sp['hops']), sp['threshold']), (1, 0.5))
 
     def test_flows_of_a_threat_row(self):
         self.assertEqual(bd.flows_of('F9、F10'), ['F9', 'F10'])

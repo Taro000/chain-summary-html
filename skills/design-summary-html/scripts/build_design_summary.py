@@ -65,7 +65,7 @@ H = {
     'walk_cuj': ('CUJ', 'CUJs'),
     'walk_drv': ('主な設計を動かす要求', 'Primary drivers'),
     'debt': ('技術的負債と先送り', 'Debt and deferrals', '技術的負債…'),
-    'cost': ('費用と体制', 'Cost and team'),
+    'cost': ('費用と体制', 'Cost and team', '運用費と体制'),
     'policies': ('技術方針', 'Technical policies'),
     'repos': ('リポジトリとディレクトリ', 'Repositories and directories'),
     'pipeline': ('パイプライン', 'Pipeline'),
@@ -392,6 +392,9 @@ VER_ID_RE = re.compile(r'(\b[A-Z]{2,4}-\d{2}(?:〜\d{2})?)(?:\s*の)?\s*版\s*\d
 # A finding number that is one item of a list loses only the number, not its sentence (「質問 11・14、FND-27」「（FND-02）」)
 _FND = r'FND-\d+(?:[・、]\s*(?:FND-)?\d+)*'
 FND_LIST_RES = [
+    # A finding cited as the source of what the sentence states loses only the citation (「FND-12 と FND-14 のとおり、採点を
+    # 待たずに受領を返す」). 「FND-01 を受けて、…改めた」 narrates a revision, so its sentence still goes
+    re.compile(r'(?:^|(?<=[（。]))\s*FND-\d+(?:\s*(?:[・、]|と)\s*(?:FND-)?\d+)*\s*のとおり、\s*'),
     re.compile(r'[、・]\s*' + _FND + r'(?=\s*(?:[、。）」]|$))'),
     re.compile(r'(?<=[（。])\s*' + _FND + r'\s*[、・]\s*'),
     re.compile(r'(?<=[（。])\s*' + _FND + r'(?=\s*(?:[。）」]|$))'),
@@ -1203,7 +1206,9 @@ def hop_chart(table: Block, ctx: Ctx, where: str) -> dict | None:
     data: the hops, the margin (余り / 余裕 / Margin) and the threshold (the total: 合計 / 計 / Total). Returns None when
     the table has another shape or a value without a time unit."""
     head = table.rows[0]
-    if len(head) < 2 or not head[0].strip().startswith(HOP_HEAD) or not head[1].strip().startswith(BUDGET_HEAD):
+    # the words are matched whatever their case: a Japanese report may keep the template's Hop as 「hop」
+    if len(head) < 2 or not head[0].strip().lower().startswith(tuple(w.lower() for w in HOP_HEAD)) \
+            or not head[1].strip().lower().startswith(tuple(w.lower() for w in BUDGET_HEAD)):
         return None
     hops, margin, total = [], None, None
     for r in table.rows[1:]:
@@ -1215,9 +1220,9 @@ def hop_chart(table: Block, ctx: Ctx, where: str) -> dict | None:
             return None
         v = float(m.group(1)) * TO_SECONDS[m.group(2)]
         basis = gist(clean_text(r[2])[0]) if len(r) > 2 else ''
-        if name in ROW_MARGIN:
+        if name.lower() in (w.lower() for w in ROW_MARGIN):
             margin = v
-        elif name in ROW_TOTAL:
+        elif name.lower() in (w.lower() for w in ROW_TOTAL):
             total = v
         else:
             hops.append({'name': name, 'v': v, 'note': basis})
